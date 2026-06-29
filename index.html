@@ -66,7 +66,7 @@
   .side .brand small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--muted);margin-top:-2px}
   .navgrp{margin-top:16px}
   .navgrp .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:6px 10px}
-  .nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:#cfcfcf;font-size:13px}
+  .nav{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:8px;cursor:pointer;color:#cfcfcf;font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase}
   .nav:hover{background:rgba(255,255,255,0.05)}
   .nav.on{background:var(--redline-glass);color:#fff;box-shadow:inset 0 0 0 1px var(--redline-edge)}
   .nav .ic{width:18px;text-align:center;opacity:.85}
@@ -1026,7 +1026,7 @@
    REDLN. Operations Console — self-contained admin (demo)
    Data persists to localStorage. Behaves like a backend.
    ============================================================ */
-const KEY='redln_ops_v3';
+const KEY='redln_ops_v4';
 let DB=null, SESSION=null, ROUTE='dashboard', EVENT_TAB='settings', VOL_TAB='list';
 
 /* ---------- utilities ---------- */
@@ -1036,6 +1036,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const money=n=>'AED '+Number(n||0).toLocaleString();
 const vatRate=()=>1+(((DB&&DB.settings&&DB.settings.vatPct)||0)/100);
 const teamPrice=t=>{const e=byId(DB.events,t.eventId);const c=e&&e.categories.find(c=>c.key===t.category);return c?c.price:0;};
+const teamTotal=t=>Math.round(teamPrice(t)*vatRate());
 const byId=(arr,id)=>arr.find(x=>x.id===id);
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1900);}
 function secToClock(s){if(s==null||s==='')return '';s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
@@ -1067,24 +1068,33 @@ function seed(){
   const FN=['Mia Chen','Lena Ortiz','Hana Said','Dana Carter','Sara Idris','Nora Haddad','Zara Khan','Maya Lopez','Aisha Rahman','Tess Moran','Ivy Park','Lucia Romano','Layla Nasser','Elsa Berg','Priya Nair','Dina Saleh','Clara West','Yara Fadel','Nina Volkov','Reem Adel'];
   const eml=x=>x.toLowerCase().replace(/[^a-z]+/g,'.')+'@email.com';
   const mob=k=>'+971 50 '+String(100+(k*7)%900).padStart(3,'0')+' '+String(1000+(k*131)%9000).padStart(4,'0');
+  const dobs=['1992-03-14','1994-08-02','1990-11-21','1996-05-30','1993-09-12','1995-01-25','1991-07-08','1997-04-18','1989-12-03','1998-02-19'];
+  const mkMem=(nm,g,k,st)=>({name:nm,gender:g,email:eml(nm),mobile:mob(k),rdln:'#'+(10000+k),status:st||'joined',dob:dobs[k%dobs.length],waiver:(st!=='pending'),medical:(k%9===0?'Asthma — carries inhaler':''),emName:(g==='M'?'Sara ':'Omar ')+nm.split(' ')[1],emPhone:mob(k+60),checkedIn:false,customerId:null});
   const teams=[];
   const mk=(ev,arr,cat0)=>arr.forEach((name,i)=>{
     teams.push({id:uid('tm'),eventId:ev,name,category:(i%3===0?'elite':'everyday'),status:'registered',
       paymentStatus:'paid',heatNo:(ev==='ev_r1'||ev==='ev_r2')?(i%3)+1:null,checkedIn:ev==='ev_r1'||ev==='ev_r2',
       captain:MN[(i*2)%MN.length],
-      members:[
-        {name:MN[(i*2)%MN.length],gender:'M',email:eml(MN[(i*2)%MN.length]),mobile:mob(i*4),rdln:'#'+(10000+i*4),status:'joined'},
-        {name:MN[(i*2+1)%MN.length],gender:'M',email:eml(MN[(i*2+1)%MN.length]),mobile:mob(i*4+1),rdln:'#'+(10001+i*4),status:'joined'},
-        {name:FN[(i*2)%FN.length],gender:'F',email:eml(FN[(i*2)%FN.length]),mobile:mob(i*4+2),rdln:'#'+(10002+i*4),status:'joined'},
-        {name:FN[(i*2+1)%FN.length],gender:'F',email:eml(FN[(i*2+1)%FN.length]),mobile:mob(i*4+3),rdln:'#'+(10003+i*4),status:i===3?'pending':'joined'},
-      ],
+      lane:null,passId:null,cancelReason:'',refundAmount:0,
+      members:[mkMem(MN[(i*2)%MN.length],'M',i*4),mkMem(MN[(i*2+1)%MN.length],'M',i*4+1),mkMem(FN[(i*2)%FN.length],'F',i*4+2),mkMem(FN[(i*2+1)%FN.length],'F',i*4+3,i===3?'pending':'joined')],
       scores:{}});
   });
   mk('ev_r1',tn); mk('ev_r2',tn); mk('ev_r3',tn.slice(0,8)); mk('ev_r4',tn.slice(0,6)); mk('ev_r5',tn.slice(0,5));
   // seed scores for completed events
   const base=[700,705,710,720,725,730,735,740,745,750];
-  teams.forEach(t=>{const ev=byId(events,t.eventId);if(ev&&ev.status==='completed'){const idx=tn.indexOf(t.name);ev.workout.forEach((w,wi)=>{t.scores[w.station]=base[idx]/6+wi*40+(t.eventId==='ev_r2'?-5:0);});}});
+  teams.forEach(t=>{const ev=byId(events,t.eventId);if(ev&&ev.status==='completed'){const idx=tn.indexOf(t.name);ev.workout.forEach((w,wi)=>{t.scores[w.station]=Math.round(base[idx]/6+wi*40+(t.eventId==='ev_r2'?-5:0));});}});
+  teams.forEach(t=>{const ev=byId(events,t.eventId);const done=ev&&ev.status==='completed';t.members.forEach(m=>{m.checkedIn=!!(done&&m.status==='joined');});t.checkedIn=!!done;const grp={};t.members.forEach(()=>{});});
+  // assign lanes for completed events (sequential within heat)
+  events.filter(e=>e.status==='completed').forEach(e=>{const lc={};teams.filter(t=>t.eventId===e.id&&t.heatNo).sort((a,b)=>a.name.localeCompare(b.name)).forEach(t=>{lc[t.heatNo]=(lc[t.heatNo]||0)+1;t.lane=lc[t.heatNo];});});
+  const seenC={};const customers=[];const tshirts=['S','M','L','XL'];
+  teams.forEach(t=>t.members.forEach(m=>{if(m.name&&!seenC[m.name]){seenC[m.name]=1;customers.push({id:uid('cu'),name:m.name,gender:m.gender,email:m.email,mobile:m.mobile,rdln:m.rdln,dob:m.dob,city:'Dubai',tshirt:tshirts[customers.length%4]});}}));
+  const passes=[
+    {id:uid('pa'),seasonId:'s1',teamName:'Night Shift',category:'everyday',captain:'Omar Faris',email:'omar.faris@email.com',price:2800,status:'active'},
+    {id:uid('pa'),seasonId:'s1',teamName:'Iron Pace',category:'elite',captain:'Sam Rivers',email:'sam.rivers@email.com',price:3800,status:'active'},
+  ];
+  passes.forEach(p=>teams.forEach(t=>{if(t.name===p.teamName)t.passId=p.id;}));
   return {
+    passes,
     staff:[
       {id:uid('st'),name:'Omar Al Khatib',email:'omar@sakinvestments.com',role:'admin',phone:'+971 50 111 2222'},
       {id:uid('st'),name:'Layla Nasser',email:'layla@redln.com',role:'staff',phone:'+971 50 333 4444'},
@@ -1095,11 +1105,7 @@ function seed(){
       {id:'s2',name:'Season 02',status:'planned',startDate:'',endDate:'',location:'Dubai',notes:'Dates to be announced.'},
     ],
     events, teams,
-    customers:[
-      {id:uid('cu'),name:'Alex Carter',email:'alex@email.com',mobile:'+971 50 123 4567',gender:'M',rdln:'#04821',dob:'1994-03-14',city:'Dubai',tshirt:'L'},
-      {id:uid('cu'),name:'Mia Chen',email:'mia@email.com',mobile:'+971 50 765 4321',gender:'F',rdln:'#07734',dob:'1996-08-02',city:'Dubai',tshirt:'S'},
-      {id:uid('cu'),name:'Sam Rivers',email:'sam@email.com',mobile:'+971 50 222 1133',gender:'M',rdln:'#08210',dob:'1992-11-21',city:'Abu Dhabi',tshirt:'M'},
-    ],
+    customers,
     emailTemplates:[
       {id:uid('em'),trigger:'account_created',name:'Welcome / account created',subject:'Welcome to REDLN.',enabled:true,body:'Hi {{first_name}},\n\nYour REDLN. account is live. Your athlete number is {{rdln}}.\n\nSee you on the floor.'},
       {id:uid('em'),trigger:'registration_confirmed',name:'Registration confirmed',subject:'You\'re in — {{event_name}}',enabled:true,body:'Hi {{first_name}},\n\nYour team {{team_name}} is registered for {{event_name}} on {{event_date}}.\nCategory: {{category}}. Heat: {{heat}}.\n\nLet\'s go.'},
@@ -1169,6 +1175,7 @@ const NAV=[
     {k:'teams',ic:'⛌',t:'Teams & registrations'},
     {k:'scores',ic:'⏱',t:'Scoring'},
     {k:'checkin',ic:'✓',t:'Check-in'},
+    {k:'standings',ic:'▲',t:'Season standings'},
   ]},
   {grp:'People',items:[
     {k:'customers',ic:'◉',t:'Customers'},
@@ -1180,6 +1187,7 @@ const NAV=[
     {k:'emails',ic:'✉',t:'Email templates'},
     {k:'push',ic:'◔',t:'Push notifications'},
     {k:'promos',ic:'%',t:'Promo codes'},
+    {k:'passes',ic:'◈',t:'Season passes'},
   ]},
   {grp:'System',items:[
     {k:'settings',ic:'⚙',t:'Settings'},
@@ -1187,11 +1195,11 @@ const NAV=[
   ]},
 ];
 function counts(){return{events:DB.events.length,teams:DB.teams.filter(t=>t.status!=='cancelled').length,customers:DB.customers.length,
-  volunteers:DB.volunteers.length,suppliers:DB.suppliers.length,seasons:DB.seasons.length,staff:DB.staff.length,emails:DB.emailTemplates.length,push:DB.pushes.length};}
+  volunteers:DB.volunteers.length,suppliers:DB.suppliers.length,seasons:DB.seasons.length,staff:DB.staff.length,emails:DB.emailTemplates.length,push:DB.pushes.length,passes:DB.passes.length};}
 function buildNav(){
   const c=counts();
   $('#navList').innerHTML=NAV.map(g=>`<div class="navgrp"><div class="lbl">${g.grp}</div>`+
-    g.items.map(it=>`<div class="nav" data-k="${it.k}" onclick="go('${it.k}')"><span class="ic">${it.ic}</span><span>${it.t}</span>${c[it.k]!=null?`<span class="badge">${c[it.k]}</span>`:''}</div>`).join('')+`</div>`).join('');
+    g.items.map(it=>`<div class="nav" data-k="${it.k}" onclick="go('${it.k}')"><span>${it.t}</span>${c[it.k]!=null?`<span class="badge">${c[it.k]}</span>`:''}</div>`).join('')+`</div>`).join('');
 }
 function go(k){ROUTE=k;location.hash=k;toggleMenu(false);render();}
 function toggleMenu(force){const s=$('#side'),sc=$('#scrim');const open=force==null?!s.classList.contains('open'):force;s.classList.toggle('open',open);sc.classList.toggle('on',open);}
@@ -1203,7 +1211,7 @@ const TITLES={dashboard:['Dashboard','Live operational overview'],seasons:['Seas
   teams:['Teams & registrations','Every entry, by event'],scores:['Scoring','Enter results & publish rankings'],checkin:['Check-in','Event-day attendance'],
   customers:['Customers','Athlete accounts'],volunteers:['Volunteers','Crew by category'],suppliers:['Suppliers','Vendors & contacts'],staff:['Staff','Console users & roles'],
   emails:['Email templates','Triggered by the customer journey'],push:['Push notifications','Broadcasts & schedules'],promos:['Promo codes','Discounts'],
-  settings:['Settings','Global defaults'],activity:['Activity log','Audit trail']};
+  standings:['Season standings','Combined ranking across a season'],passes:['Season passes','Multi-race passes'],settings:['Settings','Global defaults'],activity:['Activity log','Audit trail']};
 function setTitle(){const t=TITLES[ROUTE.split(':')[0]]||['',''];$('#pgTitle').textContent=t[0];$('#pgSub').textContent=t[1];
   document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.k===ROUTE.split(':')[0]));}
 function render(){
@@ -1211,7 +1219,7 @@ function render(){
   buildNav();setTitle();
   const v=$('#view');const base=ROUTE.split(':')[0];
   const map={dashboard:vDashboard,seasons:vSeasons,events:vEvents,teams:vTeams,scores:vScores,checkin:vCheckin,
-    customers:vCustomers,volunteers:vVolunteers,suppliers:vSuppliers,staff:vStaff,emails:vEmails,push:vPush,promos:vPromos,settings:vSettings,activity:vActivity};
+    customers:vCustomers,volunteers:vVolunteers,suppliers:vSuppliers,staff:vStaff,emails:vEmails,push:vPush,promos:vPromos,settings:vSettings,activity:vActivity,standings:vStandings,passes:vPasses};
   if(base==='event'){vEventDetail(v,ROUTE.split(':')[1]);return;}
   (map[base]||vDashboard)(v);
 }
@@ -1232,7 +1240,7 @@ function vDashboard(v){
   const upcoming=DB.events.filter(e=>e.status==='upcoming').sort((a,b)=>a.date.localeCompare(b.date));
   const next=upcoming[0];
   const liveTeams=DB.teams.filter(t=>t.status!=='cancelled');
-  const revenueNet=liveTeams.filter(t=>t.paymentStatus==='paid').reduce((s,t)=>s+teamPrice(t),0);const revenue=Math.round(revenueNet*vatRate());
+  const raceNet=DB.teams.filter(t=>(t.paymentStatus==='paid'||t.paymentStatus==='refunded')&&!t.passId).reduce((s,t)=>s+teamPrice(t),0);const passNet=(DB.passes||[]).filter(p=>p.status==='active').reduce((s,p)=>s+(+p.price||0),0);const revenueNet=raceNet+passNet;const refunds=DB.teams.reduce((s,t)=>s+(+t.refundAmount||0),0);const revenue=Math.round(revenueNet*vatRate())-refunds;
   const pendingPay=liveTeams.filter(t=>t.paymentStatus==='pending').length;
   const pendingInv=liveTeams.reduce((s,t)=>s+t.members.filter(m=>m.status==='pending').length,0);
   v.innerHTML=`
@@ -1393,7 +1401,7 @@ function moveStation(id,i,d){const e=byId(DB.events,id);const j=i+d;if(j<0||j>=e
 function generateHeats(id){const e=byId(DB.events,id);const teams=DB.teams.filter(t=>t.eventId===id&&t.status!=='cancelled');
   // group by category so each category clusters, then fill heats to capacity
   teams.sort((a,b)=>(a.category>b.category?1:-1)||a.name.localeCompare(b.name));
-  teams.forEach((t,idx)=>{t.heatNo=Math.floor(idx/e.heatCapacity)+1;});
+  teams.forEach((t,idx)=>{t.heatNo=Math.floor(idx/e.heatCapacity)+1;});const lc={};teams.forEach(t=>{lc[t.heatNo]=(lc[t.heatNo]||0)+1;t.lane=lc[t.heatNo];});
   const needed=Math.max(e.heatCount,Math.ceil(teams.length/Math.max(1,e.heatCapacity)));const grew=needed>e.heatCount;if(grew)e.heatCount=needed;
   save();logAct('Auto-generated heats for '+e.name);render();toast(grew?'Heats assigned — expanded to '+needed+' heats':'Heats auto-assigned');
 }
@@ -1407,7 +1415,7 @@ function evHeats(e){
   ${unassigned.length?`<div class="panel" style="border-color:var(--redline-edge)"><div class="ph"><h3>Unassigned (${unassigned.length})</h3></div><div class="pbody">${unassigned.map(t=>heatTeamRow(e,t,heats)).join('')}</div></div>`:''}
   ${heats.map(h=>`<div class="panel"><div class="ph"><h3>Heat ${h.no}</h3><span class="pill">${h.time}</span><div class="sp"></div>
     <span class="mono" style="font-size:11px;color:${h.teams.length>e.heatCapacity?'#ff8d85':'var(--muted)'}">${h.teams.length}/${e.heatCapacity}</span></div>
-    <div class="pbody flush"><table class="tbl"><tbody>${h.teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${statusPill(t.category)}</td><td style="text-align:right;width:150px">${heatSelect(e,t)}</td></tr>`).join('')||`<tr><td class="empty" style="padding:16px">Empty heat</td></tr>`}</tbody></table></div></div>`).join('')}`;
+    <div class="pbody flush"><table class="tbl"><tbody>${h.teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${statusPill(t.category)}</td><td style="width:74px"><input class="inp" type="number" min="1" placeholder="lane" style="padding:6px 8px;width:66px" value="${t.lane||''}" onchange="setLane('${t.id}',this.value)"></td><td style="text-align:right;width:175px">${heatSelect(e,t)}</td></tr>`).join('')||`<tr><td class="empty" style="padding:16px">Empty heat</td></tr>`}</tbody></table></div></div>`).join('')}`;
 }
 function heatSelect(e,t){let o=`<option value="" ${!t.heatNo?'selected':''}>— unassigned —</option>`;for(let h=1;h<=e.heatCount;h++)o+=`<option value="${h}" ${t.heatNo===h?'selected':''}>Heat ${h} · ${addMin(e.startTime,(h-1)*e.heatInterval)}</option>`;if(t.heatNo&&t.heatNo>e.heatCount)o+=`<option value="${t.heatNo}" selected>Heat ${t.heatNo} (removed)</option>`;
   return `<select class="inp" style="padding:6px 8px;min-width:170px" onchange="setHeat('${t.id}',this.value)">${o}</select>`;}
@@ -1444,25 +1452,26 @@ function fTeams(q){FILTER.q=q;let arr=DB.teams.slice();if(FILTER.ev)arr=arr.filt
     <td class="num">${full}/${e?e.teamSize:4}</td><td class="num">${t.heatNo?'H'+t.heatNo:'—'}</td><td>${statusPill(t.paymentStatus)}</td><td>${statusPill(t.status)}</td>
     <td style="text-align:right"><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();editTeam('${t.id}')">Edit</button></td></tr>`;}).join('')||`<tr><td colspan="8" class="empty">No teams.</td></tr>`;
 }
-function viewTeam(id){const t=byId(DB.teams,id);const e=byId(DB.events,t.eventId);
+function viewTeam(id){const t=byId(DB.teams,id);if(!t)return;const e=byId(DB.events,t.eventId);const pass=t.passId?byId(DB.passes,t.passId):null;const joined=t.members.filter(m=>m.status==='joined');
   modal('Team — '+t.name,`
     <div class="kv" style="margin-bottom:16px">
       <div class="k">Event</div><div>${e?esc(e.name)+' · '+fmtDate(e.date):'—'}</div>
-      <div class="k">Category</div><div>${statusPill(t.category)}</div>
-      <div class="k">Captain</div><div>${esc(t.captain||t.members[0]&&t.members[0].name||'—')}</div>
-      <div class="k">Heat</div><div>${t.heatNo?'Heat '+t.heatNo+(e?' · '+addMin(e.startTime,(t.heatNo-1)*e.heatInterval):''):'Not assigned'}</div>
-      <div class="k">Payment</div><div>${statusPill(t.paymentStatus)}</div>
-      <div class="k">Status</div><div>${statusPill(t.status)}${t.checkedIn?' <span class="pill good">checked in</span>':''}</div>
+      <div class="k">Category</div><div>${statusPill(t.category)}${pass?' <span class="tag">Season pass</span>':''}</div>
+      <div class="k">Captain</div><div>${esc(t.captain||(t.members[0]&&t.members[0].name)||'—')}</div>
+      <div class="k">Heat</div><div>${t.heatNo?'Heat '+t.heatNo+(t.lane?' · Lane '+t.lane:'')+(e?' · '+addMin(e.startTime,(t.heatNo-1)*e.heatInterval):''):'Not assigned'}</div>
+      <div class="k">Payment</div><div>${statusPill(t.paymentStatus)}${pass?' · covered by season pass':' · '+money(teamTotal(t))+' incl. VAT'}</div>
+      <div class="k">Check-in</div><div>${joined.filter(m=>m.checkedIn).length}/${joined.length} athletes present</div>
+      <div class="k">Status</div><div>${statusPill(t.status)}</div>
+      ${t.status==='cancelled'?`<div class="k">Cancellation</div><div>${esc(t.cancelReason||'—')}${t.refundAmount>0?' · refunded '+money(t.refundAmount):' · no refund'}</div>`:''}
     </div>
-    <h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">ROSTER</h3>
+    <h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">ROSTER · ${e?e.teamMale+'M · '+e.teamFemale+'F':''}</h3>
     <table class="tbl" style="background:#0e0e0e;border:1px solid var(--edge);border-radius:8px"><tbody>
-    ${t.members.map(m=>`<tr><td><b>${esc(m.name)}</b><div class="muted" style="font-size:11px">${esc(m.email||'')} · ${esc(m.mobile||'')}</div></td>
-      <td>${m.gender}</td><td>${esc(m.rdln||'')}</td><td>${statusPill(m.status)}</td></tr>`).join('')}
+    ${t.members.map(m=>{const acct=DB.customers.find(c=>c.name===m.name||(m.rdln&&c.rdln===m.rdln));return `<tr><td><b>${esc(m.name)}</b> <span class="muted">${m.gender}</span>${acct?' <span class="tag">account</span>':''}<div class="muted" style="font-size:11px">${esc(m.email||'')} · ${esc(m.mobile||'')}${m.rdln?' · '+esc(m.rdln):''}</div>${m.medical?`<div style="font-size:11px;color:#e9c27a">⚕ ${esc(m.medical)}</div>`:''}${m.emName?`<div class="muted" style="font-size:11px">ICE: ${esc(m.emName)} ${esc(m.emPhone||'')}</div>`:''}</td>
+      <td>${m.waiver?'<span class="pill good">waiver ✓</span>':'<span class="pill bad">waiver ✗</span>'}</td><td>${m.checkedIn?'<span class="pill good">in</span>':''}</td><td>${statusPill(m.status)}</td></tr>`;}).join('')}
     </tbody></table>`,
   null,null,[
     {label:'Edit team',cls:'btn-red',fn:()=>{closeModal();editTeam(id);}},
-    t.checkedIn?{label:'Undo check-in',fn:()=>{t.checkedIn=false;save();closeModal();render();toast('Check-in removed');}}:{label:'Check in',fn:()=>{t.checkedIn=true;save();closeModal();render();toast('Checked in');}},
-    t.status==='cancelled'?{label:'Reinstate',fn:()=>{t.status='registered';save();closeModal();render();toast('Reinstated');}}:{label:'Cancel attendance',cls:'btn-danger',fn:()=>{if(confirm('Cancel attendance for this team?')){t.status='cancelled';t.heatNo=null;save();logAct('Cancelled '+t.name);closeModal();render();toast('Attendance cancelled');}}},
+    t.status==='cancelled'?{label:'Reinstate',fn:()=>{t.status='registered';save();closeModal();render();toast('Reinstated');}}:{label:'Cancel / refund',cls:'btn-danger',fn:()=>cancelTeam(id)},
   ]);
 }
 function editTeam(id,evId){if(!DB.events.length){toast('Create an event first');return;}const t=id?byId(DB.teams,id):{name:'',eventId:evId||DB.events[0].id,category:'everyday',status:'registered',paymentStatus:'pending',heatNo:null,captain:'',checkedIn:false,
@@ -1476,10 +1485,7 @@ function editTeam(id,evId){if(!DB.events.length){toast('Create an event first');
     <div id="memWrap">${memRows}</div>
     ${t.members.length>=(e?e.teamSize:4)?`<div class="hint" style="margin-top:8px">Roster full — ${e?e.teamSize:4} athletes (${e?e.teamMale:2}M · ${e?e.teamFemale:2}F). Remove one to swap.</div>`:`<button class="btn btn-sm btn-ghost" id="addMemBtn" onclick="addMemberRow(${e?e.teamSize:4})" style="margin-top:8px">+ Add athlete</button>`}
   `,()=>{const o=collect();
-    o.members=[...document.querySelectorAll('#memWrap .memrow')].map(r=>({
-      name:r.querySelector('[data-m=name]').value,gender:r.querySelector('[data-m=gender]').value,
-      email:r.querySelector('[data-m=email]').value,mobile:r.querySelector('[data-m=mobile]').value,
-      rdln:r.querySelector('[data-m=rdln]').value,status:r.querySelector('[data-m=status]').value})).filter(m=>m.name);
+    o.members=[...document.querySelectorAll('#memWrap .memrow')].map(r=>{const g=k=>{const el=r.querySelector('[data-m='+k+']');return el?(el.type==='checkbox'?el.checked:el.value):'';};const old=(t.members||[]).find(x=>x.name===g('name'))||{};return {name:g('name'),gender:g('gender'),email:g('email'),mobile:g('mobile'),rdln:g('rdln'),dob:g('dob'),emName:g('emName'),emPhone:g('emPhone'),medical:g('medical'),waiver:!!g('waiver'),status:g('status'),checkedIn:!!old.checkedIn,customerId:old.customerId||null};}).filter(m=>m.name);
     if(!o.name)return toast('Team name required'),false;
     {const e2=byId(DB.events,o.eventId);if(e2){const act=o.members.filter(m=>m.status!=='removed');const jm=act.filter(m=>m.gender==='M').length,jf=act.filter(m=>m.gender==='F').length;
       if(jm>e2.teamMale||jf>e2.teamFemale||act.length>e2.teamSize){toast('Roster exceeds rules: max '+e2.teamMale+'M · '+e2.teamFemale+'F · '+e2.teamSize+' total');return false;}}}
@@ -1487,11 +1493,16 @@ function editTeam(id,evId){if(!DB.events.length){toast('Create an event first');
     save();render();toast('Team saved');},
   id?()=>{if(confirm('Delete this team entirely?')){DB.teams=DB.teams.filter(x=>x.id!==id);save();render();closeModal();toast('Team deleted');}}:null);
 }
-function memberFields(m,i){return `<div class="memrow" style="background:#0e0e0e;border:1px solid var(--edge);border-radius:9px;padding:10px;margin-bottom:8px">
+function memberFields(m){m=m||{};return `<div class="memrow" style="background:#0e0e0e;border:1px solid var(--edge);border-radius:9px;padding:10px;margin-bottom:8px">
   <div class="row2"><input class="inp" data-m="name" placeholder="Full name" value="${esc(m.name)}"><select class="inp" data-m="gender">${['M','F'].map(g=>`<option ${m.gender===g?'selected':''}>${g}</option>`).join('')}</select></div>
   <div class="row2" style="margin-top:8px"><input class="inp" data-m="email" placeholder="email" value="${esc(m.email)}"><input class="inp" data-m="mobile" placeholder="mobile" value="${esc(m.mobile)}"></div>
-  <div class="row2" style="margin-top:8px"><input class="inp" data-m="rdln" placeholder="RDLN #" value="${esc(m.rdln)}"><select class="inp" data-m="status">${['joined','pending','removed'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
-  <div style="text-align:right;margin-top:6px"><span class="btn btn-sm btn-ghost" onclick="this.closest('.memrow').remove()">Remove</span></div></div>`;}
+  <div class="row2" style="margin-top:8px"><input class="inp" data-m="rdln" placeholder="RDLN #" value="${esc(m.rdln)}"><input class="inp" data-m="dob" type="date" value="${esc(m.dob)}"></div>
+  <div class="row2" style="margin-top:8px"><input class="inp" data-m="emName" placeholder="Emergency contact" value="${esc(m.emName)}"><input class="inp" data-m="emPhone" placeholder="Emergency phone" value="${esc(m.emPhone)}"></div>
+  <input class="inp" data-m="medical" style="margin-top:8px" placeholder="Medical notes / allergies (optional)" value="${esc(m.medical)}">
+  <div style="display:flex;align-items:center;gap:14px;margin-top:8px;flex-wrap:wrap">
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-m="waiver" ${m.waiver?'checked':''}> Waiver signed</label>
+    <select class="inp" data-m="status" style="max-width:130px">${['joined','pending','removed'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <div style="flex:1"></div><span class="btn btn-sm btn-ghost" onclick="this.closest('.memrow').remove()">Remove</span></div></div>`;}
 function addMemberRow(cap){const w=$('#memWrap');if(cap&&w.querySelectorAll('.memrow').length>=cap){toast('Team is full ('+cap+' athletes)');return;}const d=document.createElement('div');d.innerHTML=memberFields({name:'',gender:'M',email:'',mobile:'',rdln:'',status:'joined'});w.appendChild(d.firstElementChild);if(cap&&w.querySelectorAll('.memrow').length>=cap){const b=$('#addMemBtn');if(b)b.style.display='none';}}
 
 /* ============================================================
@@ -1531,17 +1542,24 @@ function pruneScores(e){const keys=new Set(e.workout.map(w=>w.station));DB.teams
    ============================================================ */
 function vCheckin(v){
   if(!DB.events.length){v.innerHTML='<div class="empty">No events yet — create one first.</div>';return;}
-  const ev=FILTER.cev||DB.events.find(e=>e.status==='upcoming'||e.status==='live')&&(DB.events.find(e=>e.status==='upcoming'||e.status==='live')).id||DB.events[0].id;
-  FILTER.cev=ev;const teams=DB.teams.filter(t=>t.eventId===ev&&t.status!=='cancelled').sort((a,b)=>(a.heatNo||9)-(b.heatNo||9));
-  const inN=teams.filter(t=>t.checkedIn).length;
-  v.innerHTML=toolbar(`<select class="inp" style="max-width:260px" onchange="FILTER.cev=this.value;render()">${DB.events.map(e=>`<option value="${e.id}" ${e.id===ev?'selected':''}>${esc(e.name)}</option>`).join('')}</select>
-    <div class="muted" style="font-size:12px">${inN}/${teams.length} checked in</div>`)+
-    `<div class="panel"><div class="pbody flush"><table class="tbl"><thead><tr><th>Team</th><th>Heat</th><th>Roster</th><th>Check-in</th></tr></thead><tbody>
-    ${teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td class="num">${t.heatNo?'Heat '+t.heatNo:'—'}</td><td class="num">${t.members.filter(m=>m.status==='joined').length}</td>
-    <td><button class="btn btn-sm ${t.checkedIn?'btn-ghost':'btn-red'}" onclick="t_checkin('${t.id}')">${t.checkedIn?'✓ Checked in':'Check in'}</button></td></tr>`).join('')||`<tr><td colspan=4 class="empty">No teams for this event.</td></tr>`}
-    </tbody></table></div></div>`;
+  const ev=FILTER.cev||((DB.events.find(e=>e.status==='upcoming'||e.status==='live')||DB.events[0]).id);
+  FILTER.cev=ev;const teams=DB.teams.filter(t=>t.eventId===ev&&t.status!=='cancelled').sort((a,b)=>(a.heatNo||99)-(b.heatNo||99)||a.name.localeCompare(b.name));
+  const present=teams.reduce((s,t)=>s+t.members.filter(m=>m.status==='joined'&&m.checkedIn).length,0);
+  const tot=teams.reduce((s,t)=>s+t.members.filter(m=>m.status==='joined').length,0);
+  v.innerHTML=toolbar(`<select class="inp" style="max-width:280px" onchange="FILTER.cev=this.value;render()">${DB.events.map(e=>`<option value="${e.id}" ${e.id===ev?'selected':''}>${esc(e.name)}</option>`).join('')}</select>
+    <div class="muted" style="font-size:12px">${present}/${tot} athletes present</div>`)+
+    (teams.map(t=>{const j=t.members.filter(m=>m.status==='joined');const inN=j.filter(m=>m.checkedIn).length;const allin=j.length>0&&inN===j.length;
+      return `<div class="panel"><div class="ph"><h3>${esc(t.name)}</h3><span class="pill">${t.heatNo?'Heat '+t.heatNo:'no heat'}</span><div class="sp"></div>
+        <span class="mono" style="font-size:11px;color:${allin?'#7fe0a3':'var(--muted)'}">${inN}/${j.length} present</span>
+        <button class="btn btn-sm" onclick="checkTeamAll('${t.id}')">${allin?'Undo all':'Check all'}</button></div>
+        <div class="pbody flush"><table class="tbl"><tbody>${j.map(m=>{const idx=t.members.indexOf(m);return `<tr><td><b>${esc(m.name)}</b> <span class="muted">${m.gender}</span>${m.waiver?'':' <span class="pill bad">waiver unsigned</span>'}${m.medical?' <span class="pill warn">medical</span>':''}</td>
+          <td style="text-align:right;width:120px"><button class="btn btn-sm ${m.checkedIn?'btn-ghost':'btn-red'}" onclick="checkMember('${t.id}',${idx})">${m.checkedIn?'✓ In':'Check in'}</button></td></tr>`;}).join('')}</tbody></table></div></div>`;
+    }).join('')||'<div class="empty">No teams for this event.</div>');
 }
-function t_checkin(id){const t=byId(DB.teams,id);if(!t)return;t.checkedIn=!t.checkedIn;save();render();}
+function syncTeamCheck(t){const j=t.members.filter(m=>m.status==='joined');t.checkedIn=j.length>0&&j.every(m=>m.checkedIn);}
+function checkMember(tid,idx){const t=byId(DB.teams,tid);if(!t||!t.members[idx])return;t.members[idx].checkedIn=!t.members[idx].checkedIn;syncTeamCheck(t);save();render();}
+function checkTeamAll(tid){const t=byId(DB.teams,tid);if(!t)return;const j=t.members.filter(m=>m.status==='joined');const allin=j.length>0&&j.every(m=>m.checkedIn);j.forEach(m=>m.checkedIn=!allin);syncTeamCheck(t);save();render();}
+function t_checkin(id){const t=byId(DB.teams,id);if(!t)return;const j=t.members.filter(m=>m.status==='joined');const allin=t.checkedIn;j.forEach(m=>m.checkedIn=!allin);syncTeamCheck(t);save();render();}
 
 /* ============================================================
    GENERIC ENTITY VIEWS
@@ -1550,8 +1568,8 @@ function vCustomers(v){listView(v,{coll:'customers',title:'Customers',search:['n
   cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['mobile','Mobile'],['gender','Gender'],['rdln','RDLN'],['city','City']],
   form:o=>`<div class="row2">${F('Full name','name',o.name)}${F('RDLN #','rdln',o.rdln)}</div>
     <div class="row2">${F('Email','email',o.email,'email')}${F('Mobile','mobile',o.mobile,'tel')}</div>
-    <div class="row3">${F('Sex','gender',o.gender||'M','select',['M','F'])}${F('Date of birth','dob',o.dob,'date')}${F('T-shirt','tshirt',o.tshirt||'M','select',['XS','S','M','L','XL','XXL'])}</div>
-    ${F('City','city',o.city)}`,
+    <div class="row3">${F('Gender','gender',o.gender||'M','select',['M','F'])}${F('Date of birth','dob',o.dob,'date')}${F('T-shirt','tshirt',o.tshirt||'M','select',['XS','S','M','L','XL','XXL'])}</div>
+    ${F('City','city',o.city)}${o.id?regsBlock(o):''}`,
   blank:{name:'',email:'',mobile:'',gender:'M',rdln:'',dob:'',city:'Dubai',tshirt:'M'},
   onsave:o=>{if(!o.rdln)o.rdln='#'+Math.floor(10000+Math.random()*89999);}});}
 
@@ -1749,6 +1767,45 @@ function exportScores(evId){const e=byId(DB.events,evId);if(!e)return;const q=c=
     rows.push([t.name,t.category,...e.workout.map(w=>sc[w.station]!=null?secToClock(sc[w.station]):''),tot!=null?secToClock(tot):'']);});
   dl((e.name+'-scores.csv').replace(/\s+/g,'_'),rows.map(r=>r.map(q).join(',')).join('\n'));toast('CSV exported');}
 function exportAll(){dl('redln-console-backup.json',JSON.stringify(DB,null,2),'application/json');toast('Backup downloaded');}
+
+/* ============================================================
+   MODULES: lanes, refunds, account links, passes, standings
+   ============================================================ */
+function setLane(tid,l){const t=byId(DB.teams,tid);if(!t)return;if(l===''){t.lane=null;save();toast('Lane cleared');return;}const ln=Math.max(1,+l||1);const clash=DB.teams.find(x=>x.id!==tid&&x.status!=='cancelled'&&x.eventId===t.eventId&&t.heatNo!=null&&x.heatNo===t.heatNo&&x.lane===ln);if(clash){toast('Lane '+ln+' already used by '+clash.name+' in this heat');render();return;}t.lane=ln;save();toast('Lane updated');}
+function cancelTeam(id){const t=byId(DB.teams,id);if(!t)return;const reason=prompt('Reason for cancellation (no-show, withdrawal, etc.)?','');if(reason===null)return;let refund=0;if(t.paymentStatus==='paid'&&!t.passId){const r=prompt('Refund amount in AED? Enter 0 for no refund.',String(teamTotal(t)));if(r===null)return;refund=Math.max(0,+r||0);}t.status='cancelled';t.heatNo=null;t.lane=null;t.checkedIn=false;t.members.forEach(m=>m.checkedIn=false);t.cancelReason=reason;t.refundAmount=refund;if(refund>0)t.paymentStatus='refunded';save();logAct('Cancelled '+t.name+(refund>0?' (refund '+money(refund)+')':''));closeModal();render();toast('Team cancelled');}
+function customerRegs(o){const out=[];DB.teams.forEach(t=>{const m=t.members.find(x=>x.name===o.name||(o.rdln&&x.rdln===o.rdln));if(m){const e=byId(DB.events,t.eventId);out.push({team:t.name,event:e?e.name:'—',role:(t.captain===o.name?'Captain':'Athlete'),status:t.status==='cancelled'?'cancelled':m.status});}});return out;}
+function regsBlock(o){const r=customerRegs(o);return `<h3 style="font-size:13px;color:var(--muted);margin:16px 0 8px">REGISTRATIONS (${r.length})</h3>`+(r.length?`<table class="tbl" style="background:#0e0e0e;border:1px solid var(--edge);border-radius:8px"><tbody>${r.map(x=>`<tr><td><b>${esc(x.team)}</b><div class="muted" style="font-size:11px">${esc(x.event)}</div></td><td>${esc(x.role)}</td><td>${statusPill(x.status)}</td></tr>`).join('')}</tbody></table>`:'<div class="muted" style="font-size:12px">No team registrations on record.</div>');}
+
+function vPasses(v){
+  v.innerHTML=toolbar(`${searchBox('Search passes…','fPasses')}<div class="sp" style="flex:1"></div><button class="btn btn-red" onclick="editPass()">+ New pass</button>`)+
+  `<div class="sectionnote">A season pass covers every race in a season for one team. Pass revenue counts once; a race team linked to a pass doesn't pay per race.</div>
+   <div class="panel"><div class="pbody flush"><div class="twrap"><table class="tbl"><thead><tr><th>Team</th><th>Season</th><th>Category</th><th>Captain</th><th>Price</th><th>Status</th><th></th></tr></thead><tbody id="passRows"></tbody></table></div></div></div>`;
+  fPasses('');
+}
+function fPasses(q){const arr=tableFilter(DB.passes,q,['teamName','captain','category']);
+  $('#passRows').innerHTML=arr.map(p=>{const se=byId(DB.seasons,p.seasonId);return `<tr class="k" onclick="editPass('${p.id}')"><td><b>${esc(p.teamName)}</b></td><td>${se?esc(se.name):'—'}</td><td><span class="tag">${esc(p.category)}</span></td><td>${esc(p.captain||'')}</td><td class="num">${money(p.price)}</td><td>${statusPill(p.status)}</td><td style="text-align:right"><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();editPass('${p.id}')">Edit</button></td></tr>`;}).join('')||`<tr><td colspan=7 class="empty">No season passes.</td></tr>`;
+}
+function editPass(id){const p=id?byId(DB.passes,id):{teamName:'',seasonId:(DB.seasons[0]||{}).id,category:'everyday',captain:'',email:'',price:2800,status:'active'};
+  modal(id?'Edit season pass':'New season pass',`
+    <div class="row2">${F('Team name','teamName',p.teamName)}${F('Season','seasonId',p.seasonId,'select',DB.seasons.map(s=>[s.id,s.name]))}</div>
+    <div class="row2">${F('Category','category',p.category,'select',[['everyday','Everyday'],['elite','Elite']])}${F('Price (AED)','price',p.price,'number')}</div>
+    <div class="row2">${F('Captain','captain',p.captain)}${F('Contact email','email',p.email,'email')}</div>
+    ${F('Status','status',p.status,'select',['active','cancelled'])}
+    <div class="hint">Everyday pass ≈ AED 2,800 · Elite pass ≈ AED 3,800 (5 races).</div>`,
+  ()=>{const o=collect();o.price=+o.price||0;if(!o.teamName)return toast('Team name required'),false;if(id)Object.assign(p,o);else{o.id=uid('pa');DB.passes.push(o);}logAct((id?'Edited':'Created')+' season pass — '+o.teamName);save();render();toast('Pass saved');},
+  id?()=>{if(confirm('Delete this season pass?')){DB.passes=DB.passes.filter(x=>x.id!==id);save();render();closeModal();}}:null);
+}
+
+function vStandings(v){
+  v.innerHTML=`<div class="sectionnote">Overall season ranking — combined finish time across every scored & published race in the season.</div>`+
+  DB.seasons.map(se=>{const evs=DB.events.filter(e=>e.seasonId===se.id&&e.status==='completed'&&e.resultsPublished);
+    const agg={};evs.forEach(e=>{DB.teams.filter(t=>t.eventId===e.id&&t.status!=='cancelled').forEach(t=>{const sc=t.scores||{};if(!(e.workout.length&&e.workout.every(w=>sc[w.station]!=null)))return;const tot=e.workout.reduce((s,w)=>s+(+sc[w.station]||0),0);if(!agg[t.name])agg[t.name]={name:t.name,races:0,total:0};agg[t.name].races++;agg[t.name].total+=tot;});});
+    const rows=Object.values(agg).sort((a,b)=>a.total-b.total);let lt=null,lr=0;rows.forEach((r,i)=>{r.rank=(r.total===lt)?lr:i+1;lt=r.total;lr=r.rank;});
+    return `<div class="panel"><div class="ph"><h3>${esc(se.name)} — overall</h3><div class="sp"></div><span class="muted mono" style="font-size:11px">${evs.length} race(s) scored</span></div>
+      <div class="pbody flush">${rows.length?`<div class="twrap"><table class="tbl"><thead><tr><th style="width:40px">#</th><th>Team</th><th>Races</th><th>Combined time</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="num">${r.rank}</td><td><b>${esc(r.name)}</b></td><td class="num">${r.races}</td><td class="num"><b>${secToClock(r.total)}</b></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No published race results in this season yet.</div>'}</div></div>`;
+  }).join('');
+}
 
 /* ============================================================
    BOOT
