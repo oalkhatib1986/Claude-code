@@ -8,7 +8,7 @@
 <style>
   :root{
     --bg:#0a0a0a; --panel:#111111; --panel2:#161616; --edge:rgba(255,255,255,0.14);
-    --edge2:rgba(255,255,255,0.20); --txt:#ededed; --muted:#8c8c8c; --muted2:#666;
+    --edge2:rgba(255,255,255,0.20); --txt:#ededed; --muted:#8c8c8c; --muted2:#8a8a8a;
     --glass:rgba(255,255,255,0.04); --glass-strong:rgba(255,255,255,0.08); --glass-edge:rgba(255,255,255,0.14);
     --redline:#c4283a; --redline-dim:#8c1f2b; --redline-strong:rgba(196,40,58,0.30);
     --redline-glass:rgba(196,40,58,0.16); --redline-edge:rgba(196,40,58,0.55); --redline-soft:rgba(196,40,58,0.6);
@@ -22,7 +22,7 @@
   body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
   a{color:inherit}
   button,input,select,textarea{font-family:inherit;font-size:14px;color:var(--txt)}
-  ::placeholder{color:#555}
+  ::placeholder{color:#777}
   .mono{font-family:var(--mono);letter-spacing:.04em}
   .muted{color:var(--muted)}
   .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--redline)}
@@ -36,7 +36,7 @@
   .btn:hover{background:rgba(255,255,255,0.06)}
   .btn-red{background:var(--redline);border-color:var(--redline);color:#fff}
   .btn-red:hover{background:var(--redline-dim);border-color:var(--redline-dim)}
-  .btn-sm{padding:6px 11px;font-size:10.5px;border-radius:7px}
+  .btn-sm{padding:6px 11px;font-size:10.5px;border-radius:8px}
   .btn-ghost{border-color:var(--edge)}
   .btn-danger{border-color:var(--bad);color:#ff6a60}
   .btn-danger:hover{background:rgba(216,69,59,0.12)}
@@ -44,8 +44,8 @@
 
   /* ---------- login ---------- */
   #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:
-    radial-gradient(120% 80% at 50% -10%,rgba(226,52,43,0.10),transparent 60%),var(--bg);z-index:100}
-  #login .card{width:min(400px,92vw);background:var(--panel);border:1px solid var(--edge);border-radius:18px;padding:34px 30px}
+    radial-gradient(120% 80% at 50% -10%,rgba(196,40,58,0.12),transparent 60%),var(--bg);z-index:100}
+  #login .card{width:min(400px,92vw);background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:34px 30px}
   #login .logo-img{height:30px;width:auto;display:block}
   .field{margin-bottom:14px}
   .field>label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;line-height:1.35}
@@ -77,7 +77,7 @@
   .top h2{font-size:22px}
   .top .sub{color:var(--muted);font-size:12px;font-family:var(--mono)}
   .top .sp{flex:1}
-  .who{display:flex;align-items:center;gap:9px;font-size:12px}
+  .who{display:flex;align-items:center;gap:9px;font-size:12px;min-width:0}
   .who{gap:9px}
   .who .av{flex:0 0 30px;width:30px;height:30px;aspect-ratio:1;border-radius:50%;background:var(--redline);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700;font-size:14px}
   .who-id{min-width:0;line-height:1.25}
@@ -98,12 +98,12 @@
   .panel>.ph h3{font-size:16px}
   .panel>.ph .sp{flex:1}
   .pbody{padding:16px 18px}
-  .pbody.flush{padding:0}
+  .pbody.flush{padding:0;overflow-x:auto}
 
   /* ---------- tables ---------- */
   table.tbl{width:100%;border-collapse:collapse}
   .tbl th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
-    padding:10px 14px;border-bottom:1px solid var(--edge);white-space:nowrap;position:sticky;top:0;background:var(--panel)}
+    padding:10px 14px;border-bottom:1px solid var(--edge);white-space:nowrap;background:var(--panel)}
   .tbl td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:middle}
   .tbl tr:last-child td{border-bottom:none}
   .tbl tr.k{cursor:pointer}
@@ -136,12 +136,12 @@
   /* ---------- modal ---------- */
   #modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;z-index:80;padding:40px 16px;overflow:auto}
   #modal.on{display:flex}
-  .sheet{width:min(620px,100%);background:var(--panel);border:1px solid var(--edge2);border-radius:16px;overflow:hidden}
+  .sheet{width:min(620px,100%);background:var(--panel);border:1px solid var(--edge2);border-radius:14px;overflow:hidden}
   .sheet .sh{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--edge)}
   .sheet .sh h3{font-size:18px}
   .sheet .sh .x{margin-left:auto;cursor:pointer;color:var(--muted);font-size:20px;line-height:1}
   .sheet .sb{padding:20px;max-height:70vh;overflow:auto}
-  .sheet .sf{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--edge)}
+  .sheet .sf{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--edge);position:sticky;bottom:0;background:var(--panel)}
 
   /* toast */
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;
@@ -171,8 +171,14 @@
     .who-id{display:none}
     .tbl td,.tbl th{padding:9px 11px}
     .top h2{font-size:19px}
+    .row3{grid-template-columns:1fr 1fr}
   }
 
+  @media(max-width:560px){.row2,.row3{grid-template-columns:1fr}}
+  @media(pointer:coarse){.btn-sm,select.inp{min-height:38px}}
+  @media(max-height:660px){#modal{padding:12px}.sheet .sb{max-height:none}}
+  .tbl td.empty{padding:26px;text-align:center;color:var(--muted)}
+  .top .btn,.top label.btn{flex:none}
   /* ---- progressive enhancement: works with NO JavaScript ---- */
   #authcb{position:fixed;opacity:0;pointer-events:none}
   .navr{position:fixed;opacity:0;pointer-events:none;width:1px;height:1px}
@@ -1020,19 +1026,21 @@
    REDLN. Operations Console — self-contained admin (demo)
    Data persists to localStorage. Behaves like a backend.
    ============================================================ */
-const KEY='redln_ops_v2';
-let DB=null, SESSION=null, ROUTE='dashboard', EVENT_TAB='settings';
+const KEY='redln_ops_v3';
+let DB=null, SESSION=null, ROUTE='dashboard', EVENT_TAB='settings', VOL_TAB='list';
 
 /* ---------- utilities ---------- */
 const $=(s,r=document)=>r.querySelector(s);
 const uid=p=>p+'_'+Math.random().toString(36).slice(2,9);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money=n=>'AED '+Number(n||0).toLocaleString();
+const vatRate=()=>1+(((DB&&DB.settings&&DB.settings.vatPct)||0)/100);
+const teamPrice=t=>{const e=byId(DB.events,t.eventId);const c=e&&e.categories.find(c=>c.key===t.category);return c?c.price:0;};
 const byId=(arr,id)=>arr.find(x=>x.id===id);
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1900);}
 function secToClock(s){if(s==null||s==='')return '';s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
-function clockToSec(t){if(!t)return null;const p=String(t).split(':').map(Number);if(p.some(isNaN))return null;return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1];}
-function addMin(hhmm,min){const [h,m]=hhmm.split(':').map(Number);let t=h*60+m+min;t=((t%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');}
+function clockToSec(t){if(t==null||String(t).trim()==='')return null;const p=String(t).trim().split(':').map(Number);if(p.length<2||p.length>3||p.some(x=>!isFinite(x)))return null;const v=p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1];return isFinite(v)&&v>=0?v:null;}
+function addMin(hhmm,min){if(!hhmm||String(hhmm).indexOf(':')<0)return '--:--';const [h,m]=String(hhmm).split(':').map(Number);if(!isFinite(h)||!isFinite(m))return '--:--';let t=h*60+m+(+min||0);const day=Math.floor(t/1440);t=((t%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')+(day>0?' +'+day+'d':'');}
 function fmtDate(iso){if(!iso)return '—';const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});}
 
 /* ---------- persistence ---------- */
@@ -1058,11 +1066,11 @@ function seed(){
   const MN=['Alex Carter','Sam Rivers','Omar Faris','Jad Khoury','Noah Reed','Liam Hart','Yousef Adel','Karim Saleh','Tariq Nasser','Dane Wolfe','Ravi Menon','Marco Bianchi','Hassan Ali','Leo Fischer','Adam Stone','Bilal Aziz','Nathan Cole','Rami Haddad','Felix Wright','Zaid Omar'];
   const FN=['Mia Chen','Lena Ortiz','Hana Said','Dana Carter','Sara Idris','Nora Haddad','Zara Khan','Maya Lopez','Aisha Rahman','Tess Moran','Ivy Park','Lucia Romano','Layla Nasser','Elsa Berg','Priya Nair','Dina Saleh','Clara West','Yara Fadel','Nina Volkov','Reem Adel'];
   const eml=x=>x.toLowerCase().replace(/[^a-z]+/g,'.')+'@email.com';
-  const mob=k=>'+971 50 '+(100+k*3)+' '+(2000+k*17).toString().slice(0,4);
+  const mob=k=>'+971 50 '+String(100+(k*7)%900).padStart(3,'0')+' '+String(1000+(k*131)%9000).padStart(4,'0');
   const teams=[];
   const mk=(ev,arr,cat0)=>arr.forEach((name,i)=>{
     teams.push({id:uid('tm'),eventId:ev,name,category:(i%3===0?'elite':'everyday'),status:'registered',
-      paymentStatus:'paid',heatNo:(i%3)+1,checkedIn:ev==='ev_r1'||ev==='ev_r2',
+      paymentStatus:'paid',heatNo:(ev==='ev_r1'||ev==='ev_r2')?(i%3)+1:null,checkedIn:ev==='ev_r1'||ev==='ev_r2',
       captain:MN[(i*2)%MN.length],
       members:[
         {name:MN[(i*2)%MN.length],gender:'M',email:eml(MN[(i*2)%MN.length]),mobile:mob(i*4),rdln:'#'+(10000+i*4),status:'joined'},
@@ -1224,15 +1232,15 @@ function vDashboard(v){
   const upcoming=DB.events.filter(e=>e.status==='upcoming').sort((a,b)=>a.date.localeCompare(b.date));
   const next=upcoming[0];
   const liveTeams=DB.teams.filter(t=>t.status!=='cancelled');
-  const revenue=liveTeams.filter(t=>t.paymentStatus==='paid').reduce((s,t)=>{const ev=byId(DB.events,t.eventId);const c=ev&&ev.categories.find(c=>c.key===t.category);return s+(c?c.price:0);},0);
+  const revenueNet=liveTeams.filter(t=>t.paymentStatus==='paid').reduce((s,t)=>s+teamPrice(t),0);const revenue=Math.round(revenueNet*vatRate());
   const pendingPay=liveTeams.filter(t=>t.paymentStatus==='pending').length;
   const pendingInv=liveTeams.reduce((s,t)=>s+t.members.filter(m=>m.status==='pending').length,0);
   v.innerHTML=`
     <div class="cards" style="margin-bottom:20px">
       ${stat(DB.events.length,'Events',DB.seasons.length+' seasons')}
       ${stat(liveTeams.length,'Active teams',pendingPay+' awaiting payment')}
-      ${stat(money(revenue),'Gross revenue','paid entries')}
-      ${stat(DB.customers.length,'Customers',pendingInv+' invites pending')}
+      ${stat(money(revenue),'Gross revenue','incl. VAT · net '+money(revenueNet))}
+      ${stat(DB.customers.length,'Customer accounts',pendingInv+' athlete invites pending')}
       ${stat(DB.volunteers.length,'Volunteers',DB.suppliers.length+' suppliers')}
     </div>
     <div class="grid2">
@@ -1242,8 +1250,8 @@ function vDashboard(v){
     </div>
     <div class="panel"><div class="ph"><h3>Upcoming events</h3><div class="sp"></div><button class="btn btn-sm" onclick="go('events')">All events →</button></div>
       <div class="pbody flush"><div class="twrap"><table class="tbl"><thead><tr><th>Event</th><th>Date</th><th>Status</th><th>Teams</th><th>Heats</th><th>Revenue</th></tr></thead><tbody>
-      ${DB.events.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{const t=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='cancelled');
-        const rev=t.filter(x=>x.paymentStatus==='paid').reduce((s,x)=>{const c=e.categories.find(c=>c.key===x.category);return s+(c?c.price:0);},0);
+      ${DB.events.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{const t=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='cancelled');
+        const rev=Math.round(t.filter(x=>x.paymentStatus==='paid').reduce((s,x)=>{const c=e.categories.find(c=>c.key===x.category);return s+(c?c.price:0);},0)*vatRate());
         return `<tr class="k" onclick="go('event:${e.id}')"><td><b>${esc(e.name)}</b><div class="muted" style="font-size:11px">${esc(e.location)}</div></td>
         <td class="num">${fmtDate(e.date)}</td><td>${statusPill(e.status)}</td><td class="num">${t.length}</td><td class="num">${e.heatCount}</td><td class="num">${money(rev)}</td></tr>`;}).join('')}
       </tbody></table></div></div></div>`;
@@ -1259,7 +1267,7 @@ function dashNext(e){const t=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='ca
 function dashAttention(){
   const items=[];
   DB.teams.filter(t=>t.paymentStatus==='pending'&&t.status!=='cancelled').slice(0,4).forEach(t=>items.push(`Payment pending — <b>${esc(t.name)}</b>`));
-  DB.events.filter(e=>e.status==='upcoming'&&!DB.teams.some(t=>t.eventId===e.id&&t.heatNo)).forEach(e=>items.push(`Heats not assigned — <b>${esc(e.name)}</b>`));
+  DB.events.filter(e=>e.status==='upcoming'&&DB.teams.some(t=>t.eventId===e.id&&t.status!=='cancelled'&&!t.heatNo)).forEach(e=>items.push(`Heats not fully assigned — <b>${esc(e.name)}</b>`));
   DB.events.filter(e=>e.status==='completed'&&!e.resultsPublished).forEach(e=>items.push(`Results unpublished — <b>${esc(e.name)}</b>`));
   if(!items.length)return '<div class="muted">All clear. Nothing needs attention.</div>';
   return items.map(i=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">⚠︎ ${i}</div>`).join('');
@@ -1296,7 +1304,7 @@ function vEvents(v){
   `<div class="panel"><div class="pbody flush"><div class="twrap"><table class="tbl"><thead><tr><th>Event</th><th>Season</th><th>Date</th><th>Status</th><th>Teams</th><th>Heats</th><th>Team</th><th></th></tr></thead><tbody id="evRows"></tbody></table></div></div></div>`;
   fEvents('');
 }
-function fEvents(q){const rows=tableFilter(DB.events,q,['name','location']).sort((a,b)=>a.date.localeCompare(b.date));
+function fEvents(q){const rows=tableFilter(DB.events,q,['name','location']).slice().sort((a,b)=>a.date.localeCompare(b.date));
   $('#evRows').innerHTML=rows.map(e=>{const se=byId(DB.seasons,e.seasonId);const t=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='cancelled').length;
     return `<tr class="k" onclick="go('event:${e.id}')"><td><b>${esc(e.name)}</b><div class="muted" style="font-size:11px">${esc(e.location)}</div></td>
     <td>${se?esc(se.name):'—'}</td><td class="num">${fmtDate(e.date)}</td><td>${statusPill(e.status)}</td><td class="num">${t}/${e.heatCount*e.heatCapacity}</td>
@@ -1318,7 +1326,7 @@ function editEvent(id){const d=DB.settings;const e=id?byId(DB.events,id):{name:'
     <div class="hint">Categories, pricing and the workout are edited from the event page after saving.</div>
   `,()=>{const o=collect();['heatCount','heatCapacity','heatInterval','teamSize','teamMale','teamFemale'].forEach(k=>o[k]=+o[k]);
     if(!o.name||!o.date){toast('Name and date required');return false;}
-    if(id){Object.assign(e,o);logAct('Edited event '+o.name);}else{o.id=uid('ev');o.categories=e.categories;o.workout=e.workout;DB.events.push(o);logAct('Created event '+o.name);}
+    if(id){Object.assign(e,o);DB.teams.forEach(t=>{if(t.eventId===e.id&&t.heatNo>e.heatCount)t.heatNo=null;});logAct('Edited event '+o.name);}else{o.id=uid('ev');o.categories=e.categories;o.workout=e.workout;DB.events.push(o);logAct('Created event '+o.name);}
     save();toast('Event saved');render();},id?()=>{if(confirm('Delete event and all its team entries?')){DB.events=DB.events.filter(x=>x.id!==id);DB.teams=DB.teams.filter(t=>t.eventId!==id);save();render();closeModal();toast('Event deleted');}}:null);
 }
 
@@ -1328,6 +1336,7 @@ function vEventDetail(v,id){
   $('#pgTitle').textContent=e.name;$('#pgSub').textContent=fmtDate(e.date)+' · '+e.location;
   document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.k==='events'));
   const tabs=['settings','workout','heats','teams','scores'];
+  if(!tabs.includes(EVENT_TAB))EVENT_TAB='settings';
   const tabHtml=`<div class="tabs">`+tabs.map(t=>`<div class="tab ${EVENT_TAB===t?'on':''}" onclick="EVENT_TAB='${t}';render()">${t}</div>`).join('')+`</div>`;
   let body='';
   if(EVENT_TAB==='settings')body=evSettings(e);
@@ -1335,7 +1344,7 @@ function vEventDetail(v,id){
   else if(EVENT_TAB==='heats')body=evHeats(e);
   else if(EVENT_TAB==='teams')body=evTeams(e);
   else if(EVENT_TAB==='scores')body=evScores(e);
-  v.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:16px"><button class="btn btn-sm" onclick="go('events')">← Events</button>
+  v.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center"><button class="btn btn-sm" onclick="go('events')">← Events</button>
     ${statusPill(e.status)}<div class="sp" style="flex:1"></div><button class="btn btn-sm btn-ghost" onclick="editEvent('${e.id}')">Edit event</button></div>`+tabHtml+body;
 }
 function evSettings(e){const se=byId(DB.seasons,e.seasonId);
@@ -1375,8 +1384,8 @@ function evWorkout(e){
 function addStation(id){editStation(id,-1);}
 function editStation(id,i){const e=byId(DB.events,id);const w=i>=0?e.workout[i]:{station:'',detail:''};
   modal(i>=0?'Edit station':'New station',`${F('Station name','station',w.station)}${F('Detail / reps / distance','detail',w.detail)}`,
-  ()=>{const o=collect();if(!o.station)return toast('Name required'),false;if(i>=0)e.workout[i]=o;else e.workout.push(o);save();render();toast('Station saved');},
-  i>=0?()=>{e.workout.splice(i,1);save();render();closeModal();}:null);
+  ()=>{const o=collect();if(!o.station)return toast('Name required'),false;if(i>=0)e.workout[i]=o;else e.workout.push(o);pruneScores(e);save();render();toast('Station saved');},
+  i>=0?()=>{if(!confirm('Delete this station? Any scores for it will be cleared.'))return;e.workout.splice(i,1);pruneScores(e);save();render();closeModal();}:null);
 }
 function moveStation(id,i,d){const e=byId(DB.events,id);const j=i+d;if(j<0||j>=e.workout.length)return;[e.workout[i],e.workout[j]]=[e.workout[j],e.workout[i]];save();render();}
 
@@ -1385,9 +1394,8 @@ function generateHeats(id){const e=byId(DB.events,id);const teams=DB.teams.filte
   // group by category so each category clusters, then fill heats to capacity
   teams.sort((a,b)=>(a.category>b.category?1:-1)||a.name.localeCompare(b.name));
   teams.forEach((t,idx)=>{t.heatNo=Math.floor(idx/e.heatCapacity)+1;});
-  const needed=Math.max(e.heatCount,Math.ceil(teams.length/e.heatCapacity));
-  if(needed>e.heatCount){e.heatCount=needed;}
-  save();logAct('Auto-generated heats for '+e.name);render();toast('Heats auto-assigned');
+  const needed=Math.max(e.heatCount,Math.ceil(teams.length/Math.max(1,e.heatCapacity)));const grew=needed>e.heatCount;if(grew)e.heatCount=needed;
+  save();logAct('Auto-generated heats for '+e.name);render();toast(grew?'Heats assigned — expanded to '+needed+' heats':'Heats auto-assigned');
 }
 function evHeats(e){
   const teams=DB.teams.filter(t=>t.eventId===e.id&&t.status!=='cancelled');
@@ -1398,13 +1406,13 @@ function evHeats(e){
     <div class="muted" style="font-size:12px">${teams.length} teams · ${e.heatCount} heats · cap ${e.heatCapacity}/heat</div></div>
   ${unassigned.length?`<div class="panel" style="border-color:var(--redline-edge)"><div class="ph"><h3>Unassigned (${unassigned.length})</h3></div><div class="pbody">${unassigned.map(t=>heatTeamRow(e,t,heats)).join('')}</div></div>`:''}
   ${heats.map(h=>`<div class="panel"><div class="ph"><h3>Heat ${h.no}</h3><span class="pill">${h.time}</span><div class="sp"></div>
-    <span class="muted mono" style="font-size:11px">${h.teams.length}/${e.heatCapacity}</span></div>
+    <span class="mono" style="font-size:11px;color:${h.teams.length>e.heatCapacity?'#ff8d85':'var(--muted)'}">${h.teams.length}/${e.heatCapacity}</span></div>
     <div class="pbody flush"><table class="tbl"><tbody>${h.teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${statusPill(t.category)}</td><td style="text-align:right;width:150px">${heatSelect(e,t)}</td></tr>`).join('')||`<tr><td class="empty" style="padding:16px">Empty heat</td></tr>`}</tbody></table></div></div>`).join('')}`;
 }
-function heatSelect(e,t){let o='';for(let h=1;h<=e.heatCount;h++)o+=`<option value="${h}" ${t.heatNo===h?'selected':''}>Heat ${h} · ${addMin(e.startTime,(h-1)*e.heatInterval)}</option>`;
-  return `<select class="inp" style="padding:6px 8px" onchange="setHeat('${t.id}',this.value)">${o}</select>`;}
+function heatSelect(e,t){let o=`<option value="" ${!t.heatNo?'selected':''}>— unassigned —</option>`;for(let h=1;h<=e.heatCount;h++)o+=`<option value="${h}" ${t.heatNo===h?'selected':''}>Heat ${h} · ${addMin(e.startTime,(h-1)*e.heatInterval)}</option>`;if(t.heatNo&&t.heatNo>e.heatCount)o+=`<option value="${t.heatNo}" selected>Heat ${t.heatNo} (removed)</option>`;
+  return `<select class="inp" style="padding:6px 8px;min-width:170px" onchange="setHeat('${t.id}',this.value)">${o}</select>`;}
 function heatTeamRow(e,t,heats){return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><b>${esc(t.name)}</b> ${statusPill(t.category)}<div style="flex:1"></div>${heatSelect(e,t)}</div>`;}
-function setHeat(tid,h){const t=DB.teams.find(x=>x.id===tid);t.heatNo=+h;save();logAct('Reassigned '+t.name+' to heat '+h);render();toast('Heat updated');}
+function setHeat(tid,h){const t=DB.teams.find(x=>x.id===tid);if(!t)return;const e=byId(DB.events,t.eventId);h=h===''?null:+h;if(e&&h){const inHeat=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='cancelled'&&x.heatNo===h&&x.id!==tid).length;if(inHeat>=e.heatCapacity){toast('Heat '+h+' is full ('+e.heatCapacity+' teams)');render();return;}}t.heatNo=h;save();logAct('Reassigned '+t.name+(h?' to heat '+h:' to unassigned'));render();toast('Heat updated');}
 
 /* ---------- EVENT TEAMS ---------- */
 function evTeams(e){const teams=DB.teams.filter(t=>t.eventId===e.id);
@@ -1457,7 +1465,7 @@ function viewTeam(id){const t=byId(DB.teams,id);const e=byId(DB.events,t.eventId
     t.status==='cancelled'?{label:'Reinstate',fn:()=>{t.status='registered';save();closeModal();render();toast('Reinstated');}}:{label:'Cancel attendance',cls:'btn-danger',fn:()=>{if(confirm('Cancel attendance for this team?')){t.status='cancelled';t.heatNo=null;save();logAct('Cancelled '+t.name);closeModal();render();toast('Attendance cancelled');}}},
   ]);
 }
-function editTeam(id,evId){const t=id?byId(DB.teams,id):{name:'',eventId:evId||DB.events[0].id,category:'everyday',status:'registered',paymentStatus:'pending',heatNo:null,captain:'',checkedIn:false,
+function editTeam(id,evId){if(!DB.events.length){toast('Create an event first');return;}const t=id?byId(DB.teams,id):{name:'',eventId:evId||DB.events[0].id,category:'everyday',status:'registered',paymentStatus:'pending',heatNo:null,captain:'',checkedIn:false,
     members:[{name:'',gender:'M',email:'',mobile:'',rdln:'',status:'joined'}]};
   const e=byId(DB.events,t.eventId);
   const memRows=t.members.map((m,i)=>memberFields(m,i)).join('');
@@ -1473,6 +1481,8 @@ function editTeam(id,evId){const t=id?byId(DB.teams,id):{name:'',eventId:evId||D
       email:r.querySelector('[data-m=email]').value,mobile:r.querySelector('[data-m=mobile]').value,
       rdln:r.querySelector('[data-m=rdln]').value,status:r.querySelector('[data-m=status]').value})).filter(m=>m.name);
     if(!o.name)return toast('Team name required'),false;
+    {const e2=byId(DB.events,o.eventId);if(e2){const act=o.members.filter(m=>m.status!=='removed');const jm=act.filter(m=>m.gender==='M').length,jf=act.filter(m=>m.gender==='F').length;
+      if(jm>e2.teamMale||jf>e2.teamFemale||act.length>e2.teamSize){toast('Roster exceeds rules: max '+e2.teamMale+'M · '+e2.teamFemale+'F · '+e2.teamSize+' total');return false;}}}
     if(id){Object.assign(t,o);logAct('Edited team '+o.name);}else{o.id=uid('tm');o.checkedIn=false;o.scores={};DB.teams.push(o);logAct('Added team '+o.name);}
     save();render();toast('Team saved');},
   id?()=>{if(confirm('Delete this team entirely?')){DB.teams=DB.teams.filter(x=>x.id!==id);save();render();closeModal();toast('Team deleted');}}:null);
@@ -1489,33 +1499,38 @@ function addMemberRow(cap){const w=$('#memWrap');if(cap&&w.querySelectorAll('.me
    ============================================================ */
 function vScores(v){
   v.innerHTML=`<div class="sectionnote">Pick an event to enter station times. Totals and rankings compute automatically; publish to push results to the public leaderboard.</div>
-  <div class="cards">${DB.events.map(e=>`<div class="card k" onclick="ROUTE='event:${e.id}';EVENT_TAB='scores';render()">
+  <div class="cards">${DB.events.map(e=>`<div class="card k" onclick="EVENT_TAB='scores';go('event:${e.id}')">
     <div style="display:flex;gap:8px;align-items:center"><h3 style="font-size:16px">${esc(e.name)}</h3>${statusPill(e.status)}</div>
     <div class="muted mono" style="font-size:11px;margin-top:6px">${fmtDate(e.date)}</div>
-    <div style="margin-top:10px;font-size:12px">${DB.teams.filter(t=>t.eventId===e.id&&Object.keys(t.scores||{}).length).length} scored · ${e.resultsPublished?'<span class="pill good">published</span>':'<span class="pill warn">unpublished</span>'}</div></div>`).join('')}</div>`;
+    <div style="margin-top:10px;font-size:12px">${DB.teams.filter(t=>t.eventId===e.id&&t.status!=='cancelled'&&e.workout.length&&e.workout.every(w=>(t.scores||{})[w.station]!=null)).length} scored · ${e.resultsPublished?'<span class="pill good">published</span>':'<span class="pill warn">unpublished</span>'}</div></div>`).join('')}</div>`;
 }
 function evScores(e){
   const teams=DB.teams.filter(t=>t.eventId===e.id&&t.status!=='cancelled');
-  const ranked=teams.map(t=>({t,total:Object.keys(t.scores||{}).length===e.workout.length?e.workout.reduce((s,w)=>s+(+t.scores[w.station]||0),0):null}))
-    .sort((a,b)=>(a.total==null)-(b.total==null)||(a.total-b.total));
+  const ws=e.workout;
+  const ranked=teams.map(t=>{const sc=t.scores||{};const complete=ws.length>0&&ws.every(w=>sc[w.station]!=null);return {t,sc,total:complete?ws.reduce((s,w)=>s+(+sc[w.station]||0),0):null};})
+    .sort((a,b)=>(a.total==null)-(b.total==null)||((a.total||0)-(b.total||0)));
+  let lastT=null,lastR=0;ranked.forEach((r,i)=>{if(r.total==null){r.rank=null;}else{r.rank=(r.total===lastT)?lastR:i+1;lastT=r.total;lastR=r.rank;}});
   return `<div class="toolbar">
     <button class="btn ${e.resultsPublished?'btn-ghost':'btn-red'}" onclick="togglePublish('${e.id}')">${e.resultsPublished?'Unpublish results':'Publish results →'}</button>
     <button class="btn btn-ghost" onclick="exportScores('${e.id}')">Export CSV</button>
     <div class="muted" style="font-size:12px">Enter times as M:SS or H:MM:SS per station</div></div>
    <div class="panel"><div class="pbody flush"><div class="twrap"><table class="tbl"><thead><tr><th style="width:40px">#</th><th>Team</th>
    ${e.workout.map(w=>`<th>${esc(w.station)}</th>`).join('')}<th>Total</th></tr></thead><tbody>
-   ${ranked.map((r,i)=>`<tr><td class="num">${r.total!=null?i+1:'—'}</td><td><b>${esc(r.t.name)}</b> <span class="muted">${r.t.category}</span></td>
-     ${e.workout.map(w=>`<td><input class="inp" style="width:78px;padding:6px 8px;font-family:var(--mono)" value="${r.t.scores&&r.t.scores[w.station]!=null?secToClock(r.t.scores[w.station]):''}" placeholder="–:––" onchange="setScore('${r.t.id}','${esc(w.station)}',this.value)"></td>`).join('')}
+   ${ranked.map(r=>`<tr><td class="num">${r.rank!=null?r.rank:'—'}</td><td><b>${esc(r.t.name)}</b> <span class="muted">${esc(r.t.category)}</span></td>
+     ${ws.map((w,wi)=>`<td><input class="inp" style="width:80px;padding:6px 8px;font-family:var(--mono)" value="${r.sc[w.station]!=null?secToClock(r.sc[w.station]):''}" placeholder="–:––" onchange="setScoreIdx('${r.t.id}','${e.id}',${wi},this.value)"></td>`).join('')}
      <td class="num"><b>${r.total!=null?secToClock(r.total):'—'}</b></td></tr>`).join('')}
    </tbody></table></div></div></div>`;
 }
-function setScore(tid,station,val){const t=byId(DB.teams,tid);const s=clockToSec(val);if(val===''){delete t.scores[station];}else if(s==null){toast('Use M:SS');return;}else{t.scores[station]=s;}save();render();}
-function togglePublish(id){const e=byId(DB.events,id);e.resultsPublished=!e.resultsPublished;save();logAct((e.resultsPublished?'Published':'Unpublished')+' results for '+e.name);render();toast(e.resultsPublished?'Results published':'Results hidden');}
+function setScore(tid,station,val){const t=byId(DB.teams,tid);if(!t)return;if(!t.scores)t.scores={};const s=clockToSec(val);if(String(val).trim()===''){delete t.scores[station];}else if(s==null){toast('Use M:SS or H:MM:SS');return;}else{t.scores[station]=s;}save();render();}
+function togglePublish(id){const e=byId(DB.events,id);if(!e)return;e.resultsPublished=!e.resultsPublished;save();logAct((e.resultsPublished?'Published':'Unpublished')+' results for '+e.name);render();toast(e.resultsPublished?'Results published':'Results hidden');}
+function setScoreIdx(tid,evId,wi,val){const e=byId(DB.events,evId);if(!e||!e.workout[wi])return;setScore(tid,e.workout[wi].station,val);}
+function pruneScores(e){const keys=new Set(e.workout.map(w=>w.station));DB.teams.filter(t=>t.eventId===e.id&&t.scores).forEach(t=>Object.keys(t.scores).forEach(k=>{if(!keys.has(k))delete t.scores[k];}));}
 
 /* ============================================================
    CHECK-IN
    ============================================================ */
 function vCheckin(v){
+  if(!DB.events.length){v.innerHTML='<div class="empty">No events yet — create one first.</div>';return;}
   const ev=FILTER.cev||DB.events.find(e=>e.status==='upcoming'||e.status==='live')&&(DB.events.find(e=>e.status==='upcoming'||e.status==='live')).id||DB.events[0].id;
   FILTER.cev=ev;const teams=DB.teams.filter(t=>t.eventId===ev&&t.status!=='cancelled').sort((a,b)=>(a.heatNo||9)-(b.heatNo||9));
   const inN=teams.filter(t=>t.checkedIn).length;
@@ -1526,13 +1541,13 @@ function vCheckin(v){
     <td><button class="btn btn-sm ${t.checkedIn?'btn-ghost':'btn-red'}" onclick="t_checkin('${t.id}')">${t.checkedIn?'✓ Checked in':'Check in'}</button></td></tr>`).join('')||`<tr><td colspan=4 class="empty">No teams for this event.</td></tr>`}
     </tbody></table></div></div>`;
 }
-function t_checkin(id){const t=byId(DB.teams,id);t.checkedIn=!t.checkedIn;save();render();}
+function t_checkin(id){const t=byId(DB.teams,id);if(!t)return;t.checkedIn=!t.checkedIn;save();render();}
 
 /* ============================================================
    GENERIC ENTITY VIEWS
    ============================================================ */
 function vCustomers(v){listView(v,{coll:'customers',title:'Customers',search:['name','email','rdln','mobile'],
-  cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['mobile','Mobile'],['gender','Sex'],['rdln','RDLN'],['city','City']],
+  cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['mobile','Mobile'],['gender','Gender'],['rdln','RDLN'],['city','City']],
   form:o=>`<div class="row2">${F('Full name','name',o.name)}${F('RDLN #','rdln',o.rdln)}</div>
     <div class="row2">${F('Email','email',o.email,'email')}${F('Mobile','mobile',o.mobile,'tel')}</div>
     <div class="row3">${F('Sex','gender',o.gender||'M','select',['M','F'])}${F('Date of birth','dob',o.dob,'date')}${F('T-shirt','tshirt',o.tshirt||'M','select',['XS','S','M','L','XL','XXL'])}</div>
@@ -1546,8 +1561,8 @@ function vStaff(v){listView(v,{coll:'staff',title:'Staff',search:['name','email'
   blank:{name:'',email:'',role:'staff',phone:''}});}
 
 function vVolunteers(v){
-  v.innerHTML=`<div class="tabs"><div class="tab ${EVENT_TAB!=='cats'?'on':''}" onclick="EVENT_TAB='list';render()">Volunteers</div><div class="tab ${EVENT_TAB==='cats'?'on':''}" onclick="EVENT_TAB='cats';render()">Categories</div></div>`;
-  if(EVENT_TAB==='cats'){v.innerHTML+=toolbar(`<div class="sp" style="flex:1"></div><button class="btn btn-red" onclick="editVCat()">+ Category</button>`)+
+  v.innerHTML=`<div class="tabs"><div class="tab ${VOL_TAB!=='cats'?'on':''}" onclick="VOL_TAB='list';render()">Volunteers</div><div class="tab ${VOL_TAB==='cats'?'on':''}" onclick="VOL_TAB='cats';render()">Categories</div></div>`;
+  if(VOL_TAB==='cats'){v.innerHTML+=toolbar(`<div class="sp" style="flex:1"></div><button class="btn btn-red" onclick="editVCat()">+ Category</button>`)+
     `<div class="panel"><div class="pbody flush"><table class="tbl"><thead><tr><th>Category</th><th>Description</th><th>Count</th><th></th></tr></thead><tbody>
     ${DB.volCats.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.desc||'')}</td><td class="num">${DB.volunteers.filter(x=>x.catId===c.id).length}</td>
       <td style="text-align:right"><button class="btn btn-sm btn-ghost" onclick="editVCat('${c.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div></div>`;return;}
@@ -1563,7 +1578,7 @@ function fVol(q){const arr=tableFilter(DB.volunteers,q,['name','email','mobile']
 }
 function editVCat(id){const c=id?byId(DB.volCats,id):{name:'',desc:''};modal(id?'Edit category':'New category',`${F('Name','name',c.name)}${F('Description','desc',c.desc)}`,
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(id)Object.assign(c,o);else{o.id=uid('vc');DB.volCats.push(o);}save();render();toast('Saved');},
-  id?()=>{DB.volCats=DB.volCats.filter(x=>x.id!==id);save();render();closeModal();}:null);}
+  id?()=>{if(!confirm('Delete this category?'))return;DB.volCats=DB.volCats.filter(x=>x.id!==id);save();render();closeModal();}:null);}
 function editVol(id){const o=id?byId(DB.volunteers,id):{name:'',catId:DB.volCats[0]&&DB.volCats[0].id,email:'',mobile:'',shirt:'M',notes:'',events:[]};
   modal(id?'Edit volunteer':'New volunteer',`${F('Name','name',o.name)}
     <div class="row2">${F('Category','catId',o.catId,'select',DB.volCats.map(c=>[c.id,c.name]))}${F('T-shirt','shirt',o.shirt||'M','select',['S','M','L','XL'])}</div>
@@ -1572,7 +1587,7 @@ function editVol(id){const o=id?byId(DB.volunteers,id):{name:'',catId:DB.volCats
     ${F('Notes','notes',o.notes,'textarea')}`,
   ()=>{const n=collect();n.events=getMulti('events');if(!n.name)return toast('Name required'),false;
     if(id)Object.assign(o,n);else{n.id=uid('vo');DB.volunteers.push(n);}save();render();toast('Saved');},
-  id?()=>{DB.volunteers=DB.volunteers.filter(x=>x.id!==id);save();render();closeModal();}:null);}
+  id?()=>{if(!confirm('Delete this volunteer?'))return;DB.volunteers=DB.volunteers.filter(x=>x.id!==id);save();render();closeModal();}:null);}
 
 function vSuppliers(v){
   v.innerHTML=toolbar(`${searchBox('Search suppliers…','fSup')}<div class="sp" style="flex:1"></div><button class="btn btn-red" onclick="editSupplier()">+ Supplier</button>`)+`<div id="supWrap"></div>`;
@@ -1595,7 +1610,7 @@ function addContact(sid){editContact(sid,-1);}
 function editContact(sid,i){const s=byId(DB.suppliers,sid);const c=i>=0?s.contacts[i]:{name:'',role:'',email:'',phone:''};
   modal(i>=0?'Edit contact':'New contact',`${F('Name','name',c.name)}${F('Role','role',c.role)}<div class="row2">${F('Email','email',c.email,'email')}${F('Phone','phone',c.phone,'tel')}</div>`,
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(i>=0)s.contacts[i]=o;else{s.contacts=s.contacts||[];s.contacts.push(o);}save();render();toast('Saved');},
-  i>=0?()=>{s.contacts.splice(i,1);save();render();closeModal();}:null);}
+  i>=0?()=>{if(!confirm('Delete this contact?'))return;s.contacts.splice(i,1);save();render();closeModal();}:null);}
 
 /* ---------- EMAIL TEMPLATES ---------- */
 function vEmails(v){
@@ -1633,7 +1648,7 @@ function editPush(id){const p=id?byId(DB.pushes,id):{title:'',body:'',audience:'
     <div class="row2">${F('Audience','audience',p.audience,'select',['All accounts','Season 01 athletes','Captains only','Unpaid entries','Volunteers'])}${F('Status','status',p.status,'select',['draft','scheduled','sent'])}</div>
     ${F('Schedule (YYYY-MM-DD HH:MM)','scheduledAt',p.scheduledAt)}`,
   ()=>{const o=collect();if(!o.title)return toast('Title required'),false;if(id)Object.assign(p,o);else{o.id=uid('ps');DB.pushes.push(o);}save();render();toast('Saved');},
-  id?()=>{DB.pushes=DB.pushes.filter(x=>x.id!==id);save();render();closeModal();}:null,
+  id?()=>{if(!confirm('Delete this notification?'))return;DB.pushes=DB.pushes.filter(x=>x.id!==id);save();render();closeModal();}:null,
   [{label:'Send now',cls:'btn-red',fn:()=>{p.status='sent';save();render();closeModal();toast('Notification sent (demo)');}}]);
 }
 
@@ -1702,7 +1717,7 @@ function F(label,name,val,type='text',opts){
 function Fmulti(label,name,vals,opts){return `<div class="field"><label>${label}</label><div id="fm_${name}" style="display:flex;flex-wrap:wrap;gap:8px">
   ${opts.map(([v,l])=>`<label class="tag" style="cursor:pointer;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" data-fm="${name}" value="${esc(v)}" ${vals.includes(v)?'checked':''}>${esc(l)}</label>`).join('')}</div></div>`;}
 function getMulti(name){return [...document.querySelectorAll(`[data-fm="${name}"]:checked`)].map(c=>c.value);}
-function collect(){const o={};document.querySelectorAll('#mBody [data-f]').forEach(el=>{o[el.dataset.f]=el.value;});return o;}
+function collect(){const o={};document.querySelectorAll('#mBody [data-f]').forEach(el=>{o[el.dataset.f]=el.type==='checkbox'?el.checked:el.value;});return o;}
 
 let MODAL_SAVE=null;
 function modal(title,bodyHtml,onSave,onDelete,extraBtns){
@@ -1726,13 +1741,13 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();}
    EXPORTS
    ============================================================ */
 function dl(name,text,type='text/csv'){const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();}
-function exportTeams(evId){const e=byId(DB.events,evId);const rows=[['Team','Category','Heat','Payment','Status','Members joined','Captain']];
+function exportTeams(evId){const e=byId(DB.events,evId);if(!e)return;const q=c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"';const rows=[['Team','Category','Heat','Payment','Status','Athletes joined','Captain']];
   DB.teams.filter(t=>t.eventId===evId).forEach(t=>rows.push([t.name,t.category,t.heatNo||'',t.paymentStatus,t.status,t.members.filter(m=>m.status==='joined').length,t.captain||'']));
-  dl((e.name+'-teams.csv').replace(/\s+/g,'_'),rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n'));toast('CSV exported');}
-function exportScores(evId){const e=byId(DB.events,evId);const head=['Team','Category',...e.workout.map(w=>w.station),'Total'];const rows=[head];
-  DB.teams.filter(t=>t.eventId===evId&&t.status!=='cancelled').forEach(t=>{const tot=e.workout.reduce((s,w)=>s+(+t.scores[w.station]||0),0);
-    rows.push([t.name,t.category,...e.workout.map(w=>secToClock(t.scores[w.station])),secToClock(tot)]);});
-  dl((e.name+'-scores.csv').replace(/\s+/g,'_'),rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n'));toast('CSV exported');}
+  dl((e.name+'-teams.csv').replace(/\s+/g,'_'),rows.map(r=>r.map(q).join(',')).join('\n'));toast('CSV exported');}
+function exportScores(evId){const e=byId(DB.events,evId);if(!e)return;const q=c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"';const head=['Team','Category',...e.workout.map(w=>w.station),'Total'];const rows=[head];
+  DB.teams.filter(t=>t.eventId===evId&&t.status!=='cancelled').forEach(t=>{const sc=t.scores||{};const complete=e.workout.length>0&&e.workout.every(w=>sc[w.station]!=null);const tot=complete?e.workout.reduce((s,w)=>s+(+sc[w.station]||0),0):null;
+    rows.push([t.name,t.category,...e.workout.map(w=>sc[w.station]!=null?secToClock(sc[w.station]):''),tot!=null?secToClock(tot):'']);});
+  dl((e.name+'-scores.csv').replace(/\s+/g,'_'),rows.map(r=>r.map(q).join(',')).join('\n'));toast('CSV exported');}
 function exportAll(){dl('redln-console-backup.json',JSON.stringify(DB,null,2),'application/json');toast('Backup downloaded');}
 
 /* ============================================================
