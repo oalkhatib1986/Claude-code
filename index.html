@@ -48,12 +48,14 @@
   #login .card{width:min(400px,92vw);background:var(--panel);border:1px solid var(--edge);border-radius:18px;padding:34px 30px}
   #login .logo-img{height:30px;width:auto;display:block}
   .field{margin-bottom:14px}
-  .field>label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field>label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;line-height:1.35}
   .inp{width:100%;background:#0e0e0e;border:1px solid var(--edge);border-radius:9px;padding:11px 13px;outline:none}
   .inp:focus{border-color:var(--redline-edge)}
   textarea.inp{resize:vertical;min-height:84px;line-height:1.5}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start}
+  .row2>*,.row3>*{min-width:0}
+  .field>.inp{box-sizing:border-box}
 
   /* ---------- app shell ---------- */
   #app{display:none;min-height:100vh}
@@ -68,7 +70,7 @@
   .nav:hover{background:rgba(255,255,255,0.05)}
   .nav.on{background:var(--redline-glass);color:#fff;box-shadow:inset 0 0 0 1px var(--redline-edge)}
   .nav .ic{width:18px;text-align:center;opacity:.85}
-  .nav .badge{margin-left:auto;font-family:var(--mono);font-size:10px;background:#222;border-radius:20px;padding:1px 7px;color:#bbb}
+  .nav .badge{margin-left:auto;font-family:var(--mono);font-size:10px;background:#222;border-radius:6px;padding:1px 7px;color:#bbb}
 
   .main{min-width:0;display:flex;flex-direction:column}
   .top{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--edge);position:sticky;top:0;background:rgba(10,10,10,.86);backdrop-filter:blur(8px);z-index:20}
@@ -76,7 +78,10 @@
   .top .sub{color:var(--muted);font-size:12px;font-family:var(--mono)}
   .top .sp{flex:1}
   .who{display:flex;align-items:center;gap:9px;font-size:12px}
-  .who .av{width:30px;height:30px;border-radius:50%;background:var(--redline);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700}
+  .who{gap:9px}
+  .who .av{flex:0 0 30px;width:30px;height:30px;aspect-ratio:1;border-radius:50%;background:var(--redline);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700;font-size:14px}
+  .who-id{min-width:0;line-height:1.25}
+  .who-id #whoName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
   .content{padding:22px 24px 60px;max-width:1180px;width:100%}
 
   /* ---------- cards / grid ---------- */
@@ -107,7 +112,7 @@
   .twrap{overflow:auto}
 
   .pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
-    padding:3px 9px;border-radius:20px;background:#1d1d1d;color:#bbb;border:1px solid var(--edge)}
+    padding:3px 9px;border-radius:6px;background:#1d1d1d;color:#bbb;border:1px solid var(--edge)}
   .pill.good{color:#7fe0a3;border-color:rgba(46,157,91,.5);background:rgba(46,157,91,.12)}
   .pill.warn{color:#e9c27a;border-color:rgba(224,169,59,.5);background:rgba(224,169,59,.12)}
   .pill.bad{color:#ff8d85;border-color:rgba(216,69,59,.5);background:rgba(216,69,59,.12)}
@@ -163,6 +168,9 @@
     .content{padding:16px 13px 50px}
     .cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
     .menuToggle{display:none!important}
+    .who-id{display:none}
+    .tbl td,.tbl th{padding:9px 11px}
+    .top h2{font-size:19px}
   }
 
   /* ---- progressive enhancement: works with NO JavaScript ---- */
@@ -286,7 +294,7 @@
         <button class="btn btn-sm menuToggle" onclick="toggleMenu()">☰</button>
         <div><h2 id="pgTitle">Dashboard</h2><div class="sub" id="pgSub"></div></div>
         <div class="sp"></div>
-        <div class="who"><div class="av" id="whoAv">O</div><div><div id="whoName" style="font-weight:600"></div><div class="muted mono" id="whoRole" style="font-size:10px"></div></div>
+        <div class="who"><div class="av" id="whoAv">O</div><div class="who-id"><div id="whoName" style="font-weight:600"></div><div class="muted mono" id="whoRole" style="font-size:10px"></div></div>
         <label class="btn btn-sm btn-ghost" for="authcb" onclick="logout()" style="margin-left:6px;cursor:pointer">Sign out</label></div>
       </div>
       <div class="content" id="view"></div><div class="content static-pages"><div class="reviewbar nojs-only">Review mode — browse every section and open any event to work through its settings, heats, teams and scores.</div><div class="page page-dashboard"><div class="pagehead"><h2>Dashboard</h2><div class="sub">Live operational overview</div></div>
@@ -1012,7 +1020,7 @@
    REDLN. Operations Console — self-contained admin (demo)
    Data persists to localStorage. Behaves like a backend.
    ============================================================ */
-const KEY='redln_ops_v1';
+const KEY='redln_ops_v2';
 let DB=null, SESSION=null, ROUTE='dashboard', EVENT_TAB='settings';
 
 /* ---------- utilities ---------- */
@@ -1047,16 +1055,20 @@ function seed(){
       categories:[{key:'everyday',label:'Everyday',price:600},{key:'elite',label:'Elite',price:800}],
       workout:wk()}));
   const tn=['The Redliners','Iron Pace','Night Shift','Pace Makers','Dust Devils','Steel Pulse','First Blood','Wreckage','Sandstorm','Last Light'];
+  const MN=['Alex Carter','Sam Rivers','Omar Faris','Jad Khoury','Noah Reed','Liam Hart','Yousef Adel','Karim Saleh','Tariq Nasser','Dane Wolfe','Ravi Menon','Marco Bianchi','Hassan Ali','Leo Fischer','Adam Stone','Bilal Aziz','Nathan Cole','Rami Haddad','Felix Wright','Zaid Omar'];
+  const FN=['Mia Chen','Lena Ortiz','Hana Said','Dana Carter','Sara Idris','Nora Haddad','Zara Khan','Maya Lopez','Aisha Rahman','Tess Moran','Ivy Park','Lucia Romano','Layla Nasser','Elsa Berg','Priya Nair','Dina Saleh','Clara West','Yara Fadel','Nina Volkov','Reem Adel'];
+  const eml=x=>x.toLowerCase().replace(/[^a-z]+/g,'.')+'@email.com';
+  const mob=k=>'+971 50 '+(100+k*3)+' '+(2000+k*17).toString().slice(0,4);
   const teams=[];
   const mk=(ev,arr,cat0)=>arr.forEach((name,i)=>{
     teams.push({id:uid('tm'),eventId:ev,name,category:(i%3===0?'elite':'everyday'),status:'registered',
       paymentStatus:'paid',heatNo:(i%3)+1,checkedIn:ev==='ev_r1'||ev==='ev_r2',
-      captain:name+' Captain',
+      captain:MN[(i*2)%MN.length],
       members:[
-        {name:name+' A',gender:'M',email:'a@'+name.replace(/\W/g,'').toLowerCase()+'.com',mobile:'+9715000000'+i,rdln:'#0'+(1000+i),status:'joined'},
-        {name:name+' B',gender:'M',email:'b@x.com',mobile:'+971500',rdln:'#0'+(2000+i),status:'joined'},
-        {name:name+' C',gender:'F',email:'c@x.com',mobile:'+971500',rdln:'#0'+(3000+i),status:'joined'},
-        {name:name+' D',gender:'F',email:'d@x.com',mobile:'+971500',rdln:'#0'+(4000+i),status:i===3?'pending':'joined'},
+        {name:MN[(i*2)%MN.length],gender:'M',email:eml(MN[(i*2)%MN.length]),mobile:mob(i*4),rdln:'#'+(10000+i*4),status:'joined'},
+        {name:MN[(i*2+1)%MN.length],gender:'M',email:eml(MN[(i*2+1)%MN.length]),mobile:mob(i*4+1),rdln:'#'+(10001+i*4),status:'joined'},
+        {name:FN[(i*2)%FN.length],gender:'F',email:eml(FN[(i*2)%FN.length]),mobile:mob(i*4+2),rdln:'#'+(10002+i*4),status:'joined'},
+        {name:FN[(i*2+1)%FN.length],gender:'F',email:eml(FN[(i*2+1)%FN.length]),mobile:mob(i*4+3),rdln:'#'+(10003+i*4),status:i===3?'pending':'joined'},
       ],
       scores:{}});
   });
@@ -1454,7 +1466,7 @@ function editTeam(id,evId){const t=id?byId(DB.teams,id):{name:'',eventId:evId||D
     <div class="row3">${F('Category','category',t.category,'select',(e?e.categories:[]).map(c=>[c.key,c.label]))}${F('Payment','paymentStatus',t.paymentStatus,'select',['pending','paid','refunded'])}${F('Status','status',t.status,'select',['registered','cancelled'])}</div>
     <h3 style="font-size:13px;color:var(--muted);margin:16px 0 8px">ROSTER ${e?'· '+e.teamSize+' athletes ('+e.teamMale+'M·'+e.teamFemale+'F)':''}</h3>
     <div id="memWrap">${memRows}</div>
-    <button class="btn btn-sm btn-ghost" onclick="addMemberRow()" style="margin-top:8px">+ Add athlete</button>
+    ${t.members.length>=(e?e.teamSize:4)?`<div class="hint" style="margin-top:8px">Roster full — ${e?e.teamSize:4} athletes (${e?e.teamMale:2}M · ${e?e.teamFemale:2}F). Remove one to swap.</div>`:`<button class="btn btn-sm btn-ghost" id="addMemBtn" onclick="addMemberRow(${e?e.teamSize:4})" style="margin-top:8px">+ Add athlete</button>`}
   `,()=>{const o=collect();
     o.members=[...document.querySelectorAll('#memWrap .memrow')].map(r=>({
       name:r.querySelector('[data-m=name]').value,gender:r.querySelector('[data-m=gender]').value,
@@ -1470,7 +1482,7 @@ function memberFields(m,i){return `<div class="memrow" style="background:#0e0e0e
   <div class="row2" style="margin-top:8px"><input class="inp" data-m="email" placeholder="email" value="${esc(m.email)}"><input class="inp" data-m="mobile" placeholder="mobile" value="${esc(m.mobile)}"></div>
   <div class="row2" style="margin-top:8px"><input class="inp" data-m="rdln" placeholder="RDLN #" value="${esc(m.rdln)}"><select class="inp" data-m="status">${['joined','pending','removed'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
   <div style="text-align:right;margin-top:6px"><span class="btn btn-sm btn-ghost" onclick="this.closest('.memrow').remove()">Remove</span></div></div>`;}
-function addMemberRow(){const w=$('#memWrap');const d=document.createElement('div');d.innerHTML=memberFields({name:'',gender:'M',email:'',mobile:'',rdln:'',status:'joined'});w.appendChild(d.firstElementChild);}
+function addMemberRow(cap){const w=$('#memWrap');if(cap&&w.querySelectorAll('.memrow').length>=cap){toast('Team is full ('+cap+' athletes)');return;}const d=document.createElement('div');d.innerHTML=memberFields({name:'',gender:'M',email:'',mobile:'',rdln:'',status:'joined'});w.appendChild(d.firstElementChild);if(cap&&w.querySelectorAll('.memrow').length>=cap){const b=$('#addMemBtn');if(b)b.style.display='none';}}
 
 /* ============================================================
    SCORING
