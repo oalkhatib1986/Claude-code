@@ -1026,7 +1026,7 @@
    REDLN. Operations Console — self-contained admin (demo)
    Data persists to localStorage. Behaves like a backend.
    ============================================================ */
-const KEY='redln_ops_v4';
+const KEY='redln_ops_v5';
 let DB=null, SESSION=null, ROUTE='dashboard', EVENT_TAB='settings', VOL_TAB='list';
 
 /* ---------- utilities ---------- */
@@ -1041,6 +1041,20 @@ const byId=(arr,id)=>arr.find(x=>x.id===id);
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1900);}
 function secToClock(s){if(s==null||s==='')return '';s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
 function clockToSec(t){if(t==null||String(t).trim()==='')return null;const p=String(t).trim().split(':').map(Number);if(p.length<2||p.length>3||p.some(x=>!isFinite(x)))return null;const v=p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1];return isFinite(v)&&v>=0?v:null;}
+const BTYPES={registration:{label:'Registration & check-in',heat:false},warmup:{label:'Warm-up',heat:false},briefing:{label:'Athlete briefing',heat:false},heats:{label:'Heats',heat:true},brk:{label:'Break',heat:false},lunch:{label:'Lunch',heat:false},awards:{label:'Awards & podium',heat:false},custom:{label:'Custom block',heat:false}};
+function isHeatBlock(b){return !!(b&&BTYPES[b.type]&&BTYPES[b.type].heat);}
+function hm2m(x){if(!x||String(x).indexOf(':')<0)return null;const p=String(x).split(':');const h=+p[0],m=+p[1];if(!isFinite(h)||!isFinite(m))return null;return h*60+m;}
+function m2hm(t){const day=Math.floor(t/1440);t=((t%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')+(day>0?' +'+day+'d':'');}
+function seedSched(){return [{id:uid('bl'),type:'registration',label:'Registration & check-in',start:'06:15',dur:45},{id:uid('bl'),type:'briefing',label:'Athlete briefing',start:'',dur:15},{id:uid('bl'),type:'heats',label:'Heats - wave 1',start:'07:15',heats:2,interval:25},{id:uid('bl'),type:'brk',label:'Reset break',start:'',dur:20},{id:uid('bl'),type:'heats',label:'Heats - wave 2',start:'',heats:1,interval:25},{id:uid('bl'),type:'awards',label:'Awards & podium',start:'',dur:30}];}
+function schedBlocks(e){if(e&&e.schedule&&e.schedule.length)return e.schedule;return [{id:'syn',type:'heats',label:'Heats',start:(e&&e.startTime)||'07:00',heats:(e&&e.heatCount)||3,interval:(e&&e.heatInterval)||25}];}
+function ensureSched(e){if(!e.schedule||!e.schedule.length)e.schedule=seedSched();return e.schedule;}
+function schedResolve(e){const blocks=schedBlocks(e);const out=[];const heats=[];let cur=null,hn=0;blocks.forEach(function(b){let sM=hm2m(b.start);if(sM==null)sM=(cur!=null?cur:hm2m('07:00'));const heat=isHeatBlock(b);const ints=Math.max(1,Math.floor(+b.interval||1));const cnt=heat?Math.max(0,Math.floor(+b.heats||0)):0;const dur=heat?cnt*ints:Math.max(0,Math.floor(+b.dur||0));const hns=[];if(heat){for(let k=0;k<cnt;k++){hn++;const tm=m2hm(sM+k*ints);heats.push({no:hn,time:tm,block:b.label});hns.push({no:hn,time:tm});}}const end=sM+dur;out.push({b:b,startMin:sM,endMin:end,start:m2hm(sM),end:m2hm(end),heat:heat,heatNos:hns,dur:dur});cur=end;});return {blocks:out,heats:heats,total:heats.length,firstHeat:heats[0]?heats[0].time:null};}
+function totalHeats(e){return schedResolve(e).total;}
+function maxTeams(e){return totalHeats(e)*Math.max(0,Math.floor(+e.heatCapacity||0));}
+function heatTimeOf(e,no){const h=schedResolve(e).heats.find(function(x){return x.no===+no;});return h?h.time:'--:--';}
+function syncEvent(e){e.heatCount=totalHeats(e);return e;}
+function pruneHeatNos(e){DB.teams.forEach(function(t){if(t.eventId===e.id&&t.heatNo>totalHeats(e))t.heatNo=null;});}
+function schedSummary(e){const r=schedResolve(e);if(!r.blocks.length)return 'No schedule';const first=r.blocks[0].start;const last=r.blocks[r.blocks.length-1].end;return r.blocks.length+' blocks - '+first+'-'+last+' - '+r.total+' heat'+(r.total===1?'':'s');}
 function addMin(hhmm,min){if(!hhmm||String(hhmm).indexOf(':')<0)return '--:--';const [h,m]=String(hhmm).split(':').map(Number);if(!isFinite(h)||!isFinite(m))return '--:--';let t=h*60+m+(+min||0);const day=Math.floor(t/1440);t=((t%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')+(day>0?' +'+day+'d':'');}
 function fmtDate(iso){if(!iso)return '—';const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});}
 
@@ -1059,7 +1073,7 @@ function seed(){
     {id:'ev_r3',seasonId:'s1',name:'Season 01 · Race 3',date:'2026-07-04',location:'Dubai Sports City',status:'upcoming'},
     {id:'ev_r4',seasonId:'s1',name:'Season 01 · Race 4',date:'2026-07-11',location:'Dubai Sports City',status:'upcoming'},
     {id:'ev_r5',seasonId:'s1',name:'Season 01 · Race 5',date:'2026-07-18',location:'Dubai Sports City',status:'upcoming'},
-  ].map(e=>({...e,startTime:'07:00',heatCount:3,heatCapacity:14,heatInterval:25,
+  ].map(e=>({...e,startTime:'07:00',heatCount:3,heatCapacity:14,heatInterval:25,schedule:seedSched(),
       teamSize:4,teamMale:2,teamFemale:2,
       categories:[{key:'everyday',label:'Everyday',price:600},{key:'elite',label:'Elite',price:800}],
       workout:wk()}));
@@ -1269,8 +1283,8 @@ function dashNext(e){const t=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='ca
   return `<div class="kv">
     <div class="k">Event</div><div><b>${esc(e.name)}</b></div>
     <div class="k">Date</div><div>${fmtDate(e.date)} · ${esc(e.location)}</div>
-    <div class="k">Teams</div><div>${t.length} registered · cap ${e.heatCount*e.heatCapacity}</div>
-    <div class="k">Heats</div><div>${e.heatCount} × ${e.heatCapacity}, ${e.heatInterval}m apart from ${e.startTime}</div>
+    <div class="k">Teams</div><div>${t.length} registered · cap ${maxTeams(e)}</div>
+    <div class="k">Heats</div><div>${totalHeats(e)} heats · ${e.heatCapacity}/heat · ${schedSummary(e)}</div>
     <div class="k">Workout</div><div>${e.workout.map(w=>esc(w.station)).join(' · ')}</div></div>`;}
 function dashAttention(){
   const items=[];
@@ -1315,8 +1329,8 @@ function vEvents(v){
 function fEvents(q){const rows=tableFilter(DB.events,q,['name','location']).slice().sort((a,b)=>a.date.localeCompare(b.date));
   $('#evRows').innerHTML=rows.map(e=>{const se=byId(DB.seasons,e.seasonId);const t=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='cancelled').length;
     return `<tr class="k" onclick="go('event:${e.id}')"><td><b>${esc(e.name)}</b><div class="muted" style="font-size:11px">${esc(e.location)}</div></td>
-    <td>${se?esc(se.name):'—'}</td><td class="num">${fmtDate(e.date)}</td><td>${statusPill(e.status)}</td><td class="num">${t}/${e.heatCount*e.heatCapacity}</td>
-    <td class="num">${e.heatCount}×${e.heatCapacity}</td><td class="num">${e.teamSize} (${e.teamMale}M·${e.teamFemale}F)</td>
+    <td>${se?esc(se.name):'—'}</td><td class="num">${fmtDate(e.date)}</td><td>${statusPill(e.status)}</td><td class="num">${t}/${maxTeams(e)}</td>
+    <td class="num">${totalHeats(e)}×${e.heatCapacity}</td><td class="num">${e.teamSize} (${e.teamMale}M·${e.teamFemale}F)</td>
     <td><button class="btn btn-sm" onclick="event.stopPropagation();editEvent('${e.id}')">Edit</button></td></tr>`;}).join('')||`<tr><td colspan="8" class="empty">No events.</td></tr>`;
 }
 function editEvent(id){const d=DB.settings;const e=id?byId(DB.events,id):{name:'',seasonId:DB.seasons[0]&&DB.seasons[0].id,date:'',location:'Dubai',status:'upcoming',
@@ -1326,15 +1340,15 @@ function editEvent(id){const d=DB.settings;const e=id?byId(DB.events,id):{name:'
     ${F('Event name','name',e.name)}
     <div class="row2">${F('Season','seasonId',e.seasonId,'select',DB.seasons.map(s=>[s.id,s.name]))}${F('Status','status',e.status,'select',['upcoming','live','completed','cancelled'])}</div>
     <div class="row2">${F('Date','date',e.date,'date')}${F('Location','location',e.location)}</div>
-    <h3 style="font-size:13px;margin:18px 0 10px;color:var(--muted)">HEATS & TIMING</h3>
-    <div class="row2">${F('First heat time','startTime',e.startTime,'time')}${F('Interval between heats (min)','heatInterval',e.heatInterval,'number')}</div>
-    <div class="row2">${F('Number of heats','heatCount',e.heatCount,'number')}${F('Teams per heat (capacity)','heatCapacity',e.heatCapacity,'number')}</div>
+    <h3 style="font-size:13px;margin:18px 0 10px;color:var(--muted)">HEATS & CAPACITY</h3>
+    <div class="row2">${F('Teams per heat (capacity)','heatCapacity',e.heatCapacity,'number')}${F('Default heat interval (min)','heatInterval',e.heatInterval,'number')}</div>
+    <div class="hint" style="margin:4px 0 0">Build the full day run-sheet - heats, breaks, lunch, briefing, awards - on the event's <b>Schedule</b> tab after saving.</div>
     <h3 style="font-size:13px;margin:18px 0 10px;color:var(--muted)">TEAM COMPOSITION</h3>
     <div class="row3">${F('Team size','teamSize',e.teamSize,'number')}${F('Male','teamMale',e.teamMale,'number')}${F('Female','teamFemale',e.teamFemale,'number')}</div>
     <div class="hint">Categories, pricing and the workout are edited from the event page after saving.</div>
-  `,()=>{const o=collect();['heatCount','heatCapacity','heatInterval','teamSize','teamMale','teamFemale'].forEach(k=>o[k]=+o[k]);
+  `,()=>{const o=collect();['heatCapacity','heatInterval','teamSize','teamMale','teamFemale'].forEach(k=>o[k]=+o[k]);
     if(!o.name||!o.date){toast('Name and date required');return false;}
-    if(id){Object.assign(e,o);DB.teams.forEach(t=>{if(t.eventId===e.id&&t.heatNo>e.heatCount)t.heatNo=null;});logAct('Edited event '+o.name);}else{o.id=uid('ev');o.categories=e.categories;o.workout=e.workout;DB.events.push(o);logAct('Created event '+o.name);}
+    if(id){Object.assign(e,o);syncEvent(e);pruneHeatNos(e);logAct('Edited event '+o.name);}else{o.id=uid('ev');o.categories=e.categories;o.workout=e.workout;o.startTime='07:00';o.schedule=seedSched();syncEvent(o);DB.events.push(o);logAct('Created event '+o.name);}
     save();toast('Event saved');render();},id?()=>{if(confirm('Delete event and all its team entries?')){DB.events=DB.events.filter(x=>x.id!==id);DB.teams=DB.teams.filter(t=>t.eventId!==id);save();render();closeModal();toast('Event deleted');}}:null);
 }
 
@@ -1343,11 +1357,12 @@ function vEventDetail(v,id){
   const e=byId(DB.events,id);if(!e){v.innerHTML='<div class="empty">Event not found.</div>';return;}
   $('#pgTitle').textContent=e.name;$('#pgSub').textContent=fmtDate(e.date)+' · '+e.location;
   document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.k==='events'));
-  const tabs=['settings','workout','heats','teams','scores'];
+  const tabs=['settings','schedule','workout','heats','teams','scores'];
   if(!tabs.includes(EVENT_TAB))EVENT_TAB='settings';
   const tabHtml=`<div class="tabs">`+tabs.map(t=>`<div class="tab ${EVENT_TAB===t?'on':''}" onclick="EVENT_TAB='${t}';render()">${t}</div>`).join('')+`</div>`;
   let body='';
   if(EVENT_TAB==='settings')body=evSettings(e);
+  else if(EVENT_TAB==='schedule')body=evSchedule(e);
   else if(EVENT_TAB==='workout')body=evWorkout(e);
   else if(EVENT_TAB==='heats')body=evHeats(e);
   else if(EVENT_TAB==='teams')body=evTeams(e);
@@ -1363,8 +1378,8 @@ function evSettings(e){const se=byId(DB.seasons,e.seasonId);
       <div class="k">Location</div><div>${esc(e.location)}</div>
       <div class="k">Status</div><div>${statusPill(e.status)}</div>
       <div class="k">Team rules</div><div>${e.teamSize} athletes · ${e.teamMale} male · ${e.teamFemale} female</div>
-      <div class="k">Capacity</div><div>${e.heatCount} heats × ${e.heatCapacity} = ${e.heatCount*e.heatCapacity} teams</div>
-      <div class="k">Schedule</div><div>First heat ${e.startTime}, every ${e.heatInterval} min</div>
+      <div class="k">Capacity</div><div>${totalHeats(e)} heats × ${e.heatCapacity} = ${maxTeams(e)} teams</div>
+      <div class="k">Schedule</div><div>${schedSummary(e)} · <span style="color:var(--redline);cursor:pointer" onclick="EVENT_TAB='schedule';render()">edit</span></div>
     </div></div></div>
     <div class="panel"><div class="ph"><h3>Categories & pricing</h3><div class="sp"></div><button class="btn btn-sm" onclick="addCategory('${e.id}')">+ Category</button></div>
       <div class="pbody flush"><table class="tbl"><tbody>
@@ -1401,25 +1416,52 @@ function moveStation(id,i,d){const e=byId(DB.events,id);const j=i+d;if(j<0||j>=e
 function generateHeats(id){const e=byId(DB.events,id);const teams=DB.teams.filter(t=>t.eventId===id&&t.status!=='cancelled');
   // group by category so each category clusters, then fill heats to capacity
   teams.sort((a,b)=>(a.category>b.category?1:-1)||a.name.localeCompare(b.name));
-  teams.forEach((t,idx)=>{t.heatNo=Math.floor(idx/e.heatCapacity)+1;});const lc={};teams.forEach(t=>{lc[t.heatNo]=(lc[t.heatNo]||0)+1;t.lane=lc[t.heatNo];});
-  const needed=Math.max(e.heatCount,Math.ceil(teams.length/Math.max(1,e.heatCapacity)));const grew=needed>e.heatCount;if(grew)e.heatCount=needed;
-  save();logAct('Auto-generated heats for '+e.name);render();toast(grew?'Heats assigned — expanded to '+needed+' heats':'Heats auto-assigned');
+  const cap=Math.max(1,Math.floor(+e.heatCapacity||1));const need=Math.ceil(teams.length/cap)||0;const cur=totalHeats(e);let grew=false;
+  if(need>cur){ensureSched(e);let last=null;for(let i=e.schedule.length-1;i>=0;i--){if(isHeatBlock(e.schedule[i])){last=e.schedule[i];break;}}if(last)last.heats=(+last.heats||0)+(need-cur);else e.schedule.push({id:uid('bl'),type:'heats',label:'Heats',start:'',heats:(need-cur),interval:e.heatInterval||25});syncEvent(e);grew=true;}
+  teams.forEach((t,idx)=>{t.heatNo=Math.floor(idx/cap)+1;});const lc={};teams.forEach(t=>{lc[t.heatNo]=(lc[t.heatNo]||0)+1;t.lane=lc[t.heatNo];});
+  save();logAct('Auto-generated heats for '+e.name);render();toast(grew?'Heats assigned — expanded to '+need+' heats':'Heats auto-assigned');
 }
 function evHeats(e){
   const teams=DB.teams.filter(t=>t.eventId===e.id&&t.status!=='cancelled');
-  const heats=[];for(let h=1;h<=e.heatCount;h++)heats.push({no:h,time:addMin(e.startTime,(h-1)*e.heatInterval),teams:teams.filter(t=>t.heatNo===h)});
-  const unassigned=teams.filter(t=>!t.heatNo||t.heatNo>e.heatCount);
-  return `<div class="sectionnote">Heat numbers are assigned automatically by the system from the event's timing settings. You can reassign any team manually below — times recompute from the first heat (${e.startTime}) at ${e.heatInterval}-minute intervals.</div>
+  const plan=schedResolve(e).heats;
+  const heats=plan.map(h=>({no:h.no,time:h.time,teams:teams.filter(t=>t.heatNo===h.no)}));
+  const unassigned=teams.filter(t=>!t.heatNo||t.heatNo>heats.length);
+  return `<div class="sectionnote">Heats run on the day schedule (heats, breaks, lunch and more). Edit the run-sheet on the <b>Schedule</b> tab; reassign any team to a heat manually below.</div>
   <div class="toolbar"><button class="btn btn-red" onclick="generateHeats('${e.id}')">⟳ Auto-generate heats</button>
-    <div class="muted" style="font-size:12px">${teams.length} teams · ${e.heatCount} heats · cap ${e.heatCapacity}/heat</div></div>
+    <button class="btn btn-sm btn-ghost" onclick="EVENT_TAB='schedule';render()">Edit schedule</button>
+    <div class="muted" style="font-size:12px">${teams.length} teams · ${heats.length} heats · cap ${e.heatCapacity}/heat</div></div>
   ${unassigned.length?`<div class="panel" style="border-color:var(--redline-edge)"><div class="ph"><h3>Unassigned (${unassigned.length})</h3></div><div class="pbody">${unassigned.map(t=>heatTeamRow(e,t,heats)).join('')}</div></div>`:''}
-  ${heats.map(h=>`<div class="panel"><div class="ph"><h3>Heat ${h.no}</h3><span class="pill">${h.time}</span><div class="sp"></div>
+  ${heats.length?heats.map(h=>`<div class="panel"><div class="ph"><h3>Heat ${h.no}</h3><span class="pill">${h.time}</span><div class="sp"></div>
     <span class="mono" style="font-size:11px;color:${h.teams.length>e.heatCapacity?'#ff8d85':'var(--muted)'}">${h.teams.length}/${e.heatCapacity}</span></div>
-    <div class="pbody flush"><table class="tbl"><tbody>${h.teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${statusPill(t.category)}</td><td style="width:74px"><input class="inp" type="number" min="1" placeholder="lane" style="padding:6px 8px;width:66px" value="${t.lane||''}" onchange="setLane('${t.id}',this.value)"></td><td style="text-align:right;width:175px">${heatSelect(e,t)}</td></tr>`).join('')||`<tr><td class="empty" style="padding:16px">Empty heat</td></tr>`}</tbody></table></div></div>`).join('')}`;
+    <div class="pbody flush"><table class="tbl"><tbody>${h.teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${statusPill(t.category)}</td><td style="width:74px"><input class="inp" type="number" min="1" placeholder="lane" style="padding:6px 8px;width:66px" value="${t.lane||''}" onchange="setLane('${t.id}',this.value)"></td><td style="text-align:right;width:175px">${heatSelect(e,t)}</td></tr>`).join('')||`<tr><td class="empty" style="padding:16px">Empty heat</td></tr>`}</tbody></table></div></div>`).join(''):`<div class="empty" style="padding:20px">No heats scheduled yet. Add a Heats block on the <b>Schedule</b> tab.</div>`}`;
 }
-function heatSelect(e,t){let o=`<option value="" ${!t.heatNo?'selected':''}>— unassigned —</option>`;for(let h=1;h<=e.heatCount;h++)o+=`<option value="${h}" ${t.heatNo===h?'selected':''}>Heat ${h} · ${addMin(e.startTime,(h-1)*e.heatInterval)}</option>`;if(t.heatNo&&t.heatNo>e.heatCount)o+=`<option value="${t.heatNo}" selected>Heat ${t.heatNo} (removed)</option>`;
+function heatSelect(e,t){const plan=schedResolve(e).heats;let o=`<option value="" ${!t.heatNo?'selected':''}>— unassigned —</option>`;plan.forEach(h=>o+=`<option value="${h.no}" ${t.heatNo===h.no?'selected':''}>Heat ${h.no} · ${h.time}</option>`);if(t.heatNo&&t.heatNo>plan.length)o+=`<option value="${t.heatNo}" selected>Heat ${t.heatNo} (removed)</option>`;
   return `<select class="inp" style="padding:6px 8px;min-width:170px" onchange="setHeat('${t.id}',this.value)">${o}</select>`;}
 function heatTeamRow(e,t,heats){return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><b>${esc(t.name)}</b> ${statusPill(t.category)}<div style="flex:1"></div>${heatSelect(e,t)}</div>`;}
+function evSchedule(e){ensureSched(e);const r=schedResolve(e);const types=Object.keys(BTYPES);
+  const opts=x=>types.map(k=>`<option value="${k}" ${x.b.type===k?'selected':''}>${esc(BTYPES[k].label)}</option>`).join('');
+  const rows=r.blocks.map((x,i)=>{const b=x.b;const heat=x.heat;return `<tr>
+    <td style="white-space:nowrap"><span class="mono" style="font-size:11px;color:${heat?'var(--redline)':'var(--muted)'}">${x.start}${heat?'':' - '+x.end}</span></td>
+    <td><select class="inp" style="padding:6px 8px;min-width:150px" onchange="schedSet('${e.id}','${b.id}','type',this.value)">${opts(x)}</select></td>
+    <td><input class="inp" style="padding:6px 8px;min-width:150px" value="${esc(b.label||'')}" onchange="schedSet('${e.id}','${b.id}','label',this.value)"></td>
+    <td><input class="inp" type="time" style="padding:6px 8px;width:120px" value="${esc(b.start||'')}" onchange="schedSet('${e.id}','${b.id}','start',this.value)" title="Leave blank to follow the previous block"></td>
+    <td>${heat?`<input class="inp" type="number" min="0" style="padding:6px 8px;width:58px" value="${esc(String(b.heats||0))}" onchange="schedSet('${e.id}','${b.id}','heats',this.value)" title="Number of heats"><span class="muted" style="font-size:11px"> heats @ </span><input class="inp" type="number" min="1" style="padding:6px 8px;width:58px" value="${esc(String(b.interval||0))}" onchange="schedSet('${e.id}','${b.id}','interval',this.value)" title="Minutes between heats"><span class="muted" style="font-size:11px">m</span>`:`<input class="inp" type="number" min="0" style="padding:6px 8px;width:70px" value="${esc(String(b.dur||0))}" onchange="schedSet('${e.id}','${b.id}','dur',this.value)" title="Duration (min)"><span class="muted" style="font-size:11px"> min</span>`}</td>
+    <td style="text-align:right;white-space:nowrap">
+      <button class="btn btn-sm btn-ghost" ${i===0?'disabled':''} onclick="schedMove('${e.id}','${b.id}',-1)">↑</button>
+      <button class="btn btn-sm btn-ghost" ${i===r.blocks.length-1?'disabled':''} onclick="schedMove('${e.id}','${b.id}',1)">↓</button>
+      <button class="btn btn-sm btn-ghost" onclick="schedDel('${e.id}','${b.id}')">✕</button>
+    </td></tr>`;}).join('');
+  const addBtns=types.map(k=>`<button class="btn btn-sm" onclick="schedAdd('${e.id}','${k}')">+ ${esc(BTYPES[k].label)}</button>`).join(' ');
+  return `<div class="sectionnote">Build the full day run-sheet. <b>Heats</b> blocks generate numbered, timed heats; every other block (registration, warm-up, briefing, break, lunch, awards, custom) creates the gaps in between. Leave a start time blank and the block follows the one above it automatically.</div>
+  <div class="panel"><div class="ph"><h3>Day schedule</h3><div class="sp"></div><span class="muted" style="font-size:12px">${schedSummary(e)} · ${maxTeams(e)} team capacity</span></div>
+    <div class="pbody flush"><div class="twrap"><table class="tbl"><thead><tr><th>Time</th><th>Type</th><th>Label</th><th>Start</th><th>Heats / duration</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No blocks yet — add one below.</td></tr>`}</tbody></table></div></div></div>
+  <div class="toolbar" style="flex-wrap:wrap;gap:6px">${addBtns}</div>`;
+}
+function schedFind(eid,bid){const e=byId(DB.events,eid);if(!e)return[null,null];ensureSched(e);return [e,(e.schedule||[]).find(b=>b.id===bid)];}
+function schedSet(eid,bid,f,v){const fe=schedFind(eid,bid);const e=fe[0],b=fe[1];if(!b)return;if(f==='heats'||f==='interval'||f==='dur')v=Math.max(0,Math.floor(+v||0));if(f==='type'){b.type=v;if(isHeatBlock(b)){if(!b.heats)b.heats=1;if(!b.interval)b.interval=e.heatInterval||25;}else{if(!b.dur)b.dur=15;}if(!b.label||Object.keys(BTYPES).some(k=>BTYPES[k].label===b.label))b.label=BTYPES[v]?BTYPES[v].label:b.label;}else{b[f]=v;}syncEvent(e);pruneHeatNos(e);save();render();}
+function schedAdd(eid,type){const e=byId(DB.events,eid);if(!e)return;ensureSched(e);const b={id:uid('bl'),type:type,label:BTYPES[type]?BTYPES[type].label:'Block',start:''};if(isHeatBlock(b)){b.heats=1;b.interval=e.heatInterval||25;}else{b.dur=15;}e.schedule.push(b);syncEvent(e);save();render();toast('Block added');}
+function schedDel(eid,bid){const fe=schedFind(eid,bid);const e=fe[0],b=fe[1];if(!b)return;e.schedule=e.schedule.filter(x=>x.id!==bid);syncEvent(e);pruneHeatNos(e);save();render();toast('Block removed');}
+function schedMove(eid,bid,d){const fe=schedFind(eid,bid);const e=fe[0],b=fe[1];if(!b)return;const i=e.schedule.findIndex(x=>x.id===bid);const j=i+d;if(j<0||j>=e.schedule.length)return;const tmp=e.schedule[i];e.schedule[i]=e.schedule[j];e.schedule[j]=tmp;syncEvent(e);save();render();}
 function setHeat(tid,h){const t=DB.teams.find(x=>x.id===tid);if(!t)return;const e=byId(DB.events,t.eventId);h=h===''?null:+h;if(e&&h){const inHeat=DB.teams.filter(x=>x.eventId===e.id&&x.status!=='cancelled'&&x.heatNo===h&&x.id!==tid).length;if(inHeat>=e.heatCapacity){toast('Heat '+h+' is full ('+e.heatCapacity+' teams)');render();return;}}t.heatNo=h;save();logAct('Reassigned '+t.name+(h?' to heat '+h:' to unassigned'));render();toast('Heat updated');}
 
 /* ---------- EVENT TEAMS ---------- */
@@ -1458,7 +1500,7 @@ function viewTeam(id){const t=byId(DB.teams,id);if(!t)return;const e=byId(DB.eve
       <div class="k">Event</div><div>${e?esc(e.name)+' · '+fmtDate(e.date):'—'}</div>
       <div class="k">Category</div><div>${statusPill(t.category)}${pass?' <span class="tag">Season pass</span>':''}</div>
       <div class="k">Captain</div><div>${esc(t.captain||(t.members[0]&&t.members[0].name)||'—')}</div>
-      <div class="k">Heat</div><div>${t.heatNo?'Heat '+t.heatNo+(t.lane?' · Lane '+t.lane:'')+(e?' · '+addMin(e.startTime,(t.heatNo-1)*e.heatInterval):''):'Not assigned'}</div>
+      <div class="k">Heat</div><div>${t.heatNo?'Heat '+t.heatNo+(t.lane?' · Lane '+t.lane:'')+(e?' · '+heatTimeOf(e,t.heatNo):''):'Not assigned'}</div>
       <div class="k">Payment</div><div>${statusPill(t.paymentStatus)}${pass?' · covered by season pass':' · '+money(teamTotal(t))+' incl. VAT'}</div>
       <div class="k">Check-in</div><div>${joined.filter(m=>m.checkedIn).length}/${joined.length} athletes present</div>
       <div class="k">Status</div><div>${statusPill(t.status)}</div>
