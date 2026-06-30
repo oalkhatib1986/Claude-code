@@ -1626,19 +1626,19 @@ function t_checkin(id){const t=byId(DB.teams,id);if(!t)return;const j=t.members.
 function vCustomers(v){listView(v,{coll:'customers',title:'Customers',search:['name','email','rdln','mobile'],
   cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['mobile','Mobile',o=>`${esc(o.dial||'')} ${esc(o.mobile||'')}`.trim()],['gender','Gender'],['country','Country'],['city','City']],
   form:o=>`<div class="row2">${F('First name','firstName',(o.firstName!=null?o.firstName:((o.name||'').trim().split(/\s+/)[0]||'')))}${F('Last name','lastName',(o.lastName!=null?o.lastName:((o.name||'').trim().split(/\s+/).slice(1).join(' ')||'')))}</div>
-    <div class="row2"><div class="field"><label>RDLN #</label><div class="inp" style="display:flex;align-items:center;color:${o.id?'var(--txt)':'var(--muted)'}">${o.id?esc(o.rdln||'—'):'Auto-generated on save'}</div></div>${F('Email','email',o.email,'email')}</div>
+    <div class="row2"><div class="field"><label>RDLN #</label><div class="inp" style="display:flex;align-items:center;color:${o.id&&o.rdln?'var(--txt)':'var(--muted)'}">${o.id&&o.rdln?esc(o.rdln):'Assigned after registration'}</div></div>${F('Email','email',o.email,'email')}</div>
     ${Fphone('Mobile','dial','mobile',o.dial||'+971',o.mobile)}
     <div class="row3">${F('Gender','gender',o.gender||'M','select',['M','F'])}${F('Date of birth','dob',o.dob,'date')}${F('T-shirt','tshirt',o.tshirt||'M','select',['XS','S','M','L','XL','XXL'])}</div>
     <div class="row2">${F('Country','country',o.country||'United Arab Emirates','select',COUNTRIES)}${F('City','city',o.city)}</div>
     ${o.id?regsBlock(o):''}`,
   blank:{name:'',firstName:'',lastName:'',email:'',dial:'+971',mobile:'',gender:'M',rdln:'',dob:'',country:'United Arab Emirates',city:'Dubai',tshirt:'M'},
-  pre:n=>{n.name=((n.firstName||'')+' '+(n.lastName||'')).trim();},
-  onsave:o=>{let n;do{n='#'+Math.floor(10000+Math.random()*89999);}while((DB.customers||[]).some(c=>c.rdln===n));o.rdln=n;}});}
+  pre:nameCombine});}
 
 function vStaff(v){listView(v,{coll:'staff',title:'Staff',search:['name','email','role'],
   cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['role','Role',o=>statusPill(o.role)],['phone','Phone']],
-  form:o=>`${F('Name','name',o.name)}<div class="row2">${F('Email','email',o.email,'email')}${F('Role','role',o.role||'staff','select',['admin','staff','scorer'])}</div>${F('Phone','phone',o.phone,'tel')}<div class="hint">Demo password for all staff is “redln”.</div>`,
-  blank:{name:'',email:'',role:'staff',phone:''}});}
+  form:o=>`${nameRow(o)}<div class="row2">${F('Email','email',o.email,'email')}${F('Role','role',o.role||'staff','select',['admin','staff','scorer'])}</div>${F('Phone','phone',o.phone,'tel')}<div class="hint">Demo password for all staff is “redln”.</div>`,
+  blank:{name:'',firstName:'',lastName:'',email:'',role:'staff',phone:''},
+  pre:nameCombine});}
 
 function vVolunteers(v){
   v.innerHTML=`<div class="tabs"><div class="tab ${VOL_TAB!=='cats'?'on':''}" onclick="VOL_TAB='list';render()">Volunteers</div><div class="tab ${VOL_TAB==='cats'?'on':''}" onclick="VOL_TAB='cats';render()">Categories</div></div>`;
@@ -1659,13 +1659,13 @@ function fVol(q){const arr=tableFilter(DB.volunteers,q,['name','email','mobile']
 function editVCat(id){const c=id?byId(DB.volCats,id):{name:'',desc:''};modal(id?'Edit category':'New category',`${F('Name','name',c.name)}${F('Description','desc',c.desc)}`,
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(id)Object.assign(c,o);else{o.id=uid('vc');DB.volCats.push(o);}save();render();toast('Saved');},
   id?async()=>{if(!await uiConfirm('Delete this category?',{danger:true,ok:'Delete',title:'Delete category'}))return;DB.volCats=DB.volCats.filter(x=>x.id!==id);save();render();closeModal();}:null);}
-function editVol(id){const o=id?byId(DB.volunteers,id):{name:'',catId:DB.volCats[0]&&DB.volCats[0].id,email:'',mobile:'',shirt:'M',notes:'',events:[]};
-  modal(id?'Edit volunteer':'New volunteer',`${F('Name','name',o.name)}
+function editVol(id){const o=id?byId(DB.volunteers,id):{name:'',firstName:'',lastName:'',catId:DB.volCats[0]&&DB.volCats[0].id,email:'',mobile:'',shirt:'M',notes:'',events:[]};
+  modal(id?'Edit volunteer':'New volunteer',`${nameRow(o)}
     <div class="row2">${F('Category','catId',o.catId,'select',DB.volCats.map(c=>[c.id,c.name]))}${F('T-shirt','shirt',o.shirt||'M','select',['S','M','L','XL'])}</div>
     <div class="row2">${F('Email','email',o.email,'email')}${F('Mobile','mobile',o.mobile,'tel')}</div>
     ${Fmulti('Assigned events','events',o.events||[],DB.events.map(e=>[e.id,e.name]))}
     ${F('Notes','notes',o.notes,'textarea')}`,
-  ()=>{const n=collect();n.events=getMulti('events');if(!n.name)return toast('Name required'),false;
+  ()=>{const n=collect();n.events=getMulti('events');nameCombine(n);if(!n.name)return toast('Name required'),false;
     if(id)Object.assign(o,n);else{n.id=uid('vo');DB.volunteers.push(n);}save();render();toast('Saved');},
   id?async()=>{if(!await uiConfirm('Delete this volunteer?',{danger:true,ok:'Delete',title:'Delete volunteer'}))return;DB.volunteers=DB.volunteers.filter(x=>x.id!==id);save();render();closeModal();}:null);}
 
@@ -1687,9 +1687,9 @@ function editSupplier(id){const s=id?byId(DB.suppliers,id):{name:'',category:'',
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(id)Object.assign(s,o);else{o.id=uid('su');o.contacts=[];DB.suppliers.push(o);}save();render();toast('Saved');},
   id?async()=>{if(await uiConfirm('Delete supplier?',{danger:true,ok:'Delete',title:'Delete supplier'})){DB.suppliers=DB.suppliers.filter(x=>x.id!==id);save();render();closeModal();}}:null);}
 function addContact(sid){editContact(sid,-1);}
-function editContact(sid,i){const s=byId(DB.suppliers,sid);const c=i>=0?s.contacts[i]:{name:'',role:'',email:'',phone:''};
-  modal(i>=0?'Edit contact':'New contact',`${F('Name','name',c.name)}${F('Role','role',c.role)}<div class="row2">${F('Email','email',c.email,'email')}${F('Phone','phone',c.phone,'tel')}</div>`,
-  ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(i>=0)s.contacts[i]=o;else{s.contacts=s.contacts||[];s.contacts.push(o);}save();render();toast('Saved');},
+function editContact(sid,i){const s=byId(DB.suppliers,sid);const c=i>=0?s.contacts[i]:{name:'',firstName:'',lastName:'',role:'',email:'',phone:''};
+  modal(i>=0?'Edit contact':'New contact',`${nameRow(c)}${F('Role','role',c.role)}<div class="row2">${F('Email','email',c.email,'email')}${F('Phone','phone',c.phone,'tel')}</div>`,
+  ()=>{const o=collect();nameCombine(o);if(!o.name)return toast('Name required'),false;if(i>=0)s.contacts[i]=o;else{s.contacts=s.contacts||[];s.contacts.push(o);}save();render();toast('Saved');},
   i>=0?async()=>{if(!await uiConfirm('Delete this contact?',{danger:true,ok:'Delete',title:'Delete contact'}))return;s.contacts.splice(i,1);save();render();closeModal();}:null);}
 
 /* ---------- EMAIL TEMPLATES ---------- */
@@ -1820,6 +1820,8 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();}
 /* ---- themed dialogs + date picker + phone helpers ---- */
 const COUNTRIES=['United Arab Emirates','Saudi Arabia','Qatar','Kuwait','Bahrain','Oman','United Kingdom','United States','Canada','India','Pakistan','Egypt','Lebanon','Jordan','Syria','Iraq','Yemen','France','Germany','Italy','Spain','Netherlands','Australia','South Africa','Nigeria','Kenya','Philippines','Indonesia','China','Japan','Turkey','Russia','Brazil','Other'];
 const DIALS=[{flag:'🇦🇪',code:'+971'},{flag:'🇸🇦',code:'+966'},{flag:'🇶🇦',code:'+974'},{flag:'🇰🇼',code:'+965'},{flag:'🇧🇭',code:'+973'},{flag:'🇴🇲',code:'+968'},{flag:'🇬🇧',code:'+44'},{flag:'🇺🇸',code:'+1'},{flag:'🇮🇳',code:'+91'},{flag:'🇵🇰',code:'+92'},{flag:'🇪🇬',code:'+20'},{flag:'🇱🇧',code:'+961'},{flag:'🇯🇴',code:'+962'},{flag:'🇫🇷',code:'+33'},{flag:'🇩🇪',code:'+49'},{flag:'🇮🇹',code:'+39'},{flag:'🇪🇸',code:'+34'},{flag:'🇳🇱',code:'+31'},{flag:'🇦🇺',code:'+61'},{flag:'🇿🇦',code:'+27'},{flag:'🇵🇭',code:'+63'},{flag:'🇹🇷',code:'+90'}];
+function nameRow(o){return `<div class="row2">${F('First name','firstName',(o.firstName!=null?o.firstName:((o.name||'').trim().split(/\s+/)[0]||'')))}${F('Last name','lastName',(o.lastName!=null?o.lastName:((o.name||'').trim().split(/\s+/).slice(1).join(' ')||'')))}</div>`;}
+function nameCombine(n){n.name=((n.firstName||'')+' '+(n.lastName||'')).trim();return n.name;}
 function Fphone(label,dialName,numName,dialVal,numVal){const o=DIALS.map(d=>`<option value="${esc(d.code)}" ${d.code===dialVal?'selected':''}>${d.flag} ${esc(d.code)}</option>`).join('');
   return `<div class="field"><label>${label}</label><div style="display:flex;gap:6px"><select class="inp" id="f_${dialName}" data-f="${dialName}" style="flex:0 0 118px">${o}</select><input class="inp" id="f_${numName}" data-f="${numName}" type="tel" value="${esc(numVal==null?'':numVal)}" style="flex:1;min-width:0" placeholder="50 123 4567"></div></div>`;}
 let M2_CANCEL=null;
