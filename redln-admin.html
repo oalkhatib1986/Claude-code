@@ -142,6 +142,21 @@
   .sheet .sh .x{margin-left:auto;cursor:pointer;color:var(--muted);font-size:20px;line-height:1}
   .sheet .sb{padding:20px;max-height:70vh;overflow:auto}
   .sheet .sf{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--edge);position:sticky;bottom:0;background:var(--panel)}
+  #modal2{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:90;padding:24px 16px;overflow:auto}
+  #modal2.on{display:flex}
+  #modal2 .sheet{width:min(430px,100%)}
+  #dp{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:96;padding:24px 16px}
+  #dp.on{display:flex}
+  .dpcard{width:min(360px,100%);background:var(--panel);border:1px solid var(--edge2);border-radius:14px;padding:16px}
+  .dphead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .dpnav{cursor:pointer;color:var(--txt);padding:4px 12px;border:1px solid var(--edge);border-radius:8px;background:var(--glass);font-size:16px;line-height:1.2}
+  .dpgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .dpgrid .dow{font-size:10px;color:var(--muted);text-align:center;padding:2px 0;font-family:var(--mono);letter-spacing:.05em}
+  .dpcell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;font-size:13px;color:var(--txt)}
+  .dpcell:hover{background:var(--glass)}
+  .dpcell.sel{background:var(--redline);color:#fff;font-weight:700}
+  .dpcell.emptyc{cursor:default}
+  .dpbtn{text-align:left;cursor:pointer}
 
   /* toast */
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;
@@ -1019,6 +1034,8 @@
 </div>
 
 <div id="modal"><div class="sheet"><div class="sh"><h3 id="mTitle"></h3><div class="x" onclick="closeModal()">✕</div></div><div class="sb" id="mBody"></div><div class="sf" id="mFoot"></div></div></div>
+<div id="modal2"><div class="sheet"><div class="sh"><h3 id="m2Title"></h3></div><div class="sb" id="m2Body"></div><div class="sf" id="m2Foot"></div></div></div>
+<div id="dp"><div class="dpcard"><div class="dphead"><div class="dpnav" onclick="dpNav(-1)">‹</div><div style="flex:1;text-align:center;font-family:var(--mono);font-size:13px;letter-spacing:.05em" id="dpLabel"></div><div class="dpnav" onclick="dpNav(1)">›</div></div><div class="dpgrid" id="dpDow"></div><div class="dpgrid" id="dpGrid" style="margin-top:4px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="dpClear()">Clear</button><button class="btn btn-ghost btn-sm" onclick="dpToday()">Today</button><div style="flex:1"></div><button class="btn btn-ghost btn-sm" onclick="closeDP()">Close</button></div></div></div>
 <div id="toast"></div>
 
 <script>
@@ -1026,7 +1043,7 @@
    REDLN. Operations Console — self-contained admin (demo)
    Data persists to localStorage. Behaves like a backend.
    ============================================================ */
-const KEY='redln_ops_v5';
+const KEY='redln_ops_v6';
 let DB=null, SESSION=null, ROUTE='dashboard', EVENT_TAB='settings', VOL_TAB='list';
 
 /* ---------- utilities ---------- */
@@ -1061,7 +1078,7 @@ function fmtDate(iso){if(!iso)return '—';const d=new Date(iso+'T00:00:00');ret
 /* ---------- persistence ---------- */
 function load(){try{const r=localStorage.getItem(KEY);if(r){DB=JSON.parse(r);return;}}catch(e){}DB=seed();save();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
-function resetData(){if(confirm('Reset all console data to the seeded demo set? This cannot be undone.')){DB=seed();save();render();toast('Data reset to demo seed');}}
+async function resetData(){if(await uiConfirm('Reset all console data to the seeded demo set? This cannot be undone.',{danger:true,ok:'Reset',title:'Reset data'})){DB=seed();save();render();toast('Data reset to demo seed');}}
 
 /* ---------- seed data (consistent with the live site) ---------- */
 function seed(){
@@ -1101,7 +1118,7 @@ function seed(){
   // assign lanes for completed events (sequential within heat)
   events.filter(e=>e.status==='completed').forEach(e=>{const lc={};teams.filter(t=>t.eventId===e.id&&t.heatNo).sort((a,b)=>a.name.localeCompare(b.name)).forEach(t=>{lc[t.heatNo]=(lc[t.heatNo]||0)+1;t.lane=lc[t.heatNo];});});
   const seenC={};const customers=[];const tshirts=['S','M','L','XL'];
-  teams.forEach(t=>t.members.forEach(m=>{if(m.name&&!seenC[m.name]){seenC[m.name]=1;customers.push({id:uid('cu'),name:m.name,gender:m.gender,email:m.email,mobile:m.mobile,rdln:m.rdln,dob:m.dob,city:'Dubai',tshirt:tshirts[customers.length%4]});}}));
+  teams.forEach(t=>t.members.forEach(m=>{if(m.name&&!seenC[m.name]){seenC[m.name]=1;const _loc=String(m.mobile||'').replace('+971 ','').trim();customers.push({id:uid('cu'),name:m.name,gender:m.gender,email:m.email,dial:'+971',mobile:_loc,country:'United Arab Emirates',rdln:m.rdln,dob:m.dob,city:'Dubai',tshirt:tshirts[customers.length%4]});}}));
   const passes=[
     {id:uid('pa'),seasonId:'s1',teamName:'Night Shift',category:'everyday',captain:'Omar Faris',email:'omar.faris@email.com',price:2800,status:'active'},
     {id:uid('pa'),seasonId:'s1',teamName:'Iron Pace',category:'elite',captain:'Sam Rivers',email:'sam.rivers@email.com',price:3800,status:'active'},
@@ -1315,7 +1332,7 @@ function editSeason(id){const s=id?byId(DB.seasons,id):{name:'',status:'planned'
     ${F('Notes','notes',s.notes,'textarea')}
   `,()=>{const o=collect();if(!o.name){toast('Name required');return false;}
     if(id){Object.assign(s,o);logAct('Edited season '+o.name);}else{o.id=uid('s');DB.seasons.push(o);logAct('Created season '+o.name);}
-    save();toast('Season saved');render();},id?()=>{if(confirm('Delete this season? Events keep their data but lose the link.')){DB.seasons=DB.seasons.filter(x=>x.id!==id);save();render();closeModal();toast('Season deleted');}}:null);
+    save();toast('Season saved');render();},id?async()=>{if(await uiConfirm('Delete this season? Events keep their data but lose the link.',{danger:true,ok:'Delete',title:'Delete season'})){DB.seasons=DB.seasons.filter(x=>x.id!==id);save();render();closeModal();toast('Season deleted');}}:null);
 }
 
 /* ============================================================
@@ -1349,7 +1366,7 @@ function editEvent(id){const d=DB.settings;const e=id?byId(DB.events,id):{name:'
   `,()=>{const o=collect();['heatCapacity','heatInterval','teamSize','teamMale','teamFemale'].forEach(k=>o[k]=+o[k]);
     if(!o.name||!o.date){toast('Name and date required');return false;}
     if(id){Object.assign(e,o);syncEvent(e);pruneHeatNos(e);logAct('Edited event '+o.name);}else{o.id=uid('ev');o.categories=e.categories;o.workout=e.workout;o.startTime='07:00';o.schedule=seedSched();syncEvent(o);DB.events.push(o);logAct('Created event '+o.name);}
-    save();toast('Event saved');render();},id?()=>{if(confirm('Delete event and all its team entries?')){DB.events=DB.events.filter(x=>x.id!==id);DB.teams=DB.teams.filter(t=>t.eventId!==id);save();render();closeModal();toast('Event deleted');}}:null);
+    save();toast('Event saved');render();},id?async()=>{if(await uiConfirm('Delete event and all its team entries?',{danger:true,ok:'Delete',title:'Delete event'})){DB.events=DB.events.filter(x=>x.id!==id);DB.teams=DB.teams.filter(t=>t.eventId!==id);save();render();closeModal();toast('Event deleted');}}:null);
 }
 
 /* ---------- EVENT DETAIL (tabs) ---------- */
@@ -1408,7 +1425,7 @@ function addStation(id){editStation(id,-1);}
 function editStation(id,i){const e=byId(DB.events,id);const w=i>=0?e.workout[i]:{station:'',detail:''};
   modal(i>=0?'Edit station':'New station',`${F('Station name','station',w.station)}${F('Detail / reps / distance','detail',w.detail)}`,
   ()=>{const o=collect();if(!o.station)return toast('Name required'),false;if(i>=0)e.workout[i]=o;else e.workout.push(o);pruneScores(e);save();render();toast('Station saved');},
-  i>=0?()=>{if(!confirm('Delete this station? Any scores for it will be cleared.'))return;e.workout.splice(i,1);pruneScores(e);save();render();closeModal();}:null);
+  i>=0?async()=>{if(!await uiConfirm('Delete this station? Any scores for it will be cleared.',{danger:true,ok:'Delete',title:'Delete station'}))return;e.workout.splice(i,1);pruneScores(e);save();render();closeModal();}:null);
 }
 function moveStation(id,i,d){const e=byId(DB.events,id);const j=i+d;if(j<0||j>=e.workout.length)return;[e.workout[i],e.workout[j]]=[e.workout[j],e.workout[i]];save();render();}
 
@@ -1533,7 +1550,7 @@ function editTeam(id,evId){if(!DB.events.length){toast('Create an event first');
       if(jm>e2.teamMale||jf>e2.teamFemale||act.length>e2.teamSize){toast('Roster exceeds rules: max '+e2.teamMale+'M · '+e2.teamFemale+'F · '+e2.teamSize+' total');return false;}}}
     if(id){Object.assign(t,o);logAct('Edited team '+o.name);}else{o.id=uid('tm');o.checkedIn=false;o.scores={};DB.teams.push(o);logAct('Added team '+o.name);}
     save();render();toast('Team saved');},
-  id?()=>{if(confirm('Delete this team entirely?')){DB.teams=DB.teams.filter(x=>x.id!==id);save();render();closeModal();toast('Team deleted');}}:null);
+  id?async()=>{if(await uiConfirm('Delete this team entirely?',{danger:true,ok:'Delete',title:'Delete team'})){DB.teams=DB.teams.filter(x=>x.id!==id);save();render();closeModal();toast('Team deleted');}}:null);
 }
 function memberFields(m){m=m||{};return `<div class="memrow" style="background:#0e0e0e;border:1px solid var(--edge);border-radius:9px;padding:10px;margin-bottom:8px">
   <div class="row2"><input class="inp" data-m="name" placeholder="Full name" value="${esc(m.name)}"><select class="inp" data-m="gender">${['M','F'].map(g=>`<option ${m.gender===g?'selected':''}>${g}</option>`).join('')}</select></div>
@@ -1607,12 +1624,13 @@ function t_checkin(id){const t=byId(DB.teams,id);if(!t)return;const j=t.members.
    GENERIC ENTITY VIEWS
    ============================================================ */
 function vCustomers(v){listView(v,{coll:'customers',title:'Customers',search:['name','email','rdln','mobile'],
-  cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['mobile','Mobile'],['gender','Gender'],['rdln','RDLN'],['city','City']],
+  cols:[['name','Name',o=>`<b>${esc(o.name)}</b>`],['email','Email'],['mobile','Mobile',o=>`${esc(o.dial||'')} ${esc(o.mobile||'')}`.trim()],['gender','Gender'],['country','Country'],['city','City']],
   form:o=>`<div class="row2">${F('Full name','name',o.name)}${F('RDLN #','rdln',o.rdln)}</div>
-    <div class="row2">${F('Email','email',o.email,'email')}${F('Mobile','mobile',o.mobile,'tel')}</div>
+    <div class="row2">${F('Email','email',o.email,'email')}${Fphone('Mobile','dial','mobile',o.dial||'+971',o.mobile)}</div>
     <div class="row3">${F('Gender','gender',o.gender||'M','select',['M','F'])}${F('Date of birth','dob',o.dob,'date')}${F('T-shirt','tshirt',o.tshirt||'M','select',['XS','S','M','L','XL','XXL'])}</div>
-    ${F('City','city',o.city)}${o.id?regsBlock(o):''}`,
-  blank:{name:'',email:'',mobile:'',gender:'M',rdln:'',dob:'',city:'Dubai',tshirt:'M'},
+    <div class="row2">${F('Country','country',o.country||'United Arab Emirates','select',COUNTRIES)}${F('City','city',o.city)}</div>
+    ${o.id?regsBlock(o):''}`,
+  blank:{name:'',email:'',dial:'+971',mobile:'',gender:'M',rdln:'',dob:'',country:'United Arab Emirates',city:'Dubai',tshirt:'M'},
   onsave:o=>{if(!o.rdln)o.rdln='#'+Math.floor(10000+Math.random()*89999);}});}
 
 function vStaff(v){listView(v,{coll:'staff',title:'Staff',search:['name','email','role'],
@@ -1638,7 +1656,7 @@ function fVol(q){const arr=tableFilter(DB.volunteers,q,['name','email','mobile']
 }
 function editVCat(id){const c=id?byId(DB.volCats,id):{name:'',desc:''};modal(id?'Edit category':'New category',`${F('Name','name',c.name)}${F('Description','desc',c.desc)}`,
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(id)Object.assign(c,o);else{o.id=uid('vc');DB.volCats.push(o);}save();render();toast('Saved');},
-  id?()=>{if(!confirm('Delete this category?'))return;DB.volCats=DB.volCats.filter(x=>x.id!==id);save();render();closeModal();}:null);}
+  id?async()=>{if(!await uiConfirm('Delete this category?',{danger:true,ok:'Delete',title:'Delete category'}))return;DB.volCats=DB.volCats.filter(x=>x.id!==id);save();render();closeModal();}:null);}
 function editVol(id){const o=id?byId(DB.volunteers,id):{name:'',catId:DB.volCats[0]&&DB.volCats[0].id,email:'',mobile:'',shirt:'M',notes:'',events:[]};
   modal(id?'Edit volunteer':'New volunteer',`${F('Name','name',o.name)}
     <div class="row2">${F('Category','catId',o.catId,'select',DB.volCats.map(c=>[c.id,c.name]))}${F('T-shirt','shirt',o.shirt||'M','select',['S','M','L','XL'])}</div>
@@ -1647,7 +1665,7 @@ function editVol(id){const o=id?byId(DB.volunteers,id):{name:'',catId:DB.volCats
     ${F('Notes','notes',o.notes,'textarea')}`,
   ()=>{const n=collect();n.events=getMulti('events');if(!n.name)return toast('Name required'),false;
     if(id)Object.assign(o,n);else{n.id=uid('vo');DB.volunteers.push(n);}save();render();toast('Saved');},
-  id?()=>{if(!confirm('Delete this volunteer?'))return;DB.volunteers=DB.volunteers.filter(x=>x.id!==id);save();render();closeModal();}:null);}
+  id?async()=>{if(!await uiConfirm('Delete this volunteer?',{danger:true,ok:'Delete',title:'Delete volunteer'}))return;DB.volunteers=DB.volunteers.filter(x=>x.id!==id);save();render();closeModal();}:null);}
 
 function vSuppliers(v){
   v.innerHTML=toolbar(`${searchBox('Search suppliers…','fSup')}<div class="sp" style="flex:1"></div><button class="btn btn-red" onclick="editSupplier()">+ Supplier</button>`)+`<div id="supWrap"></div>`;
@@ -1665,12 +1683,12 @@ function fSup(q){const arr=tableFilter(DB.suppliers,q,['name','category','desc']
 function editSupplier(id){const s=id?byId(DB.suppliers,id):{name:'',category:'',desc:'',contacts:[]};
   modal(id?'Edit supplier':'New supplier',`${F('Name','name',s.name)}${F('Category','category',s.category)}${F('Description','desc',s.desc,'textarea')}`,
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(id)Object.assign(s,o);else{o.id=uid('su');o.contacts=[];DB.suppliers.push(o);}save();render();toast('Saved');},
-  id?()=>{if(confirm('Delete supplier?')){DB.suppliers=DB.suppliers.filter(x=>x.id!==id);save();render();closeModal();}}:null);}
+  id?async()=>{if(await uiConfirm('Delete supplier?',{danger:true,ok:'Delete',title:'Delete supplier'})){DB.suppliers=DB.suppliers.filter(x=>x.id!==id);save();render();closeModal();}}:null);}
 function addContact(sid){editContact(sid,-1);}
 function editContact(sid,i){const s=byId(DB.suppliers,sid);const c=i>=0?s.contacts[i]:{name:'',role:'',email:'',phone:''};
   modal(i>=0?'Edit contact':'New contact',`${F('Name','name',c.name)}${F('Role','role',c.role)}<div class="row2">${F('Email','email',c.email,'email')}${F('Phone','phone',c.phone,'tel')}</div>`,
   ()=>{const o=collect();if(!o.name)return toast('Name required'),false;if(i>=0)s.contacts[i]=o;else{s.contacts=s.contacts||[];s.contacts.push(o);}save();render();toast('Saved');},
-  i>=0?()=>{if(!confirm('Delete this contact?'))return;s.contacts.splice(i,1);save();render();closeModal();}:null);}
+  i>=0?async()=>{if(!await uiConfirm('Delete this contact?',{danger:true,ok:'Delete',title:'Delete contact'}))return;s.contacts.splice(i,1);save();render();closeModal();}:null);}
 
 /* ---------- EMAIL TEMPLATES ---------- */
 function vEmails(v){
@@ -1690,7 +1708,7 @@ function editEmail(id){const t=id?byId(DB.emailTemplates,id):{name:'',trigger:'c
     <div class="hint">Merge tags: {{first_name}} {{team_name}} {{event_name}} {{event_date}} {{category}} {{heat}} {{heat_time}} {{amount}} {{order_no}} {{rdln}} {{captain_name}} {{rank}} {{accept_link}} {{leaderboard_link}}</div>
   `,()=>{const o=collect();o.enabled=$('#f_enabled').checked;if(!o.name||!o.subject)return toast('Name & subject required'),false;
     if(id)Object.assign(t,o);else{o.id=uid('em');DB.emailTemplates.push(o);}save();render();toast('Template saved');},
-  id?()=>{if(confirm('Delete template?')){DB.emailTemplates=DB.emailTemplates.filter(x=>x.id!==id);save();render();closeModal();}}:null,
+  id?async()=>{if(await uiConfirm('Delete template?',{danger:true,ok:'Delete',title:'Delete template'})){DB.emailTemplates=DB.emailTemplates.filter(x=>x.id!==id);save();render();closeModal();}}:null,
   [{label:'Send test',fn:()=>toast('Test send queued (demo)')}]);
 }
 
@@ -1708,7 +1726,7 @@ function editPush(id){const p=id?byId(DB.pushes,id):{title:'',body:'',audience:'
     <div class="row2">${F('Audience','audience',p.audience,'select',['All accounts','Season 01 athletes','Captains only','Unpaid entries','Volunteers'])}${F('Status','status',p.status,'select',['draft','scheduled','sent'])}</div>
     ${F('Schedule (YYYY-MM-DD HH:MM)','scheduledAt',p.scheduledAt)}`,
   ()=>{const o=collect();if(!o.title)return toast('Title required'),false;if(id)Object.assign(p,o);else{o.id=uid('ps');DB.pushes.push(o);}save();render();toast('Saved');},
-  id?()=>{if(!confirm('Delete this notification?'))return;DB.pushes=DB.pushes.filter(x=>x.id!==id);save();render();closeModal();}:null,
+  id?async()=>{if(!await uiConfirm('Delete this notification?',{danger:true,ok:'Delete',title:'Delete notification'}))return;DB.pushes=DB.pushes.filter(x=>x.id!==id);save();render();closeModal();}:null,
   [{label:'Send now',cls:'btn-red',fn:()=>{p.status='sent';save();render();closeModal();toast('Notification sent (demo)');}}]);
 }
 
@@ -1761,7 +1779,7 @@ function lvEdit(coll,id){const cfg=window['_lv_'+coll];const o=id?byId(DB[coll],
   modal(id?'Edit':'New',cfg.form(o),()=>{const n=collect();if(cfg.pre)cfg.pre(n);
     if(!Object.values(n)[0]&&!id)return toast('Fill the form'),false;
     if(id){Object.assign(o,n);}else{n.id=uid(coll.slice(0,2));if(cfg.onsave)cfg.onsave(n);DB[coll].push(n);}logAct((id?'Edited ':'Created ')+coll);save();render();toast('Saved');},
-   id?()=>{if(confirm('Delete this record?')){DB[coll]=DB[coll].filter(x=>x.id!==id);save();render();closeModal();toast('Deleted');}}:null);
+   id?async()=>{if(await uiConfirm('Delete this record?',{danger:true,ok:'Delete',title:'Delete record'})){DB[coll]=DB[coll].filter(x=>x.id!==id);save();render();closeModal();toast('Deleted');}}:null);
 }
 
 /* ============================================================
@@ -1772,6 +1790,7 @@ function F(label,name,val,type='text',opts){
   if(type==='textarea')return `<div class="field"><label>${label}</label><textarea class="inp" id="f_${name}" data-f="${name}">${esc(val)}</textarea></div>`;
   if(type==='select'){const o=opts.map(x=>{const v=Array.isArray(x)?x[0]:x,l=Array.isArray(x)?x[1]:x;return `<option value="${esc(v)}" ${String(val)===String(v)?'selected':''}>${esc(l)}</option>`;}).join('');
     return `<div class="field"><label>${label}</label><select class="inp" id="f_${name}" data-f="${name}">${o}</select></div>`;}
+  if(type==='date'){const disp=val?dpDisp(val):'Select date';return `<div class="field"><label>${label}</label><input type="hidden" id="f_${name}" data-f="${name}" value="${esc(val)}"><button type="button" class="inp dpbtn" id="dpb_${name}" onclick="openDP('${name}')">${esc(disp)}</button></div>`;}
   return `<div class="field"><label>${label}</label><input class="inp" id="f_${name}" data-f="${name}" type="${type}" value="${esc(val)}"></div>`;
 }
 function Fmulti(label,name,vals,opts){return `<div class="field"><label>${label}</label><div id="fm_${name}" style="display:flex;flex-wrap:wrap;gap:8px">
@@ -1796,6 +1815,48 @@ function modal(title,bodyHtml,onSave,onDelete,extraBtns){
 }
 function closeModal(){$('#modal').classList.remove('on');$('#mBody').innerHTML='';}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+/* ---- themed dialogs + date picker + phone helpers ---- */
+const COUNTRIES=['United Arab Emirates','Saudi Arabia','Qatar','Kuwait','Bahrain','Oman','United Kingdom','United States','Canada','India','Pakistan','Egypt','Lebanon','Jordan','Syria','Iraq','Yemen','France','Germany','Italy','Spain','Netherlands','Australia','South Africa','Nigeria','Kenya','Philippines','Indonesia','China','Japan','Turkey','Russia','Brazil','Other'];
+const DIALS=[{flag:'🇦🇪',code:'+971'},{flag:'🇸🇦',code:'+966'},{flag:'🇶🇦',code:'+974'},{flag:'🇰🇼',code:'+965'},{flag:'🇧🇭',code:'+973'},{flag:'🇴🇲',code:'+968'},{flag:'🇬🇧',code:'+44'},{flag:'🇺🇸',code:'+1'},{flag:'🇮🇳',code:'+91'},{flag:'🇵🇰',code:'+92'},{flag:'🇪🇬',code:'+20'},{flag:'🇱🇧',code:'+961'},{flag:'🇯🇴',code:'+962'},{flag:'🇫🇷',code:'+33'},{flag:'🇩🇪',code:'+49'},{flag:'🇮🇹',code:'+39'},{flag:'🇪🇸',code:'+34'},{flag:'🇳🇱',code:'+31'},{flag:'🇦🇺',code:'+61'},{flag:'🇿🇦',code:'+27'},{flag:'🇵🇭',code:'+63'},{flag:'🇹🇷',code:'+90'}];
+function Fphone(label,dialName,numName,dialVal,numVal){const o=DIALS.map(d=>`<option value="${esc(d.code)}" ${d.code===dialVal?'selected':''}>${d.flag} ${esc(d.code)}</option>`).join('');
+  return `<div class="field"><label>${label}</label><div style="display:flex;gap:6px"><select class="inp" id="f_${dialName}" data-f="${dialName}" style="flex:0 0 118px">${o}</select><input class="inp" id="f_${numName}" data-f="${numName}" type="tel" value="${esc(numVal==null?'':numVal)}" style="flex:1;min-width:0" placeholder="50 123 4567"></div></div>`;}
+let M2_CANCEL=null;
+function uiConfirm(msg,opts){opts=opts||{};return new Promise(res=>{
+  $('#m2Title').textContent=opts.title||'Please confirm';
+  $('#m2Body').innerHTML=`<div style="font-size:14px;line-height:1.55;color:var(--txt)">${esc(msg)}</div>`;
+  $('#m2Foot').innerHTML=`<div style="flex:1"></div><button class="btn btn-ghost" id="m2no">Cancel</button><button class="btn ${opts.danger?'btn-danger':'btn-red'}" id="m2yes">${esc(opts.ok||'Confirm')}</button>`;
+  $('#modal2').classList.add('on');
+  const done=v=>{$('#modal2').classList.remove('on');M2_CANCEL=null;res(v);};
+  M2_CANCEL=()=>done(false);$('#m2yes').onclick=()=>done(true);$('#m2no').onclick=()=>done(false);
+});}
+function uiPrompt(msg,def,opts){opts=opts||{};return new Promise(res=>{
+  $('#m2Title').textContent=opts.title||'Enter value';
+  $('#m2Body').innerHTML=`<div style="font-size:14px;line-height:1.55;margin-bottom:10px;color:var(--txt)">${esc(msg)}</div><input class="inp" id="m2inp" type="${opts.numeric?'number':'text'}" value="${esc(def==null?'':def)}">`;
+  $('#m2Foot').innerHTML=`<div style="flex:1"></div><button class="btn btn-ghost" id="m2no">Cancel</button><button class="btn btn-red" id="m2yes">OK</button>`;
+  $('#modal2').classList.add('on');
+  const inp=$('#m2inp');setTimeout(()=>{try{inp.focus();}catch(e){}},40);
+  const done=v=>{$('#modal2').classList.remove('on');M2_CANCEL=null;res(v);};
+  M2_CANCEL=()=>done(null);$('#m2yes').onclick=()=>done(inp.value);$('#m2no').onclick=()=>done(null);
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();done(inp.value);}};
+});}
+$('#modal2').addEventListener('click',e=>{if(e.target.id==='modal2'&&M2_CANCEL)M2_CANCEL();});
+let DP={name:null,y:2026,m:5,sel:''};
+const DP_MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DP_MON3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dpDisp(iso){if(!/^\d{4}-\d{2}-\d{2}/.test(String(iso||'')))return 'Select date';const p=String(iso).split('-');return DP_MON3[(+p[1])-1]+' '+(+p[2])+', '+p[0];}
+function openDP(name){const hid=document.getElementById('f_'+name);const v=hid&&hid.value?hid.value:'';if(/^\d{4}-\d{2}-\d{2}/.test(v)){const p=v.split('-');DP={name:name,y:+p[0],m:(+p[1])-1,sel:v};}else{DP={name:name,y:2026,m:5,sel:''};}dpRender();$('#dp').classList.add('on');}
+function dpRender(){const y=DP.y,m=DP.m;$('#dpLabel').textContent=DP_MON[m]+' '+y;
+  $('#dpDow').innerHTML=['S','M','T','W','T','F','S'].map(d=>`<div class="dow">${d}</div>`).join('');
+  const first=new Date(Date.UTC(y,m,1)).getUTCDay();const days=new Date(Date.UTC(y,m+1,0)).getUTCDate();let c='';
+  for(let i=0;i<first;i++)c+=`<div class="dpcell emptyc"></div>`;
+  for(let d=1;d<=days;d++){const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');c+=`<div class="dpcell${DP.sel===iso?' sel':''}" onclick="dpPick('${iso}')">${d}</div>`;}
+  $('#dpGrid').innerHTML=c;}
+function dpNav(d){DP.m+=d;if(DP.m<0){DP.m=11;DP.y--;}if(DP.m>11){DP.m=0;DP.y++;}dpRender();}
+function dpPick(iso){const hid=document.getElementById('f_'+DP.name);if(hid)hid.value=iso;const btn=document.getElementById('dpb_'+DP.name);if(btn)btn.textContent=dpDisp(iso);closeDP();}
+function dpClear(){const hid=document.getElementById('f_'+DP.name);if(hid)hid.value='';const btn=document.getElementById('dpb_'+DP.name);if(btn)btn.textContent='Select date';closeDP();}
+function dpToday(){dpPick('2026-06-30');}
+function closeDP(){$('#dp').classList.remove('on');}
+$('#dp').addEventListener('click',e=>{if(e.target.id==='dp')closeDP();});
 
 /* ============================================================
    EXPORTS
@@ -1814,7 +1875,7 @@ function exportAll(){dl('redln-console-backup.json',JSON.stringify(DB,null,2),'a
    MODULES: lanes, refunds, account links, passes, standings
    ============================================================ */
 function setLane(tid,l){const t=byId(DB.teams,tid);if(!t)return;if(l===''){t.lane=null;save();toast('Lane cleared');return;}const ln=Math.max(1,+l||1);const clash=DB.teams.find(x=>x.id!==tid&&x.status!=='cancelled'&&x.eventId===t.eventId&&t.heatNo!=null&&x.heatNo===t.heatNo&&x.lane===ln);if(clash){toast('Lane '+ln+' already used by '+clash.name+' in this heat');render();return;}t.lane=ln;save();toast('Lane updated');}
-function cancelTeam(id){const t=byId(DB.teams,id);if(!t)return;const reason=prompt('Reason for cancellation (no-show, withdrawal, etc.)?','');if(reason===null)return;let refund=0;if(t.paymentStatus==='paid'&&!t.passId){const r=prompt('Refund amount in AED? Enter 0 for no refund.',String(teamTotal(t)));if(r===null)return;refund=Math.max(0,+r||0);}t.status='cancelled';t.heatNo=null;t.lane=null;t.checkedIn=false;t.members.forEach(m=>m.checkedIn=false);t.cancelReason=reason;t.refundAmount=refund;if(refund>0)t.paymentStatus='refunded';save();logAct('Cancelled '+t.name+(refund>0?' (refund '+money(refund)+')':''));closeModal();render();toast('Team cancelled');}
+async function cancelTeam(id){const t=byId(DB.teams,id);if(!t)return;const reason=await uiPrompt('Reason for cancellation (no-show, withdrawal, etc.)?','',{title:'Cancel team'});if(reason===null)return;let refund=0;if(t.paymentStatus==='paid'&&!t.passId){const r=await uiPrompt('Refund amount in AED? Enter 0 for no refund.',String(teamTotal(t)),{numeric:true,title:'Refund amount'});if(r===null)return;refund=Math.max(0,+r||0);}t.status='cancelled';t.heatNo=null;t.lane=null;t.checkedIn=false;t.members.forEach(m=>m.checkedIn=false);t.cancelReason=reason;t.refundAmount=refund;if(refund>0)t.paymentStatus='refunded';save();logAct('Cancelled '+t.name+(refund>0?' (refund '+money(refund)+')':''));closeModal();render();toast('Team cancelled');}
 function customerRegs(o){const out=[];DB.teams.forEach(t=>{const m=t.members.find(x=>x.name===o.name||(o.rdln&&x.rdln===o.rdln));if(m){const e=byId(DB.events,t.eventId);out.push({team:t.name,event:e?e.name:'—',role:(t.captain===o.name?'Captain':'Athlete'),status:t.status==='cancelled'?'cancelled':m.status});}});return out;}
 function regsBlock(o){const r=customerRegs(o);return `<h3 style="font-size:13px;color:var(--muted);margin:16px 0 8px">REGISTRATIONS (${r.length})</h3>`+(r.length?`<table class="tbl" style="background:#0e0e0e;border:1px solid var(--edge);border-radius:8px"><tbody>${r.map(x=>`<tr><td><b>${esc(x.team)}</b><div class="muted" style="font-size:11px">${esc(x.event)}</div></td><td>${esc(x.role)}</td><td>${statusPill(x.status)}</td></tr>`).join('')}</tbody></table>`:'<div class="muted" style="font-size:12px">No team registrations on record.</div>');}
 
@@ -1835,7 +1896,7 @@ function editPass(id){const p=id?byId(DB.passes,id):{teamName:'',seasonId:(DB.se
     ${F('Status','status',p.status,'select',['active','cancelled'])}
     <div class="hint">Everyday pass ≈ AED 2,800 · Elite pass ≈ AED 3,800 (5 races).</div>`,
   ()=>{const o=collect();o.price=+o.price||0;if(!o.teamName)return toast('Team name required'),false;if(id)Object.assign(p,o);else{o.id=uid('pa');DB.passes.push(o);}logAct((id?'Edited':'Created')+' season pass — '+o.teamName);save();render();toast('Pass saved');},
-  id?()=>{if(confirm('Delete this season pass?')){DB.passes=DB.passes.filter(x=>x.id!==id);save();render();closeModal();}}:null);
+  id?async()=>{if(await uiConfirm('Delete this season pass?',{danger:true,ok:'Delete',title:'Delete pass'})){DB.passes=DB.passes.filter(x=>x.id!==id);save();render();closeModal();}}:null);
 }
 
 function vStandings(v){
