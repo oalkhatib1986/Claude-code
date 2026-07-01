@@ -67,6 +67,9 @@
   header{position:fixed;top:0;left:0;right:0;z-index:100;
     background:#0a0a0a;
     border-bottom:1px solid var(--line)}
+  /* home: ticker sits under nav, so drop the redundant grey divider */
+  #nav-home:checked~header{border-bottom-color:transparent}
+  #nav-home:checked~header::after{background:transparent}
   .nav-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:70px;
     display:flex;align-items:center;justify-content:space-between;gap:20px}
   .nav-logo{font-size:30px}
