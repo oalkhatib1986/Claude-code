@@ -67,9 +67,6 @@
   header{position:fixed;top:0;left:0;right:0;z-index:100;
     background:#0a0a0a;
     border-bottom:1px solid var(--line)}
-  /* home: ticker sits under nav, so drop the redundant grey divider */
-  #nav-home:checked~header{border-bottom-color:transparent}
-  #nav-home:checked~header::after{background:transparent}
   .nav-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:70px;
     display:flex;align-items:center;justify-content:space-between;gap:20px}
   .nav-logo{font-size:30px}
@@ -993,6 +990,8 @@
     background:linear-gradient(to bottom,rgba(10,10,10,0.82),rgba(10,10,10,0.62) 40%,rgba(10,10,10,0.88));z-index:1}
   .bgsec>.wrap{position:relative;z-index:2}
   .bgsec.left>.bg::after{background:linear-gradient(to right,rgba(10,10,10,0.92),rgba(10,10,10,0.55) 55%,rgba(10,10,10,0.80))}
+  /* THE RACE: fade the photo in from black at the top so there is no hard seam under the hero */
+  .bgsec.race-intro>.bg::after{background:linear-gradient(to bottom,#0a0a0a,rgba(10,10,10,0) 22%),linear-gradient(to right,rgba(10,10,10,0.92),rgba(10,10,10,0.55) 55%,rgba(10,10,10,0.80))}
   /* FORMAT band: align photo to the top and lighten the wash so the picture reads from the "Format" label down (not just behind the cards) */
   .bgsec.race-cards>.bg{background-position:center top}
   .bgsec.race-cards>.bg::after{background:linear-gradient(180deg,rgba(10,10,10,0.5),rgba(10,10,10,0.42) 45%,rgba(10,10,10,0.7))}
