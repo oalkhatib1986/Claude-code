@@ -66,7 +66,7 @@
   /* ---------- nav ---------- */
   header{position:fixed;top:0;left:0;right:0;z-index:100;
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    background:linear-gradient(to bottom,rgba(10,10,10,0.92),rgba(10,10,10,0.62));
+    background:#0a0a0a;
     border-bottom:1px solid var(--line)}
   .nav-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:70px;
     display:flex;align-items:center;justify-content:space-between;gap:20px}
@@ -942,7 +942,7 @@
     /* always-visible nav strip (2nd header row, scrolls sideways) — tap = go to page, nothing to open/close */
     /* keep the header near-opaque on mobile so the divider line stays crisp; draw the line as a
        floating divider with space above (to the box) and below (to the hero image) */
-    header{background:linear-gradient(to bottom,rgba(10,10,10,0.96),rgba(10,10,10,0.94));border-bottom:none}
+    header{background:#0a0a0a;border-bottom:none}
     header::after{content:"";position:absolute;left:0;right:0;bottom:11px;height:1px;background:var(--line)}
     .nav-inner{flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:22px}
     .nav-scroll{order:3;flex-basis:100%;width:100%;position:relative;margin-top:8px}
