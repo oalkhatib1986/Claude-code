@@ -472,10 +472,11 @@
   .buyin .big{font-size:54px;margin-top:8px}
   .buyin .desc{color:#c8c8c8;font-weight:300;margin-top:10px}
   .stations{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .wk-rules{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 24px}
-  .wk-rule{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:16px 12px;border-radius:16px;background:var(--redline-strong);box-shadow:inset 0 0 0 1px var(--redline-edge)}
-  .wk-rule .k{font-family:"Arial Narrow",sans-serif;text-transform:uppercase;font-size:20px;letter-spacing:0.03em;color:#fff;line-height:1}
-  .wk-rule .v{font-family:"SF Mono",monospace;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:rgba(255,255,255,0.82);line-height:1.35}
+  .wk-rules{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:6px 0 30px}
+  .wk-rule{padding:15px 18px}
+  .wk-rule + .wk-rule{border-left:1px solid var(--line)}
+  .wk-rule .k{display:block;font-family:"SF Mono",monospace;font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--redline);margin-bottom:9px}
+  .wk-rule .v{display:block;font-family:"Arial Narrow",sans-serif;text-transform:uppercase;font-size:18px;letter-spacing:0.01em;color:#fff;line-height:1.08}
   .wk-parts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
   .wk-part{padding:22px 20px}
   .wk-part-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
@@ -1378,8 +1379,8 @@
 
       <div class="wk-rules">
         <div class="wk-rule"><span class="k">Runs</span><span class="v">All four together</span></div>
-        <div class="wk-rule"><span class="k">Machines</span><span class="v">Split the total distance</span></div>
-        <div class="wk-rule"><span class="k">Scoring</span><span class="v">Lower total time wins</span></div>
+        <div class="wk-rule"><span class="k">Machines</span><span class="v">Split the distance</span></div>
+        <div class="wk-rule"><span class="k">Scoring</span><span class="v">Lower time wins</span></div>
       </div>
 
       <div class="wk-parts">
