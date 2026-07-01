@@ -65,7 +65,6 @@
 
   /* ---------- nav ---------- */
   header{position:fixed;top:0;left:0;right:0;z-index:100;
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     background:#0a0a0a;
     border-bottom:1px solid var(--line)}
   .nav-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:70px;
@@ -208,7 +207,7 @@
   @font-face{font-family:'DotMatrix';font-style:normal;font-weight:400;font-display:swap;src:url(data:font/woff2;base64,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) format('woff2')}
   /* ticker */
   .ticker{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;border-top:1px solid var(--redline-edge);border-bottom:1px solid var(--redline-edge);
-    margin-top:-1px;overflow:hidden;white-space:nowrap;position:sticky;top:70px;z-index:90;animation:tickerbeat 6.5s linear infinite}
+    margin-top:-1px;overflow:hidden;white-space:nowrap;position:sticky;top:68px;z-index:90;animation:tickerbeat 6.5s linear infinite}
   /* whole-band glow shaped like an irregular heartbeat (lub-dub spikes + rests, racing then pausing). a 2nd heartbeat layer on a co-prime period adds syncopated thumps so the rhythm never repeats — a redlining bpm */
   .ticker::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--redline);
     opacity:0.04;animation:tickerbeat2 4.7s linear infinite}
@@ -934,7 +933,7 @@
   @media(max-width:860px){
     .hamburger{display:none}
     main{padding-top:126.5px}
-    .ticker{top:126.5px}
+    .ticker{top:124.5px}
     .g3{grid-template-columns:1fr}
     .g4{grid-template-columns:repeat(2,1fr)}
     .g4 .feature{padding:22px 14px}
