@@ -2670,7 +2670,7 @@ function sendContact(){
   toast('Message sent.');
 }
 
-/* ============ REDLN race pass — Blueprint (client-side, IG story, 2x HD) ============ */
+/* ============ REDLN race pass — Event Badge (client-side, IG story, 2x HD) ============ */
 var RDLN_QR="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnAAAAJwAQMAAAAz3c7gAAAABlBMVEUKCgr///8hT0R+AAACs0lEQVR42u3dy4rkMAxAUTP//88zi6Ym1sOhF7Ww4AS6q1KO70ZwkfzK+vvVa8HBwcFdjFvh+t+wfv6vFb9/Wj8tse+f9dULDg4O7ovXx2bZcp+WaMLdiV1foYCDg7vdd/H7brDdc/H554nnd6GAg4Ob5LvddE/Vured+woFHBzcrPxuz92eDK+28h0cHNw8350r2NO98Ts4OLiJvuvyvd/+xb5CAQcHd7PvmkUqxXxxFG8dF8UIBRwc3N2+q+N1jwm7Z+Ko3W5AoYCDg7vdd9lcuaWbm3gsaPwODg5uVj379nu2XXaj/A4ODm6O7/JMRK5muzyv7r8QCjg4uJt9F9cRd6N0terNz/MdHBzclPyuZnp7W7RcN7OhnoWDg1tj9lfE+Ycu7+t65JNThAIODu5u38WMrp6Xkq2X7557oYCDg7u7nq1r7eqcxPu6ZPtn4eDg1pj9ZDmj63bNRg/WU0D5Dg4OboLvuhXHp8o1rtXbLSkUcHBwd9ez9dynvNOiZoJ73vf0Fwo4OLgJ9Wx/OkDO/rpdtc+9UMDBwU3xXV1h3Jktr0l5nhIKODi4CfVst/4uVqv97oq9XSjg4ODu9t35hPa3bC+P9/EdHBzcjPxur2m7s1HyXrP83jL5HRwc3JT9FXXnbHbi2zsanX8HBwe3Ro3f1Yq1q3d3HzrPHQ4ObprvsvW6s0/ee6hn4eDgJu0niz7rVuF11e5uSaGAg4Obkd/FnC3vHjuZcc8ChQIODu7+/C7673zC3e68ejaoUMDBwd3tu9MI3nkHbXWjehYODm7K+cbxe8zu4kxtnr/YM0OhgIODm+S7OpZXV5/UN5mpZ+Hg4Gb6rp4HdXqnRTSjUMDBwd3uu+7dZO/u699TKxRwcHB3+y7eZ9Pl2djefD+fQgEHB3ez7755wcHBwV2L+wfgKI+eWodlzQAAAABJRU5ErkJggg==";
 async function buildRacePass(S){
   S=S||2;
@@ -2688,13 +2688,12 @@ async function buildRacePass(S){
     if(n&&/\(you\)/i.test(n.textContent)){youName=n.textContent.replace(/\(you\)/ig,'').replace(/captain/ig,'').replace(/\s+/g,' ').trim();
       if(m){var mm=m.textContent.match(/RDLN\s*#?\s*\d+/i);if(mm)youId=mm[0].replace(/\s+/g,' ').toUpperCase();}}});}
   var TU=team.toUpperCase(),watermark=TU.replace(/^THE\s+/,'');
-  var parts=youName.trim().split(/\s+/),l1=parts[0].toUpperCase(),l2=parts.slice(1).join(' ').toUpperCase()||' ';
   var idnum=youId.replace(/[^0-9]/g,'')||'04821';
-  var race='RACE 03',heat='02',lane='04',gate='B';
-  function rr(X,Y,Wd,Ht,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+Wd,Y,X+Wd,Y+Ht,r);x.arcTo(X+Wd,Y+Ht,X,Y+Ht,r);x.arcTo(X,Y+Ht,X,Y,r);x.arcTo(X,Y,X+Wd,Y,r);x.closePath();}
+  var race='03',heat='02',lane='04',gate='B';
   function ls(v){try{x.letterSpacing=v;}catch(e){}}
   function fit(t,max,base){var fs=base;x.font='700 '+fs+'px '+DISP;while(x.measureText(t).width>max&&fs>12){fs-=2;x.font='700 '+fs+'px '+DISP;}return fs;}
   function load(src){return new Promise(function(res){if(!src){res(null);return;}var im=new Image();im.onload=function(){res(im);};im.onerror=function(){res(null);};im.src=src;});}
+  function rr(X,Y,Wd,Ht,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+Wd,Y,X+Wd,Y+Ht,r);x.arcTo(X+Wd,Y+Ht,X,Y+Ht,r);x.arcTo(X,Y+Ht,X,Y,r);x.arcTo(X,Y,X+Wd,Y,r);x.closePath();}
   var logo=await load((document.querySelector('.nav-logo')||{}).src);
   var qr=await load(RDLN_QR);
   var M=90;
@@ -2702,31 +2701,45 @@ async function buildRacePass(S){
   x.strokeStyle='rgba(255,255,255,0.05)';x.lineWidth=1;
   for(var gx=0;gx<=W;gx+=90){x.beginPath();x.moveTo(gx,0);x.lineTo(gx,H);x.stroke();}
   for(var gyy=0;gyy<=H;gyy+=90){x.beginPath();x.moveTo(0,gyy);x.lineTo(W,gyy);x.stroke();}
-  x.save();x.translate(540,960);x.rotate(-Math.PI/2);x.textAlign='center';x.fillStyle='rgba(255,255,255,0.045)';x.font='700 300px '+DISP;x.fillText(watermark,0,0);x.restore();
+  x.save();x.translate(540,970);x.rotate(-Math.PI/2);x.textAlign='center';x.fillStyle='rgba(255,255,255,0.04)';x.font='700 280px '+DISP;x.fillText(watermark,0,0);x.restore();
   x.strokeStyle=RED;x.lineWidth=3;
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
-  if(logo)x.drawImage(logo,M,130,170,170*(logo.height/logo.width));else{x.fillStyle='#fff';x.font='700 54px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,190);}
-  x.textAlign='right';x.fillStyle='#fff';ls('4px');x.font='20px '+MONO;x.fillText('ATHLETE PASS / NO. R-'+idnum,W-M,175);ls('0px');
-  x.textAlign='left';x.fillStyle='#7a7a7a';ls('3px');x.font='19px '+MONO;x.fillText('25.2048° N   55.2708° E   ·   DUBAI, UAE',M,330);ls('0px');
-  x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('01 — ATHLETE',M,470);ls('0px');
-  x.fillStyle='#fff';var hfs=fit(l1.length>l2.length?l1:l2,W-2*M,120);x.font='700 '+hfs+'px '+DISP;
-  x.fillText(l1,M,600);x.fillText(l2,M,600+hfs*0.92);
-  var ry=600+hfs*0.92+108;
-  function drow(y,k,v){x.textAlign='left';x.fillStyle='#8c8c8c';ls('2px');x.font='20px '+MONO;x.fillText(k,M,y);x.fillStyle='#fff';x.font='22px '+MONO;x.textAlign='right';x.fillText(v,W-M,y);ls('0px');x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.beginPath();x.moveTo(M,y+22);x.lineTo(W-M,y+22);x.stroke();}
-  drow(ry,'TEAM',TU+'  '+'#001');drow(ry+60,'EVENT',race+'  ·  SEASON 01');
-  drow(ry+120,'DATE',rdate.toUpperCase());drow(ry+180,'CATEGORY',cat.toUpperCase());drow(ry+240,'HEAT / LANE / GATE',heat+' / '+lane+' / '+gate);
-  var qy=ry+360;
+  // header — bigger logo
+  if(logo){var lw=270,lh=lw*(logo.height/logo.width);x.drawImage(logo,M,120,lw,lh);}else{x.fillStyle='#fff';x.font='700 76px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,205);}
+  x.textAlign='right';x.fillStyle='#8c8c8c';ls('3px');x.font='19px '+MONO;x.fillText('ATHLETE PASS',W-M,168);
+  x.fillStyle='#fff';x.font='22px '+MONO;x.fillText('NO. R-'+idnum,W-M,204);ls('0px');
+  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,268);x.lineTo(W-M,268);x.stroke();
+  x.textAlign='left';x.fillStyle='#7a7a7a';ls('3px');x.font='19px '+MONO;x.fillText('25.2048° N   55.2708° E   ·   DUBAI, UAE',M,320);ls('0px');
+  // athlete name
+  x.fillStyle=RED;ls('5px');x.font='22px '+MONO;x.fillText('ATHLETE',M,428);ls('0px');
+  x.fillStyle='#fff';var nfs=fit(youName.toUpperCase(),W-2*M,104);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,520);
+  x.fillStyle='#b8b8b8';ls('2px');x.font='26px '+MONO;x.fillText(youId,M,566);ls('0px');
+  // team block highlighted
+  var ty=612;x.fillStyle=RED;x.fillRect(M,ty,6,96);
+  x.fillStyle=RED;x.textAlign='left';var tfs=fit(TU,W-2*M-40,58);x.font='700 '+tfs+'px '+DISP;x.fillText(TU,M+26,ty+52);
+  x.fillStyle='#9a9a9a';ls('2px');x.font='24px '+MONO;x.fillText('TEAM #001',M+26,ty+92);ls('0px');
+  // data fields — one per row
+  var fields=[['RACE',race],['SEASON','01'],['DATE',rdate.toUpperCase()],['CATEGORY',cat.toUpperCase()],['HEAT',heat],['LANE',lane],['GATE',gate]];
+  var fy=792,fstep=58;
+  for(var i=0;i<fields.length;i++){var yy=fy+i*fstep;
+    x.textAlign='left';x.fillStyle='#8c8c8c';ls('2px');x.font='20px '+MONO;x.fillText(fields[i][0],M,yy);
+    x.textAlign='right';x.fillStyle='#fff';x.font='24px '+MONO;x.fillText(fields[i][1],W-M,yy);ls('0px');
+    x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.beginPath();x.moveTo(M,yy+20);x.lineTo(W-M,yy+20);x.stroke();}
+  // check-in QR
+  var qy=fy+fields.length*fstep+40;
   rr(M,qy,300,300,18);x.fillStyle='#fff';x.fill();x.lineWidth=3;x.strokeStyle=RED;x.stroke();
   if(qr)x.drawImage(qr,M+34,qy+34,232,232);
-  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='24px '+MONO;x.fillText('02 — CHECK IN',M+340,qy+70);ls('0px');
-  x.fillStyle='#fff';x.font='700 40px '+DISP;x.fillText('SCAN ON',M+340,qy+140);x.fillText('RACE DAY.',M+340,qy+186);
-  x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('REDLN.RACE/CHECKIN',M+340,qy+250);
-  x.textAlign='left';x.fillStyle='#fff';x.font='700 70px '+DISP;x.fillText('FIND THE LINE.',M,1680);
-  x.fillStyle=RED;x.fillText('CROSS IT.',M,1760);
-  // film grain
+  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('CHECK IN',M+340,qy+64);ls('0px');
+  x.fillStyle='#fff';x.font='700 40px '+DISP;x.fillText('SCAN ON',M+340,qy+130);x.fillText('RACE DAY.',M+340,qy+176);
+  x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('REDLN.RACE/CHECKIN',M+340,qy+238);
+  // event footer bar (badge identity, not tagline)
+  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,1748);x.lineTo(W-M,1748);x.stroke();
+  x.textAlign='left';x.fillStyle='#fff';ls('4px');x.font='22px '+MONO;x.fillText('REDLN — SEASON 01',M,1800);
+  x.textAlign='right';x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('DUBAI, UAE',W-M,1800);ls('0px');
+  // grain
   var t=document.createElement('canvas');t.width=t.height=160;var tc=t.getContext('2d');var id=tc.createImageData(160,160);
-  for(var i=0;i<id.data.length;i+=4){var vv=Math.random()*255|0;id.data[i]=id.data[i+1]=id.data[i+2]=vv;id.data[i+3]=255;}
-  tc.putImageData(id,0,0);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=0.035;x.globalCompositeOperation='overlay';x.fillStyle=x.createPattern(t,'repeat');x.fillRect(0,0,c.width,c.height);x.restore();
+  for(var g2=0;g2<id.data.length;g2+=4){var vv=Math.random()*255|0;id.data[g2]=id.data[g2+1]=id.data[g2+2]=vv;id.data[g2+3]=255;}
+  tc.putImageData(id,0,0);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=0.03;x.globalCompositeOperation='overlay';x.fillStyle=x.createPattern(t,'repeat');x.fillRect(0,0,c.width,c.height);x.restore();
   return c;
 }
 async function downloadRacePass(){
