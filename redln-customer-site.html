@@ -356,6 +356,18 @@
   #evt-0704:checked~main .ed-0704,
   #evt-0711:checked~main .ed-0711,
   #evt-0718:checked~main .ed-0718{display:inline}
+  .tp-dd{width:100%}
+  .tpc{display:none}
+  #tp-general:checked~.tp-dd .tpc-general,
+  #tp-team:checked~.tp-dd .tpc-team,
+  #tp-partner:checked~.tp-dd .tpc-partner,
+  #tp-press:checked~.tp-dd .tpc-press,
+  #tp-wrong:checked~.tp-dd .tpc-wrong{display:inline}
+  #tp-general:checked~.tp-dd .evt-dd-opt[for="tp-general"],
+  #tp-team:checked~.tp-dd .evt-dd-opt[for="tp-team"],
+  #tp-partner:checked~.tp-dd .evt-dd-opt[for="tp-partner"],
+  #tp-press:checked~.tp-dd .evt-dd-opt[for="tp-press"],
+  #tp-wrong:checked~.tp-dd .evt-dd-opt[for="tp-wrong"]{display:none}
   .catradio{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none}
   .cv{display:none}
   #cat-everyday:checked~main .cv-everyday,#cat-elite:checked~main .cv-elite,#cat-seasonev:checked~main .cv-seasonev,#cat-seasonel:checked~main .cv-seasonel{display:inline}
@@ -1638,13 +1650,12 @@
           </div>
           <div class="field">
             <label>Topic</label>
-            <select id="c-topic">
-              <option>General question</option>
-              <option>Team entry question</option>
-              <option>Partnership</option>
-              <option>Press</option>
-              <option>Something went wrong</option>
-            </select>
+            <input type="radio" name="c-topic-r" id="tp-general" class="catradio" checked>
+            <input type="radio" name="c-topic-r" id="tp-team" class="catradio">
+            <input type="radio" name="c-topic-r" id="tp-partner" class="catradio">
+            <input type="radio" name="c-topic-r" id="tp-press" class="catradio">
+            <input type="radio" name="c-topic-r" id="tp-wrong" class="catradio">
+            <div class="evt-dd tp-dd"><input type="text" id="tp-focus" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true"><label for="tp-focus" class="evt-dd-head"><span class="evt-cur"><span class="tpc tpc-general">General question</span><span class="tpc tpc-team">Team entry question</span><span class="tpc tpc-partner">Partnership</span><span class="tpc tpc-press">Press</span><span class="tpc tpc-wrong">Something went wrong</span></span><span class="lb-dd-chev"></span></label><label for="tp-sink" class="evt-dd-backdrop"></label><div class="evt-dd-menu"><label class="evt-dd-opt" for="tp-general">General question</label><label class="evt-dd-opt" for="tp-team">Team entry question</label><label class="evt-dd-opt" for="tp-partner">Partnership</label><label class="evt-dd-opt" for="tp-press">Press</label><label class="evt-dd-opt" for="tp-wrong">Something went wrong</label></div></div><input type="text" id="tp-sink" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true">
           </div>
           <div class="field">
             <label>Message</label>
