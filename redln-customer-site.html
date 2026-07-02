@@ -1438,15 +1438,6 @@
         <p>Race days are highlighted in red. Pick your date — your heat time is assigned by REDLN. and confirmed by email.</p>
       </div>
 
-      <div class="glass" id="calWidget" style="padding:30px;display:none">
-        <div class="cal-controls">
-          <button class="icon-btn" onclick="calMove(-1)">‹</button>
-          <h3 id="calLabel"></h3>
-          <button class="icon-btn" onclick="calMove(1)">›</button>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-      </div>
-
       <div id="calStatic" style="display:grid;gap:12px">
         <label class="glass cal-row" for="nav-leaderboard" style="padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;cursor:pointer;opacity:.7">
           <div style="font-family:'Arial Narrow',sans-serif;text-transform:uppercase;font-size:22px">Sat 20 Jun · 2026</div>
@@ -2428,6 +2419,7 @@ const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function calMove(d){calDate=new Date(calDate.getFullYear(),calDate.getMonth()+d,1);buildCalendar()}
 function iso(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
 function buildCalendar(){
+  if(!document.getElementById("calGrid"))return;
   const y=calDate.getFullYear(),m=calDate.getMonth();
   document.getElementById('calLabel').textContent=`${MONTHS[m]} ${y}`;
   const first=new Date(y,m,1).getDay();
@@ -2646,9 +2638,6 @@ function sendContact(){
 /* ============ init ============ */
 (async function init(){
   /* stations & FAQ are static HTML now (work without JS); calendar upgrades to the interactive widget */
-  buildCalendar();
-  var cw=document.getElementById('calWidget'); if(cw)cw.style.display='';
-  var cs=document.getElementById('calStatic'); if(cs)cs.style.display='none';
   const s=await store('redln_session');
   if(s){session=s;updateAccountBtn()}
   document.getElementById('modalBg').addEventListener('click',e=>{
