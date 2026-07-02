@@ -2197,10 +2197,9 @@
         <!-- race pass -->
         <div class="glass flow-card">
           <div class="head" style="margin-bottom:8px"><span class="eyebrow">Race pass</span></div>
-          <p style="margin-bottom:16px">Your check-in pass for this race &mdash; athlete ID, team, date and a scannable code. Download it, share it to your story, or add it to your wallet.</p>
+          <p style="margin-bottom:16px">Your REDLN race badge, made to share &mdash; athlete ID, team and race details on a clean, on-brand card. Download it and post it to your story.</p>
           <button type="button" class="btn btn-red btn-full btn-block" id="pass-dl">Download race pass &rarr;</button>
-          <button type="button" class="wallet-btn" id="pass-wallet">&#63743;&nbsp; Add to Apple Wallet</button>
-          <p class="mono" style="font-size:11px;color:#888;margin-top:14px">2160&times;3840 HD pass with a scannable check-in QR. Wallet check-in goes live at launch.</p>
+          <p class="mono" style="font-size:11px;color:#888;margin-top:14px">2160&times;3840 HD, Instagram-story size. Tag <span style="color:var(--redline)">@redln.race</span>. Your scannable entry ticket is emailed a few days before race day.</p>
         </div>
 
         <!-- leave team: pick a successor captain -->
@@ -2670,8 +2669,7 @@ function sendContact(){
   toast('Message sent.');
 }
 
-/* ============ REDLN race pass — Event Badge (client-side, IG story, 2x HD) ============ */
-var RDLN_QR="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnAAAAJwAQMAAAAz3c7gAAAABlBMVEUKCgr///8hT0R+AAACs0lEQVR42u3dy4rkMAxAUTP//88zi6Ym1sOhF7Ww4AS6q1KO70ZwkfzK+vvVa8HBwcFdjFvh+t+wfv6vFb9/Wj8tse+f9dULDg4O7ovXx2bZcp+WaMLdiV1foYCDg7vdd/H7brDdc/H554nnd6GAg4Ob5LvddE/Vured+woFHBzcrPxuz92eDK+28h0cHNw8350r2NO98Ts4OLiJvuvyvd/+xb5CAQcHd7PvmkUqxXxxFG8dF8UIBRwc3N2+q+N1jwm7Z+Ko3W5AoYCDg7vdd9lcuaWbm3gsaPwODg5uVj379nu2XXaj/A4ODm6O7/JMRK5muzyv7r8QCjg4uJt9F9cRd6N0terNz/MdHBzclPyuZnp7W7RcN7OhnoWDg1tj9lfE+Ycu7+t65JNThAIODu5u38WMrp6Xkq2X7557oYCDg7u7nq1r7eqcxPu6ZPtn4eDg1pj9ZDmj63bNRg/WU0D5Dg4OboLvuhXHp8o1rtXbLSkUcHBwd9ez9dynvNOiZoJ73vf0Fwo4OLgJ9Wx/OkDO/rpdtc+9UMDBwU3xXV1h3Jktr0l5nhIKODi4CfVst/4uVqv97oq9XSjg4ODu9t35hPa3bC+P9/EdHBzcjPxur2m7s1HyXrP83jL5HRwc3JT9FXXnbHbi2zsanX8HBwe3Ro3f1Yq1q3d3HzrPHQ4ObprvsvW6s0/ee6hn4eDgJu0niz7rVuF11e5uSaGAg4Obkd/FnC3vHjuZcc8ChQIODu7+/C7673zC3e68ejaoUMDBwd3tu9MI3nkHbXWjehYODm7K+cbxe8zu4kxtnr/YM0OhgIODm+S7OpZXV5/UN5mpZ+Hg4Gb6rp4HdXqnRTSjUMDBwd3uu+7dZO/u699TKxRwcHB3+y7eZ9Pl2djefD+fQgEHB3ez7755wcHBwV2L+wfgKI+eWodlzQAAAABJRU5ErkJggg==";
+/* ============ REDLN race pass — shareable Event Badge (client-side, IG story, 2x HD) ============ */
 async function buildRacePass(S){
   S=S||2;
   var W=1080,H=1920,RED='#c4283a';
@@ -2683,10 +2681,13 @@ async function buildRacePass(S){
   var ep=eyebrow.split('·').map(function(s){return s.trim();});
   var rdate='SEASON 01',cat='';
   if(ep.length>=3){cat=ep[ep.length-1];rdate=ep.slice(1,ep.length-1).join(' ');}else if(ep.length===2){rdate=ep[1];}
-  var youName='ALEX CARTER',youId='RDLN #04821';var sc=document.getElementById('page-team');
-  if(sc){sc.querySelectorAll('.roster-row').forEach(function(r){var n=r.querySelector('.rn'),m=r.querySelector('.rm');
-    if(n&&/\(you\)/i.test(n.textContent)){youName=n.textContent.replace(/\(you\)/ig,'').replace(/captain/ig,'').replace(/\s+/g,' ').trim();
-      if(m){var mm=m.textContent.match(/RDLN\s*#?\s*\d+/i);if(mm)youId=mm[0].replace(/\s+/g,' ').toUpperCase();}}});}
+  var youName='ALEX CARTER',youId='RDLN #04821',squad=[];var sc=document.getElementById('page-team');
+  if(sc){sc.querySelectorAll('.roster-row').forEach(function(r){var n=r.querySelector('.rn'),m=r.querySelector('.rm');if(!n)return;
+    var you=/\(you\)/i.test(n.textContent);
+    var nm=n.textContent.replace(/\(you\)/ig,'').replace(/captain/ig,'').replace(/\s+/g,' ').trim();
+    var idm=m?(m.textContent.match(/RDLN\s*#?\s*\d+/i)||[''])[0].replace(/\s+/g,' ').toUpperCase():'';
+    if(you){youName=nm;youId=idm||youId;}
+    squad.push({name:nm.toUpperCase(),id:idm,you:you});});}
   var TU=team.toUpperCase(),watermark=TU.replace(/^THE\s+/,'');
   var idnum=youId.replace(/[^0-9]/g,'')||'04821';
   var race='03',heat='02',lane='04',gate='B';
@@ -2695,48 +2696,47 @@ async function buildRacePass(S){
   function load(src){return new Promise(function(res){if(!src){res(null);return;}var im=new Image();im.onload=function(){res(im);};im.onerror=function(){res(null);};im.src=src;});}
   function rr(X,Y,Wd,Ht,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+Wd,Y,X+Wd,Y+Ht,r);x.arcTo(X+Wd,Y+Ht,X,Y+Ht,r);x.arcTo(X,Y+Ht,X,Y,r);x.arcTo(X,Y,X+Wd,Y,r);x.closePath();}
   var logo=await load((document.querySelector('.nav-logo')||{}).src);
-  var qr=await load(RDLN_QR);
   var M=90;
   x.fillStyle='#0b0b0b';x.fillRect(0,0,W,H);
   x.strokeStyle='rgba(255,255,255,0.05)';x.lineWidth=1;
   for(var gx=0;gx<=W;gx+=90){x.beginPath();x.moveTo(gx,0);x.lineTo(gx,H);x.stroke();}
   for(var gyy=0;gyy<=H;gyy+=90){x.beginPath();x.moveTo(0,gyy);x.lineTo(W,gyy);x.stroke();}
-  x.save();x.translate(540,970);x.rotate(-Math.PI/2);x.textAlign='center';x.fillStyle='rgba(255,255,255,0.04)';x.font='700 280px '+DISP;x.fillText(watermark,0,0);x.restore();
+  x.save();x.translate(540,1020);x.rotate(-Math.PI/2);x.textAlign='center';x.fillStyle='rgba(255,255,255,0.04)';x.font='700 300px '+DISP;x.fillText(watermark,0,0);x.restore();
   x.strokeStyle=RED;x.lineWidth=3;
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
-  // header — bigger logo
-  if(logo){var lw=270,lh=lw*(logo.height/logo.width);x.drawImage(logo,M,120,lw,lh);}else{x.fillStyle='#fff';x.font='700 76px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,205);}
-  x.textAlign='right';x.fillStyle='#8c8c8c';ls('3px');x.font='19px '+MONO;x.fillText('ATHLETE PASS',W-M,168);
-  x.fillStyle='#fff';x.font='22px '+MONO;x.fillText('NO. R-'+idnum,W-M,204);ls('0px');
-  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,268);x.lineTo(W-M,268);x.stroke();
-  x.textAlign='left';x.fillStyle='#7a7a7a';ls('3px');x.font='19px '+MONO;x.fillText('25.2048° N   55.2708° E   ·   DUBAI, UAE',M,320);ls('0px');
-  // athlete name
-  x.fillStyle=RED;ls('5px');x.font='22px '+MONO;x.fillText('ATHLETE',M,428);ls('0px');
-  x.fillStyle='#fff';var nfs=fit(youName.toUpperCase(),W-2*M,104);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,520);
-  x.fillStyle='#b8b8b8';ls('2px');x.font='26px '+MONO;x.fillText(youId,M,566);ls('0px');
-  // team block highlighted
-  var ty=612;x.fillStyle=RED;x.fillRect(M,ty,6,96);
-  x.fillStyle=RED;x.textAlign='left';var tfs=fit(TU,W-2*M-40,58);x.font='700 '+tfs+'px '+DISP;x.fillText(TU,M+26,ty+52);
-  x.fillStyle='#9a9a9a';ls('2px');x.font='24px '+MONO;x.fillText('TEAM #001',M+26,ty+92);ls('0px');
-  // data fields — one per row
-  var fields=[['RACE',race],['SEASON','01'],['DATE',rdate.toUpperCase()],['CATEGORY',cat.toUpperCase()],['HEAT',heat],['LANE',lane],['GATE',gate]];
-  var fy=792,fstep=58;
+  if(logo){var lw=280,lh=lw*(logo.height/logo.width);x.drawImage(logo,M,124,lw,lh);}else{x.fillStyle='#fff';x.font='700 80px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,215);}
+  x.textAlign='right';x.fillStyle='#8c8c8c';ls('3px');x.font='19px '+MONO;x.fillText('ATHLETE PASS',W-M,172);
+  x.fillStyle='#fff';x.font='22px '+MONO;x.fillText('NO. R-'+idnum,W-M,208);ls('0px');
+  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,278);x.lineTo(W-M,278);x.stroke();
+  x.textAlign='left';x.fillStyle='#7a7a7a';ls('3px');x.font='19px '+MONO;x.fillText('25.2048° N   55.2708° E   ·   DUBAI, UAE',M,332);ls('0px');
+  x.fillStyle=RED;ls('5px');x.font='23px '+MONO;x.fillText('ATHLETE',M,448);ls('0px');
+  x.fillStyle='#fff';var nfs=fit(youName.toUpperCase(),W-2*M,108);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,548);
+  x.fillStyle='#b8b8b8';ls('2px');x.font='26px '+MONO;x.fillText(youId,M,596);ls('0px');
+  var ty=644;x.fillStyle=RED;x.fillRect(M,ty,6,96);
+  x.fillStyle=RED;x.textAlign='left';var tfs=fit(TU,W-2*M-40,56);x.font='700 '+tfs+'px '+DISP;x.fillText(TU,M+28,ty+52);
+  x.fillStyle='#9a9a9a';ls('2px');x.font='24px '+MONO;x.fillText('TEAM #001',M+28,ty+90);ls('0px');
+  var cy=ty+140;x.font='700 23px '+MONO;ls('3px');var cw=x.measureText('COMPETITOR · SEASON 01').width+52;
+  x.fillStyle=RED;rr(M,cy,cw,56,8);x.fill();x.fillStyle='#fff';x.textAlign='left';x.fillText('COMPETITOR · SEASON 01',M+26,cy+37);ls('0px');
+  var fields=[['RACE',race],['DATE',rdate.toUpperCase()],['CATEGORY',cat.toUpperCase()],['HEAT',heat],['LANE',lane],['GATE',gate]];
+  var fy=cy+118,fstep=64;
   for(var i=0;i<fields.length;i++){var yy=fy+i*fstep;
-    x.textAlign='left';x.fillStyle='#8c8c8c';ls('2px');x.font='20px '+MONO;x.fillText(fields[i][0],M,yy);
-    x.textAlign='right';x.fillStyle='#fff';x.font='24px '+MONO;x.fillText(fields[i][1],W-M,yy);ls('0px');
-    x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.beginPath();x.moveTo(M,yy+20);x.lineTo(W-M,yy+20);x.stroke();}
-  // check-in QR
-  var qy=fy+fields.length*fstep+40;
-  rr(M,qy,300,300,18);x.fillStyle='#fff';x.fill();x.lineWidth=3;x.strokeStyle=RED;x.stroke();
-  if(qr)x.drawImage(qr,M+34,qy+34,232,232);
-  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('CHECK IN',M+340,qy+64);ls('0px');
-  x.fillStyle='#fff';x.font='700 40px '+DISP;x.fillText('SCAN ON',M+340,qy+130);x.fillText('RACE DAY.',M+340,qy+176);
-  x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('REDLN.RACE/CHECKIN',M+340,qy+238);
-  // event footer bar (badge identity, not tagline)
+    x.textAlign='left';x.fillStyle='#8c8c8c';ls('2px');x.font='21px '+MONO;x.fillText(fields[i][0],M,yy);
+    x.textAlign='right';x.fillStyle='#fff';x.font='26px '+MONO;x.fillText(fields[i][1],W-M,yy);ls('0px');
+    x.strokeStyle='rgba(255,255,255,0.08)';x.lineWidth=1;x.beginPath();x.moveTo(M,yy+24);x.lineTo(W-M,yy+24);x.stroke();}
+  // squad
+  var syk=fy+fields.length*fstep+48;
+  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('SQUAD — 2 MEN · 2 WOMEN',M,syk);ls('0px');
+  var sy0=syk+58,navail=1700-sy0,n=Math.max(squad.length,1),sstep=Math.min(88,navail/n);
+  for(var j=0;j<squad.length;j++){var sy=sy0+j*sstep;
+    x.textAlign='left';x.fillStyle='#fff';x.font='700 34px '+DISP;x.fillText(squad[j].name,M,sy);
+    var wd=x.measureText(squad[j].name).width;
+    if(squad[j].you){x.fillStyle=RED;x.font='16px '+MONO;ls('2px');x.fillText('YOU',M+wd+22,sy-4);ls('0px');}
+    x.textAlign='right';x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText(squad[j].id,W-M,sy);
+    x.strokeStyle='rgba(255,255,255,0.06)';x.lineWidth=1;x.beginPath();x.moveTo(M,sy+22);x.lineTo(W-M,sy+22);x.stroke();}
+  // footer
   x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,1748);x.lineTo(W-M,1748);x.stroke();
   x.textAlign='left';x.fillStyle='#fff';ls('4px');x.font='22px '+MONO;x.fillText('REDLN — SEASON 01',M,1800);
-  x.textAlign='right';x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('DUBAI, UAE',W-M,1800);ls('0px');
-  // grain
+  x.textAlign='right';x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('@REDLN.RACE',W-M,1800);ls('0px');
   var t=document.createElement('canvas');t.width=t.height=160;var tc=t.getContext('2d');var id=tc.createImageData(160,160);
   for(var g2=0;g2<id.data.length;g2+=4){var vv=Math.random()*255|0;id.data[g2]=id.data[g2+1]=id.data[g2+2]=vv;id.data[g2+3]=255;}
   tc.putImageData(id,0,0);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=0.03;x.globalCompositeOperation='overlay';x.fillStyle=x.createPattern(t,'repeat');x.fillRect(0,0,c.width,c.height);x.restore();
@@ -2747,7 +2747,7 @@ async function downloadRacePass(){
     c.toBlob(function(blob){if(!blob)return;var url=URL.createObjectURL(blob),a=document.createElement('a');
       a.href=url;a.download='REDLN-race-pass.png';document.body.appendChild(a);a.click();a.remove();
       setTimeout(function(){URL.revokeObjectURL(url);},2000);
-      if(typeof toast==='function')toast('Race pass saved — share it or check in on race day.');},'image/png');
+      if(typeof toast==='function')toast('Race pass saved — share it and tag @redln.race.');},'image/png');
   }catch(e){if(typeof toast==='function')toast('Could not build pass.');}
 }
 
@@ -2773,8 +2773,6 @@ async function downloadRacePass(){
   });
   var _pdl=document.getElementById('pass-dl');
   if(_pdl)_pdl.addEventListener('click',downloadRacePass);
-  var _pw=document.getElementById('pass-wallet');
-  if(_pw)_pw.addEventListener('click',function(){if(typeof toast==='function')toast('Apple Wallet check-in arrives at launch.');});
 })();
 </script>
 </body>
