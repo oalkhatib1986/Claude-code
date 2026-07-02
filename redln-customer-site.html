@@ -472,11 +472,15 @@
   .buyin .big{font-size:54px;margin-top:8px}
   .buyin .desc{color:#c8c8c8;font-weight:300;margin-top:10px}
   .stations{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .wk-rules{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:6px 0 30px}
-  .wk-rule{padding:12px 7px;min-width:0}
-  .wk-rule + .wk-rule{border-left:1px solid var(--line)}
-  .wk-rule .k{display:block;font-family:"SF Mono",monospace;font-size:7.5px;letter-spacing:0.03em;text-transform:uppercase;color:var(--redline);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .wk-rule .v{display:block;font-family:"Arial Narrow","Helvetica Neue Condensed",sans-serif;text-transform:uppercase;font-size:10px;letter-spacing:0;color:#fff;line-height:1.22;overflow-wrap:normal;word-break:keep-all;hyphens:none}
+  .wk-cat{display:inline-flex;gap:4px;padding:4px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);margin:2px 0 20px}
+  .wk-cat-btn{padding:9px 24px;border-radius:999px;font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:.15s}
+  #wk-everyday:checked~main .wc-ev,#wk-elite:checked~main .wc-el{background:var(--redline-strong);color:#fff;box-shadow:inset 0 0 0 1px var(--redline-edge)}
+  .wk-facts{display:flex;flex-wrap:wrap;gap:10px 22px;padding:15px 2px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 26px}
+  .wk-facts span{font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.02em;color:#fff;white-space:nowrap}
+  .wk-facts i{font-style:normal;color:var(--redline);text-transform:uppercase;letter-spacing:0.12em;font-size:9px;margin-right:7px}
+  .wk-steps .s .ev,.wk-steps .s .el{display:none}
+  #wk-everyday:checked~main .wk-steps .s .ev{display:inline}
+  #wk-elite:checked~main .wk-steps .s .el{display:inline}
   .wk-parts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
   .wk-part{padding:22px 20px}
   .wk-part-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
@@ -1230,6 +1234,8 @@
 <input type="radio" name="cat" id="cat-elite" class="catradio">
 <input type="radio" name="cat" id="cat-seasonev" class="catradio">
 <input type="radio" name="cat" id="cat-seasonel" class="catradio">
+<input type="radio" name="wkcat" id="wk-everyday" class="navradio">
+<input type="radio" name="wkcat" id="wk-elite" class="navradio" checked>
 
 <header>
   <div class="nav-inner">
@@ -1377,12 +1383,16 @@
         <p>Teams of four — two men, two women. Every part is the same shape: a 200m team run, a machine, another 200m run, then half the machine. All four run together every time, and each machine's total distance is split across the team however you want. Only the Part 1 runs carry a dead ball — the rest are clean 200m runs. Three parts — bike, row, ski — then a final 200m sprint to the line. Everyday or Elite: same format, scaled load.</p>
       </div>
 
-      <div class="wk-rules">
-        <div class="wk-rule"><span class="k">Team</span><span class="v" style="white-space:nowrap">2F + 2M</span></div>
-        <div class="wk-rule"><span class="k">Category</span><span class="v">Everyday &amp; Elite</span></div>
-        <div class="wk-rule"><span class="k">Runs</span><span class="v">All four together</span></div>
-        <div class="wk-rule"><span class="k">Machines</span><span class="v">Split the distance</span></div>
-        <div class="wk-rule"><span class="k">Scoring</span><span class="v">Lower time wins</span></div>
+      <div class="wk-cat">
+        <label for="wk-everyday" class="wk-cat-btn wc-ev">Everyday</label>
+        <label for="wk-elite" class="wk-cat-btn wc-el">Elite</label>
+      </div>
+
+      <div class="wk-facts">
+        <span><i>Team</i>2F + 2M</span>
+        <span><i>Runs</i>All four together</span>
+        <span><i>Machines</i>Split the distance</span>
+        <span><i>Scoring</i>Lower time wins</span>
       </div>
 
       <div class="wk-parts">
@@ -1390,27 +1400,27 @@
           <div class="wk-part-h"><span class="wk-pnum">Part 01</span><span class="wk-pmachine">Bike</span></div>
           <ol class="wk-steps">
             <li><span class="s">200m</span><span class="n">Dead-Ball Run</span><span class="t">Together</span></li>
-            <li><span class="s">6,000m</span><span class="n">Bike</span><span class="t">Split</span></li>
+            <li><span class="s"><span class="ev">4,000m</span><span class="el">6,000m</span></span><span class="n">Bike</span><span class="t">Split</span></li>
             <li><span class="s">200m</span><span class="n">Dead-Ball Run</span><span class="t">Together</span></li>
-            <li><span class="s">3,000m</span><span class="n">Bike</span><span class="t">Split</span></li>
+            <li><span class="s"><span class="ev">2,000m</span><span class="el">3,000m</span></span><span class="n">Bike</span><span class="t">Split</span></li>
           </ol>
         </div>
         <div class="glass wk-part">
           <div class="wk-part-h"><span class="wk-pnum">Part 02</span><span class="wk-pmachine">Row</span></div>
           <ol class="wk-steps">
             <li><span class="s">200m</span><span class="n">Run</span><span class="t">Together</span></li>
-            <li><span class="s">4,500m</span><span class="n">Row</span><span class="t">Split</span></li>
+            <li><span class="s"><span class="ev">3,000m</span><span class="el">4,500m</span></span><span class="n">Row</span><span class="t">Split</span></li>
             <li><span class="s">200m</span><span class="n">Run</span><span class="t">Together</span></li>
-            <li><span class="s">2,250m</span><span class="n">Row</span><span class="t">Split</span></li>
+            <li><span class="s"><span class="ev">1,500m</span><span class="el">2,250m</span></span><span class="n">Row</span><span class="t">Split</span></li>
           </ol>
         </div>
         <div class="glass wk-part">
           <div class="wk-part-h"><span class="wk-pnum">Part 03</span><span class="wk-pmachine">Ski</span></div>
           <ol class="wk-steps">
             <li><span class="s">200m</span><span class="n">Run</span><span class="t">Together</span></li>
-            <li><span class="s">3,000m</span><span class="n">Ski</span><span class="t">Split</span></li>
+            <li><span class="s"><span class="ev">2,000m</span><span class="el">3,000m</span></span><span class="n">Ski</span><span class="t">Split</span></li>
             <li><span class="s">200m</span><span class="n">Run</span><span class="t">Together</span></li>
-            <li><span class="s">1,500m</span><span class="n">Ski</span><span class="t">Split</span></li>
+            <li><span class="s"><span class="ev">1,000m</span><span class="el">1,500m</span></span><span class="n">Ski</span><span class="t">Split</span></li>
           </ol>
         </div>
       </div>
