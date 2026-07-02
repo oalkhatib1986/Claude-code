@@ -163,6 +163,7 @@
   /* ---------- bpm / ecg line (standalone band below the tagline) ---------- */
   /* in-flow block with its own vertical margin so it never overlaps the text */
   /* line spans the logo wordmark exactly: starts at the "R", ends at the "." */
+  .hero-bpm-spacer{height:clamp(64px,9vw,120px);margin:22px 0 6px}
   .hero-bpm{position:relative;z-index:1;width:calc(min(100%,1100px) * 0.915);height:clamp(64px,9vw,120px);
     margin:22px 0 6px;pointer-events:none;
     opacity:0.9;
@@ -1305,6 +1306,7 @@
       <div class="hero-sub">
         <p class="hero-tagline">The region's first street-style fitness race, built on one idea: <span style="white-space:nowrap">find your limit, <span style="color:var(--redline);font-weight:700;text-shadow:0 1px 10px rgba(0,0,0,0.55)">then cross it.</span></span></p>
       </div>
+      <div class="hero-bpm-spacer" aria-hidden="true"></div>
       <div class="hero-meta">
         <div class="item"><div class="k">Location</div><div class="v">Dubai</div></div>
         <div class="item"><div class="k">Next race</div><div class="v">Sat 4 Jul · 2026</div></div>
