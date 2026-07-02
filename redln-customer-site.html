@@ -2199,7 +2199,7 @@
           <div class="head" style="margin-bottom:8px"><span class="eyebrow">Race pass</span></div>
           <p style="margin-bottom:16px">Your REDLN race badge, made to share &mdash; athlete ID, team and race details on a clean, on-brand card. Download it and post it to your story.</p>
           <button type="button" class="btn btn-red btn-full btn-block" id="pass-dl">Download race pass &rarr;</button>
-          <p class="mono" style="font-size:11px;color:#888;margin-top:14px">2160&times;3840 HD, Instagram-story size. Tag <span style="color:var(--redline)">@redln.race</span>. Your scannable entry ticket is emailed a few days before race day.</p>
+          <p class="mono" style="font-size:11px;color:#888;margin-top:14px">On iPhone this opens the share sheet &mdash; tap <b>Save Image</b> to add it to Photos, then post it to your story from the camera roll and tag <span style="color:var(--redline)">@redln.race</span>. Your scannable entry ticket is emailed a few days before race day.</p>
         </div>
 
         <!-- leave team: pick a successor captain -->
@@ -2670,7 +2670,7 @@ function sendContact(){
 }
 
 /* ============ REDLN race pass — shareable Event Badge (client-side, IG story, 2x HD) ============ */
-async function buildRacePass(S){
+function buildRacePass(S){
   S=S||2;
   var W=1080,H=1920,RED='#c4283a';
   var DISP='"Arial Narrow","Helvetica Neue Condensed","Helvetica Neue",sans-serif',MONO='"SF Mono","Menlo",monospace';
@@ -2689,9 +2689,8 @@ async function buildRacePass(S){
   var idnum=youId.replace(/[^0-9]/g,'')||'04821';var race='03';
   function ls(v){try{x.letterSpacing=v;}catch(e){}}
   function fit(t,max,base){var fs=base;x.font='700 '+fs+'px '+DISP;while(x.measureText(t).width>max&&fs>12){fs-=2;x.font='700 '+fs+'px '+DISP;}return fs;}
-  function load(src){return new Promise(function(res){if(!src){res(null);return;}var im=new Image();im.onload=function(){res(im);};im.onerror=function(){res(null);};im.src=src;});}
   function rr(X,Y,Wd,Ht,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+Wd,Y,X+Wd,Y+Ht,r);x.arcTo(X+Wd,Y+Ht,X,Y+Ht,r);x.arcTo(X,Y+Ht,X,Y,r);x.arcTo(X,Y,X+Wd,Y,r);x.closePath();}
-  var logo=await load((document.querySelector('.nav-logo')||{}).src);
+  var logo=document.querySelector('.nav-logo');var logoOK=logo&&logo.complete&&logo.naturalWidth>0;
   var M=90;
   x.fillStyle='#0a0a0a';x.fillRect(0,0,W,H);
   // LED dot-matrix panel (dim, emissive)
@@ -2710,7 +2709,7 @@ async function buildRacePass(S){
   x.strokeStyle=RED;x.lineWidth=3;
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // header
-  if(logo){var lw=280,lh=lw*(logo.height/logo.width);x.drawImage(logo,M,128,lw,lh);}else{x.fillStyle='#fff';x.font='700 80px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,220);}
+  if(logoOK){var lw=280,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,128,lw,lh);}else{x.fillStyle='#fff';x.font='700 80px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,220);}
   x.textAlign='right';x.fillStyle='#8c8c8c';ls('3px');x.font='19px '+MONO;x.fillText('ATHLETE PASS',W-M,176);
   x.fillStyle='#fff';x.font='22px '+MONO;x.fillText('NO. R-'+idnum,W-M,212);ls('0px');
   x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,286);x.lineTo(W-M,286);x.stroke();
@@ -2741,12 +2740,18 @@ async function buildRacePass(S){
   tc.putImageData(id,0,0);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=0.028;x.globalCompositeOperation='overlay';x.fillStyle=x.createPattern(t,'repeat');x.fillRect(0,0,c.width,c.height);x.restore();
   return c;
 }
-async function downloadRacePass(){
-  try{var c=await buildRacePass(2);
-    c.toBlob(function(blob){if(!blob)return;var url=URL.createObjectURL(blob),a=document.createElement('a');
-      a.href=url;a.download='REDLN-race-pass.png';document.body.appendChild(a);a.click();a.remove();
-      setTimeout(function(){URL.revokeObjectURL(url);},2000);
-      if(typeof toast==='function')toast('Race pass saved — share it and tag @redln.race.');},'image/png');
+function dataURLtoFile(u,name){var arr=u.split(','),mime=(arr[0].match(/:(.*?);/)||[])[1]||'image/png',b=atob(arr[1]),n=b.length,a=new Uint8Array(n);while(n--)a[n]=b.charCodeAt(n);return new File([a],name,{type:mime});}
+function downloadRacePass(){
+  try{
+    var c=buildRacePass(2);
+    var durl=c.toDataURL('image/png');
+    var file=dataURLtoFile(durl,'REDLN-race-pass.png');
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'REDLN Race Pass'}).catch(function(){});
+    }else{
+      var a=document.createElement('a');a.href=durl;a.download='REDLN-race-pass.png';document.body.appendChild(a);a.click();a.remove();
+      if(typeof toast==='function')toast('Race pass saved.');
+    }
   }catch(e){if(typeof toast==='function')toast('Could not build pass.');}
 }
 
