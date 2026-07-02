@@ -2696,7 +2696,7 @@ async function buildRacePass(S){
   x.fillStyle='#0b0b0b';x.fillRect(0,0,W,H);
   // dot-matrix background
   x.fillStyle='rgba(255,255,255,0.07)';
-  for(var dx=28;dx<=W-10;dx+=34)for(var dy=28;dy<=H-10;dy+=34){x.beginPath();x.arc(dx,dy,1.7,0,7);x.fill();}
+  for(var dx=22;dx<=W-8;dx+=22)for(var dy=22;dy<=H-8;dy+=22){x.beginPath();x.arc(dx,dy,1.4,0,7);x.fill();}
   // faint watermark
   x.save();x.translate(540,1020);x.rotate(-Math.PI/2);x.textAlign='center';x.fillStyle='rgba(255,255,255,0.03)';x.font='700 300px '+DISP;x.fillText(watermark,0,0);x.restore();
   // red corner marks
