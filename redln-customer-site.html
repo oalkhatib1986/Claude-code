@@ -2192,6 +2192,14 @@
             <div>Empty spot · Female — invite an athlete below</div>
           </div>
         </div>
+        <!-- team badge -->
+        <div class="glass flow-card">
+          <div class="head" style="margin-bottom:8px"><span class="eyebrow">Team badge</span></div>
+          <p style="margin-bottom:16px">Your team, made shareable. Download the card and post it to your story &mdash; tag <span style="color:var(--redline)">@redln.race</span>.</p>
+          <button type="button" class="btn btn-red btn-full btn-block" id="badge-dl">Download team badge &rarr;</button>
+          <p class="mono" style="font-size:11px;color:#888;margin-top:14px">Saves a 1080&times;1920 image (Instagram story size) with your team name, race date and roster.</p>
+        </div>
+
         <!-- leave team: pick a successor captain -->
         <div class="leave-panel glass flow-card">
           <input type="radio" name="newcap" id="newcap-mia" class="newcap-rb" checked>
@@ -2659,6 +2667,109 @@ function sendContact(){
   toast('Message sent.');
 }
 
+/* ============ team badge (client-side, IG story 1080x1920) ============ */
+async function buildTeamBadge(){
+  var W=1080,H=1920,RED='#c4283a';
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  var x=c.getContext('2d');
+  var scope=document.getElementById('page-team');
+  function q(sel){return scope?scope.querySelector(sel):null;}
+  var teamName=(q('h2')?q('h2').textContent:'YOUR TEAM').trim();
+  var eyebrow=(q('.eyebrow')?q('.eyebrow').textContent:'').trim();
+  var ep=eyebrow.split('·').map(function(s){return s.trim();});
+  var raceDate='SEASON 01',cat='';
+  if(ep.length>=3){cat=ep[ep.length-1];raceDate=ep.slice(1,ep.length-1).join(' · ');}
+  else if(ep.length===2){raceDate=ep[1];}
+  var ath=[];
+  if(scope){scope.querySelectorAll('.roster-row').forEach(function(r){
+    var n=r.querySelector('.rn'),m=r.querySelector('.rm');
+    if(!n)return;
+    var name=n.textContent.replace(/\(you\)/ig,'').replace(/captain/ig,'').replace(/\s+/g,' ').trim();
+    var num='';if(m){var mm=m.textContent.match(/RDLN\s*#?\s*\d+/i);num=mm?mm[0].replace(/\s+/g,' ').toUpperCase():'';}
+    ath.push({name:name,num:num});
+  });}
+  if(!ath.length)ath=[{name:'Athlete',num:''}];
+
+  x.fillStyle='#0a0a0a';x.fillRect(0,0,W,H);
+  function blob(cx,cy,r,col,a){var g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');x.save();x.globalAlpha=a;x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();}
+  blob(230,560,520,'#4a4a4a',.45);blob(880,720,560,'#3c3c3c',.40);
+  blob(540,1180,640,'#444444',.38);blob(760,1500,520,'#333333',.35);
+  blob(300,1450,460,'#3a3a3a',.30);blob(540,980,720,'rgba(196,40,58,1)',.10);
+
+  var n=ath.length,margin=140,usable=W-margin*2,colw=usable/n,silY=1075,cols=[];
+  for(var i=0;i<n;i++)cols.push(margin+colw*i+colw/2);
+  cols.forEach(function(cx){
+    var bg=x.createLinearGradient(0,190,0,silY+120);
+    bg.addColorStop(0,'rgba(255,255,255,0.055)');bg.addColorStop(1,'rgba(255,255,255,0)');
+    x.save();x.fillStyle=bg;x.beginPath();
+    x.moveTo(cx-32,190);x.lineTo(cx+32,190);x.lineTo(cx+150,silY+120);x.lineTo(cx-150,silY+120);x.closePath();x.fill();x.restore();
+  });
+  var vg=x.createRadialGradient(W/2,H*0.44,300,W/2,H*0.5,1180);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.9)');
+  x.fillStyle=vg;x.fillRect(0,0,W,H);
+  function ls(v){try{x.letterSpacing=v;}catch(e){}}
+  function fit(t,max,base,fam){var fs=base;x.font='700 '+fs+'px '+fam;while(x.measureText(t).width>max&&fs>14){fs-=2;x.font='700 '+fs+'px '+fam;}return fs;}
+  var DISP='"Arial Narrow","Helvetica Neue",sans-serif';
+  var MONO='"SF Mono","Menlo",monospace';
+
+  cols.forEach(function(cx,idx){
+    var pg=x.createRadialGradient(cx,silY-40,10,cx,silY-40,250);
+    pg.addColorStop(0,'rgba(255,255,255,0.30)');pg.addColorStop(0.6,'rgba(255,255,255,0.06)');pg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=pg;x.fillRect(cx-270,silY-310,540,580);
+    var fg=x.createRadialGradient(cx,silY+150,5,cx,silY+150,170);
+    fg.addColorStop(0,'rgba(255,255,255,0.15)');fg.addColorStop(1,'rgba(255,255,255,0)');
+    x.save();x.translate(cx,silY+152);x.scale(1,0.30);x.fillStyle=fg;x.beginPath();x.arc(0,0,170,0,7);x.fill();x.restore();
+    var s=1.18;
+    x.save();x.translate(cx,silY);x.scale(s,s);
+    x.fillStyle='#0d0d0d';
+    x.beginPath();x.moveTo(-105,112);x.quadraticCurveTo(-109,16,-46,2);x.quadraticCurveTo(0,-10,46,2);x.quadraticCurveTo(109,16,105,112);x.closePath();x.fill();
+    x.beginPath();x.arc(0,-58,45,0,7);x.fill();
+    x.lineWidth=3;x.strokeStyle='rgba(255,255,255,0.20)';
+    x.beginPath();x.arc(0,-58,45,Math.PI*1.02,Math.PI*1.62);x.stroke();
+    x.beginPath();x.moveTo(-104,106);x.quadraticCurveTo(-108,18,-46,3);x.stroke();
+    x.restore();
+    x.textAlign='center';x.fillStyle='#fff';ls('1px');
+    var fs=fit(ath[idx].name.toUpperCase(),colw-24,42,DISP);
+    x.font='700 '+fs+'px '+DISP;x.fillText(ath[idx].name.toUpperCase(),cx,silY+252);
+    ls('2px');x.fillStyle='#8c8c8c';x.font='16px '+MONO;x.fillText(ath[idx].num,cx,silY+288);ls('0px');
+  });
+
+  x.fillStyle=RED;x.fillRect(margin,132,W-margin*2,2);
+  var logoSrc=(document.querySelector('.nav-logo')||{}).src;
+  if(logoSrc){await new Promise(function(res){var im=new Image();im.onload=function(){var lw=300,lh=lw*(im.height/im.width);x.drawImage(im,(W-lw)/2,180,lw,lh);res();};im.onerror=res;im.src=logoSrc;});}
+  else{x.textAlign='center';x.fillStyle='#fff';x.font='700 84px '+DISP;x.fillText('REDLN.',W/2,262);}
+  x.textAlign='center';x.fillStyle='#9a9a9a';ls('5px');x.font='22px '+MONO;x.fillText('SEASON 01 — DUBAI, UAE',W/2,344);
+  x.fillStyle=RED;ls('4px');x.font='27px '+MONO;
+  x.fillText((raceDate+(cat?('   ·   '+cat):'')).toUpperCase(),W/2,404);ls('0px');
+
+  x.textAlign='center';
+  x.fillStyle=RED;ls('8px');x.font='20px '+MONO;x.fillText('TEAM',W/2,512);ls('0px');
+  var tn=teamName.toUpperCase();var tfs=fit(tn,W-200,120,DISP);
+  x.fillStyle='#fff';x.font='700 '+tfs+'px '+DISP;x.fillText(tn,W/2,512+tfs*0.86);
+  x.fillStyle=RED;x.fillRect(W/2-60,512+tfs*0.86+32,120,4);
+
+  x.textAlign='center';x.font='700 54px '+DISP;
+  x.fillStyle='#fff';x.fillText('FIND THE LINE.',W/2,1580);
+  x.fillStyle=RED;x.fillText('CROSS IT.',W/2,1642);
+
+  x.fillStyle=RED;x.fillRect(margin,1762,W-margin*2,2);
+  x.fillStyle='#fff';ls('4px');x.font='24px '+MONO;x.fillText('@REDLN.RACE',W/2,1830);
+  x.fillStyle='#6e6e6e';ls('3px');x.font='15px '+MONO;x.fillText('HYBRID TEAM RACE — FIND YOUR LINE',W/2,1870);ls('0px');
+  return c;
+}
+async function downloadTeamBadge(){
+  try{
+    var c=await buildTeamBadge();
+    c.toBlob(function(blob){
+      if(!blob)return;
+      var url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download='REDLN-team-badge.png';document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url);},2000);
+      if(typeof toast==='function')toast('Badge saved — share it to your story.');
+    },'image/png');
+  }catch(e){if(typeof toast==='function')toast('Could not build badge.');}
+}
+
 /* ============ init ============ */
 (async function init(){
   /* stations & FAQ are static HTML now (work without JS); calendar upgrades to the interactive widget */
@@ -2679,6 +2790,8 @@ function sendContact(){
     opt.addEventListener('pointerdown',pick);
     opt.addEventListener('click',pick);
   });
+  var _bdl=document.getElementById('badge-dl');
+  if(_bdl)_bdl.addEventListener('click',downloadTeamBadge);
 })();
 </script>
 </body>
