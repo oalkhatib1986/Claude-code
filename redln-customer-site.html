@@ -451,7 +451,7 @@
     .fmt-stats .fs:not(:last-child){border-right:1px solid var(--glass-edge)}
   }
   /* trim the race section's empty top space */
-  .race-intro{padding:42px 0 16px}
+  .race-intro{padding:42px 0 16px;margin-top:-1px}
   .race-intro .head{margin-bottom:0}
   .bgsec.race-cards{padding:6px 0 44px}
   /* photographic pillar cards */
@@ -472,11 +472,11 @@
   .buyin .big{font-size:54px;margin-top:8px}
   .buyin .desc{color:#c8c8c8;font-weight:300;margin-top:10px}
   .stations{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .wk-rules{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:6px 0 30px}
-  .wk-rule{padding:15px 18px}
+  .wk-rules{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:6px 0 30px}
+  .wk-rule{padding:14px 13px}
   .wk-rule + .wk-rule{border-left:1px solid var(--line)}
   .wk-rule .k{display:block;font-family:"SF Mono",monospace;font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--redline);margin-bottom:9px}
-  .wk-rule .v{display:block;font-family:"Arial Narrow",sans-serif;text-transform:uppercase;font-size:18px;letter-spacing:0.01em;color:#fff;line-height:1.08}
+  .wk-rule .v{display:block;font-family:"Arial Narrow",sans-serif;text-transform:uppercase;font-size:16px;letter-spacing:0.01em;color:#fff;line-height:1.1}
   .wk-parts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
   .wk-part{padding:22px 20px}
   .wk-part-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
@@ -1004,7 +1004,7 @@
   /* hero gets its own treatment (keeps the red lane visible) */
   .hero .hero-photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center 40%;filter:contrast(1.05)}
   .hero .hero-photo::after{content:"";position:absolute;inset:0;
-    background:linear-gradient(to bottom,rgba(10,10,10,0.5),rgba(10,10,10,0.14) 34%,rgba(10,10,10,0.3) 60%,rgba(10,10,10,0.92) 88%,rgba(10,10,10,1) 99%)}
+    background:linear-gradient(to bottom,rgba(10,10,10,0.5),rgba(10,10,10,0.14) 32%,rgba(10,10,10,0.35) 55%,rgba(10,10,10,0.85) 74%,rgba(10,10,10,1) 86%)}
   /* image divider band */
   .divider{position:relative;height:300px;margin:0;background-color:#0a0a0a;background-size:cover;background-position:center;
     display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -1378,6 +1378,7 @@
       </div>
 
       <div class="wk-rules">
+        <div class="wk-rule"><span class="k">Team</span><span class="v" style="white-space:nowrap">2F + 2M</span></div>
         <div class="wk-rule"><span class="k">Runs</span><span class="v">All four together</span></div>
         <div class="wk-rule"><span class="k">Machines</span><span class="v">Split the distance</span></div>
         <div class="wk-rule"><span class="k">Scoring</span><span class="v">Lower time wins</span></div>
