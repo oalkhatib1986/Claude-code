@@ -2710,7 +2710,7 @@ function buildRacePass(S){
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // header — bigger logo
   if(logoOK){var lw=322,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,126,lw,lh);}else{x.fillStyle='#fff';x.font='700 92px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
-  x.textAlign='right';x.fillStyle='#cfcfcf';ls('3px');x.font='20px '+MONO;x.fillText('ON THE START LINE',W-M,214);ls('0px');
+  x.textAlign='right';x.fillStyle='#cfcfcf';ls('3px');x.font='20px '+MONO;x.fillText('RACING · SEASON 01',W-M,214);ls('0px');
   x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
   // athlete name
   x.fillStyle='#fff';x.textAlign='left';var nfs=fit(youName.toUpperCase(),W-2*M,114);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,478);
@@ -2724,8 +2724,9 @@ function buildRacePass(S){
   var t1='ATHLETE',t2=(cat.toUpperCase()||'EVERYDAY');
   var bw=Math.max(x.measureText(t1).width,x.measureText(t2).width)+104;
   x.fillStyle=RED;rr(M,cy,bw,bh,9);x.fill();x.fillStyle='#fff';x.fillText(t1,M+30,cy+42);
-  var cy2=cy+bh+16,isElite=/ELITE/.test(t2),accent=isElite?'#d9a43a':RED;
-  x.lineWidth=2.5;x.strokeStyle=accent;rr(M,cy2,bw,bh,9);x.stroke();x.fillStyle=accent;x.fillText(t2,M+30,cy2+42);ls('0px');
+  var cy2=cy+bh+16,isElite=/ELITE/.test(t2);
+  x.fillStyle=isElite?'#d6a53c':'#ffffff';rr(M,cy2,bw,bh,9);x.fill();
+  x.fillStyle='#0a0a0a';x.fillText(t2,M+30,cy2+42);ls('0px');
   // date hero (centered lower)
   var hy=1250;x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('RACE '+race+'  ·  DUBAI, UAE',M,hy);ls('0px');
   x.fillStyle='#fff';x.font='700 '+fit(rdate.toUpperCase(),W-2*M,96)+'px '+DISP;x.fillText(rdate.toUpperCase(),M,hy+98);
