@@ -2650,6 +2650,18 @@ function sendContact(){
   document.getElementById('modalBg').addEventListener('click',e=>{
     if(e.target.id==='modalBg')closeModal();
   });
+  /* mobile-reliable custom dropdowns: tap an option -> check its radio + close menu.
+     Works around :focus-within collapsing the menu before the label click lands. */
+  document.querySelectorAll('.evt-dd-opt, .lb-dd-opt').forEach(function(opt){
+    var pick=function(ev){
+      ev.preventDefault();
+      var id=opt.getAttribute('for'); var r=id&&document.getElementById(id);
+      if(r){ r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true})); }
+      var af=document.activeElement; if(af&&af.blur) af.blur();
+    };
+    opt.addEventListener('pointerdown',pick);
+    opt.addEventListener('click',pick);
+  });
 })();
 </script>
 </body>
