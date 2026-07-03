@@ -2699,8 +2699,8 @@ function buildRacePass(S){
   dc.fillStyle='#cfd3da';var D=15*S,rD=1.7*S;
   for(var dx=D;dx<dl.width;dx+=D)for(var dy=D;dy<dl.height;dy+=D){dc.beginPath();dc.arc(dx,dy,rD,0,7);dc.fill();}
   x.save();x.setTransform(1,0,0,1,0,0);
-  x.globalAlpha=0.06;x.filter='blur('+(3.2*S)+'px)';x.drawImage(dl,0,0);
-  x.filter='none';x.globalAlpha=0.12;x.drawImage(dl,0,0);
+  x.globalAlpha=0.10;x.filter='blur('+(3.2*S)+'px)';x.drawImage(dl,0,0);
+  x.filter='none';x.globalAlpha=0.30;x.drawImage(dl,0,0);
   x.restore();
   // uniform flat dot-matrix panel — no red glow, no vignette fade
   // watermark
