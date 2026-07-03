@@ -2729,32 +2729,28 @@ function buildRacePass(S){
   var cy2=cy+bh+18,isElite=/ELITE/.test(t2);
   x.fillStyle=isElite?'#d6a53c':'#ffffff';rr(M,cy2,bw,bh,10);x.fill();
   x.fillStyle='#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
-  // ---- profile photo blended into the panel (no border) ----
-  var px0=520,py0=662,pw=470,ph=470;
+  // ---- profile photo area: dots fade to BLACK, photo/message blends into it ----
+  var px0=520,py0=662,pw=470,ph=470,mcx=px0+pw/2,mcy=py0+ph/2;
+  var kg=x.createRadialGradient(mcx,mcy,pw*0.30,mcx,mcy,pw*0.86);
+  kg.addColorStop(0,'#0a0a0a');kg.addColorStop(0.62,'#0a0a0a');kg.addColorStop(1,'rgba(10,10,10,0)');
+  x.fillStyle=kg;x.fillRect(px0-90,py0-90,pw+180,ph+180);
   if(photoOK){
     var oc=document.createElement('canvas');oc.width=pw*S;oc.height=ph*S;var occ=oc.getContext('2d');
     var iw=photo.naturalWidth,ih=photo.naturalHeight,ar=iw/ih,tar=pw/ph,dw,dh,ox,oy;
     if(ar>tar){dh=ph*S;dw=dh*ar;ox=(pw*S-dw)/2;oy=0;}else{dw=pw*S;dh=dw/ar;ox=0;oy=(ph*S-dh)/2;}
-    occ.filter='grayscale(0.5) contrast(1.06) brightness(0.92)';occ.drawImage(photo,ox,oy,dw,dh);occ.filter='none';
-    occ.globalCompositeOperation='multiply';occ.fillStyle='rgba(196,40,58,0.20)';occ.fillRect(0,0,pw*S,ph*S);
+    occ.filter='grayscale(0.5) contrast(1.06) brightness(0.9)';occ.drawImage(photo,ox,oy,dw,dh);occ.filter='none';
+    occ.globalCompositeOperation='multiply';occ.fillStyle='rgba(196,40,58,0.18)';occ.fillRect(0,0,pw*S,ph*S);
     occ.globalCompositeOperation='destination-out';
-    var PW=pw*S,PH=ph*S,Fx=150*S,Fy=140*S,g;
+    var PW=pw*S,PH=ph*S,Fx=175*S,Fy=165*S,g;
     g=occ.createLinearGradient(0,0,Fx,0);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');occ.fillStyle=g;occ.fillRect(0,0,Fx,PH);
-    g=occ.createLinearGradient(PW,0,PW-110*S,0);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');occ.fillStyle=g;occ.fillRect(PW-110*S,0,110*S,PH);
+    g=occ.createLinearGradient(PW,0,PW-Fx,0);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');occ.fillStyle=g;occ.fillRect(PW-Fx,0,Fx,PH);
     g=occ.createLinearGradient(0,0,0,Fy);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');occ.fillStyle=g;occ.fillRect(0,0,PW,Fy);
     g=occ.createLinearGradient(0,PH,0,PH-Fy);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');occ.fillStyle=g;occ.fillRect(0,PH-Fy,PW,Fy);
     occ.globalCompositeOperation='source-over';
-    x.save();x.globalAlpha=0.95;x.drawImage(oc,px0,py0,pw,ph);x.restore();
-    x.save();x.beginPath();x.rect(px0,py0,pw,ph);x.clip();x.globalAlpha=0.10;x.fillStyle='#cfd3da';
-    for(var qx=px0+2;qx<px0+pw;qx+=15)for(var qy=py0+2;qy<py0+ph;qy+=15){x.beginPath();x.arc(qx,qy,1.7,0,7);x.fill();}
-    x.restore();
+    x.save();x.globalAlpha=0.96;x.drawImage(oc,px0,py0,pw,ph);x.restore();
   }else{
-    var mcx=px0+pw/2,mcy=py0+ph/2;
-    var pg=x.createRadialGradient(mcx,mcy,20,mcx,mcy,pw*0.56);
-    pg.addColorStop(0,'rgba(255,255,255,0.06)');pg.addColorStop(1,'rgba(255,255,255,0)');
-    x.fillStyle=pg;x.fillRect(px0-30,py0-30,pw+60,ph+60);
     x.save();var icy=mcy-52;
-    x.strokeStyle='rgba(255,255,255,0.28)';x.lineWidth=4;
+    x.strokeStyle='rgba(255,255,255,0.26)';x.lineWidth=4;
     x.beginPath();x.arc(mcx,icy-28,30,0,7);x.stroke();
     x.beginPath();x.arc(mcx,icy+66,62,Math.PI*1.18,Math.PI*1.82);x.stroke();
     x.textAlign='center';x.fillStyle='#9a9a9a';ls('3px');x.font='22px '+MONO;x.fillText('ADD YOUR PHOTO',mcx,mcy+112);
