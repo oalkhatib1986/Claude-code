@@ -2699,8 +2699,8 @@ function buildRacePass(S){
   dc.fillStyle='#cfd3da';var D=15*S,rD=1.7*S;
   for(var dx=D;dx<dl.width;dx+=D)for(var dy=D;dy<dl.height;dy+=D){dc.beginPath();dc.arc(dx,dy,rD,0,7);dc.fill();}
   x.save();x.setTransform(1,0,0,1,0,0);
-  x.globalAlpha=0.10;x.filter='blur('+(3.2*S)+'px)';x.drawImage(dl,0,0);
-  x.filter='none';x.globalAlpha=0.30;x.drawImage(dl,0,0);
+  x.globalAlpha=0.05;x.filter='blur('+(3.2*S)+'px)';x.drawImage(dl,0,0);
+  x.filter='none';x.globalAlpha=0.13;x.drawImage(dl,0,0);
   x.restore();
   // uniform flat dot-matrix panel — no red glow, no vignette fade
   // watermark
@@ -2734,11 +2734,20 @@ function buildRacePass(S){
   // COMPETITOR — vertical white tag (like the category box, rotated) with black typewriter text; centered between THE REDLINERS text and the EVERYDAY box
   x.font='700 '+tfs+'px '+DISP;var _rm=x.measureText(TU);var _redCy=(ty+54)-(_rm.actualBoundingBoxAscent||tfs*0.72)/2;
   var _boxCy=cy2+bh/2;var _stampCy=(_redCy+_boxCy)/2;
-  x.font='700 26px '+MONO;ls('7px');var _ctxt='COMPETITOR',_clen=x.measureText(_ctxt).width;
-  var _tagW=60,_tagH=_clen+50,_tagCx=W-M-_tagW/2;
-  x.fillStyle='#ffffff';rr(_tagCx-_tagW/2,_stampCy-_tagH/2,_tagW,_tagH,13);x.fill();
-  x.save();x.translate(_tagCx,_stampCy);x.rotate(Math.PI/2);x.textAlign='center';x.textBaseline='middle';
-  x.fillStyle='#0a0a0a';x.fillText(_ctxt,0,0);x.restore();x.textBaseline='alphabetic';ls('0px');
+  x.font='700 24px '+MONO;ls('6px');var _ctxt='COMPETITOR',_clen=x.measureText(_ctxt).width;
+  var _tagW=66,_holeGap=56,_tagH=_holeGap+_clen+30,_tagCx=W-M-_tagW/2,_tagTop=_stampCy-_tagH/2;
+  // dog-tag body (off-white, rounded)
+  x.fillStyle='#f2f1ee';rr(_tagCx-_tagW/2,_tagTop,_tagW,_tagH,16);x.fill();
+  // stamped keyline
+  x.strokeStyle='rgba(0,0,0,0.14)';x.lineWidth=2;rr(_tagCx-_tagW/2+5,_tagTop+5,_tagW-10,_tagH-10,12);x.stroke();
+  // punched hole near top
+  var _holeCy=_tagTop+30;
+  x.fillStyle='#0a0a0a';x.beginPath();x.arc(_tagCx,_holeCy,9,0,7);x.fill();
+  x.strokeStyle='rgba(0,0,0,0.30)';x.lineWidth=2;x.beginPath();x.arc(_tagCx,_holeCy,9,0,7);x.stroke();
+  // vertical typewriter text, centered below the hole
+  var _txtCy=_tagTop+_holeGap+_clen/2;
+  x.save();x.translate(_tagCx,_txtCy);x.rotate(Math.PI/2);x.textAlign='center';x.textBaseline='middle';
+  x.fillStyle='#141414';x.font='700 24px '+MONO;ls('6px');x.fillText(_ctxt,0,0);x.restore();x.textBaseline='alphabetic';ls('0px');
   // ---- perforation (boarding-pass tear line + edge notches) ----
   var py=1150;
   x.fillStyle='#060606';x.beginPath();x.arc(0,py,34,0,7);x.fill();x.beginPath();x.arc(W,py,34,0,7);x.fill();
