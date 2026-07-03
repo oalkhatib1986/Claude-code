@@ -2725,8 +2725,9 @@ function buildRacePass(S){
   var bw=Math.max(x.measureText(t1).width,x.measureText(t2).width)+126;
   x.fillStyle=RED;rr(M,cy,bw,bh,10);x.fill();x.fillStyle='#fff';x.fillText(t1,M+34,cy+51);
   var cy2=cy+bh+18,isElite=/ELITE/.test(t2);
-  x.fillStyle=isElite?'#d6a53c':'#ffffff';rr(M,cy2,bw,bh,10);x.fill();
-  x.fillStyle='#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
+  x.fillStyle='#ffffff';rr(M,cy2,bw,bh,10);x.fill();
+  if(isElite){x.lineWidth=3.5;x.strokeStyle=RED;rr(M,cy2+1.5,bw-3,bh-3,9);x.stroke();}
+  x.fillStyle=isElite?RED:'#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
   // ---- perforation (boarding-pass tear line + edge notches) ----
   var py=1150;
   x.fillStyle='#060606';x.beginPath();x.arc(0,py,34,0,7);x.fill();x.beginPath();x.arc(W,py,34,0,7);x.fill();
