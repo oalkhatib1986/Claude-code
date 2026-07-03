@@ -2731,11 +2731,14 @@ function buildRacePass(S){
   var cy2=cy+bh+18;
   x.fillStyle='#ffffff';rr(M,cy2,bw,bh,10);x.fill();
   x.fillStyle='#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
-  // COMPETITOR — vertical stamp: right edge aligned to top border terminus, midpoint centered between THE REDLINERS text and the EVERYDAY box
+  // COMPETITOR — vertical white tag (like the category box, rotated) with black typewriter text; centered between THE REDLINERS text and the EVERYDAY box
   x.font='700 '+tfs+'px '+DISP;var _rm=x.measureText(TU);var _redCy=(ty+54)-(_rm.actualBoundingBoxAscent||tfs*0.72)/2;
   var _boxCy=cy2+bh/2;var _stampCy=(_redCy+_boxCy)/2;
-  x.save();x.translate(W-M-22,_stampCy);x.rotate(Math.PI/2);x.textAlign='center';
-  x.fillStyle=RED;x.font='700 27px '+MONO;ls('8px');x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
+  x.font='700 26px '+MONO;ls('7px');var _ctxt='COMPETITOR',_clen=x.measureText(_ctxt).width;
+  var _tagW=60,_tagH=_clen+50,_tagCx=W-M-_tagW/2;
+  x.fillStyle='#ffffff';rr(_tagCx-_tagW/2,_stampCy-_tagH/2,_tagW,_tagH,13);x.fill();
+  x.save();x.translate(_tagCx,_stampCy);x.rotate(Math.PI/2);x.textAlign='center';x.textBaseline='middle';
+  x.fillStyle='#0a0a0a';x.fillText(_ctxt,0,0);x.restore();x.textBaseline='alphabetic';ls('0px');
   // ---- perforation (boarding-pass tear line + edge notches) ----
   var py=1150;
   x.fillStyle='#060606';x.beginPath();x.arc(0,py,34,0,7);x.fill();x.beginPath();x.arc(W,py,34,0,7);x.fill();
