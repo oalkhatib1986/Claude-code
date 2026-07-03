@@ -2711,12 +2711,14 @@ function buildRacePass(S){
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // ---- header (bigger logo, no top-right text) ----
   if(logoOK){var lw=390,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,104,lw,lh);}else{x.fillStyle='#fff';x.font='700 110px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
-  // top-right COMPETITOR — vertical side stamp (smaller, dropped to align right of the white RDLN box)
-  x.save();x.translate(W-50,500);x.rotate(Math.PI/2);x.textAlign='left';
-  x.fillStyle=RED;ls('8px');x.font='700 27px '+MONO;x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
   x.strokeStyle='#ffffff';x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
   // ---- athlete ----
-  x.fillStyle='#fff';x.textAlign='left';var nfs=fit(youName.toUpperCase(),W-2*M,116);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,472);
+  var _NU=youName.toUpperCase();var nfs=fit(_NU,W-2*M,116);x.font='700 '+nfs+'px '+DISP;
+  // align the vertical COMPETITOR stamp under the last glyph of the surname
+  var _preW=x.measureText(_NU.slice(0,-1)).width,_fullW=x.measureText(_NU).width,_lastCx=M+(_preW+_fullW)/2;
+  x.save();x.translate(_lastCx+14,500);x.rotate(Math.PI/2);x.textAlign='left';
+  x.fillStyle=RED;ls('8px');x.font='700 27px '+MONO;x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
+  x.fillStyle='#fff';x.textAlign='left';x.font='700 '+nfs+'px '+DISP;x.fillText(_NU,M,472);
   // RDLN number — white box (like category box)
   x.textAlign='left';x.font='700 27px '+MONO;ls('2px');
   var _rbw=x.measureText(youId).width+58,_rby=492,_rbh=58;
