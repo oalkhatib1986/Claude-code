@@ -217,37 +217,37 @@
   .ticker::after{content:"";position:absolute;inset:3px 0;z-index:0;pointer-events:none;
     background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
   @keyframes tickerbeat{
-    0%,1%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    1.7%{background:linear-gradient(rgba(196,40,58,0.5),rgba(196,40,58,0.5)),#0a0a0a;box-shadow:inset 0 0 30px rgba(196,40,58,0.55)}
-    2.5%{background:linear-gradient(rgba(196,40,58,0.22),rgba(196,40,58,0.22)),#0a0a0a;box-shadow:inset 0 0 10px rgba(196,40,58,0.22)}
-    3.3%{background:linear-gradient(rgba(196,40,58,0.36),rgba(196,40,58,0.36)),#0a0a0a;box-shadow:inset 0 0 20px rgba(196,40,58,0.36)}
-    5%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    15%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    15.7%{background:linear-gradient(rgba(196,40,58,0.46),rgba(196,40,58,0.46)),#0a0a0a;box-shadow:inset 0 0 28px rgba(196,40,58,0.5)}
-    16.5%{background:linear-gradient(rgba(196,40,58,0.2),rgba(196,40,58,0.2)),#0a0a0a;box-shadow:inset 0 0 9px rgba(196,40,58,0.2)}
-    17.3%{background:linear-gradient(rgba(196,40,58,0.32),rgba(196,40,58,0.32)),#0a0a0a;box-shadow:inset 0 0 18px rgba(196,40,58,0.32)}
-    19%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    32%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    32.7%{background:linear-gradient(rgba(196,40,58,0.56),rgba(196,40,58,0.56)),#0a0a0a;box-shadow:inset 0 0 34px rgba(196,40,58,0.6)}
-    33.5%{background:linear-gradient(rgba(196,40,58,0.24),rgba(196,40,58,0.24)),#0a0a0a;box-shadow:inset 0 0 11px rgba(196,40,58,0.24)}
-    34.3%{background:linear-gradient(rgba(196,40,58,0.4),rgba(196,40,58,0.4)),#0a0a0a;box-shadow:inset 0 0 22px rgba(196,40,58,0.4)}
-    36%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    43%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    43.7%{background:linear-gradient(rgba(196,40,58,0.42),rgba(196,40,58,0.42)),#0a0a0a;box-shadow:inset 0 0 26px rgba(196,40,58,0.46)}
-    44.5%{background:linear-gradient(rgba(196,40,58,0.18),rgba(196,40,58,0.18)),#0a0a0a;box-shadow:inset 0 0 8px rgba(196,40,58,0.2)}
-    45.3%{background:linear-gradient(rgba(196,40,58,0.3),rgba(196,40,58,0.3)),#0a0a0a;box-shadow:inset 0 0 16px rgba(196,40,58,0.3)}
-    47%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    66%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    66.7%{background:linear-gradient(rgba(196,40,58,0.5),rgba(196,40,58,0.5)),#0a0a0a;box-shadow:inset 0 0 30px rgba(196,40,58,0.55)}
-    67.5%{background:linear-gradient(rgba(196,40,58,0.22),rgba(196,40,58,0.22)),#0a0a0a;box-shadow:inset 0 0 10px rgba(196,40,58,0.22)}
-    68.3%{background:linear-gradient(rgba(196,40,58,0.34),rgba(196,40,58,0.34)),#0a0a0a;box-shadow:inset 0 0 19px rgba(196,40,58,0.34)}
-    70%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    82%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    82.7%{background:linear-gradient(rgba(196,40,58,0.44),rgba(196,40,58,0.44)),#0a0a0a;box-shadow:inset 0 0 27px rgba(196,40,58,0.48)}
-    83.5%{background:linear-gradient(rgba(196,40,58,0.2),rgba(196,40,58,0.2)),#0a0a0a;box-shadow:inset 0 0 9px rgba(196,40,58,0.2)}
-    84.3%{background:linear-gradient(rgba(196,40,58,0.32),rgba(196,40,58,0.32)),#0a0a0a;box-shadow:inset 0 0 18px rgba(196,40,58,0.32)}
-    86%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
-    100%{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;box-shadow:none}
+    0%,1%{box-shadow:none}
+    1.7%{box-shadow:inset 0 0 30px rgba(196,40,58,0.55)}
+    2.5%{box-shadow:inset 0 0 10px rgba(196,40,58,0.22)}
+    3.3%{box-shadow:inset 0 0 20px rgba(196,40,58,0.36)}
+    5%{box-shadow:none}
+    15%{box-shadow:none}
+    15.7%{box-shadow:inset 0 0 28px rgba(196,40,58,0.5)}
+    16.5%{box-shadow:inset 0 0 9px rgba(196,40,58,0.2)}
+    17.3%{box-shadow:inset 0 0 18px rgba(196,40,58,0.32)}
+    19%{box-shadow:none}
+    32%{box-shadow:none}
+    32.7%{box-shadow:inset 0 0 34px rgba(196,40,58,0.6)}
+    33.5%{box-shadow:inset 0 0 11px rgba(196,40,58,0.24)}
+    34.3%{box-shadow:inset 0 0 22px rgba(196,40,58,0.4)}
+    36%{box-shadow:none}
+    43%{box-shadow:none}
+    43.7%{box-shadow:inset 0 0 26px rgba(196,40,58,0.46)}
+    44.5%{box-shadow:inset 0 0 8px rgba(196,40,58,0.2)}
+    45.3%{box-shadow:inset 0 0 16px rgba(196,40,58,0.3)}
+    47%{box-shadow:none}
+    66%{box-shadow:none}
+    66.7%{box-shadow:inset 0 0 30px rgba(196,40,58,0.55)}
+    67.5%{box-shadow:inset 0 0 10px rgba(196,40,58,0.22)}
+    68.3%{box-shadow:inset 0 0 19px rgba(196,40,58,0.34)}
+    70%{box-shadow:none}
+    82%{box-shadow:none}
+    82.7%{box-shadow:inset 0 0 27px rgba(196,40,58,0.48)}
+    83.5%{box-shadow:inset 0 0 9px rgba(196,40,58,0.2)}
+    84.3%{box-shadow:inset 0 0 18px rgba(196,40,58,0.32)}
+    86%{box-shadow:none}
+    100%{box-shadow:none}
   }
   @keyframes tickerbeat2{
     0%,6%{opacity:0.04}
@@ -497,6 +497,7 @@
   /* ===== overview manifesto (Concept C — big-type) ===== */
   .ov-list{margin-top:2px}
   .ov-row{display:grid;grid-template-columns:46px 1fr;column-gap:16px;padding:28px 0;border-top:1px solid var(--line)}
+  .ov-row:first-child{border-top:none}
   .ov-row:last-child{border-bottom:none}
   .ov-n{grid-column:1;grid-row:1;align-self:start;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:400;letter-spacing:0.32em;text-transform:uppercase;color:var(--redline);padding-top:1px}
   .ov-k{grid-column:2;grid-row:1;margin:0 0 11px;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:400;letter-spacing:0.32em;text-transform:uppercase;color:var(--redline)}
@@ -1688,16 +1689,16 @@
         <p>The things people ask most. Still stuck? The contact page has a human on the other end.</p>
       </div>
       <div id="faqList">
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Who can participate?</h4><span class="pm">+</span></summary><div class="faq-a">REDLN. is open to all athletes and fitness enthusiasts aged 18 and above.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Are there categories or divisions for different skill levels?</h4><span class="pm">+</span></summary><div class="faq-a">Yes — there's an Everyday and an Elite category, so there's something to suit all. There are no skilled movements in the competition; it's all erg based. Please choose the category that best fits your level!</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Are spectators allowed?</h4><span class="pm">+</span></summary><div class="faq-a">Absolutely! Spectators of all ages are welcome to watch and support the athletes taking part at REDLN.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Will hydration be provided?</h4><span class="pm">+</span></summary><div class="faq-a">Yes, hydration will be provided for all participating athletes.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>What is the scoring criteria?</h4><span class="pm">+</span></summary><div class="faq-a">The competition is scored based on the time it takes you to complete the workout.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Are there partners involved in REDLN.?</h4><span class="pm">+</span></summary><div class="faq-a">Yes! Partners from fitness, recovery, hydration and food will be present on the day.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>What happens if I can't attend after registering?</h4><span class="pm">+</span></summary><div class="faq-a">Registration fees are non-refundable, but transfers may be allowed up to one week prior to the event.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Where is the event located?</h4><span class="pm">+</span></summary><div class="faq-a">REDLN. Season 01 takes place in Dubai, UAE. Your exact venue and directions are shared with your team ahead of race day.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Is there parking available?</h4><span class="pm">+</span></summary><div class="faq-a">Yes — there's ample parking at and around the venue. Full directions and parking details reach your team before race day.</div></details>
-        <details class="glass faq-item" open><summary class="faq-q"><h4>Who can I contact for more information?</h4><span class="pm">+</span></summary><div class="faq-a">For inquiries, partnerships, or sponsorships, contact:<br>E: <a href="mailto:hello@redln.ae" style="color:var(--redline)">hello@redln.ae</a><br>M: <a href="tel:+971501234567" style="color:var(--redline)">+971 50 123 4567</a></div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Who can participate?</h4><span class="pm">+</span></summary><div class="faq-a">REDLN. is open to all athletes and fitness enthusiasts aged 18 and above.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Are there categories or divisions for different skill levels?</h4><span class="pm">+</span></summary><div class="faq-a">Yes — there's an Everyday and an Elite category, so there's something to suit all. There are no skilled movements in the competition; it's all erg based. Please choose the category that best fits your level!</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Are spectators allowed?</h4><span class="pm">+</span></summary><div class="faq-a">Absolutely! Spectators of all ages are welcome to watch and support the athletes taking part at REDLN.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Will hydration be provided?</h4><span class="pm">+</span></summary><div class="faq-a">Yes, hydration will be provided for all participating athletes.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>What is the scoring criteria?</h4><span class="pm">+</span></summary><div class="faq-a">The competition is scored based on the time it takes you to complete the workout.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Are there partners involved in REDLN.?</h4><span class="pm">+</span></summary><div class="faq-a">Yes! Partners from fitness, recovery, hydration and food will be present on the day.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>What happens if I can't attend after registering?</h4><span class="pm">+</span></summary><div class="faq-a">Registration fees are non-refundable, but transfers may be allowed up to one week prior to the event.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Where is the event located?</h4><span class="pm">+</span></summary><div class="faq-a">REDLN. Season 01 takes place in Dubai, UAE. Your exact venue and directions are shared with your team ahead of race day.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Is there parking available?</h4><span class="pm">+</span></summary><div class="faq-a">Yes — there's ample parking at and around the venue. Full directions and parking details reach your team before race day.</div></details>
+        <details class="glass faq-item" name="faq"><summary class="faq-q"><h4>Who can I contact for more information?</h4><span class="pm">+</span></summary><div class="faq-a">For inquiries, partnerships, or sponsorships, contact:<br>E: <a href="mailto:hello@redln.ae" style="color:var(--redline)">hello@redln.ae</a><br>M: <a href="tel:+971501234567" style="color:var(--redline)">+971 50 123 4567</a></div></details>
       </div>
     </div>
   </section>
