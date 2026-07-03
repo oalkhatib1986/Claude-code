@@ -462,9 +462,10 @@
   .feature{padding:30px}
   .g3 .feature{display:flex;flex-direction:column;justify-content:flex-start;position:relative;overflow:hidden}
   .g3 .feature>*{position:relative;z-index:1}
-  /* label as a white pill box, like the race-pass category boxes */
-  .g3 .feature .n{align-self:flex-start;display:inline-block;font-family:"SF Mono",ui-monospace,monospace;font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#0a0a0a;
-    background:#f2f1ee;border-radius:9px;padding:8px 13px;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.10);margin:0 0 16px}
+  /* label as an equal-size pill in the REDLN red nav format */
+  .g3 .feature .n{align-self:flex-start;display:block;width:250px;max-width:100%;text-align:center;box-sizing:border-box;
+    font-family:"SF Mono",ui-monospace,monospace;font-weight:700;font-size:10px;letter-spacing:0.13em;text-transform:uppercase;color:#fff;white-space:nowrap;
+    background:var(--redline-strong);border-radius:9px;padding:9px 12px;box-shadow:inset 0 0 0 1px var(--redline-edge);margin:0 0 16px}
   .g3 .feature .sub{font-size:25px;line-height:1;letter-spacing:0.01em;margin:0 0 14px;white-space:nowrap}
   .feature .n{font-family:"SF Mono",monospace;font-size:12px;color:var(--redline);letter-spacing:0.2em}
   .feature h3{font-size:24px;margin:14px 0 10px;text-transform:uppercase;
