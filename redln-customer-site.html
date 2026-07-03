@@ -2749,15 +2749,16 @@ function buildRacePass(S){
     for(var qx=px0+2;qx<px0+pw;qx+=15)for(var qy=py0+2;qy<py0+ph;qy+=15){x.beginPath();x.arc(qx,qy,1.7,0,7);x.fill();}
     x.restore();
   }else{
-    x.save();
-    x.strokeStyle='rgba(255,255,255,0.13)';x.lineWidth=2;x.setLineDash([4,11]);
-    rr(px0+34,py0+34,pw-68,ph-68,16);x.stroke();x.setLineDash([]);
-    var mcx=px0+pw/2,mcy=py0+ph/2-18;
-    x.strokeStyle='rgba(255,255,255,0.30)';x.lineWidth=4;
-    x.beginPath();x.arc(mcx,mcy-30,30,0,7);x.stroke();
-    x.beginPath();x.arc(mcx,mcy+66,62,Math.PI*1.18,Math.PI*1.82);x.stroke();
-    x.textAlign='center';x.fillStyle='#8a8a8a';ls('3px');x.font='22px '+MONO;x.fillText('ADD YOUR PHOTO',mcx,mcy+150);
-    x.fillStyle='#5c5c5c';ls('2px');x.font='15px '+MONO;x.fillText('OPTIONAL',mcx,mcy+178);ls('0px');
+    var mcx=px0+pw/2,mcy=py0+ph/2;
+    var pg=x.createRadialGradient(mcx,mcy,20,mcx,mcy,pw*0.56);
+    pg.addColorStop(0,'rgba(255,255,255,0.06)');pg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=pg;x.fillRect(px0-30,py0-30,pw+60,ph+60);
+    x.save();var icy=mcy-52;
+    x.strokeStyle='rgba(255,255,255,0.28)';x.lineWidth=4;
+    x.beginPath();x.arc(mcx,icy-28,30,0,7);x.stroke();
+    x.beginPath();x.arc(mcx,icy+66,62,Math.PI*1.18,Math.PI*1.82);x.stroke();
+    x.textAlign='center';x.fillStyle='#9a9a9a';ls('3px');x.font='22px '+MONO;x.fillText('ADD YOUR PHOTO',mcx,mcy+112);
+    x.fillStyle='#5c5c5c';ls('2px');x.font='15px '+MONO;x.fillText('OPTIONAL',mcx,mcy+142);ls('0px');
     x.restore();
   }
   // ---- perforation (boarding-pass tear line + edge notches) ----
@@ -2767,8 +2768,9 @@ function buildRacePass(S){
   x.strokeStyle='rgba(255,255,255,0.30)';x.lineWidth=2.5;x.setLineDash([3,15]);x.lineCap='round';
   x.beginPath();x.moveTo(50,py);x.lineTo(W-50,py);x.stroke();x.setLineDash([]);
   // ---- stub: race + date hero ----
-  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('RACE '+race+'  ·  DUBAI, UAE',M,1290);ls('0px');
-  x.fillStyle='#fff';x.font='700 '+fit(rdate.toUpperCase(),W-2*M,96)+'px '+DISP;x.fillText(rdate.toUpperCase(),M,1388);
+  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('RACE '+race,M,1276);ls('0px');
+  x.fillStyle='#fff';x.font='700 '+fit(rdate.toUpperCase(),W-2*M,96)+'px '+DISP;x.fillText(rdate.toUpperCase(),M,1374);
+  x.fillStyle='#9a9a9a';ls('3px');x.font='24px '+MONO;x.fillText('DUBAI, UAE',M,1428);ls('0px');
   // ---- footer ----
   x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,1748);x.lineTo(W-M,1748);x.stroke();
   x.textAlign='left';x.fillStyle='#fff';ls('4px');x.font='22px '+MONO;x.fillText('REDLN — SEASON 01',M,1800);
