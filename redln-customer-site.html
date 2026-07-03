@@ -572,7 +572,7 @@
   .wk-parts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
   .wk-part{padding:22px 20px}
   .wk-part-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-  .wk-pnum{font-family:"SF Mono",monospace;font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--redline)}
+  .wk-pnum{font-family:"SF Mono",monospace;font-weight:400;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--redline)}
   .wk-pmachine{display:inline-block;box-sizing:border-box;min-width:78px;text-align:center;font-family:"SF Mono",ui-monospace,monospace;font-weight:700;font-size:11px;letter-spacing:0.13em;text-transform:uppercase;color:#fff;white-space:nowrap;line-height:1;background:var(--redline-strong);box-shadow:inset 0 0 0 1px var(--redline-edge);border-radius:9px;padding:9px 14px}
   .wk-steps{list-style:none;margin:0;padding:0}
   .wk-steps li{display:grid;grid-template-columns:76px 1fr auto;align-items:baseline;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
@@ -1267,18 +1267,19 @@
   .lb-table thead tr{background-color:#0d0d0d;
     background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px),linear-gradient(180deg,#1a1a1a,#0d0d0d);
     background-size:2.5px 2.5px,100% 100%}
-  .lb-table thead th{position:sticky;top:105px;z-index:6;color:#fff;letter-spacing:0.1em;text-shadow:none;
+  #page-leaderboard .ticker{position:static;top:auto}
+  .lb-table thead th{position:sticky;top:70px;z-index:6;color:#fff;letter-spacing:0.1em;text-shadow:none;
     box-shadow:inset 0 1px 0 var(--redline-edge),inset 0 -1px 0 var(--redline-edge);
     background-color:#0d0d0d;background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px),linear-gradient(180deg,#1a1a1a,#0d0d0d);background-size:2.5px 2.5px,100% 100%}
-  @media(max-width:860px){.lb-table thead th{top:161.5px}}
+  @media(max-width:860px){.lb-table thead th{top:126.5px}}
   /* vertical separators at the column boundaries (inset so they don't touch the top/bottom borders) */
   .lb-table thead th + th::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;
     background-image:radial-gradient(rgba(250,250,250,0.95) 0.7px,transparent 0.95px);
     background-size:2px 2px;background-position:center}
   .lb-table thead th.c-team::before{content:none}
   /* header REDLN logo (matches home ticker) at far left; TEAM label shifted right above the names */
-  .lb-table thead th.c-rank{position:sticky;top:105px;z-index:6}
-  @media(max-width:860px){.lb-table thead th.c-rank{top:161.5px}}
+  .lb-table thead th.c-rank{position:sticky;top:70px;z-index:6}
+  @media(max-width:860px){.lb-table thead th.c-rank{top:126.5px}}
   .lb-table thead .lb-hd-logo{position:absolute;left:4px;top:0;bottom:0;z-index:4;display:flex;
     align-items:center;pointer-events:none}
   .lb-table thead .lb-hd-logo-led{display:block;height:16px;width:33.5px;
