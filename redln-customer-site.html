@@ -357,14 +357,27 @@
   #evt-0711:checked~main .ed-0711,
   #evt-0718:checked~main .ed-0718{display:inline}
   .tp-dd{width:100%}
-  .tp-dd .evt-dd-menu{position:absolute;left:0;right:0;top:100%;margin-top:0;z-index:200;
-    padding:4px;border-radius:0;background:#161616;
-    box-shadow:0 20px 42px rgba(0,0,0,0.70),inset 0 0 0 1px var(--redline)}
-  .tp-dd.dd-open .evt-dd-menu{display:block}
+  /* iOS-style bottom-sheet topic picker — REDLN format (portaled to <body> so it clears the frosted card) */
+  .tp-sheet-bd{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.62)}
+  .tp-sheet-bd.open{display:block}
+  .tp-sheet{display:block;position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;margin:0;z-index:1001;
+    padding:0 10px calc(18px + env(safe-area-inset-bottom));border-radius:20px 20px 0 0;background:#161616;
+    box-shadow:0 -1px 0 var(--redline) inset,0 -24px 60px rgba(0,0,0,0.72);
+    transform:translateY(112%);transition:transform .3s cubic-bezier(.22,1,.36,1);visibility:hidden}
+  .tp-sheet.open{transform:translateY(0);visibility:visible}
+  .tp-sheet::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:rgba(255,255,255,0.22);margin:10px auto 4px}
+  .tp-sheet-ttl{display:block;text-align:center;font-family:"SF Mono",monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--redline);font-weight:700;padding:8px 0 10px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:4px}
+  .tp-sheet .evt-dd-opt{display:block;padding:17px 14px;font-size:13px;letter-spacing:0.09em;text-transform:uppercase;color:#e6e6e6;border-radius:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+  .tp-sheet .evt-dd-opt:last-child{border-bottom:0}
+  .tp-sheet .evt-dd-opt:active{background:rgba(196,40,58,0.16)}
   .tp-dd.dd-open .evt-dd-head{box-shadow:inset 0 0 0 1px var(--redline)}
   .tp-dd .evt-dd-head{position:relative;padding-right:38px}
   .tp-dd .lb-dd-chev{position:absolute;right:16px;top:50%;margin:0;transform:translateY(-50%)}
   .tp-dd.dd-open .lb-dd-chev{transform:translateY(-50%) rotate(180deg)}
+  @media(min-width:760px){
+    .tp-sheet{left:50%;right:auto;bottom:26px;width:440px;max-width:92vw;border-radius:16px;transform:translateX(-50%) translateY(130%)}
+    .tp-sheet.open{transform:translateX(-50%) translateY(0)}
+  }
   .wallet-btn{width:100%;margin-top:10px;padding:15px;border:none;border-radius:10px;background:#000;color:#fff;font-family:"SF Mono",monospace;font-size:14px;letter-spacing:0.02em;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2);cursor:pointer}
   .wallet-btn:active{background:#141414}
   .tpc{display:none}
@@ -1671,7 +1684,7 @@
             <input type="radio" name="c-topic-r" id="tp-volunteer" class="catradio">
             <input type="radio" name="c-topic-r" id="tp-press" class="catradio">
             <input type="radio" name="c-topic-r" id="tp-wrong" class="catradio">
-            <div class="evt-dd tp-dd"><input type="text" id="tp-focus" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true"><label for="tp-focus" class="evt-dd-head"><span class="evt-cur"><span class="tpc tpc-general">General question</span><span class="tpc tpc-team">Team entry question</span><span class="tpc tpc-volunteer">Volunteer</span><span class="tpc tpc-partner">Partnership</span><span class="tpc tpc-press">Press</span><span class="tpc tpc-wrong">Something went wrong</span></span><span class="lb-dd-chev"></span></label><label for="tp-sink" class="evt-dd-backdrop"></label><div class="evt-dd-menu"><label class="evt-dd-opt" for="tp-general">General question</label><label class="evt-dd-opt" for="tp-team">Team entry question</label><label class="evt-dd-opt" for="tp-volunteer">Volunteer</label><label class="evt-dd-opt" for="tp-partner">Partnership</label><label class="evt-dd-opt" for="tp-press">Press</label><label class="evt-dd-opt" for="tp-wrong">Something went wrong</label></div></div><input type="text" id="tp-sink" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true">
+            <div class="evt-dd tp-dd"><input type="text" id="tp-focus" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true"><label for="tp-focus" class="evt-dd-head"><span class="evt-cur"><span class="tpc tpc-general">General question</span><span class="tpc tpc-team">Team entry question</span><span class="tpc tpc-volunteer">Volunteer</span><span class="tpc tpc-partner">Partnership</span><span class="tpc tpc-press">Press</span><span class="tpc tpc-wrong">Something went wrong</span></span><span class="lb-dd-chev"></span></label><label for="tp-sink" class="evt-dd-backdrop tp-sheet-bd"></label><div class="evt-dd-menu tp-sheet"><span class="tp-sheet-ttl">Select topic</span><label class="evt-dd-opt" for="tp-general">General question</label><label class="evt-dd-opt" for="tp-team">Team entry question</label><label class="evt-dd-opt" for="tp-volunteer">Volunteer</label><label class="evt-dd-opt" for="tp-partner">Partnership</label><label class="evt-dd-opt" for="tp-press">Press</label><label class="evt-dd-opt" for="tp-wrong">Something went wrong</label></div></div><input type="text" id="tp-sink" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true">
           </div>
           <div class="field">
             <label>Message</label>
@@ -2812,6 +2825,7 @@ function downloadRacePass(){
       var id=opt.getAttribute('for'); var r=id&&document.getElementById(id);
       if(r){ r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true})); }
       var af=document.activeElement; if(af&&af.blur) af.blur();
+      var sheet=opt.closest('.tp-sheet'); if(sheet){sheet.classList.remove('open'); if(sheet._bd)sheet._bd.classList.remove('open'); if(sheet._dd)sheet._dd.classList.remove('dd-open');}
       var pd=opt.closest('.tp-dd'); if(pd) pd.classList.remove('dd-open');
     };
     opt.addEventListener('pointerdown',pick);
@@ -2819,13 +2833,16 @@ function downloadRacePass(){
   });
   var _pdl=document.getElementById('pass-dl');
   if(_pdl)_pdl.addEventListener('click',downloadRacePass);
-  /* topic dropdown: pure JS class toggle — no focus, so the page never jumps on iOS */
+  /* topic picker: iOS-style bottom sheet. Portal sheet+backdrop to <body> so they clear the frosted card's containing block. No focus, so the page never jumps. */
   document.querySelectorAll('.tp-dd').forEach(function(dd){
-    var head=dd.querySelector('.evt-dd-head'); if(!head) return;
-    head.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();dd.classList.toggle('dd-open');});
-  });
-  document.addEventListener('click',function(ev){
-    document.querySelectorAll('.tp-dd.dd-open').forEach(function(dd){ if(!dd.contains(ev.target)) dd.classList.remove('dd-open'); });
+    var head=dd.querySelector('.evt-dd-head'), menu=dd.querySelector('.tp-sheet'), bd=dd.querySelector('.tp-sheet-bd');
+    if(!head||!menu||!bd) return;
+    document.body.appendChild(bd); document.body.appendChild(menu);
+    menu._bd=bd; menu._dd=dd;
+    function open(){bd.classList.add('open');menu.classList.add('open');dd.classList.add('dd-open');}
+    function close(){bd.classList.remove('open');menu.classList.remove('open');dd.classList.remove('dd-open');}
+    head.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();if(dd.classList.contains('dd-open'))close();else open();});
+    bd.addEventListener('click',function(ev){ev.preventDefault();close();});
   });
 })();
 </script>
