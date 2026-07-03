@@ -357,20 +357,24 @@
   #evt-0711:checked~main .ed-0711,
   #evt-0718:checked~main .ed-0718{display:inline}
   .tp-dd{width:100%}
-  .tp-dd .evt-dd-menu{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:200;
-    padding:6px;border-radius:12px;background:#161616;
-    box-shadow:0 22px 48px rgba(0,0,0,0.72),0 4px 14px rgba(0,0,0,0.5),inset 0 0 0 1px var(--redline)}
-  .tp-dd .evt-dd-opt{border-radius:8px}
+  .tp-dd .evt-dd-menu{position:absolute;left:0;right:0;top:100%;margin-top:0;z-index:200;
+    padding:4px;border-radius:0;background:#161616;
+    box-shadow:0 20px 42px rgba(0,0,0,0.70),inset 0 0 0 1px var(--redline)}
+  .tp-dd.dd-open .evt-dd-menu{display:block}
+  .tp-dd.dd-open .evt-dd-head{box-shadow:inset 0 0 0 1px var(--redline)}
+  .tp-dd.dd-open .lb-dd-chev{transform:rotate(180deg)}
   .wallet-btn{width:100%;margin-top:10px;padding:15px;border:none;border-radius:10px;background:#000;color:#fff;font-family:"SF Mono",monospace;font-size:14px;letter-spacing:0.02em;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2);cursor:pointer}
   .wallet-btn:active{background:#141414}
   .tpc{display:none}
   #tp-general:checked~.tp-dd .tpc-general,
   #tp-team:checked~.tp-dd .tpc-team,
+  #tp-volunteer:checked~.tp-dd .tpc-volunteer,
   #tp-partner:checked~.tp-dd .tpc-partner,
   #tp-press:checked~.tp-dd .tpc-press,
   #tp-wrong:checked~.tp-dd .tpc-wrong{display:inline}
   #tp-general:checked~.tp-dd .evt-dd-opt[for="tp-general"],
   #tp-team:checked~.tp-dd .evt-dd-opt[for="tp-team"],
+  #tp-volunteer:checked~.tp-dd .evt-dd-opt[for="tp-volunteer"],
   #tp-partner:checked~.tp-dd .evt-dd-opt[for="tp-partner"],
   #tp-press:checked~.tp-dd .evt-dd-opt[for="tp-press"],
   #tp-wrong:checked~.tp-dd .evt-dd-opt[for="tp-wrong"]{display:none}
@@ -1659,9 +1663,10 @@
             <input type="radio" name="c-topic-r" id="tp-general" class="catradio" checked>
             <input type="radio" name="c-topic-r" id="tp-team" class="catradio">
             <input type="radio" name="c-topic-r" id="tp-partner" class="catradio">
+            <input type="radio" name="c-topic-r" id="tp-volunteer" class="catradio">
             <input type="radio" name="c-topic-r" id="tp-press" class="catradio">
             <input type="radio" name="c-topic-r" id="tp-wrong" class="catradio">
-            <div class="evt-dd tp-dd"><input type="text" id="tp-focus" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true"><label for="tp-focus" class="evt-dd-head"><span class="evt-cur"><span class="tpc tpc-general">General question</span><span class="tpc tpc-team">Team entry question</span><span class="tpc tpc-partner">Partnership</span><span class="tpc tpc-press">Press</span><span class="tpc tpc-wrong">Something went wrong</span></span><span class="lb-dd-chev"></span></label><label for="tp-sink" class="evt-dd-backdrop"></label><div class="evt-dd-menu"><label class="evt-dd-opt" for="tp-general">General question</label><label class="evt-dd-opt" for="tp-team">Team entry question</label><label class="evt-dd-opt" for="tp-partner">Partnership</label><label class="evt-dd-opt" for="tp-press">Press</label><label class="evt-dd-opt" for="tp-wrong">Something went wrong</label></div></div><input type="text" id="tp-sink" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true">
+            <div class="evt-dd tp-dd"><input type="text" id="tp-focus" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true"><label for="tp-focus" class="evt-dd-head"><span class="evt-cur"><span class="tpc tpc-general">General question</span><span class="tpc tpc-team">Team entry question</span><span class="tpc tpc-volunteer">Volunteer</span><span class="tpc tpc-partner">Partnership</span><span class="tpc tpc-press">Press</span><span class="tpc tpc-wrong">Something went wrong</span></span><span class="lb-dd-chev"></span></label><label for="tp-sink" class="evt-dd-backdrop"></label><div class="evt-dd-menu"><label class="evt-dd-opt" for="tp-general">General question</label><label class="evt-dd-opt" for="tp-team">Team entry question</label><label class="evt-dd-opt" for="tp-volunteer">Volunteer</label><label class="evt-dd-opt" for="tp-partner">Partnership</label><label class="evt-dd-opt" for="tp-press">Press</label><label class="evt-dd-opt" for="tp-wrong">Something went wrong</label></div></div><input type="text" id="tp-sink" class="dd-focus" style="position:fixed" readonly inputmode="none" aria-hidden="true">
           </div>
           <div class="field">
             <label>Message</label>
@@ -2802,12 +2807,21 @@ function downloadRacePass(){
       var id=opt.getAttribute('for'); var r=id&&document.getElementById(id);
       if(r){ r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true})); }
       var af=document.activeElement; if(af&&af.blur) af.blur();
+      var pd=opt.closest('.tp-dd'); if(pd) pd.classList.remove('dd-open');
     };
     opt.addEventListener('pointerdown',pick);
     opt.addEventListener('click',pick);
   });
   var _pdl=document.getElementById('pass-dl');
   if(_pdl)_pdl.addEventListener('click',downloadRacePass);
+  /* topic dropdown: pure JS class toggle — no focus, so the page never jumps on iOS */
+  document.querySelectorAll('.tp-dd').forEach(function(dd){
+    var head=dd.querySelector('.evt-dd-head'); if(!head) return;
+    head.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();dd.classList.toggle('dd-open');});
+  });
+  document.addEventListener('click',function(ev){
+    document.querySelectorAll('.tp-dd.dd-open').forEach(function(dd){ if(!dd.contains(ev.target)) dd.classList.remove('dd-open'); });
+  });
 })();
 </script>
 </body>
