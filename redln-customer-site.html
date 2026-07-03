@@ -2710,11 +2710,21 @@ function buildRacePass(S){
   x.strokeStyle=RED;x.lineWidth=3;
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // ---- header (bigger logo, no top-right text) ----
-  if(logoOK){var lw=356,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,116,lw,lh);}else{x.fillStyle='#fff';x.font='700 104px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
+  if(logoOK){var lw=390,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,104,lw,lh);}else{x.fillStyle='#fff';x.font='700 110px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
+  // top-right COMPETITOR status tag
+  x.textAlign='left';x.font='700 20px '+MONO;ls('2px');
+  var ctxt='COMPETITOR',ctw=x.measureText(ctxt).width,tagH=52,dotR=6,padL=26,padR=28,gp=15;
+  var tagW=padL+dotR*2+gp+ctw+padR,tx0=W-M-tagW,ty0=196-tagH/2;
+  x.fillStyle='rgba(196,40,58,0.14)';rr(tx0,ty0,tagW,tagH,11);x.fill();
+  x.lineWidth=2;x.strokeStyle=RED;rr(tx0,ty0,tagW,tagH,11);x.stroke();
+  x.fillStyle=RED;x.beginPath();x.arc(tx0+padL+dotR,ty0+tagH/2,dotR,0,7);x.fill();
+  x.fillStyle=RED;x.fillText(ctxt,tx0+padL+dotR*2+gp,ty0+tagH/2+7);ls('0px');
   x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
   // ---- athlete ----
   x.fillStyle='#fff';x.textAlign='left';var nfs=fit(youName.toUpperCase(),W-2*M,116);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,476);
-  x.fillStyle='#b8b8b8';ls('2px');x.font='27px '+MONO;x.fillText(youId,M,526);ls('0px');
+  ls('2px');x.font='700 32px '+MONO;var _pre='RDLN ',_num=youId.replace(/^RDLN\s*/i,'');
+  x.fillStyle=RED;x.fillText(_pre,M,530);var _pw=x.measureText(_pre).width;
+  x.fillStyle='#fff';x.fillText(_num,M+_pw,530);ls('0px');
   // ---- team ----
   var ty=580;x.fillStyle=RED;x.fillRect(M,ty,6,98);
   x.fillStyle=RED;x.textAlign='left';var tfs=fit(TU,W-2*M-40,58);x.font='700 '+tfs+'px '+DISP;x.fillText(TU,M+28,ty+54);
@@ -2724,10 +2734,9 @@ function buildRacePass(S){
   var t1='ATHLETE',t2=(cat.toUpperCase()||'EVERYDAY');
   var bw=Math.max(x.measureText(t1).width,x.measureText(t2).width)+126;
   x.fillStyle=RED;rr(M,cy,bw,bh,10);x.fill();x.fillStyle='#fff';x.fillText(t1,M+34,cy+51);
-  var cy2=cy+bh+18,isElite=/ELITE/.test(t2);
+  var cy2=cy+bh+18;
   x.fillStyle='#ffffff';rr(M,cy2,bw,bh,10);x.fill();
-  if(isElite){x.lineWidth=3.5;x.strokeStyle=RED;rr(M,cy2+1.5,bw-3,bh-3,9);x.stroke();}
-  x.fillStyle=isElite?RED:'#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
+  x.fillStyle='#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
   // ---- perforation (boarding-pass tear line + edge notches) ----
   var py=1150;
   x.fillStyle='#060606';x.beginPath();x.arc(0,py,34,0,7);x.fill();x.beginPath();x.arc(W,py,34,0,7);x.fill();
