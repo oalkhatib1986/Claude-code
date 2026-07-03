@@ -460,19 +460,15 @@
   .g4{grid-template-columns:repeat(4,1fr)}
 
   .feature{padding:30px}
-  .g3 .feature{display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;
-    border-radius:0 0 16px 16px;box-shadow:inset 0 0 0 1px var(--redline-edge)}
-  .g3 .feature::before{content:attr(data-n);position:absolute;top:-30px;right:4px;z-index:0;pointer-events:none;
-    font-family:"Arial Narrow","Helvetica Neue Condensed",sans-serif;font-weight:700;font-size:190px;line-height:1;color:rgba(255,255,255,0.045)}
+  .g3 .feature{display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+  .g3 .feature::before{content:attr(data-n);position:absolute;top:-36px;right:0;z-index:0;pointer-events:none;
+    font-family:"Arial Narrow","Helvetica Neue Condensed",sans-serif;font-weight:700;font-size:216px;line-height:1;color:rgba(196,40,58,0.11)}
   .g3 .feature>*{position:relative;z-index:1}
-  /* label as a static LED-screen panel that forms the card's top border, edge-to-edge, flush to the top */
-  .g3 .feature .n{align-self:stretch;display:block;position:relative;overflow:hidden;
-    font-family:"SF Mono",ui-monospace,monospace;font-weight:700;font-size:11px;letter-spacing:0.13em;text-transform:uppercase;color:#d6d6d6;
-    padding:14px 30px;margin:-30px -30px 24px;border-radius:0;
-    background:radial-gradient(rgba(207,207,207,0.11) 0.9px,transparent 1.3px),linear-gradient(rgba(196,40,58,0.16),rgba(196,40,58,0.16)),#0a0a0a;
-    background-size:2.5px 2.5px,100% 100%,100% 100%;
-    box-shadow:inset 0 0 0 1px var(--redline-edge)}
-  .g3 .feature .n .ledt{font-size:11px;letter-spacing:0.13em;font-weight:700}
+  /* full-width white header cap, flush to the card top */
+  .g3 .feature .n{align-self:stretch;display:block;
+    font-family:"SF Mono",ui-monospace,monospace;font-weight:700;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#0d0d0d;
+    padding:15px 30px;margin:-30px -30px 26px;border-radius:16px 16px 0 0;
+    background:#f4f3f0;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08)}
   .feature .n{font-family:"SF Mono",monospace;font-size:12px;color:var(--redline);letter-spacing:0.2em}
   .feature h3{font-size:24px;margin:14px 0 10px;text-transform:uppercase;
     font-family:"Arial Narrow",sans-serif;letter-spacing:0.01em;color:var(--redline)}
@@ -1398,17 +1394,17 @@
     <div class="wrap">
       <div class="grid g3">
         <div class="glass feature" data-n="01">
-          <div class="n"><span class="ledt">01 TEAMS</span></div>
+          <div class="n">01 TEAMS</div>
           <div class="sub">Teams of four</div>
           <p>Two women, two men — all four race as one. Your clock stops when the last of you crosses the line. That time is your score.</p>
         </div>
         <div class="glass feature" data-n="02">
-          <div class="n"><span class="ledt">02 THE WORKOUT</span></div>
+          <div class="n">02 THE WORKOUT</div>
           <div class="sub">Run, bike, row, ski</div>
           <p>Three parts — bike, row, ski. Each is a run, a machine, a run, then the machine at half. Run together, split the machines, sprint to finish.</p>
         </div>
         <div class="glass feature" data-n="03">
-          <div class="n"><span class="ledt">03 CATEGORIES &amp; TICKETS</span></div>
+          <div class="n">03 CATEGORIES &amp; TICKETS</div>
           <div class="sub">Everyday &amp; Elite</div>
           <p>Same format, scaled load. Race once, or take the Season Pass for all five.</p>
         </div>
