@@ -1088,10 +1088,10 @@
   .bgsec>.wrap{position:relative;z-index:2}
   .bgsec.left>.bg::after{background:linear-gradient(to right,rgba(10,10,10,0.92),rgba(10,10,10,0.55) 55%,rgba(10,10,10,0.80))}
   /* THE RACE: fade the photo in from black at the top so there is no hard seam under the hero */
-  .bgsec.race-intro>.bg::after{background:linear-gradient(to bottom,#0a0a0a,rgba(10,10,10,0) 22%),linear-gradient(to right,rgba(10,10,10,0.92),rgba(10,10,10,0.55) 55%,rgba(10,10,10,0.80))}
+  .bgsec.race-intro>.bg::after{background:linear-gradient(to bottom,#0a0a0a,rgba(10,10,10,0) 20%,rgba(10,10,10,0) 52%,#0a0a0a 100%),linear-gradient(to right,rgba(10,10,10,0.92),rgba(10,10,10,0.55) 55%,rgba(10,10,10,0.80))}
   /* FORMAT band: align photo to the top and lighten the wash so the picture reads from the "Format" label down (not just behind the cards) */
   .bgsec.race-cards>.bg{background-position:center top}
-  .bgsec.race-cards>.bg::after{background:linear-gradient(180deg,rgba(10,10,10,0.66),rgba(10,10,10,0.58) 42%,rgba(10,10,10,0.82) 80%,#0a0a0a 100%)}
+  .bgsec.race-cards>.bg::after{background:linear-gradient(180deg,#0a0a0a 0%,rgba(10,10,10,0.72) 17%,rgba(10,10,10,0.58) 44%,rgba(10,10,10,0.82) 80%,#0a0a0a 100%)}
   /* race section: image ends just after the head text */
   .bgsec:has(.race-head){padding-bottom:16px}
   .race-head{margin-bottom:10px}
@@ -1268,19 +1268,18 @@
   .lb-table thead tr{background-color:#0d0d0d;
     background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px),linear-gradient(180deg,#1a1a1a,#0d0d0d);
     background-size:2.5px 2.5px,100% 100%}
-  #page-leaderboard .ticker{position:static;top:auto}
-  .lb-table thead th{position:sticky;top:70px;z-index:6;color:#fff;letter-spacing:0.1em;text-shadow:none;
+  .lb-table thead th{position:sticky;top:105px;z-index:6;color:#fff;letter-spacing:0.1em;text-shadow:none;
     box-shadow:inset 0 1px 0 var(--redline-edge),inset 0 -1px 0 var(--redline-edge);
     background-color:#0d0d0d;background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px),linear-gradient(180deg,#1a1a1a,#0d0d0d);background-size:2.5px 2.5px,100% 100%}
-  @media(max-width:860px){.lb-table thead th{top:126.5px}}
+  @media(max-width:860px){.lb-table thead th{top:161.5px}}
   /* vertical separators at the column boundaries (inset so they don't touch the top/bottom borders) */
   .lb-table thead th + th::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;
     background-image:radial-gradient(rgba(250,250,250,0.95) 0.7px,transparent 0.95px);
     background-size:2px 2px;background-position:center}
   .lb-table thead th.c-team::before{content:none}
   /* header REDLN logo (matches home ticker) at far left; TEAM label shifted right above the names */
-  .lb-table thead th.c-rank{position:sticky;top:70px;z-index:6}
-  @media(max-width:860px){.lb-table thead th.c-rank{top:126.5px}}
+  .lb-table thead th.c-rank{position:sticky;top:105px;z-index:6}
+  @media(max-width:860px){.lb-table thead th.c-rank{top:161.5px}}
   .lb-table thead .lb-hd-logo{position:absolute;left:4px;top:0;bottom:0;z-index:4;display:flex;
     align-items:center;pointer-events:none}
   .lb-table thead .lb-hd-logo-led{display:block;height:16px;width:33.5px;
