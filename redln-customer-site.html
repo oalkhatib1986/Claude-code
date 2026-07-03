@@ -2711,19 +2711,17 @@ function buildRacePass(S){
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // ---- header (bigger logo, no top-right text) ----
   if(logoOK){var lw=390,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,104,lw,lh);}else{x.fillStyle='#fff';x.font='700 110px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
-  // top-right COMPETITOR (clean, minimal)
-  x.textAlign='right';x.fillStyle=RED;ls('4px');x.font='700 22px '+MONO;x.fillText('COMPETITOR',W-M,206);
-  var _cw=x.measureText('COMPETITOR').width;ls('0px');
-  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(W-M-_cw,224);x.lineTo(W-M,224);x.stroke();
-  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
+  // top-right COMPETITOR — vertical side stamp (bigger)
+  x.save();x.translate(W-46,548);x.rotate(Math.PI/2);x.textAlign='center';
+  x.fillStyle=RED;ls('12px');x.font='700 40px '+MONO;x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
+  x.strokeStyle='#ffffff';x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
   // ---- athlete ----
   x.fillStyle='#fff';x.textAlign='left';var nfs=fit(youName.toUpperCase(),W-2*M,116);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,472);
-  // RDLN number — street marker tag
-  x.textAlign='left';ls('3px');x.fillStyle='#8c8c8c';x.font='700 20px '+MONO;x.fillText('RDLN',M,527);var _lw=x.measureText('RDLN').width;ls('0px');
-  var _num='#'+youId.replace(/[^0-9]/g,'');x.font='700 50px '+DISP;var _nw=x.measureText(_num).width;
-  x.save();x.translate(M+_lw+22,492);x.rotate(-0.022);
-  x.fillStyle=RED;rr(-8,0,_nw+30,52,5);x.fill();
-  x.fillStyle='#fff';x.textAlign='left';x.fillText(_num,7,40);x.restore();
+  // RDLN number — white box (like category box)
+  x.textAlign='left';x.font='700 27px '+MONO;ls('2px');
+  var _rbw=x.measureText(youId).width+58,_rby=492,_rbh=58;
+  x.fillStyle='#ffffff';rr(M,_rby,_rbw,_rbh,9);x.fill();
+  x.fillStyle='#0a0a0a';x.fillText(youId,M+29,_rby+38);ls('0px');
   // ---- team ----
   var ty=580;x.fillStyle=RED;x.fillRect(M,ty,6,98);
   x.fillStyle=RED;x.textAlign='left';var tfs=fit(TU,W-2*M-40,58);x.font='700 '+tfs+'px '+DISP;x.fillText(TU,M+28,ty+54);
@@ -2747,7 +2745,7 @@ function buildRacePass(S){
   x.fillStyle='#fff';x.font='700 '+fit(rdate.toUpperCase(),W-2*M,96)+'px '+DISP;x.fillText(rdate.toUpperCase(),M,1374);
   x.fillStyle='#9a9a9a';ls('3px');x.font='24px '+MONO;x.fillText('DUBAI, UAE',M,1428);ls('0px');
   // ---- footer ----
-  x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,1748);x.lineTo(W-M,1748);x.stroke();
+  x.strokeStyle='#ffffff';x.lineWidth=2;x.beginPath();x.moveTo(M,1748);x.lineTo(W-M,1748);x.stroke();
   x.textAlign='left';x.fillStyle='#fff';ls('4px');x.font='22px '+MONO;x.fillText('REDLN — SEASON 01',M,1800);
   x.textAlign='right';x.fillStyle='#8c8c8c';x.font='20px '+MONO;x.fillText('@REDLN.RACE',W-M,1800);ls('0px');
   // grain
