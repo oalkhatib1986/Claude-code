@@ -2711,9 +2711,9 @@ function buildRacePass(S){
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // ---- header (bigger logo, no top-right text) ----
   if(logoOK){var lw=390,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,104,lw,lh);}else{x.fillStyle='#fff';x.font='700 110px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
-  // top-right COMPETITOR — vertical side stamp (bigger)
-  x.save();x.translate(W-46,548);x.rotate(Math.PI/2);x.textAlign='center';
-  x.fillStyle=RED;ls('12px');x.font='700 40px '+MONO;x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
+  // top-right COMPETITOR — vertical side stamp (smaller, dropped to align right of the white RDLN box)
+  x.save();x.translate(W-50,500);x.rotate(Math.PI/2);x.textAlign='left';
+  x.fillStyle=RED;ls('8px');x.font='700 27px '+MONO;x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
   x.strokeStyle='#ffffff';x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
   // ---- athlete ----
   x.fillStyle='#fff';x.textAlign='left';var nfs=fit(youName.toUpperCase(),W-2*M,116);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,472);
@@ -2741,7 +2741,7 @@ function buildRacePass(S){
   x.strokeStyle='rgba(255,255,255,0.30)';x.lineWidth=2.5;x.setLineDash([3,15]);x.lineCap='round';
   x.beginPath();x.moveTo(50,py);x.lineTo(W-50,py);x.stroke();x.setLineDash([]);
   // ---- stub: race + date hero ----
-  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='22px '+MONO;x.fillText('RACE '+race,M,1276);ls('0px');
+  x.textAlign='left';x.fillStyle=RED;ls('4px');x.font='700 30px '+MONO;x.fillText('RACE '+race,M,1272);ls('0px');
   x.fillStyle='#fff';x.font='700 '+fit(rdate.toUpperCase(),W-2*M,96)+'px '+DISP;x.fillText(rdate.toUpperCase(),M,1374);
   x.fillStyle='#9a9a9a';ls('3px');x.font='24px '+MONO;x.fillText('DUBAI, UAE',M,1428);ls('0px');
   // ---- footer ----
@@ -2769,7 +2769,7 @@ function downloadRacePass(){
   }catch(e){if(typeof toast==='function')toast('Could not build pass.');}
 }
 
-/* ============ init ============ */
+  /* ============ init ============ */
 (async function init(){
   /* stations & FAQ are static HTML now (work without JS); calendar upgrades to the interactive widget */
   const s=await store('redln_session');
