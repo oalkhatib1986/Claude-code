@@ -2739,17 +2739,17 @@ function buildRacePass(S){
     x.restore();
     x.lineWidth=3;x.strokeStyle='rgba(255,255,255,0.85)';rr(px0,py0,pw,ph,18);x.stroke();
   }else{
+    // professional "no photo" placeholder (visitor-badge style: grey cell + silhouette)
     x.save();
-    x.fillStyle='rgba(20,20,20,0.55)';rr(px0,py0,pw,ph,18);x.fill();
-    x.lineWidth=3;x.strokeStyle='rgba(255,255,255,0.85)';rr(px0,py0,pw,ph,18);x.stroke();
-    x.beginPath();rr(px0,py0,pw,ph,18);x.clip();
-    x.strokeStyle='rgba(255,255,255,0.4)';x.lineWidth=2.5;
-    x.beginPath();x.moveTo(px0,py0);x.lineTo(px0+pw,py0+ph);x.moveTo(px0+pw,py0);x.lineTo(px0,py0+ph);x.stroke();
+    var pg=x.createLinearGradient(0,py0,0,py0+ph);pg.addColorStop(0,'#b9bec5');pg.addColorStop(1,'#9ca2aa');
+    rr(px0,py0,pw,ph,18);x.fillStyle=pg;x.fill();
+    x.save();rr(px0,py0,pw,ph,18);x.clip();
+    var cx=px0+pw/2;x.fillStyle='#7b8189';
+    x.beginPath();x.arc(cx,py0+ph*0.36,pw*0.155,0,7);x.fill();
+    x.beginPath();x.ellipse(cx,py0+ph*0.99,pw*0.325,pw*0.325,0,0,7);x.fill();
     x.restore();
-    x.textAlign='center';x.fillStyle='#fff';ls('5px');x.font='700 32px '+MONO;
-    var tw=x.measureText('PHOTO').width;
-    x.fillStyle='#0a0a0a';x.fillRect(px0+pw/2-tw/2-18,py0+ph/2-30,tw+36,58);
-    x.fillStyle='#fff';x.fillText('PHOTO',px0+pw/2,py0+ph/2+11);ls('0px');
+    x.lineWidth=3;x.strokeStyle='rgba(255,255,255,0.85)';rr(px0,py0,pw,ph,18);x.stroke();
+    x.restore();
   }
   // ---- perforation (boarding-pass tear line + edge notches) ----
   var py=1150;
