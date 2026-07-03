@@ -464,7 +464,6 @@
   .g3 .feature::before{content:attr(data-n);position:absolute;top:-30px;right:4px;z-index:0;pointer-events:none;
     font-family:"Arial Narrow","Helvetica Neue Condensed",sans-serif;font-weight:700;font-size:190px;line-height:1;color:rgba(255,255,255,0.045)}
   .g3 .feature>*{position:relative;z-index:1}
-  .g3 .feature .sub::after{content:"";display:block;width:44px;height:3px;background:var(--redline);margin:14px 0 2px}
   .g3 .feature .n{align-self:stretch;display:block;font-family:"SF Mono",monospace;font-weight:700;
     font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#101010;
     background:#f2f1ee;border-radius:9px;padding:11px 15px;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.10);margin-bottom:16px}
@@ -1121,11 +1120,12 @@
 
   /* ===== leaderboard ===== */
   .lb-tabs{position:relative}
+  .lb-controls{display:flex;align-items:center;gap:10px;margin:0 0 14px}
   .lbradio{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
   /* ===== themed view selector — native <details> dropdown (no JS), LED styled ===== */
-  .lb-dd{position:sticky;top:70px;z-index:8;display:block;width:200px;max-width:72vw;
-    margin:0 0 6px;margin-left:calc(50% - 50vw);font-family:"SF Mono",monospace}
-  @media(max-width:860px){.lb-dd{top:126.5px}}
+  .lb-dd{position:relative;z-index:8;display:block;flex:0 0 168px;max-width:46%;
+    margin:0;font-family:"SF Mono",monospace}
+  @media(max-width:860px){.lb-dd{top:auto}}
   .lb-dd::before{content:"";position:absolute;top:0;bottom:-6px;left:0;width:100vw;background:#0a0a0a;z-index:0;pointer-events:none}
   .lb-dd-head{position:relative;z-index:1;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:0 12px;height:29px;box-sizing:border-box;border-radius:0;box-shadow:inset 0 0 0 1px var(--redline-edge);
@@ -1137,9 +1137,9 @@
     border-top:5px solid var(--redline);transition:transform .18s ease;flex:none}
   .lb-dd:focus-within .lb-dd-chev{transform:rotate(180deg)}
   .lb-dd .cur{display:none}
-  #lb-overall:checked~.lb-dd .cur-o,
-  #lb-jul:checked~.lb-dd .cur-j,
-  #lb-aug:checked~.lb-dd .cur-a{display:inline}
+  #lb-overall:checked~.lb-controls .lb-dd .cur-o,
+  #lb-jul:checked~.lb-controls .lb-dd .cur-j,
+  #lb-aug:checked~.lb-controls .lb-dd .cur-a{display:inline}
   .lb-dd-menu{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:60;padding:3px;border-radius:0;
     background-color:#0d0d0d;
     background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px),linear-gradient(180deg,#141414,#0d0d0d);
@@ -1157,9 +1157,9 @@
     color:#cfcfcf;-webkit-text-fill-color:transparent;
     background-image:radial-gradient(#fafafa 0.95px,transparent 1.18px);background-size:2px 2px;
     -webkit-background-clip:text;background-clip:text}
-  #lb-overall:checked~.lb-dd .lb-dd-opt[for="lb-overall"],
-  #lb-jul:checked~.lb-dd .lb-dd-opt[for="lb-jul"],
-  #lb-aug:checked~.lb-dd .lb-dd-opt[for="lb-aug"]{display:none}
+  #lb-overall:checked~.lb-controls .lb-dd .lb-dd-opt[for="lb-overall"],
+  #lb-jul:checked~.lb-controls .lb-dd .lb-dd-opt[for="lb-jul"],
+  #lb-aug:checked~.lb-controls .lb-dd .lb-dd-opt[for="lb-aug"]{display:none}
   .lb-view{display:none}
   #lb-overall:checked~.lb-v-overall,
   #lb-jul:checked~.lb-v-jul,
@@ -1190,13 +1190,14 @@
   /* faint unlit-LED dot grid behind the rows (screen texture only) */
   .lb-wrap::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
     background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
-  .lb-search-wrap{margin:0 0 16px}
-  .lb-search{width:100%;box-sizing:border-box;font-family:"SF Mono",monospace;font-size:12px;letter-spacing:0.06em;
-    color:#fff;background:var(--glass);box-shadow:inset 0 0 0 1px var(--redline-edge);border:0;border-radius:0;
-    padding:13px 14px;text-transform:uppercase;-webkit-appearance:none;appearance:none}
+  .lb-search-wrap{flex:1 1 auto;min-width:0;margin:0;position:relative;z-index:9}
+  .lb-search{width:100%;box-sizing:border-box;font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.06em;
+    color:#fff;border:0;border-radius:0;box-shadow:inset 0 0 0 1px var(--redline-edge);
+    background-color:#0d0d0d;background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px),linear-gradient(180deg,#1a1a1a,#0d0d0d);background-size:2.5px 2.5px,100% 100%;
+    height:29px;padding:0 12px;text-transform:uppercase;-webkit-appearance:none;appearance:none}
   .lb-search::placeholder{color:#8a8a8a;text-transform:uppercase;letter-spacing:0.08em}
   .lb-search:focus{outline:none;box-shadow:inset 0 0 0 1px var(--redline)}
-  .lb-search-empty{display:none;font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.08em;color:var(--redline);text-transform:uppercase;margin-top:10px}
+  .lb-search-empty{display:none;position:absolute;top:calc(100% + 6px);left:0;font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.08em;color:var(--redline);text-transform:uppercase}
   .lb-search-wrap.no-hits .lb-search-empty{display:block}
   .lb-table{position:relative;z-index:1;width:100%;table-layout:fixed;border-collapse:collapse;font-family:"SF Mono",ui-monospace,monospace}
   .lb-table th,.lb-table td{font-size:8px;font-weight:700;letter-spacing:0.02em;padding:8px 2px;text-align:center;
@@ -2321,8 +2322,9 @@
         <input type="radio" name="lbview" id="lb-overall" class="lbradio" checked>
         <input type="radio" name="lbview" id="lb-jul" class="lbradio">
         <input type="radio" name="lbview" id="lb-aug" class="lbradio">
-        <input type="text" id="dd-sink" class="dd-focus" readonly inputmode="none" aria-hidden="true"><div class="lb-dd"><input type="text" id="dd-focus" class="dd-focus" readonly inputmode="none" aria-hidden="true"><label for="dd-focus" class="lb-dd-head"><span class="lb-dd-cur"><span class="cur cur-o">Overall</span><span class="cur cur-j">Sat 20 Jun</span><span class="cur cur-a">Sat 27 Jun</span></span><span class="lb-dd-chev"></span></label><label for="dd-sink" class="lb-dd-backdrop"></label><div class="lb-dd-menu"><label for="lb-overall" class="lb-dd-opt"><span class="ledt">Overall</span></label><label for="lb-jul" class="lb-dd-opt"><span class="ledt">Sat 20 Jun</span></label><label for="lb-aug" class="lb-dd-opt"><span class="ledt">Sat 27 Jun</span></label></div></div>
+        <input type="text" id="dd-sink" class="dd-focus" readonly inputmode="none" aria-hidden="true"><div class="lb-controls"><div class="lb-dd"><input type="text" id="dd-focus" class="dd-focus" readonly inputmode="none" aria-hidden="true"><label for="dd-focus" class="lb-dd-head"><span class="lb-dd-cur"><span class="cur cur-o">Overall</span><span class="cur cur-j">Sat 20 Jun</span><span class="cur cur-a">Sat 27 Jun</span></span><span class="lb-dd-chev"></span></label><label for="dd-sink" class="lb-dd-backdrop"></label><div class="lb-dd-menu"><label for="lb-overall" class="lb-dd-opt"><span class="ledt">Overall</span></label><label for="lb-jul" class="lb-dd-opt"><span class="ledt">Sat 20 Jun</span></label><label for="lb-aug" class="lb-dd-opt"><span class="ledt">Sat 27 Jun</span></label></div></div>
       <div class="lb-search-wrap"><input type="search" id="lb-search" class="lb-search" placeholder="Search team or number…" autocomplete="off" spellcheck="false"><span class="lb-search-empty" id="lb-search-empty">No team matches that search.</span></div>
+      </div>
       <div class="lb-view lb-v-overall">
         <div class="lb-wrap"><table class="lb-table"><thead><tr><th class="c-rank"><span class="lb-hd-logo"><span class="lb-hd-logo-led" role="img" aria-label="REDLN"></span></span></th><th class="c-team"><span class="dmx">Team</span></th><th><span class="dmx">Run</span></th><th><span class="dmx">Bike</span></th><th><span class="dmx">Row</span></th><th><span class="dmx">Ski</span></th><th class="c-tot"><span class="dmx">Total</span></th></tr></thead><tbody><tr><td class="c-rank"><span class="rk top">1</span></td><td class="c-team"><span class="tn">The Redliners</span><span class="tno">001</span></td><td><span class="v">17:08</span></td><td><span class="v">23:28</span></td><td><span class="v">20:17</span></td><td><span class="v">17:20</span></td><td class="c-tot"><span class="v">1:18:13</span></td></tr><tr><td class="c-rank"><span class="rk top">2</span></td><td class="c-team"><span class="tn">Iron Pace</span><span class="tno">014</span></td><td><span class="v">17:17</span></td><td><span class="v">23:39</span></td><td><span class="v">20:28</span></td><td><span class="v">17:09</span></td><td class="c-tot"><span class="v">1:18:33</span></td></tr><tr><td class="c-rank"><span class="rk top">3</span></td><td class="c-team"><span class="tn">Night Shift</span><span class="tno">022</span></td><td><span class="v">17:35</span></td><td><span class="v">23:48</span></td><td><span class="v">20:39</span></td><td><span class="v">17:36</span></td><td class="c-tot"><span class="v">1:19:38</span></td></tr><tr><td class="c-rank"><span class="rk">4</span></td><td class="c-team"><span class="tn">Dust Devils</span><span class="tno">045</span></td><td><span class="v">18:25</span></td><td><span class="v">25:12</span></td><td><span class="v">21:53</span></td><td><span class="v">18:30</span></td><td class="c-tot"><span class="v">1:24:00</span></td></tr><tr><td class="c-rank"><span class="rk">5</span></td><td class="c-team"><span class="tn">Pace Makers</span><span class="tno">037</span></td><td><span class="v">18:40</span></td><td><span class="v">25:32</span></td><td><span class="v">22:00</span></td><td><span class="v">18:37</span></td><td class="c-tot"><span class="v">1:24:49</span></td></tr><tr><td class="c-rank"><span class="rk">6</span></td><td class="c-team"><span class="tn">First Blood</span><span class="tno">063</span></td><td><span class="v">18:55</span></td><td><span class="v">25:37</span></td><td><span class="v">22:19</span></td><td><span class="v">18:48</span></td><td class="c-tot"><span class="v">1:25:39</span></td></tr><tr><td class="c-rank"><span class="rk">7</span></td><td class="c-team"><span class="tn">Steel Pulse</span><span class="tno">058</span></td><td><span class="v">18:47</span></td><td><span class="v">25:43</span></td><td><span class="v">22:14</span></td><td><span class="v">18:59</span></td><td class="c-tot"><span class="v">1:25:43</span></td></tr><tr><td class="c-rank"><span class="rk">8</span></td><td class="c-team"><span class="tn">Sandstorm</span><span class="tno">086</span></td><td><span class="v">19:22</span></td><td><span class="v">26:29</span></td><td><span class="v">22:56</span></td><td><span class="v">19:13</span></td><td class="c-tot"><span class="v">1:28:00</span></td></tr><tr><td class="c-rank"><span class="rk">9</span></td><td class="c-team"><span class="tn">Wreckage</span><span class="tno">071</span></td><td><span class="v">19:36</span></td><td><span class="v">26:34</span></td><td><span class="v">23:03</span></td><td><span class="v">19:36</span></td><td class="c-tot"><span class="v">1:28:49</span></td></tr><tr><td class="c-rank"><span class="rk">10</span></td><td class="c-team"><span class="tn">Last Light</span><span class="tno">094</span></td><td><span class="v">19:50</span></td><td><span class="v">27:08</span></td><td><span class="v">23:34</span></td><td><span class="v">19:54</span></td><td class="c-tot"><span class="v">1:30:26</span></td></tr></tbody></table></div>
       </div>
