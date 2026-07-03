@@ -455,7 +455,7 @@
   .glass:hover{background:var(--glass-strong);transform:translateY(-3px)}
 
   .grid{display:grid;gap:18px}
-  .g3{grid-template-columns:repeat(3,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr}
   .g2{grid-template-columns:repeat(2,1fr)}
   .g4{grid-template-columns:repeat(4,1fr)}
 
@@ -464,7 +464,7 @@
   .feature h3{font-size:24px;margin:14px 0 10px;text-transform:uppercase;
     font-family:"Arial Narrow",sans-serif;letter-spacing:0.01em;color:var(--redline)}
   .feature .sub{color:#fff;text-transform:uppercase;font-family:"Arial Narrow",sans-serif;font-size:18px;letter-spacing:0.01em;margin:0 0 10px}
-  .feature p{color:#c8c8c8;font-weight:300;font-size:15px}
+  .feature p{color:#c8c8c8;font-weight:300;font-size:14px;text-wrap:pretty}
   /* format spec — stacked rows */
   .spec{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:30px}
   .spec-k{font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--redline)}
@@ -1382,7 +1382,7 @@
         <div class="glass feature">
           <div class="n">02 THE WORKOUT</div>
           <div class="sub">Run, bike, row, ski</div>
-          <p>Three parts — bike, row, ski. Each is a run, a machine, a run, then the machine again at half. Run together, split the machines, sprint to finish.</p>
+          <p>Three parts — bike, row, ski. Each is a run, a machine, a run, then the machine at half. Run together, split the machines, sprint to finish.</p>
         </div>
         <div class="glass feature">
           <div class="n">03 CATEGORIES &amp; TICKETS</div>
