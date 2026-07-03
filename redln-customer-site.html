@@ -357,7 +357,10 @@
   #evt-0711:checked~main .ed-0711,
   #evt-0718:checked~main .ed-0718{display:inline}
   .tp-dd{width:100%}
-  .tp-dd .evt-dd-menu{position:absolute;left:0;right:0;top:100%}
+  .tp-dd .evt-dd-menu{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:200;
+    padding:6px;border-radius:12px;background:#161616;
+    box-shadow:0 22px 48px rgba(0,0,0,0.72),0 4px 14px rgba(0,0,0,0.5),inset 0 0 0 1px var(--redline)}
+  .tp-dd .evt-dd-opt{border-radius:8px}
   .wallet-btn{width:100%;margin-top:10px;padding:15px;border:none;border-radius:10px;background:#000;color:#fff;font-family:"SF Mono",monospace;font-size:14px;letter-spacing:0.02em;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2);cursor:pointer}
   .wallet-btn:active{background:#141414}
   .tpc{display:none}
