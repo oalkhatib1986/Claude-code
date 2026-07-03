@@ -362,7 +362,9 @@
     box-shadow:0 20px 42px rgba(0,0,0,0.70),inset 0 0 0 1px var(--redline)}
   .tp-dd.dd-open .evt-dd-menu{display:block}
   .tp-dd.dd-open .evt-dd-head{box-shadow:inset 0 0 0 1px var(--redline)}
-  .tp-dd.dd-open .lb-dd-chev{transform:rotate(180deg)}
+  .tp-dd .evt-dd-head{position:relative;padding-right:38px}
+  .tp-dd .lb-dd-chev{position:absolute;right:16px;top:50%;margin:0;transform:translateY(-50%)}
+  .tp-dd.dd-open .lb-dd-chev{transform:translateY(-50%) rotate(180deg)}
   .wallet-btn{width:100%;margin-top:10px;padding:15px;border:none;border-radius:10px;background:#000;color:#fff;font-family:"SF Mono",monospace;font-size:14px;letter-spacing:0.02em;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2);cursor:pointer}
   .wallet-btn:active{background:#141414}
   .tpc{display:none}
