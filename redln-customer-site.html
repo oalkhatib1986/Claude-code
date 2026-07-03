@@ -2702,8 +2702,7 @@ function buildRacePass(S){
   x.globalAlpha=0.06;x.filter='blur('+(3.2*S)+'px)';x.drawImage(dl,0,0);
   x.filter='none';x.globalAlpha=0.12;x.drawImage(dl,0,0);
   x.restore();
-  var ag=x.createRadialGradient(540,720,60,540,720,780);ag.addColorStop(0,'rgba(196,40,58,0.07)');ag.addColorStop(1,'rgba(196,40,58,0)');x.fillStyle=ag;x.fillRect(0,0,W,H);
-  var vg=x.createRadialGradient(540,960,240,540,960,1180);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.5)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  // uniform flat dot-matrix panel — no red glow, no vignette fade
   // watermark
   x.save();x.translate(540,1020);x.rotate(-Math.PI/2);x.textAlign='center';x.fillStyle='rgba(255,255,255,0.03)';x.font='700 300px '+DISP;x.fillText(watermark,0,0);x.restore();
   // corner marks
@@ -2712,10 +2711,6 @@ function buildRacePass(S){
   // ---- header (bigger logo, no top-right text) ----
   if(logoOK){var lw=390,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,104,lw,lh);}else{x.fillStyle='#fff';x.font='700 110px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
   x.strokeStyle='#ffffff';x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
-  // COMPETITOR — vertical stamp, right edge aligned to the top border terminus, centered between team name and category box
-  x.font='700 27px '+MONO;ls('8px');var _cL=x.measureText('COMPETITOR').width;
-  x.save();x.translate(W-M-22,748-_cL/2);x.rotate(Math.PI/2);x.textAlign='left';
-  x.fillStyle=RED;x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
   // ---- athlete ----
   x.fillStyle='#fff';x.textAlign='left';var _NU=youName.toUpperCase();var nfs=fit(_NU,W-2*M,116);
   x.font='700 '+nfs+'px '+DISP;x.fillText(_NU,M,472);
@@ -2736,6 +2731,11 @@ function buildRacePass(S){
   var cy2=cy+bh+18;
   x.fillStyle='#ffffff';rr(M,cy2,bw,bh,10);x.fill();
   x.fillStyle='#0a0a0a';x.fillText(t2,M+34,cy2+51);ls('0px');
+  // COMPETITOR — vertical stamp: right edge aligned to top border terminus, midpoint centered between THE REDLINERS text and the EVERYDAY box
+  x.font='700 '+tfs+'px '+DISP;var _rm=x.measureText(TU);var _redCy=(ty+54)-(_rm.actualBoundingBoxAscent||tfs*0.72)/2;
+  var _boxCy=cy2+bh/2;var _stampCy=(_redCy+_boxCy)/2;
+  x.save();x.translate(W-M-22,_stampCy);x.rotate(Math.PI/2);x.textAlign='center';
+  x.fillStyle=RED;x.font='700 27px '+MONO;ls('8px');x.fillText('COMPETITOR',0,0);ls('0px');x.restore();
   // ---- perforation (boarding-pass tear line + edge notches) ----
   var py=1150;
   x.fillStyle='#060606';x.beginPath();x.arc(0,py,34,0,7);x.fill();x.beginPath();x.arc(W,py,34,0,7);x.fill();
