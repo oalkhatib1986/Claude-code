@@ -2198,6 +2198,7 @@
         <div class="glass flow-card">
           <div class="head" style="margin-bottom:8px"><span class="eyebrow">Race pass</span></div>
           <p style="margin-bottom:16px">Your REDLN race badge, made to share &mdash; athlete ID, team and race details on a clean, on-brand card. Download it and post it to your story.</p>
+          <label class="btn btn-line btn-full btn-block" style="cursor:pointer;margin-bottom:10px">Add profile photo (optional)<input type="file" accept="image/*" id="pass-photo" style="display:none"></label>
           <button type="button" class="btn btn-red btn-full btn-block" id="pass-dl">Download race pass &rarr;</button>
           <p class="mono" style="font-size:11px;color:#888;margin-top:14px">On iPhone this opens the share sheet &mdash; tap <b>Save Image</b> to add it to Photos, then post it to your story from the camera roll and tag <span style="color:var(--redline)">@redln.race</span>. Your scannable entry ticket is emailed a few days before race day.</p>
         </div>
@@ -2710,7 +2711,19 @@ function buildRacePass(S){
   x.strokeStyle=RED;x.lineWidth=3;
   [[M,M],[W-M,M],[M,H-M],[W-M,H-M]].forEach(function(p){x.beginPath();x.moveTo(p[0]-18,p[1]);x.lineTo(p[0]+18,p[1]);x.moveTo(p[0],p[1]-18);x.lineTo(p[0],p[1]+18);x.stroke();});
   // ---- header (bigger logo, no top-right text) ----
-  if(logoOK){var lw=364,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,110,lw,lh);}else{x.fillStyle='#fff';x.font='700 104px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
+  if(logoOK){var lw=356,lh=lw*(logo.naturalHeight/logo.naturalWidth);x.drawImage(logo,M,116,lw,lh);}else{x.fillStyle='#fff';x.font='700 104px '+DISP;x.textAlign='left';x.fillText('REDLN.',M,232);}
+  // optional profile photo — top-right frame (silhouette placeholder if none)
+  var photo=window.__passPhoto,photoOK=photo&&photo.complete&&photo.naturalWidth>0;
+  var pfs=178,pfx=W-M-pfs,pfy=108;
+  x.save();rr(pfx,pfy,pfs,pfs,16);x.clip();
+  if(photoOK){var iw=photo.naturalWidth,ih=photo.naturalHeight,ar=iw/ih,dw,dh,ox,oy;
+    if(ar>1){dh=pfs;dw=pfs*ar;ox=pfx-(dw-pfs)/2;oy=pfy;}else{dw=pfs;dh=pfs/ar;ox=pfx;oy=pfy-(dh-pfs)/2;}
+    x.drawImage(photo,ox,oy,dw,dh);
+  }else{x.fillStyle='#151515';x.fillRect(pfx,pfy,pfs,pfs);var cxp=pfx+pfs/2;x.fillStyle='#3d3d3d';
+    x.beginPath();x.arc(cxp,pfy+pfs*0.40,pfs*0.155,0,7);x.fill();
+    x.beginPath();x.moveTo(pfx+pfs*0.19,pfy+pfs+2);x.quadraticCurveTo(cxp,pfy+pfs*0.56,pfx+pfs*0.81,pfy+pfs+2);x.closePath();x.fill();}
+  x.restore();
+  x.lineWidth=2.5;x.strokeStyle=photoOK?'rgba(255,255,255,0.28)':'rgba(196,40,58,0.75)';rr(pfx,pfy,pfs,pfs,16);x.stroke();
   x.strokeStyle=RED;x.lineWidth=2;x.beginPath();x.moveTo(M,300);x.lineTo(W-M,300);x.stroke();
   // ---- athlete ----
   x.fillStyle='#fff';x.textAlign='left';var nfs=fit(youName.toUpperCase(),W-2*M,116);x.font='700 '+nfs+'px '+DISP;x.fillText(youName.toUpperCase(),M,476);
@@ -2786,6 +2799,8 @@ function downloadRacePass(){
   });
   var _pdl=document.getElementById('pass-dl');
   if(_pdl)_pdl.addEventListener('click',downloadRacePass);
+  var _pp=document.getElementById('pass-photo');
+  if(_pp)_pp.addEventListener('change',function(e){var f=e.target.files&&e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){window.__passPhoto=im;if(typeof toast==='function')toast('Photo added — now download your pass.');};im.src=rd.result;};rd.readAsDataURL(f);});
 })();
 </script>
 </body>
