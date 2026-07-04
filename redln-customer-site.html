@@ -2919,12 +2919,13 @@ function downloadRacePass(){
 /* Pin the leaderboard table header exactly beneath the sticky ticker (heights vary by device) */
 (function(){
   function sizeLbHeader(){
-    var nav=document.querySelector('header');
-    if(!nav) return;
-    var th=0;
-    document.querySelectorAll('.ticker').forEach(function(t){ th=Math.max(th, t.offsetHeight); });
-    if(!th) return;
-    document.documentElement.style.setProperty('--lb-hd-top', (nav.offsetHeight + th) + 'px');
+    var tick=null;
+    document.querySelectorAll('.ticker').forEach(function(t){ if(t.offsetHeight) tick=t; });
+    if(!tick) return;
+    var top=parseFloat(getComputedStyle(tick).top)||0;   // ticker's own sticky offset
+    var h=tick.offsetHeight;
+    /* pin header 1px under the ticker's bottom so no row can peek in a sub-pixel gap */
+    document.documentElement.style.setProperty('--lb-hd-top', (top + h - 1) + 'px');
   }
   window.addEventListener('load', sizeLbHeader);
   window.addEventListener('resize', sizeLbHeader);
