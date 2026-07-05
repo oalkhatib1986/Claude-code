@@ -196,12 +196,12 @@
     background:var(--red);transform:translateY(-50%) scaleX(0);transform-origin:left;
     animation:cut 1s cubic-bezier(.7,0,.2,1) .5s forwards}
   @keyframes cut{to{transform:translateY(-50%) scaleX(1)}}
-  .hero-sub{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-end;margin-top:22px}
-  .hero-tagline{font-size:clamp(21px,3vw,40px);font-weight:300;line-height:1.12;letter-spacing:-0.01em;max-width:640px;color:#f0f0f0}
-  .hero-meta{display:flex;gap:36px;margin-top:40px;flex-wrap:wrap}
+  .hero-sub{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-end;margin-top:26px}
+  .hero-tagline{font-size:clamp(26px,3.6vw,46px);font-weight:400;line-height:1.06;letter-spacing:-0.015em;max-width:680px;color:#f4f4f4}
+  .hero-meta{display:flex;gap:40px;margin-top:44px;flex-wrap:wrap}
   .hero-meta .item{}
-  .hero-meta .k{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
-  .hero-meta .v{font-size:27px;margin-top:5px}
+  .hero-meta .k{font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:var(--muted)}
+  .hero-meta .v{font-size:31px;margin-top:6px;font-weight:400}
   .hero-actions{display:flex;gap:14px;margin-top:44px;flex-wrap:wrap}
   .hero-actions .btn{font-size:14px;padding:16px 30px}
 
@@ -1100,9 +1100,9 @@
   .race-head{margin-bottom:10px}
   /* hero gets its own treatment (keeps the red lane visible) */
   /* kinetic hero: slow ken-burns push on the still image so it reads like a loop */
-  .hero .hero-photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center 40%;filter:contrast(1.06) saturate(1.04);
-    transform-origin:50% 46%;animation:hero-kenburns 30s ease-in-out infinite alternate;will-change:transform}
-  @keyframes hero-kenburns{0%{transform:scale(1.05)}100%{transform:scale(1.19) translateY(-1.4%)}}
+  .hero .hero-photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center 40%;filter:contrast(1.08) saturate(1.06);
+    transform-origin:50% 44%;animation:hero-kenburns 20s ease-in-out infinite alternate;will-change:transform}
+  @keyframes hero-kenburns{0%{transform:scale(1.06) translate3d(-1.2%,0,0)}100%{transform:scale(1.26) translate3d(1.2%,-2.2%,0)}}
   /* optional drop-in loop: add <source src="…mp4"> inside .hero-video and it takes over */
   .hero .hero-video{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;
     filter:contrast(1.06) saturate(1.04);display:none}
@@ -1112,7 +1112,7 @@
   .hero .hero-shade{position:absolute;inset:0;z-index:1;pointer-events:none;
     background:linear-gradient(to bottom,rgba(10,10,10,0.5),rgba(10,10,10,0.14) 34%,rgba(10,10,10,0.32) 58%,rgba(10,10,10,0.55) 78%,rgba(10,10,10,1) 92%)}
   /* film grain for street grit — no graffiti, just texture */
-  .hero .hero-grain{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0.055;mix-blend-mode:overlay;
+  .hero .hero-grain{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0.09;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:140px 140px}
   @media (prefers-reduced-motion:reduce){.hero .hero-photo{animation:none}}
   /* image divider band */
