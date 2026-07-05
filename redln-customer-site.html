@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>/* set theme before paint to avoid a flash */(function(){try{var p=new URLSearchParams(location.search).get('theme');var t=p||localStorage.getItem('redln_theme')||'dark';if(t==='light')document.documentElement.setAttribute('data-theme','light');if(p)localStorage.setItem('redln_theme',p);}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REDLN. — Hybrid Fitness Race</title>
 <style>
   :root{
+    --page-bg:#0a0a0a;
     --ink:#0a0a0a;
     --ink2:#121212;
     --paper:#ffffff;
@@ -28,12 +30,42 @@
     --redline-edge:rgba(196,40,58,0.55);
     --redline-dim:#8c1f2b;
   }
+
+  /* ===== LIGHT THEME (manual toggle: data-theme="light") ===== */
+  :root[data-theme="light"]{
+    --page-bg:#f6f5f2;          /* warm near-white */
+    --paper:#16150f;            /* primary text -> near-black */
+    --muted:#6b675f;
+    --line:rgba(0,0,0,0.13);
+    --glass:#ffffff;            /* cards -> white */
+    --glass-strong:#efece6;
+    --glass-edge:rgba(0,0,0,0.12);
+  }
+  /* keep the photo bands and LED components dark in light theme (the intentional "dark interludes") */
+  :root[data-theme="light"] .bgsec,
+  :root[data-theme="light"] .ticker,
+  :root[data-theme="light"] #page-leaderboard .lb-wrap,
+  :root[data-theme="light"] .hero{color:#fff}
+  :root[data-theme="light"] .ticker{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a}
+  /* glass surfaces sitting ON a dark band stay dark (don't flip to white) */
+  :root[data-theme="light"] .bgsec .glass,
+  :root[data-theme="light"] .hero .glass{background:rgba(255,255,255,0.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.14)}
+  /* the white REDLN nav logo needs to become dark on the light nav */
+  :root[data-theme="light"] header .nav-logo{filter:invert(1) brightness(0.9)}
+  /* theme toggle button */
+  .theme-tgl{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto;
+    border-radius:8px;cursor:pointer;background:var(--glass-strong);box-shadow:inset 0 0 0 1px var(--glass-edge);
+    color:var(--paper);font-size:15px;line-height:1;transition:background .15s}
+  .theme-tgl:hover{background:var(--redline-glass)}
+  .theme-tgl .ic-sun{display:none}
+  :root[data-theme="light"] .theme-tgl .ic-moon{display:none}
+  :root[data-theme="light"] .theme-tgl .ic-sun{display:inline}
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
-  html{background:#0a0a0a}
+  html{background:var(--page-bg)}
   html,body{-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%}
   body{
-    background:#0a0a0a;color:var(--paper);
+    background:var(--page-bg);color:var(--paper);
     font-family:"Helvetica Neue",Arial,sans-serif;
     -webkit-font-smoothing:antialiased;line-height:1.5;
     overflow-x:hidden;
@@ -65,7 +97,7 @@
 
   /* ---------- nav ---------- */
   header{position:fixed;top:0;left:0;right:0;z-index:100;
-    background:#0a0a0a;
+    background:var(--page-bg);
     border-bottom:1px solid var(--line)}
   .nav-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:70px;
     display:flex;align-items:center;justify-content:space-between;gap:20px}
@@ -144,7 +176,7 @@
   #nav-contact:checked~header nav.links label[for="nav-contact"]{color:#fff;background:var(--redline-strong);box-shadow:inset 0 0 0 1px var(--redline-edge)}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .wrap{max-width:1280px;margin:0 auto;padding:0 28px}
-  section{padding:90px 0;background:#0a0a0a;position:relative}
+  section{padding:90px 0;background:var(--page-bg);position:relative}
   /* every page's first section sits right under the fixed header — trim the top gap */
   .page>section:first-of-type{padding-top:16px}
   .section-tight{padding:60px 0}
@@ -1006,7 +1038,7 @@
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
 
   /* footer */
-  footer{border-top:1px solid var(--line);padding:60px 0 40px;margin-top:40px;background:#0a0a0a;position:relative}
+  footer{border-top:1px solid var(--line);padding:60px 0 40px;margin-top:40px;background:var(--page-bg);position:relative}
   .foot-grid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:40px;margin-bottom:50px}
   .foot-col h5{font-family:"SF Mono",monospace;font-size:11px;letter-spacing:0.15em;
     text-transform:uppercase;color:var(--muted);margin-bottom:16px}
@@ -1358,6 +1390,7 @@
     <span class="nav-more" aria-hidden="true"><i></i></span>
     </div>
     <div class="nav-cta">
+      <button type="button" class="theme-tgl" id="themeToggle" title="Toggle light / dark" aria-label="Toggle light or dark theme"><span class="ic-moon">☾</span><span class="ic-sun">☀</span></button>
       <div class="lout" style="display:flex;gap:10px;align-items:center">
         <label class="btn btn-line loginBtn" id="accountBtn" for="nav-account">Account</label>
         <label class="btn btn-red" for="nav-tickets">Register</label>
@@ -3005,6 +3038,16 @@ function downloadTeamPass(){
   if(lb) lb.addEventListener('change', function(){ setTimeout(sizeLbHeader, 60); });
   setTimeout(sizeLbHeader, 0);
   setTimeout(sizeLbHeader, 300);
+})();
+/* theme toggle */
+(function(){
+  var btn=document.getElementById('themeToggle');
+  if(!btn) return;
+  btn.addEventListener('click',function(){
+    var light=document.documentElement.getAttribute('data-theme')==='light';
+    if(light){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('redln_theme','dark');}catch(e){}}
+    else{document.documentElement.setAttribute('data-theme','light');try{localStorage.setItem('redln_theme','light');}catch(e){}}
+  });
 })();
 </script>
 </body>
