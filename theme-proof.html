@@ -47,18 +47,18 @@ nav a.on{opacity:1;color:var(--red)}
 .ledbar::before{content:'';position:absolute;left:8%;right:8%;bottom:-13px;height:24px;z-index:-1;background:radial-gradient(ellipse at center,rgba(255,244,224,0.7),rgba(255,244,224,0) 70%);filter:blur(7px)}
 .ledbar .bolt{position:absolute;left:14px;width:7px;height:7px;border-radius:50%;z-index:5;background:radial-gradient(circle at 35% 30%,#f6f8f9,#7f858b);box-shadow:0 1px 1px rgba(0,0,0,0.4)}
 .ledbar .bolt.b1{top:15px}.ledbar .bolt.b2{bottom:15px}
-.ledbar .screen{position:relative;height:82px;border-radius:3px;overflow:hidden;background-color:#060708;background-image:radial-gradient(circle,rgba(150,170,190,0.10) 0.8px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 0 2px #0b0c0f,inset 0 0 26px rgba(0,0,0,0.9)}
-.ledbar .screen .row{position:absolute;top:50%;left:0;transform:translateY(-50%);display:flex;white-space:nowrap;width:max-content;font-family:'DotMx',monospace;font-size:46px;line-height:1;letter-spacing:1px;text-transform:uppercase;animation:ledmarch 17s linear infinite, ledhue 9s steps(1,end) infinite;will-change:transform}
+.ledbar .screen{position:relative;height:82px;border-radius:3px;overflow:hidden;background-color:#040405;background-image:radial-gradient(circle,rgba(150,170,190,0.07) 0.5px,transparent 0.9px);background-size:3px 3px;box-shadow:inset 0 0 0 2px #0b0c0f,inset 0 0 26px rgba(0,0,0,0.8)}
+.ledbar .screen .row{position:absolute;top:50%;left:0;transform:translateY(-50%);display:flex;white-space:nowrap;width:max-content;font-family:'DotMx',monospace;font-size:56px;line-height:1;letter-spacing:2px;text-transform:uppercase;animation:ledmarch 17s linear infinite, ledhue 9s steps(1,end) infinite;will-change:transform}
 .ledbar .screen .row span{padding:0 0.7em}
-.ledbar .screen::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;background-image:radial-gradient(circle,transparent 38%,rgba(0,0,0,0.82) 54%);background-size:4px 4px}
+.ledbar .screen::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;background-image:radial-gradient(circle,transparent 64%,rgba(0,0,0,0.20) 84%);background-size:3px 3px}
 .ledbar .screen .gl{position:absolute;inset:0;z-index:5;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,0.06),transparent 30%)}
 @keyframes ledmarch{to{transform:translate(-50%,-50%)}}
-@keyframes ledhue{0%{color:#3dff9a;text-shadow:0 0 7px rgba(61,255,154,0.9),0 0 2px rgba(61,255,154,1)}33.3%{color:#ff2f42;text-shadow:0 0 7px rgba(255,47,66,0.9),0 0 2px rgba(255,47,66,1)}66.6%{color:#8fd0ff;text-shadow:0 0 7px rgba(143,208,255,0.9),0 0 2px rgba(143,208,255,1)}}
+@keyframes ledhue{0%{color:#5bffab;text-shadow:0 0 4px rgba(91,255,171,0.6),0 0 1px rgba(91,255,171,1)}33.3%{color:#ff4757;text-shadow:0 0 4px rgba(255,71,87,0.6),0 0 1px rgba(255,71,87,1)}66.6%{color:#aee2ff;text-shadow:0 0 4px rgba(174,226,255,0.6),0 0 1px rgba(174,226,255,1)}}
 .ledwrap{max-width:1180px;margin:44px auto;padding:0 26px}
 .ledticker{padding:0;border-radius:0;box-shadow:none;background:linear-gradient(180deg,#d9dcdf,#bdc1c5)}
 .ledticker::before{display:none}.ledticker .bolt{display:none}
-.ledticker .screen{height:42px;border-radius:0;box-shadow:inset 0 2px 4px rgba(0,0,0,0.6),inset 0 -2px 0 var(--red)}
-.ledticker .screen .row{font-size:22px;animation:ledmarch 24s linear infinite, ledhue 9s steps(1,end) infinite}
+.ledticker .screen{height:46px;border-radius:0;box-shadow:inset 0 2px 4px rgba(0,0,0,0.6),inset 0 -2px 0 var(--red)}
+.ledticker .screen .row{font-size:30px;animation:ledmarch 24s linear infinite, ledhue 9s steps(1,end) infinite}
 
 
 /* ===== WHITE LIGHTBOX ===== */
@@ -149,7 +149,7 @@ html,body{overflow-x:hidden;max-width:100%}
   .kbelt{padding:12px 0}
   .navlogo{height:21px}
 }
-@media (max-width:760px){.ledwrap{margin:30px auto;padding:0 14px}.ledbar .screen{height:58px}.ledbar .screen .row{font-size:30px}.ledticker .screen{height:34px}.ledticker .screen .row{font-size:17px}}
+@media (max-width:760px){.ledwrap{margin:30px auto;padding:0 14px}.ledbar .screen{height:62px}.ledbar .screen .row{font-size:40px}.ledticker .screen{height:40px}.ledticker .screen .row{font-size:24px}}
 </style></head>
 <body>
 
