@@ -93,11 +93,11 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 .hero{position:relative;overflow:hidden}
 /* hero background video — cinematic street-doc grade, projected onto the aluminum */
 .hero-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;
-  opacity:0.54;mix-blend-mode:luminosity;
-  filter:contrast(1.32) brightness(1.04) saturate(0.85) sepia(0.05);
+  opacity:0.40;mix-blend-mode:luminosity;
+  filter:contrast(1.34) brightness(1.03) saturate(0.85) sepia(0.05);
   animation:gate 5.5s steps(1,end) infinite}
 /* projector gate flicker — tiny, keeps it feeling like footage not a photo */
-@keyframes gate{0%,100%{opacity:.54}17%{opacity:.51}19%{opacity:.58}55%{opacity:.525}57%{opacity:.565}80%{opacity:.535}}
+@keyframes gate{0%,100%{opacity:.40}17%{opacity:.37}19%{opacity:.44}55%{opacity:.385}57%{opacity:.425}80%{opacity:.395}}
 /* aluminum fade so the metal still reads through */
 .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;
   background:
@@ -107,10 +107,14 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 /* filmic vignette — darkens the corners only (neutral, no colour cast) */
 .hero-vignette{position:absolute;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;
   background:radial-gradient(120% 90% at 50% 40%,transparent 50%,rgba(20,22,26,0.36) 100%)}
-/* animated 35mm grain */
-.hero-grain{position:absolute;inset:-45%;z-index:0;pointer-events:none;mix-blend-mode:overlay;opacity:0.19;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:160px 160px;animation:grain 0.52s steps(3,end) infinite}
+/* animated 35mm grain — high-contrast so it reads on the light aluminium */
+.hero-grain{position:absolute;inset:-45%;z-index:0;pointer-events:none;mix-blend-mode:overlay;opacity:0.42;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.1' intercept='-0.55'/%3E%3CfeFuncG type='linear' slope='2.1' intercept='-0.55'/%3E%3CfeFuncB type='linear' slope='2.1' intercept='-0.55'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:150px 150px;animation:grain 0.5s steps(4,end) infinite}
+/* second finer grain pass — subtle multiply for dark specks on the metal */
+.hero-grain2{position:absolute;inset:-45%;z-index:0;pointer-events:none;mix-blend-mode:multiply;opacity:0.10;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  background-size:90px 90px;animation:grain 0.42s steps(3,end) reverse infinite}
 @keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-6%,4%)}66%{transform:translate(5%,-5%)}100%{transform:translate(-3%,-2%)}}
 .htone{position:absolute;right:-40px;top:40px;width:420px;height:420px;z-index:0;pointer-events:none;
   background-image:radial-gradient(var(--ink) 1.7px,transparent 1.9px);background-size:9px 9px;opacity:0.5;
@@ -303,7 +307,7 @@ body{background:#e7e9eb !important;
     </div>
   </div>
 
-<div class="hero"><video class="hero-vid" autoplay muted loop playsinline preload="auto" poster="" src="redln-hero.mp4"></video><div class="hero-veil"></div><div class="hero-vignette"></div><div class="hero-grain"></div><div class="wrap"><div class="hgrid">
+<div class="hero"><video class="hero-vid" autoplay muted loop playsinline preload="auto" poster="" src="redln-hero.mp4"></video><div class="hero-veil"></div><div class="hero-vignette"></div><div class="hero-grain"></div><div class="hero-grain2"></div><div class="wrap"><div class="hgrid">
   <div>
     <div class="htop"><span class="no">Type-01</span><span class="bar"></span><span class="no">Fig. A</span></div>
     <h1>Find your<br>limit.<br><span class="r">Then cross it.</span></h1>
