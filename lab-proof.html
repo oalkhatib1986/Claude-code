@@ -135,9 +135,9 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
   background-image:radial-gradient(var(--ink) 1.7px,transparent 1.9px);background-size:9px 9px;opacity:0.5;
   -webkit-mask-image:radial-gradient(circle at 70% 30%,#000,transparent 62%);mask-image:radial-gradient(circle at 70% 30%,#000,transparent 62%)}
 .hgrid{position:relative;z-index:1}
-.speed{position:relative;display:flex;align-items:center;gap:12px;margin-top:30px}
-.speed-bars{flex:0 0 240px;max-width:62%;height:22px;
-  background:repeating-linear-gradient(-26deg,var(--red) 0 7px,transparent 7px 18px)}
+.speed{position:relative;display:flex;align-items:center;gap:14px;margin-top:22px}
+.speed-bars{flex:1;height:34px;
+  background:repeating-linear-gradient(-26deg,var(--red) 0 12px,transparent 12px 29px)}
 .speed-tag{margin-left:auto;writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);white-space:nowrap;display:flex;align-items:center}
 .speed-tag i{color:var(--red);font-style:normal;font-weight:400;font-size:1em}
 /* retro tab labels */
@@ -326,6 +326,34 @@ section>.wrap{position:relative;z-index:1}
 .amb .zone i{width:24px;height:11px;background:currentColor;display:block}
 .amb .zone i.hot{background:rgba(255,23,23,0.16)}
 @media(max-width:860px){.amb .spine{font-size:54px !important}.amb .word{font-size:40px !important}}
+/* ===== sample Team Pass (hero) ===== */
+.pass{padding:24px 30px 22px}
+.pass-head{display:flex;justify-content:space-between;align-items:flex-start}
+.pass-mark{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:0.01em;line-height:1}.pass-mark i{color:var(--red);font-style:normal}
+.pass-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.6}.pass-eyebrow .r{color:var(--red)}
+.pass-rule{height:1.5px;background:var(--ink);margin:14px 0 16px}
+.pass-athlete{font-family:var(--disp);font-weight:700;font-size:30px;text-transform:uppercase;line-height:0.92}
+.pass-id{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;background:var(--ink);color:#fff;padding:4px 10px;border-radius:3px;margin-top:9px}
+.pass-team{display:flex;gap:12px;align-items:center;margin-top:18px}
+.pass-team .bar{width:5px;height:40px;background:var(--red);flex:0 0 auto}
+.pass-team .tn{font-family:var(--disp);font-weight:700;font-size:22px;text-transform:uppercase;color:var(--red);line-height:1}
+.pass-team .tno{font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.pass-boxes{display:flex;gap:10px;margin-top:18px}
+.pass-boxes .pb{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:9px 16px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
+.pass-boxes .pb.red{background:var(--red);color:#fff;box-shadow:none}
+.pass-perf{position:relative;height:0;margin:24px -30px;border-top:2px dashed rgba(13,16,19,0.22)}
+.pass-perf::before,.pass-perf::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:#e7e9eb;box-shadow:inset 0 0 0 1px rgba(13,16,19,0.10)}
+.pass-perf::before{left:-10px}.pass-perf::after{right:-10px}
+.ps-race{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--red)}
+.ps-date{font-family:var(--disp);font-weight:700;font-size:26px;text-transform:uppercase;line-height:1;margin-top:5px}
+.ps-loc{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.pass-barcode{margin-top:18px}
+.pass-barcode .barcode{height:40px}
+.pass-barcode .bctop,.pass-barcode .bccode{text-align:left;padding-left:0}
+.pass-barcode .bctop{font-size:8px;letter-spacing:0.2em;margin-bottom:7px}
+.pass-barcode .bccode{font-size:9px;letter-spacing:0.24em;margin-top:8px}
+.pass-foot{display:flex;justify-content:space-between;margin-top:18px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
+.pass-foot .r{color:var(--red)}
 </style></head><body>
 
 <div class="strip"><div class="wrap in"><span><span class="r">REDLN&reg; LABS</span> &nbsp; Season 01 &nbsp; DXB &nbsp; No.001</span><span>Run / Bike / Row / Ski</span></div></div>
@@ -346,19 +374,21 @@ section>.wrap{position:relative;z-index:1}
     <p class="lead">The region's first street-style fitness race, built on one idea: find your limit, <b>then cross it.</b></p>
     <div class="meta"><div><div class="k">Location</div><div class="v">Dubai, UAE</div></div><div><div class="k">Next race</div><div class="v">Sat 4 Jul 2026</div></div></div>
     <div class="hact"><a class="btn btn-red">Register now &rarr;</a><a class="btn btn-line">See the workout</a></div>
-    <div class="hero-barcode"><div class="bctop">&quot;For Racing Purposes&quot;</div><div class="barcode"></div><div class="bccode">REDLN-DXB-001</div></div>
     <div class="speed"><span class="speed-bars"></span><span class="speed-tag"><i>+</i>&nbsp;&nbsp;REDLINE&nbsp;&nbsp;<i>+</i></span></div>
   </div>
   <div class="rcol">
     <div class="unit"><span class="bolt a"></span><span class="bolt b"></span><span class="bolt c"></span><span class="bolt d"></span>
-      <div class="screen"><div class="scan"></div><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
-        <div class="cap"><span>Race Format</span><span class="r">&bull; Season 01</span></div>
-        <div class="mark">REDLN<i>.</i></div>
-        <div class="subm">Team hybrid race &mdash; four stations, one clock</div>
-        <div class="rule"></div>
-        <div class="disc"><span class="on">&quot;Run&quot;</span><span>&quot;Bike&quot;</span><span>&quot;Row&quot;</span><span>&quot;Ski&quot;</span></div>
-        <div class="discsub">then a flat-out sprint for the line</div>
-        <div class="spec"><span>Season <b>01</b></span><span>Teams <b>4 per</b></span><span>City <b>Dubai</b></span><span>Next <b>04 Jul 26</b></span></div>
+      <div class="screen pass"><div class="scan"></div><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
+        <div class="pass-head"><div class="pass-mark">REDLN<i>.</i></div><div class="pass-eyebrow">Team Pass<br><span class="r">&bull; Sample</span></div></div>
+        <div class="pass-rule"></div>
+        <div class="pass-athlete">Alex Carter</div>
+        <div class="pass-id">RDLN #04821 &middot; Captain</div>
+        <div class="pass-team"><span class="bar"></span><div><div class="tn">The Redliners</div><div class="tno">Team #001 &middot; 4 athletes</div></div></div>
+        <div class="pass-boxes"><span class="pb red">Athlete</span><span class="pb">Everyday</span></div>
+        <div class="pass-perf"></div>
+        <div class="pass-stub"><div class="ps-race">Race 03 / 05</div><div class="ps-date">Sat 4 Jul 2026</div><div class="ps-loc">Dubai, UAE &middot; 06:00 GST</div></div>
+        <div class="pass-barcode"><div class="bctop">&quot;For Racing Purposes&quot;</div><div class="barcode"></div><div class="bccode">REDLN-DXB-001</div></div>
+        <div class="pass-foot"><span>REDLN &mdash; Season 01</span><span class="r">@REDLN.RACE</span></div>
       </div>
     </div>
     
