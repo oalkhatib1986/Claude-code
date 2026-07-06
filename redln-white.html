@@ -420,12 +420,15 @@ nav a{cursor:pointer}
 .lbt tbody tr.top1 .rk{color:var(--red)}
 
 @media (prefers-reduced-motion:reduce){*{animation:none !important}}
+
+.hbtns{display:flex;gap:8px;align-items:center;order:2}
+.hbtn-line{background:var(--panel) !important;color:var(--ink) !important;box-shadow:inset 0 0 0 1.4px var(--ink)}
 </style></head><body>
 
 <div class="strip"><div class="wrap in"><span><span class="r">REDLN&reg; LABS</span> &nbsp; Season 01 &nbsp; DXB &nbsp; No.001</span><span>Run / Bike / Row / Ski</span></div></div>
 <header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-logo-poster.jpg" alt="REDLN"></a></div>
   <nav><a class="on" data-p="home">Overview</a><a data-p="workout">The Workout</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a></nav>
-  <a class="hbtn" data-p="tickets">Register &rarr;</a></div></header>
+  <span class="hbtns"><a class="hbtn hbtn-line" data-p="account">Account</a><a class="hbtn" data-p="tickets">Register &rarr;</a></span></div></header>
   <div class="ticker">
     <div class="ticker-logo"><img class="ticker-logo-img" src="redln-logo-poster.jpg" alt="REDLN"></div>
     <div class="ticker-track">
