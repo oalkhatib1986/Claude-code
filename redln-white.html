@@ -1403,6 +1403,30 @@ section{background:transparent !important}
 .ticker-logo-img,.season-logo{filter:none !important}
 .ticker-logo-img{height:22px !important;width:22px !important;object-fit:cover;border-radius:2px}
 .season-logo{height:42px !important;width:42px !important;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
+
+/* leaderboard -> white-lab (complete) */
+.lb-dd-head,.lb-search{background:#ffffff !important;color:#0d1013 !important;border:1px solid var(--line) !important}
+.lb-search::placeholder{color:var(--muted) !important}
+.lb-wrap{background:transparent !important}
+.lb-table tbody tr:nth-child(odd){background:rgba(13,16,19,0.02) !important}
+.lb-table tbody tr:nth-child(even){background:rgba(13,16,19,0.055) !important}
+.lb-table tbody tr.top{background:rgba(255,23,23,0.09) !important}
+.lb-table tbody td,.lb-table tbody .lb-name,.lb-table tbody .lb-tt,.lb-table tbody .c-tot{color:#0d1013 !important}
+.lb-table tbody .rk{color:#6a7075 !important}
+.lb-table tbody tr.top .rk{color:#ff1717 !important}
+.lb-table tbody .c-tot .v{background-image:none !important;-webkit-text-fill-color:#0d1013 !important;color:#0d1013 !important}
+.lb-table thead th,.lb-table thead tr{background:#0d1013 !important;color:#ffffff !important}
+
+/* leaderboard cells: kill dotted text-fill, solid dark numbers */
+.lb-table tbody td{color:#151a1f !important;-webkit-text-fill-color:#151a1f !important;background-image:none !important}
+.lb-table tbody .rk{color:#8a9097 !important;-webkit-text-fill-color:#8a9097 !important}
+.lb-table tbody tr.top .rk{color:#ff1717 !important;-webkit-text-fill-color:#ff1717 !important}
+.lb-table tbody .c-tot .v,.lb-table tbody .c-tot{color:#0d1013 !important;-webkit-text-fill-color:#0d1013 !important;background-image:none !important}
+
+/* leaderboard: force EVERY body cell + child solid dark (kill dotted LED fill) */
+.lb-table tbody td,.lb-table tbody td *{color:#151a1f !important;-webkit-text-fill-color:#151a1f !important;background-image:none !important;opacity:1 !important}
+.lb-table tbody .rk,.lb-table tbody .rk *{color:#8a9097 !important;-webkit-text-fill-color:#8a9097 !important}
+.lb-table tbody tr.top .rk,.lb-table tbody tr.top .rk *{color:#ff1717 !important;-webkit-text-fill-color:#ff1717 !important}
 </style>
 </head>
 <body>
