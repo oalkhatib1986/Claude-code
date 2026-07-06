@@ -42,10 +42,14 @@ nav{display:flex;gap:4px;align-items:center}nav a{font-family:var(--mono);font-s
 
 /* aluminum lab instrument unit */
 .rcol{position:relative}
-.unit{position:relative;border-radius:6px;padding:11px;background:linear-gradient(178deg,var(--alu-hi),var(--alu-lo));box-shadow:0 32px 62px rgba(20,24,30,0.16),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 0 0 1px rgba(13,16,19,0.06)}
-.unit .bolt{position:absolute;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#9298a0);box-shadow:0 1px 1px rgba(0,0,0,0.3);z-index:3}
-.unit .bolt.a{top:20px;left:20px}.unit .bolt.b{top:20px;right:20px}.unit .bolt.c{bottom:20px;left:20px}.unit .bolt.d{bottom:20px;right:20px}
-.screen{position:relative;background:linear-gradient(180deg,#fff,#f2f4f5);border-radius:3px;padding:26px 30px 22px;box-shadow:inset 0 0 0 1px rgba(13,16,19,0.10)}
+.unit{position:relative;border-radius:0;padding:16px;background:transparent;box-shadow:none}
+/* flat black registration + marks framing the plate (was glossy screws) */
+.unit .bolt{position:absolute;width:9px;height:9px;z-index:3}
+.unit .bolt::before,.unit .bolt::after{content:"";position:absolute;background:rgba(13,16,19,0.5)}
+.unit .bolt::before{left:0;right:0;top:50%;height:1px;transform:translateY(-50%)}
+.unit .bolt::after{top:0;bottom:0;left:50%;width:1px;transform:translateX(-50%)}
+.unit .bolt.a{top:4px;left:4px}.unit .bolt.b{top:4px;right:4px}.unit .bolt.c{bottom:4px;left:4px}.unit .bolt.d{bottom:4px;right:4px}
+.screen{position:relative;background:#fff;border-radius:1px;padding:26px 30px 22px;box-shadow:inset 0 0 0 1px rgba(13,16,19,0.14)}
 .screen>.ck{position:absolute;width:9px;height:9px}
 .screen>.ck::before,.screen>.ck::after{content:"";position:absolute;background:var(--red)}
 .screen>.ck::before{width:9px;height:1.5px}.screen>.ck::after{width:1.5px;height:9px}
@@ -123,8 +127,8 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 .speed{position:relative;display:flex;align-items:center;gap:12px;margin-top:30px}
 .speed-bars{flex:0 0 240px;max-width:62%;height:22px;
   background:repeating-linear-gradient(-26deg,var(--red) 0 7px,transparent 7px 18px)}
-.speed-tag{margin-left:auto;writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-size:6.5px;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);white-space:nowrap;display:flex;align-items:center}
-.speed-tag i{color:var(--red);font-style:normal;font-weight:400;font-size:1.05em}
+.speed-tag{margin-left:auto;writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);white-space:nowrap;display:flex;align-items:center}
+.speed-tag i{color:var(--red);font-style:normal;font-weight:400;font-size:1em}
 /* retro tab labels */
 .fig .r{background:var(--red);color:#fff;padding:3px 9px;border-radius:2px;letter-spacing:0.14em}
 /* offset retro numerals */
