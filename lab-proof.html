@@ -57,6 +57,9 @@ nav{display:flex;gap:4px;align-items:center}nav a{font-family:var(--mono);font-s
 .screen .cap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:6.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}
 .screen .cap .r{color:var(--red)}
 .screen .mark{font-family:var(--disp);font-weight:700;font-size:56px;text-align:center;letter-spacing:0.01em;padding:24px 0 14px}.screen .mark i{color:var(--red);font-style:normal}
+.screen .subm{font-family:var(--mono);font-size:8.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:-4px 0 16px}
+.screen .discsub{font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);text-align:center;margin-top:9px}
+.screen .discsub::before{content:"→ ";color:var(--red)}
 .screen .rule{height:2px;width:66%;margin:0 auto;background:var(--red)}
 .screen .disc{display:flex;justify-content:center;margin-top:16px;font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted)}
 .screen .disc span{padding:0 11px;position:relative}.screen .disc span+span::before{content:"";position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:3px;height:3px;border-radius:50%;background:var(--red)}.screen .disc .on{color:var(--ink)}
@@ -325,11 +328,13 @@ body{background:#e7e9eb !important;
   <div class="rcol">
     <div class="unit"><span class="bolt a"></span><span class="bolt b"></span><span class="bolt c"></span><span class="bolt d"></span>
       <div class="screen"><div class="scan"></div><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
-        <div class="cap"><span>Unit / &quot;REDLN&quot;&reg;</span><span class="r">&bull; Live</span></div>
+        <div class="cap"><span>Race Format</span><span class="r">&bull; Season 01</span></div>
         <div class="mark">REDLN<i>.</i></div>
+        <div class="subm">Team hybrid race &mdash; four stations, one clock</div>
         <div class="rule"></div>
         <div class="disc"><span class="on">&quot;Run&quot;</span><span>&quot;Bike&quot;</span><span>&quot;Row&quot;</span><span>&quot;Ski&quot;</span></div>
-        <div class="spec"><span>Model <b>RDLN-01</b></span><span>Season <b>01</b></span><span>City <b>DXB</b></span><span>Round <b>03/05</b></span></div>
+        <div class="discsub">then a flat-out sprint for the line</div>
+        <div class="spec"><span>Season <b>01</b></span><span>Teams <b>4 per</b></span><span>City <b>Dubai</b></span><span>Next <b>04 Jul 26</b></span></div>
       </div>
     </div>
     
