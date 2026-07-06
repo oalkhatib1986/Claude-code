@@ -140,14 +140,14 @@ body{background:#e7e9eb !important;
 /* ===== black-theme LED ticker (verbatim) ===== */
 :root{--redline:#ff1717;--redline-glass:rgba(255,23,23,0.15);--redline-edge:rgba(255,23,23,0.5);}
   /* ticker */
-  .ticker{background:linear-gradient(var(--redline-glass),var(--redline-glass)),#0a0a0a;border-top:1px solid var(--redline-edge);border-bottom:1px solid var(--redline-edge);
+  .ticker{background:linear-gradient(180deg,#ff1717,#e01313);border-top:1px solid rgba(0,0,0,0.28);border-bottom:1px solid rgba(0,0,0,0.28);
     margin-top:-1px;overflow:hidden;white-space:nowrap;position:relative;z-index:5;animation:tickerbeat 6.5s linear infinite}
   /* whole-band glow shaped like an irregular heartbeat (lub-dub spikes + rests, racing then pausing). a 2nd heartbeat layer on a co-prime period adds syncopated thumps so the rhythm never repeats — a redlining bpm */
   .ticker::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--redline);
     opacity:0.04;animation:tickerbeat2 4.7s linear infinite}
   /* faint "unlit LED" dot grid behind the text */
   .ticker::after{content:"";position:absolute;inset:3px 0;z-index:0;pointer-events:none;
-    background-image:radial-gradient(rgba(207,207,207,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
+    background-image:radial-gradient(rgba(255,255,255,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
   @keyframes tickerbeat{
     0%,1%{box-shadow:none}
     1.7%{box-shadow:inset 0 0 30px rgba(255,23,23,0.55)}
@@ -202,52 +202,52 @@ body{background:#e7e9eb !important;
   /* fixed REDLN logo pinned at the left of the band — exact brand wordmark; scrolling text passes behind it */
   .ticker-logo{position:absolute;left:0;top:0;bottom:0;z-index:4;display:flex;align-items:center;
     padding:0 26px 0 18px;pointer-events:none;
-    background:linear-gradient(to right,#16080a 0%,#16080a 60%,rgba(22,8,10,0) 100%)}
+    background:linear-gradient(to right,#e01313 0%,#e01313 62%,rgba(224,19,19,0) 100%)}
   .ticker-logo-img{height:10px;width:auto;display:block}
   .ticker-track{display:inline-flex;gap:0;padding:2px 0;position:relative;z-index:1;white-space:nowrap;animation:scroll 34s linear infinite}
   /* B — coarse separated dots (letters built from a clipped round-dot grid) */
-  .ticker span{font-family:var(--mono);font-size:6.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#cfcfcf;
+  .ticker span{font-family:var(--mono);font-size:6.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#ffffff;
     display:inline-block;animation:tickershake 6.5s linear infinite;
-    -webkit-text-fill-color:transparent;background-image:radial-gradient(#efefef 0.6px,transparent 0.9px);
+    -webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);
     background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
   /* text jitters + blurs for an instant on each heartbeat (synced to tickerbeat). grey text-shadow fakes the blur where filter isn't animated; sharp & still between beats */
   @keyframes tickershake{
     0%,1%{transform:translate(0,0);filter:blur(0);text-shadow:none}
-    1.7%{transform:translate(1.5px,-1px);filter:blur(0.7px);text-shadow:0 0 3px rgba(207,207,207,0.85)}
-    2.5%{transform:translate(-1px,1px);filter:blur(0.4px);text-shadow:0 0 2px rgba(207,207,207,0.6)}
-    3.3%{transform:translate(1px,0.6px);filter:blur(0.6px);text-shadow:0 0 3px rgba(207,207,207,0.8)}
+    1.7%{transform:translate(1.5px,-1px);filter:blur(0.7px);text-shadow:0 0 3px rgba(255,255,255,0.85)}
+    2.5%{transform:translate(-1px,1px);filter:blur(0.4px);text-shadow:0 0 2px rgba(255,255,255,0.6)}
+    3.3%{transform:translate(1px,0.6px);filter:blur(0.6px);text-shadow:0 0 3px rgba(255,255,255,0.8)}
     4.3%{transform:translate(0,0);filter:blur(0);text-shadow:none}
     15%{transform:translate(0,0);filter:blur(0);text-shadow:none}
-    15.7%{transform:translate(-1.4px,1px);filter:blur(0.7px);text-shadow:0 0 3px rgba(207,207,207,0.85)}
-    16.5%{transform:translate(1px,-1px);filter:blur(0.4px);text-shadow:0 0 2px rgba(207,207,207,0.6)}
-    17.3%{transform:translate(-0.8px,0.5px);filter:blur(0.5px);text-shadow:0 0 2px rgba(207,207,207,0.7)}
+    15.7%{transform:translate(-1.4px,1px);filter:blur(0.7px);text-shadow:0 0 3px rgba(255,255,255,0.85)}
+    16.5%{transform:translate(1px,-1px);filter:blur(0.4px);text-shadow:0 0 2px rgba(255,255,255,0.6)}
+    17.3%{transform:translate(-0.8px,0.5px);filter:blur(0.5px);text-shadow:0 0 2px rgba(255,255,255,0.7)}
     18.3%{transform:translate(0,0);filter:blur(0);text-shadow:none}
     32%{transform:translate(0,0);filter:blur(0);text-shadow:none}
-    32.7%{transform:translate(2px,-1.3px);filter:blur(1px);text-shadow:0 0 4px rgba(207,207,207,0.9)}
-    33.5%{transform:translate(-1.5px,1.1px);filter:blur(0.5px);text-shadow:0 0 2px rgba(207,207,207,0.6)}
-    34.3%{transform:translate(1.3px,0.6px);filter:blur(0.7px);text-shadow:0 0 3px rgba(207,207,207,0.8)}
+    32.7%{transform:translate(2px,-1.3px);filter:blur(1px);text-shadow:0 0 4px rgba(255,255,255,0.9)}
+    33.5%{transform:translate(-1.5px,1.1px);filter:blur(0.5px);text-shadow:0 0 2px rgba(255,255,255,0.6)}
+    34.3%{transform:translate(1.3px,0.6px);filter:blur(0.7px);text-shadow:0 0 3px rgba(255,255,255,0.8)}
     35.3%{transform:translate(0,0);filter:blur(0);text-shadow:none}
     43%{transform:translate(0,0);filter:blur(0);text-shadow:none}
-    43.7%{transform:translate(-1.3px,1px);filter:blur(0.6px);text-shadow:0 0 3px rgba(207,207,207,0.8)}
-    44.5%{transform:translate(1px,-0.8px);filter:blur(0.4px);text-shadow:0 0 2px rgba(207,207,207,0.6)}
-    45.3%{transform:translate(-0.7px,0.4px);filter:blur(0.5px);text-shadow:0 0 2px rgba(207,207,207,0.7)}
+    43.7%{transform:translate(-1.3px,1px);filter:blur(0.6px);text-shadow:0 0 3px rgba(255,255,255,0.8)}
+    44.5%{transform:translate(1px,-0.8px);filter:blur(0.4px);text-shadow:0 0 2px rgba(255,255,255,0.6)}
+    45.3%{transform:translate(-0.7px,0.4px);filter:blur(0.5px);text-shadow:0 0 2px rgba(255,255,255,0.7)}
     46.3%{transform:translate(0,0);filter:blur(0);text-shadow:none}
     66%{transform:translate(0,0);filter:blur(0);text-shadow:none}
-    66.7%{transform:translate(1.6px,-1px);filter:blur(0.7px);text-shadow:0 0 3px rgba(207,207,207,0.85)}
-    67.5%{transform:translate(-1.1px,0.9px);filter:blur(0.4px);text-shadow:0 0 2px rgba(207,207,207,0.6)}
-    68.3%{transform:translate(0.9px,0.5px);filter:blur(0.6px);text-shadow:0 0 3px rgba(207,207,207,0.8)}
+    66.7%{transform:translate(1.6px,-1px);filter:blur(0.7px);text-shadow:0 0 3px rgba(255,255,255,0.85)}
+    67.5%{transform:translate(-1.1px,0.9px);filter:blur(0.4px);text-shadow:0 0 2px rgba(255,255,255,0.6)}
+    68.3%{transform:translate(0.9px,0.5px);filter:blur(0.6px);text-shadow:0 0 3px rgba(255,255,255,0.8)}
     69.3%{transform:translate(0,0);filter:blur(0);text-shadow:none}
     82%{transform:translate(0,0);filter:blur(0);text-shadow:none}
-    82.7%{transform:translate(-1.4px,1px);filter:blur(0.6px);text-shadow:0 0 3px rgba(207,207,207,0.8)}
-    83.5%{transform:translate(1px,-0.7px);filter:blur(0.4px);text-shadow:0 0 2px rgba(207,207,207,0.6)}
-    84.3%{transform:translate(-0.7px,0.4px);filter:blur(0.5px);text-shadow:0 0 2px rgba(207,207,207,0.7)}
+    82.7%{transform:translate(-1.4px,1px);filter:blur(0.6px);text-shadow:0 0 3px rgba(255,255,255,0.8)}
+    83.5%{transform:translate(1px,-0.7px);filter:blur(0.4px);text-shadow:0 0 2px rgba(255,255,255,0.6)}
+    84.3%{transform:translate(-0.7px,0.4px);filter:blur(0.5px);text-shadow:0 0 2px rgba(255,255,255,0.7)}
     85.3%{transform:translate(0,0);filter:blur(0);text-shadow:none}
     100%{transform:translate(0,0);filter:blur(0);text-shadow:none}
   }
   /* divider = a simple red slash between taglines */
   .ticker span b{color:inherit;font-weight:inherit;margin:0;padding:0}
-  .ticker span b::before{content:"/";font-family:var(--mono);color:#cfcfcf;font-weight:900;font-size:6.5px;line-height:1;margin:0 11px;vertical-align:baseline;
-    -webkit-text-fill-color:transparent;background-image:radial-gradient(#efefef 0.6px,transparent 0.9px);
+  .ticker span b::before{content:"/";font-family:var(--mono);color:#ffffff;font-weight:900;font-size:6.5px;line-height:1;margin:0 11px;vertical-align:baseline;
+    -webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);
     background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
   @keyframes scroll{to{transform:translateX(-50%)}}
 </style></head><body>
