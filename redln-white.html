@@ -20,7 +20,7 @@ a{color:inherit;text-decoration:none}
 .strip{border-bottom:1px solid var(--line);background:rgba(247,248,249,0.7)}
 .strip .in{display:flex;justify-content:space-between;align-items:center;height:32px;font-family:var(--mono);font-size:6.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
 .strip .r{color:var(--red)}
-header{position:sticky;top:0;z-index:20;background:rgba(244,245,246,0.9);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+header{position:sticky;top:0;z-index:20;background:rgba(244,245,246,0.9);border-bottom:1px solid var(--line)}
 .hrow{display:flex;align-items:center;justify-content:space-between;height:66px}
 .brand{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:0.02em}.brand i{color:var(--red);font-style:normal}
 .brand-badge{display:block;flex:0 0 auto;line-height:0}
@@ -108,9 +108,8 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 .hero{position:relative;overflow:hidden}
 /* hero background video — cinematic street-doc grade, projected onto the aluminum */
 .hero-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;
-  opacity:0.40;mix-blend-mode:luminosity;
-  filter:grayscale(0.92) contrast(1.3) brightness(1.05) saturate(0.9) sepia(0.04);
-  animation:gate 5.5s steps(1,end) infinite}
+  opacity:0.42;
+  filter:grayscale(0.92) contrast(1.3) brightness(1.05) saturate(0.9) sepia(0.04)}
 /* projector gate flicker — tiny, keeps it feeling like footage not a photo */
 @keyframes gate{0%,100%{opacity:.40}17%{opacity:.37}19%{opacity:.44}55%{opacity:.385}57%{opacity:.425}80%{opacity:.395}}
 /* aluminum fade so the metal still reads through */
@@ -125,11 +124,11 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 /* animated 35mm grain — high-contrast so it reads on the light aluminium */
 .hero-grain{position:absolute;inset:-45%;z-index:0;pointer-events:none;mix-blend-mode:overlay;opacity:0.42;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.1' intercept='-0.55'/%3E%3CfeFuncG type='linear' slope='2.1' intercept='-0.55'/%3E%3CfeFuncB type='linear' slope='2.1' intercept='-0.55'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:150px 150px;animation:grain 0.5s steps(4,end) infinite}
+  background-size:150px 150px}
 /* second finer grain pass — subtle multiply for dark specks on the metal */
 .hero-grain2{position:absolute;inset:-45%;z-index:0;pointer-events:none;mix-blend-mode:multiply;opacity:0.10;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
-  background-size:90px 90px;animation:grain 0.42s steps(3,end) reverse infinite}
+  background-size:90px 90px}
 @keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-6%,4%)}66%{transform:translate(5%,-5%)}100%{transform:translate(-3%,-2%)}}
 .htone{position:absolute;right:-40px;top:40px;width:420px;height:420px;z-index:0;pointer-events:none;
   background-image:radial-gradient(var(--ink) 1.7px,transparent 1.9px);background-size:9px 9px;opacity:0.5;
@@ -182,10 +181,10 @@ body{background:#e7e9eb !important;
 :root{--redline:#ff1717;--redline-glass:rgba(255,23,23,0.15);--redline-edge:rgba(255,23,23,0.5);}
   /* ticker */
   .ticker{background:linear-gradient(180deg,#ff1717,#e01313);border-top:1px solid rgba(0,0,0,0.28);border-bottom:1px solid rgba(0,0,0,0.28);
-    margin-top:-1px;overflow:hidden;white-space:nowrap;position:relative;z-index:5;animation:tickerbeat 6.5s linear infinite}
+    margin-top:-1px;overflow:hidden;white-space:nowrap;position:relative;z-index:5}
   /* whole-band glow shaped like an irregular heartbeat (lub-dub spikes + rests, racing then pausing). a 2nd heartbeat layer on a co-prime period adds syncopated thumps so the rhythm never repeats — a redlining bpm */
   .ticker::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--redline);
-    opacity:0.04;animation:tickerbeat2 4.7s linear infinite}
+    opacity:0.04}
   /* faint "unlit LED" dot grid behind the text */
   .ticker::after{content:"";position:absolute;inset:3px 0;z-index:0;pointer-events:none;
     background-image:radial-gradient(rgba(255,255,255,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
@@ -248,7 +247,7 @@ body{background:#e7e9eb !important;
   .ticker-track{display:inline-flex;gap:0;padding:2px 0;position:relative;z-index:1;white-space:nowrap;animation:scroll 34s linear infinite}
   /* B — coarse separated dots (letters built from a clipped round-dot grid) */
   .ticker span{font-family:var(--mono);font-size:6.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#ffffff;
-    display:inline-block;animation:tickershake 6.5s linear infinite;
+    display:inline-block;
     -webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);
     background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
   /* text jitters + blurs for an instant on each heartbeat (synced to tickerbeat). grey text-shadow fakes the blur where filter isn't animated; sharp & still between beats */
@@ -420,10 +419,11 @@ nav a{cursor:pointer}
 .lbt .tot{color:var(--ink);font-weight:700}
 .lbt tbody tr.top1 .rk{color:var(--red)}
 
+@media (prefers-reduced-motion:reduce){*{animation:none !important}}
 </style></head><body>
 
 <div class="strip"><div class="wrap in"><span><span class="r">REDLN&reg; LABS</span> &nbsp; Season 01 &nbsp; DXB &nbsp; No.001</span><span>Run / Bike / Row / Ski</span></div></div>
-<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><video class="brand-vid" autoplay muted loop playsinline preload="metadata" poster="redln-logo-poster.jpg" src="redln-logo.mp4"></video></a></div>
+<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-logo-poster.jpg" alt="REDLN"></a></div>
   <nav><a class="on" data-p="home">Overview</a><a data-p="workout">The Workout</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a></nav>
   <a class="hbtn" data-p="tickets">Register &rarr;</a></div></header>
   <div class="ticker">
@@ -584,7 +584,7 @@ nav a{cursor:pointer}
 </main>
 <footer>
   <div class="wrap foot-brand">
-    <video class="foot-logo" autoplay muted loop playsinline preload="metadata" poster="redln-logo-poster.jpg" src="redln-logo.mp4"></video>
+    <img class="foot-logo" src="redln-logo-poster.jpg" alt="REDLN">
     <div class="foot-brandtxt">
       <div class="foot-tag">Find your limit,<br><i>then cross it.</i></div>
       <div class="foot-meta">REDLN&reg; &mdash; Season 01 &middot; Dubai &middot; MMXXVI</div>
