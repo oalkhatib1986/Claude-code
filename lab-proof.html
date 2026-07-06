@@ -124,6 +124,15 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 @keyframes uscan{0%,100%{top:0;opacity:0}9%{opacity:.85}50%{top:100%;opacity:.7}57%{opacity:0}}
 /* HUD coordinate on unit cap */
 .screen .cap .r{display:flex;align-items:center;gap:7px}
+
+/* brushed stainless-steel background */
+body{background:#dfe2e4 !important;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,0.40) 0 1px,rgba(20,24,28,0.028) 1px 2px,transparent 2px 3px),
+    linear-gradient(100deg,#eef0f1 0%,#d5d8db 16%,#e7e9eb 30%,#c9cdd0 46%,#e9ebed 60%,#ccd0d3 74%,#e6e8ea 88%,#d6d9dc 100%) !important;
+  background-size:100% 3px,100% 100% !important;background-attachment:fixed !important}
+/* keep top strips reading on steel */
+.strip,header{background:rgba(238,240,241,0.82) !important}
 </style></head><body>
 
 <div class="strip"><div class="wrap in"><span><span class="r">REDLN&reg; LABS</span> &nbsp; Season 01 &nbsp; DXB &nbsp; No.001</span><span>Run / Bike / Row / Ski</span></div></div>
