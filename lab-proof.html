@@ -94,6 +94,12 @@ section{padding:82px 0}
 .ovt{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(26px,3.2vw,40px);line-height:0.94}
 .ovp{font-family:var(--body);font-size:15px;line-height:1.55;color:#4a5057;margin-top:12px;max-width:54ch}.ovcta{margin-top:38px}
 footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;justify-content:space-between;align-items:center;height:82px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}.foot-in .r{color:var(--red)}
+.foot-brand{display:flex;flex-wrap:wrap;align-items:center;gap:28px;padding:44px 0 34px;border-bottom:1px solid var(--line)}
+.foot-logo{width:158px;height:158px;flex:0 0 auto;object-fit:cover;background:#fff;border:1px solid var(--line);border-radius:2px;box-shadow:0 12px 34px rgba(20,24,30,0.10)}
+.foot-brandtxt{flex:1;min-width:210px}
+.foot-tag{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,4.6vw,38px);line-height:0.92;letter-spacing:0.01em}
+.foot-tag i{color:var(--red);font-style:normal}
+.foot-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-top:14px}
 @media(max-width:860px){.hrow{flex-wrap:wrap;height:auto;padding-top:12px}.brand{order:1}.hbtn{order:2}nav{order:3;width:100%;display:flex;gap:5px;overflow-x:auto;padding:10px 0 12px;margin-top:2px;border-top:1px solid var(--line);-webkit-overflow-scrolling:touch}nav::-webkit-scrollbar{display:none}nav a{flex:0 0 auto;font-size:11px;padding:8px 11px;opacity:0.8}.hgrid{grid-template-columns:1fr;gap:74px}.screen .mark{font-size:46px}.stamp{right:-6px;top:-30px;width:88px;height:88px}.hangtag{left:0;bottom:-46px}.ovr{grid-template-columns:1fr;gap:8px}.ovk{padding-top:0}.hero{padding:40px 0 16px}.meta{gap:26px}.strip .in{font-size:9px}}
 
 /* ===== Japanese street-retro layer ===== */
@@ -367,5 +373,14 @@ body{background:#e7e9eb !important;
   <div class="ovcta"><a class="btn btn-red">See the workout &rarr;</a></div>
 </div></section>
 
-<footer><div class="wrap foot-in"><span class="r">REDLN&reg; LABS</span><span>Find your limit, then cross it</span><span>DXB &middot; MMXXVI</span></div></footer>
+<footer>
+  <div class="wrap foot-brand">
+    <video class="foot-logo" autoplay muted loop playsinline preload="metadata" poster="redln-logo-poster.jpg" src="redln-logo.mp4"></video>
+    <div class="foot-brandtxt">
+      <div class="foot-tag">Find your limit,<br><i>then cross it.</i></div>
+      <div class="foot-meta">REDLN&reg; &mdash; Season 01 &middot; Dubai &middot; MMXXVI</div>
+    </div>
+  </div>
+  <div class="wrap foot-in"><span class="r">REDLN&reg; LABS</span><span>Find your limit, then cross it</span><span>DXB &middot; MMXXVI</span></div>
+</footer>
 </body></html>
