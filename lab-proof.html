@@ -91,33 +91,6 @@ section{padding:56px 0;position:relative}
 .ovp{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--muted);margin-top:9px;max-width:52ch}
 .note{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);text-align:center;padding:30px 0}
 @media(max-width:760px){nav{display:none}.hgrid{grid-template-columns:1fr;gap:40px}.callout{display:none}.wordmark{font-size:46px}.ovr{grid-template-columns:1fr;gap:6px}.ovk{padding-top:0}.exbar .in{gap:12px;font-size:9px}}
-
-/* hanging cable */
-.rack .cable{position:absolute;top:-42px;left:50%;transform:translateX(-50%);width:34px;height:46px;z-index:0}
-.rack .cable path{stroke:#c2c6ca;stroke-width:3;fill:none;stroke-linecap:round}
-/* specimen shelf units */
-.units{position:relative;overflow:hidden;padding-top:6px}
-.units .ghost{position:absolute;right:-14px;top:-46px;font-family:var(--disp);font-weight:700;font-size:190px;line-height:1;color:rgba(14,17,21,0.035);letter-spacing:0.02em;text-transform:uppercase;pointer-events:none;z-index:0}
-.shelf{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.su{position:relative;background:linear-gradient(180deg,#d9dcdf,#a9aeb4);border-radius:4px;padding:8px;box-shadow:0 18px 32px rgba(20,24,30,0.15),inset 0 1px 0 rgba(255,255,255,0.85)}
-.su .win{position:relative;background:linear-gradient(180deg,#fff,#f1f3f4);border-radius:2px;padding:16px 14px 14px;box-shadow:inset 0 0 0 1px rgba(14,17,21,0.10);min-height:158px;display:flex;flex-direction:column}
-.su .tick{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:8px;letter-spacing:0.12em;color:var(--muted)}
-.su .idx{font-family:var(--disp);font-weight:700;font-size:30px;color:var(--red);line-height:0.8}
-.su .nm{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:24px;margin-top:auto;line-height:0.9}
-.su .sc{font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
-.srail{height:9px;margin:0 14px;background:linear-gradient(180deg,#c6cace,#9c9c9c00),linear-gradient(180deg,#c6cace,#9298a0);border-radius:0 0 3px 3px}
-.slegs{display:flex;justify-content:space-between;padding:0 60px}
-@media(max-width:760px){.shelf{grid-template-columns:1fr 1fr;gap:10px}.units .ghost{font-size:110px;top:-20px}.slegs{padding:0 30px}}
-
-/* retro oscilloscope motion graphic */
-.scope{position:relative;margin:16px 6px 4px;height:58px;border-radius:2px;overflow:hidden;background:#08090b;
-  background-image:radial-gradient(circle,rgba(120,150,130,0.10) 0.6px,transparent 1px);background-size:6px 6px;
-  box-shadow:inset 0 0 0 1px #191c1f,inset 0 0 22px rgba(0,0,0,0.75)}
-.scope::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,0.28) 3px);opacity:0.55}
-.scope .slbl{position:absolute;top:6px;left:9px;z-index:4;font-family:var(--mono);font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:#ff5a5a}
-.scope svg{position:absolute;top:0;left:0;width:200%;height:100%;animation:scsweep 2s linear infinite}
-.scope path{fill:none;stroke:#ff2323;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 4px rgba(255,35,35,0.9))}
-@keyframes scsweep{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 </style></head><body>
 
 <div class="exbar"><div class="wrap in"><span class="r">● EXHIBIT LIVE</span><span>REDLN LABS</span><span>UNIT S01 / DXB</span><span class="sp"></span><span>RUN·BIKE·ROW·SKI</span></div></div>
@@ -138,7 +111,6 @@ section{padding:56px 0;position:relative}
       <div class="hact"><a class="btn btn-red">Register now →</a><a class="btn btn-line">See the workout</a></div>
     </div>
     <div class="rack">
-      <div class="cable"><svg viewBox="0 0 34 46"><path d="M17,46 C17,38 27,38 27,31 C27,25 7,25 7,18 C7,12 27,12 27,6 C27,1 17,1 17,0"/></svg></div>
       <span class="callout c1"><span class="lead"></span>FIG.00 / DISPLAY UNIT</span>
       <span class="callout c2">MODEL RDLN-01<span class="dot"></span><span class="lead"></span></span>
       <div class="frame">
@@ -147,7 +119,6 @@ section{padding:56px 0;position:relative}
           <div class="slabel"><span>UNIT REDLN</span><span class="r">● LIVE</span></div>
           <div class="wordmark">REDLN<i>.</i></div>
           <div class="uline"></div>
-          <div class="scope"><span class="slbl">Redline // live</span><svg viewBox="0 0 800 58" preserveAspectRatio="none"><path d="M0,29 L70,29 L82,29 L90,9 L99,49 L108,20 L116,29 L200,29 L270,29 L282,29 L290,9 L299,49 L308,20 L316,29 L400,29 L470,29 L482,29 L490,9 L499,49 L508,20 L516,29 L600,29 L670,29 L682,29 L690,9 L699,49 L708,20 L716,29 L800,29"/></svg></div>
           <div class="tags"><span class="tag2 red">RUN</span><span class="tag2">BIKE</span><span class="tag2">ROW</span><span class="tag2">SKI</span></div>
         </div>
       </div>
@@ -180,23 +151,5 @@ section{padding:56px 0;position:relative}
   <div class="ovr"><div class="ovn">03</div><div class="ovk">// Category</div><div><div class="ovt">Everyday &amp; Elite</div><div class="ovp">Same format, scaled load. Race once, or take the Season Pass for all five.</div></div></div>
 </div></section>
 
-<section><div class="wrap">
-  <div class="fig"><span class="r">FIG.03</span> / THE UNITS <span class="ln"></span> <span>4 DISCIPLINES</span></div>
-  <div class="units"><div class="ghost">LAB</div>
-    <div class="shelf">
-      <div class="su"><div class="win"><span class="tick">SPC-01</span><div class="idx">01</div><div class="nm">Run</div><div class="sc">Legs // pace</div></div></div>
-      <div class="su"><div class="win"><span class="tick">SPC-02</span><div class="idx">02</div><div class="nm">Bike</div><div class="sc">Machine // watts</div></div></div>
-      <div class="su"><div class="win"><span class="tick">SPC-03</span><div class="idx">03</div><div class="nm">Row</div><div class="sc">Machine // pull</div></div></div>
-      <div class="su"><div class="win"><span class="tick">SPC-04</span><div class="idx">04</div><div class="nm">Ski</div><div class="sc">Machine // burn</div></div></div>
-    </div>
-    <div class="srail"></div>
-    <div class="slegs">
-      <div class="legwrap"><div class="leg"></div><div class="caster"></div></div>
-      <div class="legwrap"><div class="leg"></div><div class="caster"></div></div>
-      <div class="legwrap"><div class="leg"></div><div class="caster"></div></div>
-    </div>
-  </div>
-</div></section>
-
-<div class="note">REDLN — NIKE-LABS INSTALLATION · pushed further</div>
+<div class="note">REDLN — NIKE-LABS INSTALLATION FEEL · light exploration</div>
 </body></html>
