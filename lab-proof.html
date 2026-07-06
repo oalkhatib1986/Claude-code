@@ -250,6 +250,14 @@ body{background:#e7e9eb !important;
     -webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);
     background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
   @keyframes scroll{to{transform:translateX(-50%)}}
+
+/* product barcode */
+.codeblk{padding:20px 0 46px}
+.bcwrap{max-width:360px;margin:0 auto}
+.barcode{height:56px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);
+  background-image:repeating-linear-gradient(90deg,#0d1013 0 2px,transparent 2px 4px,#0d1013 4px 5px,transparent 5px 8px,#0d1013 8px 11px,transparent 11px 12px,#0d1013 12px 14px,transparent 14px 17px,#0d1013 17px 18px,transparent 18px 21px,#0d1013 21px 24px,transparent 24px 25px,#0d1013 25px 27px,transparent 27px 30px,#0d1013 30px 31px,transparent 31px 34px,#0d1013 34px 37px,transparent 37px 40px)}
+.bccode{font-family:var(--mono);font-size:11px;letter-spacing:0.42em;text-transform:uppercase;color:var(--ink);margin-top:11px;text-align:center;padding-left:0.42em}
+.bctop{font-family:var(--mono);font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:10px}
 </style></head><body>
 
 <div class="strip"><div class="wrap in"><span><span class="r">REDLN&reg; LABS</span> &nbsp; Season 01 &nbsp; DXB &nbsp; No.001</span><span>Run / Bike / Row / Ski</span></div></div>
@@ -311,6 +319,12 @@ body{background:#e7e9eb !important;
   <div class="ovr"><div class="ovno">No.03<b>03</b></div><div class="ovk">Categories</div><div><div class="ovt">Everyday &amp; Elite</div><div class="ovp">Same format, scaled load. Race once, or take the Season Pass for all five.</div></div></div>
   <div class="ovcta"><a class="btn btn-red">See the workout &rarr;</a></div>
 </div></section>
+
+<div class="codeblk"><div class="wrap"><div class="bcwrap">
+  <div class="bctop">Issue // Season 01</div>
+  <div class="barcode"></div>
+  <div class="bccode">REDLN 01 DXB 001</div>
+</div></div></div>
 
 <footer><div class="wrap foot-in"><span class="r">REDLN&reg; LABS</span><span>Find your limit, then cross it</span><span>DXB &middot; MMXXVI</span></div></footer>
 </body></html>
