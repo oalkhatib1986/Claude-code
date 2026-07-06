@@ -91,14 +91,30 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 
 /* ===== Japanese street-retro layer ===== */
 .hero{position:relative;overflow:hidden}
-/* hero background video — projected onto the aluminum, faded so the metal reads through */
+/* hero background video — cinematic street-doc grade, projected onto the aluminum */
 .hero-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;
-  opacity:0.40;mix-blend-mode:luminosity;filter:contrast(1.05) grayscale(0.22) brightness(1.04)}
+  opacity:0.44;mix-blend-mode:luminosity;
+  filter:contrast(1.26) brightness(1.05) saturate(0.92) sepia(0.08);
+  animation:gate 5.5s steps(1,end) infinite}
+/* projector gate flicker — tiny, keeps it feeling like footage not a photo */
+@keyframes gate{0%,100%{opacity:.44}17%{opacity:.415}19%{opacity:.47}55%{opacity:.43}57%{opacity:.455}80%{opacity:.435}}
+/* aluminum fade so the metal still reads through */
 .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;
   background:
-    linear-gradient(180deg,rgba(231,233,235,0.60) 0%,rgba(231,233,235,0.28) 34%,rgba(231,233,235,0.30) 60%,rgba(231,233,235,0.82) 100%),
-    linear-gradient(90deg,rgba(231,233,235,0.55) 0%,rgba(231,233,235,0.08) 26%,rgba(231,233,235,0.08) 74%,rgba(231,233,235,0.55) 100%),
-    repeating-linear-gradient(90deg,rgba(255,255,255,0.30) 0 1px,rgba(18,22,26,0.02) 1px 2px,transparent 2px 5px)}
+    linear-gradient(180deg,rgba(231,233,235,0.58) 0%,rgba(231,233,235,0.24) 34%,rgba(231,233,235,0.26) 60%,rgba(231,233,235,0.80) 100%),
+    linear-gradient(90deg,rgba(231,233,235,0.52) 0%,rgba(231,233,235,0.06) 26%,rgba(231,233,235,0.06) 74%,rgba(231,233,235,0.52) 100%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,0.28) 0 1px,rgba(18,22,26,0.02) 1px 2px,transparent 2px 5px)}
+/* split-tone: cool shadows / warm highlights — hue only, keeps luminance clean */
+.hero-grade{position:absolute;inset:0;z-index:0;pointer-events:none;mix-blend-mode:color;opacity:0.22;
+  background:linear-gradient(180deg,#1c6f80 0%,#8b8f82 48%,#b3743e 100%)}
+/* filmic vignette — darkens the corners only */
+.hero-vignette{position:absolute;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;
+  background:radial-gradient(122% 92% at 50% 40%,transparent 54%,rgba(18,20,24,0.30) 100%)}
+/* animated 35mm grain */
+.hero-grain{position:absolute;inset:-45%;z-index:0;pointer-events:none;mix-blend-mode:overlay;opacity:0.11;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px 160px;animation:grain 0.52s steps(3,end) infinite}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-6%,4%)}66%{transform:translate(5%,-5%)}100%{transform:translate(-3%,-2%)}}
 .htone{position:absolute;right:-40px;top:40px;width:420px;height:420px;z-index:0;pointer-events:none;
   background-image:radial-gradient(var(--ink) 1.7px,transparent 1.9px);background-size:9px 9px;opacity:0.5;
   -webkit-mask-image:radial-gradient(circle at 70% 30%,#000,transparent 62%);mask-image:radial-gradient(circle at 70% 30%,#000,transparent 62%)}
@@ -287,7 +303,7 @@ body{background:#e7e9eb !important;
     </div>
   </div>
 
-<div class="hero"><video class="hero-vid" autoplay muted loop playsinline preload="auto" poster="" src="redln-hero.mp4"></video><div class="hero-veil"></div><div class="wrap"><div class="hgrid">
+<div class="hero"><video class="hero-vid" autoplay muted loop playsinline preload="auto" poster="" src="redln-hero.mp4"></video><div class="hero-veil"></div><div class="hero-grade"></div><div class="hero-vignette"></div><div class="hero-grain"></div><div class="wrap"><div class="hgrid">
   <div>
     <div class="htop"><span class="no">Type-01</span><span class="bar"></span><span class="no">Fig. A</span></div>
     <h1>Find your<br>limit.<br><span class="r">Then cross it.</span></h1>
