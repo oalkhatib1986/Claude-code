@@ -67,6 +67,26 @@
   .reset{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);
     background:#fff;border:1px solid var(--line);border-radius:2px;padding:7px 12px;cursor:pointer}
   .reset:hover{border-color:var(--red);color:var(--red)}
+  /* full P&L statement */
+  .pnl-card{margin-top:28px}
+  table.pnl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+  table.pnl th{color:var(--muted);font-weight:400;letter-spacing:0.08em;text-transform:uppercase;font-size:9px;text-align:right;padding:12px 18px;border-bottom:1px solid var(--line)}
+  table.pnl th:first-child{text-align:left}
+  table.pnl td{padding:6px 18px;text-align:right;border-bottom:1px solid rgba(13,16,19,0.05);white-space:nowrap}
+  table.pnl td:first-child{text-align:left;color:var(--ink);white-space:normal}
+  tr.ph td{background:#fafbfb;color:var(--muted);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding-top:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  tr.line td{color:var(--muted)}
+  tr.line td:first-child{color:var(--ink)}
+  tr.tot td{font-weight:700;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  tr.gross td{font-weight:700;background:#fbfcfd}
+  tr.profit td{font-weight:700;font-size:15px;background:#f5faf6;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+  tr.profit td:not(:first-child){color:var(--good)}
+  tr.profit.neg td:not(:first-child){color:var(--red)}
+  tr.cap td{color:var(--muted);border-bottom:1px solid rgba(13,16,19,0.05)}
+  tr.cap td:first-child{color:var(--ink)}
+  tr.cap.strong td{font-weight:700;color:var(--ink)}
+  tr.cap.strong td:not(:first-child){color:var(--red)}
+  @media(max-width:560px){table.pnl{font-size:11px}table.pnl td,table.pnl th{padding-left:10px;padding-right:10px}}
 </style>
 </head>
 <body>
@@ -164,6 +184,16 @@
       </div>
     </div>
   </div>
+
+  <!-- ============ FULL P&L STATEMENT ============ -->
+  <div class="card pnl-card">
+    <div class="ch">Full Model — P&amp;L Statement <span class="csum" id="pnl-cad">—</span></div>
+    <table class="pnl">
+      <thead><tr><th>Line item</th><th>Per event</th><th>Per year</th></tr></thead>
+      <tbody id="pnlbody"></tbody>
+    </table>
+  </div>
+  <p class="foot">Per-year column = per-event × events/year for operating lines (overhead reconciles to the full 12 months of fixed cost). Operating profit is before capital. Capital recovery below the operating line shows how many years/events of that profit repay the one-time CapEx.</p>
 </div>
 
 <script>
@@ -199,6 +229,15 @@ function compute(){
   var ohPerEvent=monthlyFixed*monthsPerEvent;
 
   var net=grossRev - variableCost - eventFixed - ohPerEvent;
+
+  renderPnl({
+    eE:{q:qE,p:pE}, eV:{q:qV,p:pV},
+    tee:val('v_tee')*athletes, tag:val('v_tag')*athletes, bib:val('v_bib')*athletes, nut:val('v_nut')*athletes, fee:grossRev*feePct,
+    venue:val('e_venue'),med:val('e_med'),staff:val('e_staff'),log:val('e_log'),media:val('e_media'),
+    rent:val('m_rent'),sal:val('m_sal'),util:val('m_util'),mkt:val('m_mkt'),
+    monthsPerEvent:monthsPerEvent, evYr:evYr,
+    grossRev:grossRev, variable:variableCost, eventFixed:eventFixed, ohPerEvent:ohPerEvent, net:net, capex:capex
+  });
 
   // section summaries
   document.getElementById('sum-rev').textContent=money(grossRev)+' / event';
@@ -273,6 +312,52 @@ window.addEventListener('DOMContentLoaded',function(){
     document.getElementById(IDS[i]).addEventListener('input',recompute);}
   recompute();
 });
+function renderPnl(d){
+  var yr=d.evYr, mpe=d.monthsPerEvent, out='';
+  function row(lbl,pe,cls){out+='<tr class="'+(cls||'line')+'"><td>'+lbl+'</td><td>'+money(pe)+'</td><td>'+money(pe*yr)+'</td></tr>';}
+  function head(lbl){out+='<tr class="ph"><td colspan="3">'+lbl+'</td></tr>';}
+
+  head('Revenue');
+  row('Elite &mdash; '+num(d.eE.q)+' &times; '+num(d.eE.p), d.eE.q*d.eE.p);
+  row('Everyday &mdash; '+num(d.eV.q)+' &times; '+num(d.eV.p), d.eV.q*d.eV.p);
+  row('Gross revenue', d.grossRev, 'gross');
+
+  head('Variable costs &mdash; per athlete');
+  row('Finishing tee', -d.tee);
+  row('Finisher tag / medal', -d.tag);
+  row('Bib &middot; timing chip', -d.bib);
+  row('Nutrition &middot; water', -d.nut);
+  row('Payment &middot; booking fees', -d.fee);
+  row('Total variable', -d.variable, 'tot');
+
+  head('Per-event production');
+  row('Venue &amp; permits', -d.venue);
+  row('Medical &middot; safety', -d.med);
+  row('Staffing &middot; marshals', -d.staff);
+  row('Logistics &middot; setup', -d.log);
+  row('Photo &middot; video', -d.media);
+  row('Total production', -d.eventFixed, 'tot');
+
+  head('Fixed overhead &mdash; '+mpe.toFixed(1)+' mo allocated / event');
+  row('Warehouse rent', -d.rent*mpe);
+  row('Salaries', -d.sal*mpe);
+  row('Utilities &middot; software', -d.util*mpe);
+  row('Always-on marketing', -d.mkt*mpe);
+  row('Total overhead', -d.ohPerEvent, 'tot');
+
+  var margin=d.grossRev>0?(d.net/d.grossRev*100):0;
+  out+='<tr class="profit'+(d.net<0?' neg':'')+'"><td>Operating profit &mdash; '+margin.toFixed(1)+'% margin</td><td>'+money(d.net)+'</td><td>'+money(d.net*yr)+'</td></tr>';
+
+  head('Capital recovery');
+  var profitYr=d.net*yr;
+  out+='<tr class="cap strong"><td>One-time capital (CapEx)</td><td>&mdash;</td><td>'+money(d.capex)+'</td></tr>';
+  out+='<tr class="cap"><td>Annual operating profit</td><td>&mdash;</td><td>'+money(profitYr)+'</td></tr>';
+  var payTxt = d.net>0 ? (d.capex/profitYr).toFixed(2)+' yrs  ·  '+(d.capex/d.net).toFixed(1)+' events  ·  '+(d.capex/d.net*mpe).toFixed(1)+' months' : 'never (event loses money)';
+  out+='<tr class="cap strong"><td>Payback period</td><td>&mdash;</td><td>'+payTxt+'</td></tr>';
+
+  document.getElementById('pnlbody').innerHTML=out;
+  document.getElementById('pnl-cad').textContent = d.net>0 ? 'CapEx '+money(d.capex)+' · payback '+(d.capex/profitYr).toFixed(2)+' yrs' : 'CapEx '+money(d.capex)+' · payback ∞';
+}
 function recompute(){compute();}
 function resetAll(){for(var i=0;i<IDS.length;i++)document.getElementById(IDS[i]).value=DEF[IDS[i]];recompute();}
 </script>
