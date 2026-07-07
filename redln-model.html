@@ -107,6 +107,13 @@
   table.mono.fit{table-layout:fixed;width:100%}
   table.mono.fit td:first-child,table.mono.fit th:first-child{white-space:normal;word-break:break-word;padding-right:8px}
   table.mono.fit td:last-child,table.mono.fit th:last-child{width:36%;white-space:nowrap}
+  .recon{border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px}
+  .rr{display:flex;justify-content:space-between;gap:12px;padding:8px 16px;border-bottom:1px solid rgba(13,16,19,0.05);color:var(--muted)}
+  .rr span:first-child{color:var(--ink)}
+  .rr span:last-child{white-space:nowrap}
+  .rr.imp{background:#fafbfb}
+  .rr.imp span:first-child::before{content:'\21B3';color:var(--red);margin-right:6px}
+  .rr.tot{font-weight:700;color:var(--ink);background:#f5faf6;border-top:1px solid var(--line);border-bottom:none}
   .neg{color:var(--red)}.pos{color:var(--good)}.mut{color:var(--muted)}
   td.mth{font-weight:700;color:var(--ink)}
   tr.pre td{background:#fff7ee}
@@ -460,7 +467,31 @@ function kvGroup(g){
     h+='<div class="af'+(it.pct?' pct':'')+'"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
        '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
   });
-  return h+'</div></div>';
+  var recon=(g.key==='production'||g.key==='capex'||g.key==='overhead')?'<div class="recon" id="recon-'+g.key+'"></div>':'';
+  return h+'</div>'+recon+'</div>';
+}
+function reconBlock(id,subLabel,subtotal,imported,totLabel,total){
+  if(!el(id))return;
+  var s='<div class="rr"><span>'+subLabel+'</span><span>'+fmt(subtotal)+'</span></div>';
+  imported.forEach(function(l){s+='<div class="rr imp"><span>'+l.label+'</span><span>'+fmt(l.v)+'</span></div>';});
+  s+='<div class="rr tot"><span>'+totLabel+'</span><span>'+fmt(total)+'</span></div>';
+  el(id).innerHTML=s;
+}
+function renderRecon(A){
+  var pSchema=A.prodLines.filter(function(l){return l.id.indexOf('eql_')!==0;});
+  var pLease=A.prodLines.filter(function(l){return l.id.indexOf('eql_')===0;});
+  reconBlock('recon-production','Production subtotal (this section)',pSchema.reduce(function(t,l){return t+l.v;},0),
+    pLease.map(function(l){return {label:l.label.replace(' (lease)','')+' — leased · Equipment',v:l.v};}),'Total per event',A.prodTotal);
+
+  var cSchema=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')!==0;});
+  var cBuy=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;});
+  reconBlock('recon-capex','Other CapEx subtotal (this section)',cSchema.reduce(function(t,l){return t+l.v;},0),
+    cBuy.map(function(l){return {label:l.label+' — bought · Equipment',v:l.v};}),'Total capital (one-time)',A.capexTotal);
+
+  var oOpex=A.ohLines.filter(function(l){return l.id.indexOf('pay_')!==0;});
+  var oPay=A.ohLines.filter(function(l){return l.id.indexOf('pay_')===0;});
+  reconBlock('recon-overhead','Operating overhead subtotal (monthly)',oOpex.reduce(function(t,l){return t+l.v;},0),
+    oPay.map(function(l){return {label:l.label+' — Payroll',v:l.v};}),'Total overhead / month',A.ovhMonthly);
 }
 function equipCard(){
   var h='<div class="card"><div class="ch"><span>Equipment — Buy or Lease <span class="csum" id="sum-equipment">—</span></span>'+
@@ -547,14 +578,16 @@ function resetAll(){
   syncMaster();build();
 }
 function updateAsmSums(A){
-  el('sum-capex').textContent=aed(GBY.capex.reduce(function(t,it){return t+val(it.id);},0))+' + equip bought';
-  el('sum-overhead').textContent=aed(A.ovhMonthly)+' / mo';
-  el('sum-production').textContent=aed(A.prodTotal)+' / event';
+  var boughtEq=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;}).reduce(function(t,l){return t+l.v;},0);
+  var leasedEq=A.prodLines.filter(function(l){return l.id.indexOf('eql_')===0;}).reduce(function(t,l){return t+l.v;},0);
+  el('sum-capex').textContent=aed(A.capexTotal)+' total';
+  el('sum-overhead').textContent=aed(A.ovhMonthly)+' / mo total';
+  el('sum-production').textContent=aed(A.prodTotal)+' / event total';
   var athG=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
   el('sum-variable').textContent='AED '+athG+' / athlete + '+val('vFee')+'%';
   el('sum-revenue').textContent=aed(val('qElite')*val('pElite')+val('qEvery')*val('pEvery')+val('sponsor'))+' / event';
   el('sum-timeline').textContent=Math.round(val('horizon'))+' mo · '+Math.round(val('preop'))+' pre-op';
-  el('sum-equipment').textContent=A.capexTotal>=0?('CapEx '+aed(A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;}).reduce(function(t,l){return t+l.v;},0))):'';
+  el('sum-equipment').textContent='Buy '+aed(boughtEq)+' · Lease '+aed(leasedEq)+'/event';
   el('sum-org').textContent=A.totalHead+' staff · '+aed(A.totalGross)+' / mo';
 }
 function renderOrgCalc(A){
@@ -753,6 +786,7 @@ function renderDash(A){
 function build(){
   var A=compute();
   updateAsmSums(A);
+  renderRecon(A);
   renderOrgCalc(A);
   renderAsmPnl(A);
   renderDash(A);
