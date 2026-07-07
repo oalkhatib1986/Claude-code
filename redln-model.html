@@ -279,15 +279,24 @@ function compute(){
   var prodTotal=sumGroup('production');
   var ovhMonthly=sumGroup('overhead');
   var capexTotal=sumGroup('capex');
-  var interval=Math.max(1,Math.round(12/evYr));
   var first=preop+1;
   var monthsPerEvent=12/evYr;
   var years=Math.ceil(horizon/12);
   var yi=function(m){return Math.floor((m-1)/12);};
 
+  // event months: anchor at first operating month, then accumulate the exact
+  // 12/evYr spacing (rounded per-event, not per-gap) so the annual rate stays true
+  var eventMonths=[],seenM={};
+  for(var k=0;;k++){
+    var em=first+Math.round(k*12/evYr);
+    if(em>horizon)break;
+    if(!seenM[em]){seenM[em]=1;eventMonths.push(em);}
+  }
+
   // events
   var events=[];
-  for(var m=first;m<=horizon;m+=interval){
+  for(var ei=0;ei<eventMonths.length;ei++){
+    var m=eventMonths[ei];
     var y=yi(m), gf=Math.pow(1+growth,y);
     var qE=Math.round(val('qElite')*gf), qV=Math.round(val('qEvery')*gf);
     var tRev=qE*pElite+qV*pEvery;
@@ -350,7 +359,7 @@ function compute(){
   var fixedPerEvent=prodTotal+ohAlloc-sponsor;
   var beAth=contribPerAth>0?fixedPerEvent/contribPerAth:Infinity;
 
-  return {horizon:horizon,preop:preop,years:years,first:first,interval:interval,monthsPerEvent:monthsPerEvent,
+  return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
     rows:rows,events:events,line:line,openFund:openFund,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
