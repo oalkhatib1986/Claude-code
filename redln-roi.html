@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REDLN — Capital Return Model</title>
+<style>
+  :root{
+    --red:#FF1717;--ink:#0d1013;--muted:#6a7075;--line:rgba(13,16,19,0.14);
+    --paper:#f4f5f6;--panel:#ffffff;--good:#0a8f4c;--warn:#c47f00;
+    --disp:'Chakra Petch','Arial Narrow',system-ui,sans-serif;
+    --mono:'Space Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    background-image:linear-gradient(rgba(60,90,120,0.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(60,90,120,0.045) 1px,transparent 1px);
+    background-size:38px 38px;background-attachment:fixed}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:66px;padding:12px 0;flex-wrap:wrap}
+  .mark{font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:0.01em;text-transform:uppercase;
+    border:1.6px solid var(--ink);border-radius:2px;padding:5px 10px;line-height:1;display:inline-flex;align-items:flex-start}
+  .mark i{color:var(--red);font-style:normal}
+  .mark sup{font-size:0.42em;margin-left:2px}
+  .htitle{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.6}
+  .htitle b{display:block;color:var(--ink);font-weight:700}
+  h1{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:30px;margin:34px 0 4px}
+  .sub{font-family:var(--mono);font-size:12px;letter-spacing:0.05em;color:var(--muted);margin-bottom:28px;max-width:640px;line-height:1.7}
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;padding-bottom:70px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:3px}
+  .card + .card{margin-top:18px}
+  .ch{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);
+    padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+  .ch .csum{color:var(--ink);font-weight:700;font-size:12px}
+  .row{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;padding:8px 16px;border-bottom:1px solid rgba(13,16,19,0.06)}
+  .row:last-child{border-bottom:none}
+  .row label{font-size:13px;color:var(--ink)}
+  .row .u{font-family:var(--mono);font-size:10px;color:var(--muted);display:block;margin-top:1px}
+  input[type=number]{width:100%;font-family:var(--mono);font-size:13px;text-align:right;
+    padding:7px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
+  input[type=number]:focus{outline:none;border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+  .qrow{display:grid;grid-template-columns:1fr 90px 110px;gap:10px;align-items:center;padding:8px 16px;border-bottom:1px solid rgba(13,16,19,0.06)}
+  .qrow .qh{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:right}
+  /* results */
+  .res{position:sticky;top:90px}
+  .big{padding:22px 20px;border-bottom:1px solid var(--line)}
+  .big .k{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted)}
+  .big .v{font-family:var(--disp);font-weight:700;font-size:52px;line-height:0.95;color:var(--red);margin-top:6px}
+  .big .v.small{font-size:30px;color:var(--ink)}
+  .big .note{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .kv{display:flex;justify-content:space-between;padding:10px 20px;border-bottom:1px solid rgba(13,16,19,0.06);font-size:13px}
+  .kv:last-child{border-bottom:none}
+  .kv .kk{color:var(--muted)}
+  .kv .vv{font-family:var(--mono);font-weight:700}
+  .kv.pos .vv{color:var(--good)}.kv.neg .vv{color:var(--red)}
+  .band{height:8px;background:repeating-linear-gradient(-26deg,var(--red) 0 10px,transparent 10px 24px)}
+  .warn{background:#fff6e6;color:var(--warn);font-family:var(--mono);font-size:11px;line-height:1.6;padding:12px 20px;border-bottom:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+  th,td{padding:7px 10px;text-align:right;border-bottom:1px solid rgba(13,16,19,0.06)}
+  th{color:var(--muted);font-weight:400;letter-spacing:0.08em;text-transform:uppercase;font-size:9px}
+  td:first-child,th:first-child{text-align:left}
+  td.p{color:var(--good)}td.n{color:var(--red)}
+  .foot{font-family:var(--mono);font-size:10px;color:var(--muted);padding:20px 0 40px;line-height:1.8}
+  .reset{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);
+    background:#fff;border:1px solid var(--line);border-radius:2px;padding:7px 12px;cursor:pointer}
+  .reset:hover{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+<header><div class="wrap hrow">
+  <span class="mark">REDLN<i>.</i><sup>&reg;</sup></span>
+  <span class="htitle"><b>Capital Return Model</b>Season 01 · internal · AED</span>
+</div></header>
+
+<div class="wrap">
+  <h1>Capital Return Period</h1>
+  <p class="sub">Live model — every figure below is editable. Set your ticket mix and event cadence, adjust any cost line, and the payback panel on the right recomputes instantly. Defaults are planning estimates; overwrite them with real quotes as they land.</p>
+
+  <div class="grid">
+    <!-- ============ INPUTS ============ -->
+    <div class="col-in">
+
+      <div class="card">
+        <div class="ch">A · Ticket Sales <span class="csum" id="sum-rev">—</span></div>
+        <div class="qrow"><span class="qh" style="text-align:left;color:var(--ink);font-size:13px;font-family:inherit;letter-spacing:0;text-transform:none">Ticket tier</span><span class="qh">Price (AED)</span><span class="qh">Qty / event</span></div>
+        <div class="qrow"><label>Elite</label><input type="number" id="pElite" value="999"><input type="number" id="qElite" value="300"></div>
+        <div class="qrow"><label>Everyday</label><input type="number" id="pEvery" value="899"><input type="number" id="qEvery" value="900"></div>
+        <div class="row"><label>Events per year<span class="u">race weekends held annually</span></label><input type="number" id="evYr" value="4"></div>
+      </div>
+
+      <div class="card">
+        <div class="ch">B · One-Time Capital (CapEx) <span class="csum" id="sum-cap">—</span></div>
+        <div class="row"><label>LED screens<span class="u">purchase — main + secondary</span></label><input type="number" id="c_led" value="420000"></div>
+        <div class="row"><label>Crowd barriers<span class="u">buy fleet (steel / mojo)</span></label><input type="number" id="c_bar" value="260000"></div>
+        <div class="row"><label>Barrier branding<span class="u">printed scrim / sleeves</span></label><input type="number" id="c_barbr" value="70000"></div>
+        <div class="row"><label>Race equipment<span class="u">SkiErg · RowErg · bikes · rigs</span></label><input type="number" id="c_equip" value="360000"></div>
+        <div class="row"><label>Timing system<span class="u">chips · gantry · software</span></label><input type="number" id="c_time" value="150000"></div>
+        <div class="row"><label>Staging · rig · truss<span class="u">start/finish structure</span></label><input type="number" id="c_stage" value="120000"></div>
+        <div class="row"><label>Sound &amp; PA<span class="u">speakers · mixer · mics</span></label><input type="number" id="c_sound" value="90000"></div>
+        <div class="row"><label>General branding &amp; signage<span class="u">arch · flags · wayfinding</span></label><input type="number" id="c_brand" value="110000"></div>
+        <div class="row"><label>Website · app · platform<span class="u">registration + leaderboard build</span></label><input type="number" id="c_tech" value="70000"></div>
+        <div class="row"><label>Warehouse fit-out<span class="u">racking · workshop · office</span></label><input type="number" id="c_fit" value="80000"></div>
+        <div class="row"><label>Launch marketing<span class="u">Season 01 brand launch</span></label><input type="number" id="c_launch" value="140000"></div>
+        <div class="row"><label>Licensing · legal · setup<span class="u">trade licence · IP · insurance bond</span></label><input type="number" id="c_legal" value="90000"></div>
+        <div class="row"><label>Contingency<span class="u">buffer on capital</span></label><input type="number" id="c_cont" value="120000"></div>
+      </div>
+
+      <div class="card">
+        <div class="ch">C · Fixed Overheads (monthly) <span class="csum" id="sum-fix">—</span></div>
+        <div class="row"><label>Warehouse rent<span class="u">per month (600k / yr ÷ 12)</span></label><input type="number" id="m_rent" value="50000"></div>
+        <div class="row"><label>Salaries<span class="u">core team · per month</span></label><input type="number" id="m_sal" value="50000"></div>
+        <div class="row"><label>Utilities · software · comms<span class="u">per month</span></label><input type="number" id="m_util" value="12000"></div>
+        <div class="row"><label>Always-on marketing<span class="u">social · content · per month</span></label><input type="number" id="m_mkt" value="25000"></div>
+      </div>
+
+      <div class="card">
+        <div class="ch">D · Per-Event Production <span class="csum" id="sum-ev">—</span></div>
+        <div class="row"><label>Venue &amp; permits<span class="u">site hire · DED / police permits</span></label><input type="number" id="e_venue" value="120000"></div>
+        <div class="row"><label>Medical · ambulance · safety<span class="u">per event</span></label><input type="number" id="e_med" value="35000"></div>
+        <div class="row"><label>Event staffing · marshals<span class="u">crew · security · per event</span></label><input type="number" id="e_staff" value="70000"></div>
+        <div class="row"><label>Logistics · transport · setup<span class="u">trucking · rigging labour</span></label><input type="number" id="e_log" value="45000"></div>
+        <div class="row"><label>Photo · video · content<span class="u">per event capture</span></label><input type="number" id="e_media" value="30000"></div>
+      </div>
+
+      <div class="card">
+        <div class="ch">E · Per-Athlete Variable <span class="csum" id="sum-var">—</span></div>
+        <div class="row"><label>Finishing tee<span class="u">cost each</span></label><input type="number" id="v_tee" value="42"></div>
+        <div class="row"><label>Finisher tag / medal<span class="u">cost each</span></label><input type="number" id="v_tag" value="26"></div>
+        <div class="row"><label>Bib · timing chip<span class="u">cost each</span></label><input type="number" id="v_bib" value="12"></div>
+        <div class="row"><label>Nutrition · water · recovery<span class="u">cost each</span></label><input type="number" id="v_nut" value="20"></div>
+        <div class="row"><label>Payment · booking fees<span class="u">% of ticket price</span></label><input type="number" id="v_fee" value="3"></div>
+      </div>
+
+      <div style="margin-top:16px"><button class="reset" onclick="resetAll()">Reset to defaults</button></div>
+      <p class="foot">All values in AED. Model treats CapEx as recovered from operating contribution (revenue − variable − per-event − allocated overhead). Payback = one-time capital ÷ net contribution per event. Adjust cadence in A to see months vs. events. Figures are estimates for planning, not a substitute for supplier quotes.</p>
+    </div>
+
+    <!-- ============ RESULTS ============ -->
+    <div class="col-res">
+      <div class="card res">
+        <div class="band"></div>
+        <div class="big">
+          <div class="k">Capital return period</div>
+          <div class="v" id="r-months">—</div>
+          <div class="note" id="r-note">—</div>
+        </div>
+        <div id="r-warn"></div>
+        <div class="kv"><span class="kk">Revenue / event</span><span class="vv" id="r-rev">—</span></div>
+        <div class="kv"><span class="kk">Variable cost / event</span><span class="vv" id="r-var">—</span></div>
+        <div class="kv"><span class="kk">Per-event production</span><span class="vv" id="r-ev">—</span></div>
+        <div class="kv"><span class="kk">Overhead allocated / event</span><span class="vv" id="r-oh">—</span></div>
+        <div class="kv pos"><span class="kk"><b>Net contribution / event</b></span><span class="vv" id="r-net">—</span></div>
+        <div class="kv"><span class="kk">Total capital (CapEx)</span><span class="vv" id="r-cap">—</span></div>
+        <div class="kv"><span class="kk">Break-even athletes / event</span><span class="vv" id="r-be">—</span></div>
+        <div class="kv"><span class="kk">Profit / year (post-payback)</span><span class="vv" id="r-yr">—</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch">Cumulative cash — by event</div>
+        <table id="tbl"><thead><tr><th>Event</th><th>Month</th><th>Contribution</th><th>Cumulative</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var IDS=['pElite','qElite','pEvery','qEvery','evYr',
+ 'c_led','c_bar','c_barbr','c_equip','c_time','c_stage','c_sound','c_brand','c_tech','c_fit','c_launch','c_legal','c_cont',
+ 'm_rent','m_sal','m_util','m_mkt',
+ 'e_venue','e_med','e_staff','e_log','e_media',
+ 'v_tee','v_tag','v_bib','v_nut','v_fee'];
+var DEF={};
+function val(id){var e=document.getElementById(id);var n=parseFloat(e.value);return isNaN(n)?0:n;}
+function money(n){var neg=n<0;n=Math.round(Math.abs(n));var s=n.toLocaleString('en-US');return (neg?'−':'')+'AED '+s;}
+function num(n){return Math.round(n).toLocaleString('en-US');}
+
+function sumIds(ids){var t=0;for(var i=0;i<ids.length;i++)t+=val(ids[i]);return t;}
+
+function compute(){
+  var pE=val('pElite'),qE=val('qElite'),pV=val('pEvery'),qV=val('qEvery');
+  var evYr=Math.max(val('evYr'),0.0001);
+  var athletes=qE+qV;
+  var grossRev=pE*qE+pV*qV;
+
+  var capIds=['c_led','c_bar','c_barbr','c_equip','c_time','c_stage','c_sound','c_brand','c_tech','c_fit','c_launch','c_legal','c_cont'];
+  var capex=sumIds(capIds);
+
+  var monthlyFixed=val('m_rent')+val('m_sal')+val('m_util')+val('m_mkt');
+  var eventFixed=val('e_venue')+val('e_med')+val('e_staff')+val('e_log')+val('e_media');
+
+  var feePct=val('v_fee')/100;
+  var perAthlete=val('v_tee')+val('v_tag')+val('v_bib')+val('v_nut');
+  var variableCost=athletes*perAthlete + grossRev*feePct;
+
+  var monthsPerEvent=12/evYr;
+  var ohPerEvent=monthlyFixed*monthsPerEvent;
+
+  var net=grossRev - variableCost - eventFixed - ohPerEvent;
+
+  // section summaries
+  document.getElementById('sum-rev').textContent=money(grossRev)+' / event';
+  document.getElementById('sum-cap').textContent=money(capex);
+  document.getElementById('sum-fix').textContent=money(monthlyFixed)+' / mo';
+  document.getElementById('sum-ev').textContent=money(eventFixed)+' / event';
+  document.getElementById('sum-var').textContent=money(variableCost)+' / event';
+
+  // right panel
+  document.getElementById('r-rev').textContent=money(grossRev);
+  document.getElementById('r-var').textContent=money(-variableCost);
+  document.getElementById('r-ev').textContent=money(-eventFixed);
+  document.getElementById('r-oh').textContent=money(-ohPerEvent);
+  document.getElementById('r-net').textContent=money(net);
+  document.getElementById('r-cap').textContent=money(capex);
+
+  var netKv=document.getElementById('r-net').parentNode;
+  netKv.className='kv '+(net>=0?'pos':'neg');
+
+  // break-even athletes per event (mix held constant): find athletes where contribution=0
+  // contribution = athletes*avgPrice - athletes*perAthlete - grossRevFee... approximate via avg price
+  var avgPrice=athletes>0?grossRev/athletes:0;
+  var contribPerAthlete=avgPrice*(1-feePct)-perAthlete;
+  var fixedPerEvent=eventFixed+ohPerEvent;
+  var beAthletes=contribPerAthlete>0?fixedPerEvent/contribPerAthlete:Infinity;
+  document.getElementById('r-be').textContent=isFinite(beAthletes)?num(Math.ceil(beAthletes))+' athletes':'—';
+
+  var warn=document.getElementById('r-warn');
+  var big=document.getElementById('r-months');
+  var note=document.getElementById('r-note');
+  var yr=document.getElementById('r-yr');
+
+  if(net<=0){
+    big.textContent='∞';
+    note.textContent='At this ticket mix each event loses money — capital is never recovered. Raise volume/price or cut cost lines until net contribution turns positive.';
+    warn.innerHTML='<div class="warn">⚠ Net contribution per event is '+money(net)+'. Model cannot pay back capital until this is positive.</div>';
+    yr.textContent=money(net*evYr);
+    buildTable(net,monthsPerEvent,0,capex);
+    return;
+  }
+  warn.innerHTML='';
+  var eventsToPay=capex/net;
+  var monthsToPay=eventsToPay*monthsPerEvent;
+  big.textContent=monthsToPay.toFixed(1)+' mo';
+  note.textContent='≈ '+eventsToPay.toFixed(1)+' events ('+ (monthsToPay/12).toFixed(2) +' yrs) to recover '+money(capex)+' of capital at '+money(net)+' net per event.';
+  yr.textContent=money(net*evYr);
+
+  buildTable(net,monthsPerEvent,eventsToPay,capex);
+}
+
+function buildTable(net,monthsPerEvent,eventsToPay,capex){
+  var tb=document.querySelector('#tbl tbody');tb.innerHTML='';
+  var cum=-capex;
+  var rows=Math.min(Math.max(Math.ceil(isFinite(eventsToPay)?eventsToPay+1:8),6),16);
+  addRow(tb,'0 · buy-in','0.0',-capex,cum);          // capital outlay
+  for(var i=1;i<=rows;i++){
+    cum+=net;
+    addRow(tb,String(i),(i*monthsPerEvent).toFixed(1),net,cum);
+  }
+}
+function addRow(tb,ev,mo,contrib,cum){
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td>'+ev+'</td><td>'+mo+'</td>'+
+    '<td class="'+(contrib>=0?'p':'n')+'">'+money(contrib)+'</td>'+
+    '<td class="'+(cum>=0?'p':'n')+'">'+money(cum)+'</td>';
+  tb.appendChild(tr);
+}
+
+// wire up
+window.addEventListener('DOMContentLoaded',function(){
+  for(var i=0;i<IDS.length;i++){DEF[IDS[i]]=document.getElementById(IDS[i]).value;
+    document.getElementById(IDS[i]).addEventListener('input',recompute);}
+  recompute();
+});
+function recompute(){compute();}
+function resetAll(){for(var i=0;i<IDS.length;i++)document.getElementById(IDS[i]).value=DEF[IDS[i]];recompute();}
+</script>
+</body>
+</html>
