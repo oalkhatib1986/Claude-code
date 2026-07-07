@@ -25,25 +25,23 @@
   @media(max-width:520px){.brand-logo{height:34px}}
   .htitle{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.6}
   .htitle b{display:block;color:var(--ink);font-weight:700}
-  /* tabs */
-  nav.tabs{display:flex;gap:0;border:1px solid rgba(13,16,19,0.24);border-radius:2px;overflow-x:auto;overflow-y:hidden;background:#fff;margin:0 0 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  nav.tabs{display:flex;gap:0;border:1px solid rgba(13,16,19,0.24);border-radius:2px;overflow-x:auto;overflow-y:hidden;background:#fff;margin:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   nav.tabs::-webkit-scrollbar{display:none}
   nav.tabs button{flex:1 0 auto;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
     color:var(--muted);background:#f6f7f8;padding:12px 14px;border:none;border-right:1px solid rgba(13,16,19,0.18);
     border-top:2px solid transparent;cursor:pointer;transition:color .12s,background .12s;white-space:nowrap}
-  @media(max-width:720px){nav.tabs button{flex:0 0 auto}}
   nav.tabs button:last-child{border-right:none}
   nav.tabs button:hover{color:var(--red);background:#fff}
   nav.tabs button.on{background:#fff;color:var(--red);border-top-color:var(--red)}
+  @media(max-width:720px){nav.tabs button{flex:0 0 auto}}
   .tabwrap{padding-top:12px;padding-bottom:6px}
   section.tab{display:none}section.tab.on{display:block}
   h1{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:26px;margin:26px 0 4px}
   .sub{font-family:var(--mono);font-size:12px;letter-spacing:0.04em;color:var(--muted);margin-bottom:22px;max-width:760px;line-height:1.7}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:3px;margin-bottom:20px}
   .ch{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);
-    padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+    padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .ch .csum{color:var(--ink);font-weight:700;font-size:12px}
-  /* assumptions */
   .asm{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
   @media(max-width:820px){.asm{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:520px){.asm{grid-template-columns:1fr}}
@@ -54,6 +52,38 @@
   .af input{width:96px;font-family:var(--mono);font-size:13px;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
   .af input:focus{outline:none;border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
   .af.pct input{width:64px}
+  /* toggle */
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);user-select:none}
+  .tsw{width:42px;height:23px;border-radius:23px;background:#d3d7da;position:relative;transition:background .15s;flex:0 0 auto}
+  .tsw::after{content:'';position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,0.28)}
+  .toggle.on .tsw{background:var(--red)}
+  .toggle.on .tsw::after{left:21px}
+  .toggle .st{min-width:34px}
+  /* equipment */
+  .eq-item{padding:12px 16px;border-bottom:1px solid rgba(13,16,19,0.06)}
+  .eq-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px}
+  .eq-title{font-size:13.5px;font-weight:600}
+  .eq-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .eq-inputs .f{display:flex;flex-direction:column;gap:3px}
+  .eq-inputs .f label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+  .eq-inputs input{width:100%;font-family:var(--mono);font-size:13px;text-align:right;padding:7px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
+  .eq-inputs input:focus{outline:none;border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+  .eq-item.leasing .buycol{opacity:0.38}
+  .eq-item:not(.leasing) .leasecol{opacity:0.38}
+  .tag{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.08em;padding:3px 7px;border-radius:2px;border:1px solid var(--line);color:var(--muted)}
+  /* org table */
+  .org{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;min-width:520px}
+  .org th{font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);font-weight:400}
+  .org th:first-child{text-align:left}
+  .org td{padding:5px 12px;border-bottom:1px solid rgba(13,16,19,0.05);text-align:right}
+  .org td:first-child{text-align:left}
+  .org input{font-family:var(--mono);font-size:12px;padding:6px 7px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
+  .org input:focus{outline:none;border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+  .org input.t{width:100%;text-align:left}
+  .org input.n{width:64px;text-align:right}
+  .org input.s{width:88px;text-align:right}
+  .org td.calc{color:var(--muted)}
+  tr.orgtot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line);background:#fafbfb}
   /* metrics */
   .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
   @media(max-width:820px){.mets{grid-template-columns:repeat(2,1fr)}}
@@ -69,10 +99,14 @@
   .lg b{color:var(--ink);font-weight:700}
   .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
   .scroll{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+  table.mono{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
   table.mono th,table.mono td{padding:6px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid rgba(13,16,19,0.05)}
   table.mono th{background:#fafbfb;color:var(--muted);font-weight:400;letter-spacing:0.06em;text-transform:uppercase;font-size:9px;border-bottom:1px solid var(--line);position:sticky;top:0}
   table.mono td:first-child,table.mono th:first-child{text-align:left}
+  .minmax{min-width:820px}
+  table.mono.fit{table-layout:fixed;width:100%}
+  table.mono.fit td:first-child,table.mono.fit th:first-child{white-space:normal;word-break:break-word;padding-right:8px}
+  table.mono.fit td:last-child,table.mono.fit th:last-child{width:36%;white-space:nowrap}
   .neg{color:var(--red)}.pos{color:var(--good)}.mut{color:var(--muted)}
   td.mth{font-weight:700;color:var(--ink)}
   tr.pre td{background:#fff7ee}
@@ -82,10 +116,6 @@
   tr.tot td{font-weight:700;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   tr.op td{font-weight:700;font-size:13px;background:#f5faf6;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
   tr.op.neg2 td{background:#fff4f4}
-  .minmax{min-width:820px}
-  table.mono.fit{table-layout:fixed;width:100%}
-  table.mono.fit td:first-child,table.mono.fit th:first-child{white-space:normal;word-break:break-word;padding-right:8px}
-  table.mono.fit td:last-child,table.mono.fit th:last-child{width:36%;white-space:nowrap}
   .foot{font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0 46px;line-height:1.8;max-width:900px}
   .reset{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:8px 14px;cursor:pointer;margin:4px 0 30px}
   .reset:hover{border-color:var(--red);color:var(--red)}
@@ -130,7 +160,7 @@
   <!-- ASSUMPTIONS -->
   <section class="tab" id="tab-asm">
     <h1>Assumptions</h1>
-    <p class="sub">Every driver is its own field — edit any single line. Grouped only for readability. Granular defaults sum to the planning totals; overwrite with real quotes as they land.</p>
+    <p class="sub">Every driver is its own field — edit any single line. Equipment can be bought (CapEx) or leased per event via the toggles. Payroll builds from the org table with UAE end-of-service auto-calculated. All figures AED.</p>
     <div id="asm-groups"></div>
     <div class="card">
       <div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div>
@@ -151,7 +181,7 @@
       <div class="ch">Monthly income statement</div>
       <div class="scroll"><table class="mono minmax" id="inc-monthly"></table></div>
     </div>
-    <p class="foot">Operating profit = revenue − variable − per-event production − fixed overhead. Depreciation is excluded (capital recovery is shown directly on the Payback tab). Year 1 typically holds fewer events because the pre-operation months push the first event later in the calendar.</p>
+    <p class="foot">Operating profit = revenue − variable − per-event production − fixed overhead (incl. payroll, end-of-service provision, staff insurance &amp; air tickets). Depreciation excluded — capital recovery is shown on the Payback tab. Year 1 typically holds fewer events because the pre-operation months push the first event later in the calendar.</p>
   </section>
 
   <!-- CASH FLOW -->
@@ -168,7 +198,7 @@
       <div class="ch">Monthly cash flow statement</div>
       <div class="scroll"><table class="mono minmax" id="cf-monthly"></table></div>
     </div>
-    <p class="foot">Cash basis: ticket revenue collected in the event month. CapEx spread across pre-op months (toggle on Assumptions). Overhead paid every month including pre-op. Net cash = operating P&amp;L − CapEx. Peak funding requirement is the deepest cumulative trough (excludes any opening funding you inject).</p>
+    <p class="foot">Cash basis: ticket revenue collected in the event month. CapEx spent during pre-op. Overhead (incl. payroll) paid every month including pre-op. End-of-service is accrued monthly as a cash reserve. Net cash = operating P&amp;L − CapEx. Peak funding requirement is the deepest cumulative trough (excludes any opening funding you inject).</p>
   </section>
 
   <!-- PAYBACK -->
@@ -179,11 +209,11 @@
     <div class="grid2">
       <div class="card">
         <div class="ch">Unit economics — per event <span class="csum" id="pay-contrib">—</span></div>
-        <div class="scroll"><table class="mono" id="pay-unit"></table></div>
+        <table class="mono fit" id="pay-unit"></table>
       </div>
       <div class="card">
         <div class="ch">Capital recovery</div>
-        <div class="scroll"><table class="mono" id="pay-cap"></table></div>
+        <table class="mono fit" id="pay-cap"></table>
       </div>
     </div>
     <div class="card">
@@ -198,14 +228,13 @@
 </div>
 
 <script>
-/* ===================== SCHEMA — every assumption is its own field ===================== */
+/* ===================== SCHEMA ===================== */
 var GROUPS=[
  {key:'timeline',title:'Timeline & Funding',items:[
    {id:'horizon',label:'Model horizon',u:'months',v:36},
    {id:'preop',label:'Pre-operation period',u:'months before event 1',v:3},
    {id:'evYr',label:'Events per year',u:'cadence after launch',v:5},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
-   {id:'capexSpread',label:'Spread CapEx over pre-op',u:'1 = yes · 0 = lump month 1',v:1},
  ]},
  {key:'revenue',title:'Revenue — per event',items:[
    {id:'pElite',label:'Elite ticket price',u:'AED',v:1199},
@@ -213,31 +242,32 @@ var GROUPS=[
    {id:'pEvery',label:'Everyday ticket price',u:'AED',v:999},
    {id:'qEvery',label:'Everyday tickets sold',u:'per event',v:300},
    {id:'sponsor',label:'Sponsorship / other',u:'AED per event',v:0},
-   {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0,mod:true},
+   {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0},
  ]},
- {key:'capex',title:'Capital Expenditure — one-time',items:[
-   {id:'cLED',label:'LED screens',u:'leased — see production',v:0},
-   {id:'cBarrier',label:'Crowd barriers',u:'leased — see production',v:0},
-   {id:'cBarrierBrand',label:'Barrier branding',u:'scrim / sleeves',v:50000},
+ {key:'equipment',title:'Equipment — Buy or Lease',special:'equip'},
+ {key:'capex',title:'Other Capital Expenditure — one-time',items:[
    {id:'cEquip',label:'Race equipment',u:'ski · row · bike · rigs',v:350000},
    {id:'cTiming',label:'Timing system',u:'chips · gantry · sw',v:100000},
-   {id:'cStaging',label:'Staging · rig · truss',u:'start/finish',v:120000},
-   {id:'cSound',label:'Sound & PA',u:'leased — see production',v:0},
    {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:110000},
    {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
    {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000},
    {id:'cLaunch',label:'Launch marketing',u:'Season 01 launch',v:140000},
-   {id:'cLegal',label:'Licensing · legal · setup',u:'licence · IP · bond',v:50000},
+   {id:'cSetup',label:'Legal & incorporation',u:'one-time · IP · bond',v:50000},
    {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000},
  ]},
- {key:'overhead',title:'Fixed Overhead — monthly',items:[
+ {key:'org',title:'Organisation & Payroll',special:'org'},
+ {key:'overhead',title:'Fixed Overhead',items:[
    {id:'oRent',label:'Warehouse rent',u:'per month',v:50000},
-   {id:'oSalaries',label:'Salaries & wages',u:'per month',v:70000},
-   {id:'oUtilities',label:'Utilities & comms',u:'per month',v:7000},
-   {id:'oSoftware',label:'Software & subscriptions',u:'per month',v:1000},
-   {id:'oInsurance',label:'Insurance',u:'per month',v:500},
+   {id:'oLicence',label:'Trade licence & govt renewals',u:'per year',v:40000,yearly:true},
+   {id:'oUtilities',label:'Utilities (DEWA)',u:'per month',v:7000},
+   {id:'oTelecom',label:'Telecom & internet',u:'per month',v:3000},
+   {id:'oSoftware',label:'Software & subscriptions',u:'per month',v:4000},
+   {id:'oBank',label:'Bank charges & fees',u:'per month',v:2000},
+   {id:'oPobox',label:'PO Box & courier',u:'per year',v:1500,yearly:true},
+   {id:'oStationery',label:'Stationery & office supplies',u:'per month',v:1500},
+   {id:'oInsurance',label:'Business insurance (liability)',u:'per month',v:5000},
    {id:'oMarketing',label:'Always-on marketing',u:'per month',v:25000},
-   {id:'oAdmin',label:'Accounting & admin',u:'per month',v:3000},
+   {id:'oAccounting',label:'Accounting & audit',u:'per month',v:3000},
  ]},
  {key:'production',title:'Per-Event Production',items:[
    {id:'pVenue',label:'Venue hire',u:'per event',v:0},
@@ -250,10 +280,6 @@ var GROUPS=[
    {id:'pRigging',label:'Rigging & setup labour',u:'per event',v:20000},
    {id:'pMedia',label:'Photo & video',u:'per event',v:50000},
    {id:'pWaste',label:'Waste · cleaning · sanitation',u:'per event',v:5000},
-   {id:'pLeaseLED',label:'LED screens (lease)',u:'rental per event',v:60000},
-   {id:'pLeaseBar',label:'Crowd barriers (lease)',u:'rental per event',v:15000},
-   {id:'pLeaseAudio',label:'Audio & PA (lease)',u:'rental per event',v:25000},
-   {id:'pLeaseLight',label:'Lighting rig (lease)',u:'rental per event',v:20000},
  ]},
  {key:'variable',title:'Per-Athlete Variable',items:[
    {id:'vTee',label:'Finishing tee',u:'AED each',v:30},
@@ -264,17 +290,46 @@ var GROUPS=[
    {id:'vFee',label:'Payment & booking fee',u:'% of ticket rev',v:3,pct:true},
  ]},
 ];
-var GBY={}; GROUPS.forEach(function(g){GBY[g.key]=g.items;});
+var GBY={}; GROUPS.forEach(function(g){if(g.items)GBY[g.key]=g.items;});
+
+/* equipment: buy price + lease/event; leaseState toggled by user */
+var EQUIP=[
+ {id:'led',label:'LED screens',buy:420000,lease:60000,on:true},
+ {id:'barrier',label:'Crowd barriers',buy:50000,lease:15000,on:true},
+ {id:'audio',label:'Audio & PA',buy:100000,lease:25000,on:true},
+ {id:'light',label:'Lighting rig',buy:120000,lease:20000,on:true},
+ {id:'staging',label:'Staging · rig · truss',buy:120000,lease:40000,on:false},
+];
+var leaseState={}; EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
+
+/* org roles */
+var ROLES=[
+ {id:'md',title:'Founder / Managing Director',head:1,sal:35000},
+ {id:'ops',title:'Operations & Event Lead',head:1,sal:22000},
+ {id:'mkt',title:'Marketing & Partnerships',head:1,sal:18000},
+ {id:'com',title:'Community / Athlete Experience',head:1,sal:12000},
+ {id:'fin',title:'Finance & Admin',head:1,sal:13000},
+ {id:'x1',title:'',head:0,sal:0},
+ {id:'x2',title:'',head:0,sal:0},
+];
+var PAYITEMS=[
+ {id:'splitBasic',label:'Basic salary',u:'% of gross',v:60},
+ {id:'splitHousing',label:'Housing allowance',u:'% of gross',v:20},
+ {id:'splitTransport',label:'Transport allowance',u:'% of gross',v:10},
+ {id:'splitOther',label:'Other allowances',u:'% of gross',v:10},
+ {id:'empMedical',label:'Medical insurance',u:'AED / employee / yr',v:6000},
+ {id:'empTicket',label:'Annual air ticket',u:'AED / employee / yr',v:4000},
+];
 var DEF={};
 
 /* ===================== formatters ===================== */
-function val(id){var e=document.getElementById('in-'+id);var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
+function el(id){return document.getElementById(id);}
+function val(id){var e=el('in-'+id);if(!e)return 0;var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
 function commaFmt(n){return Number(n).toLocaleString('en-US',{maximumFractionDigits:6});}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function aed(n){var neg=n<0;var s=Math.round(Math.abs(n)).toLocaleString('en-US');return (neg?'−':'')+'AED '+s;}
 function kfmt(n){return (Math.round(n/1000)).toLocaleString('en-US')+'k';}
 function cls(n){return n<0?'neg':(n>0?'pos':'mut');}
-function sumGroup(key){var t=0;GBY[key].forEach(function(it){if(!it.mod&&!it.pct)t+=val(it.id);});return t;}
 
 /* ===================== core model ===================== */
 function compute(){
@@ -282,37 +337,58 @@ function compute(){
   var preop=Math.max(0,Math.round(val('preop')));
   var evYr=Math.max(0.0001,val('evYr'));
   var openFund=val('openFund');
-  var spread=val('capexSpread')>=0.5;
   var pElite=val('pElite'),pEvery=val('pEvery'),sponsor=val('sponsor');
   var growth=val('volGrowth')/100;
   var perAthlete=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
   var feePct=val('vFee')/100;
-  var prodTotal=sumGroup('production');
-  var ovhMonthly=sumGroup('overhead');
-  var capexTotal=sumGroup('capex');
+
+  // ---- equipment: split into capex (buy) vs production (lease) ----
+  var capexLines=[],prodLines=[];
+  GBY.capex.forEach(function(it){capexLines.push({id:it.id,label:it.label,v:val(it.id)});});
+  EQUIP.forEach(function(e){
+    var buy=val('eqbuy_'+e.id), lease=val('eqlease_'+e.id);
+    if(leaseState[e.id]) prodLines.push({id:'eql_'+e.id,label:e.label+' (lease)',v:lease});
+    else capexLines.push({id:'eqb_'+e.id,label:e.label,v:buy});
+  });
+  GBY.production.forEach(function(it){prodLines.push({id:it.id,label:it.label,v:val(it.id)});});
+
+  // ---- payroll ----
+  var roles=ROLES.map(function(r){
+    return {id:r.id,title:(el('in-roletitle_'+r.id)?el('in-roletitle_'+r.id).value:r.title),head:val('rolehead_'+r.id),sal:val('rolesal_'+r.id)};
+  });
+  var totalHead=0,totalGross=0; roles.forEach(function(r){totalHead+=r.head;totalGross+=r.head*r.sal;});
+  var basicPct=val('splitBasic')/100;
+  var basicTotal=totalGross*basicPct;
+  var eosMonthly=basicTotal*(21/30)/12;         // 21 days basic / yr, accrued monthly
+  var medMonthly=totalHead*val('empMedical')/12;
+  var tktMonthly=totalHead*val('empTicket')/12;
+
+  // ---- overhead lines (monthly) ----
+  var ohLines=[];
+  GBY.overhead.forEach(function(it){ohLines.push({id:it.id,label:it.label,v:it.yearly?val(it.id)/12:val(it.id)});});
+  ohLines.push({id:'pay_salary',label:'Salaries & wages (gross)',v:totalGross});
+  ohLines.push({id:'pay_eos',label:'End-of-service provision',v:eosMonthly});
+  ohLines.push({id:'pay_medical',label:'Staff medical insurance',v:medMonthly});
+  ohLines.push({id:'pay_ticket',label:'Staff air tickets',v:tktMonthly});
+
+  var prodTotal=0; prodLines.forEach(function(l){prodTotal+=l.v;});
+  var ovhMonthly=0; ohLines.forEach(function(l){ovhMonthly+=l.v;});
+  var capexTotal=0; capexLines.forEach(function(l){capexTotal+=l.v;});
+
   var first=preop+1;
   var monthsPerEvent=12/evYr;
   var years=Math.ceil(horizon/12);
   var yi=function(m){return Math.floor((m-1)/12);};
 
-  // event months: anchor at first operating month, then accumulate the exact
-  // 12/evYr spacing (rounded per-event, not per-gap) so the annual rate stays true
+  // event months: anchor after pre-op, accumulate exact 12/evYr spacing
   var eventMonths=[],seenM={};
-  for(var k=0;;k++){
-    var em=first+Math.round(k*12/evYr);
-    if(em>horizon)break;
-    if(!seenM[em]){seenM[em]=1;eventMonths.push(em);}
-  }
+  for(var k=0;;k++){var em=first+Math.round(k*12/evYr);if(em>horizon)break;if(!seenM[em]){seenM[em]=1;eventMonths.push(em);}}
 
-  // events
   var events=[];
   for(var ei=0;ei<eventMonths.length;ei++){
-    var m=eventMonths[ei];
-    var y=yi(m), gf=Math.pow(1+growth,y);
+    var m=eventMonths[ei], y=yi(m), gf=Math.pow(1+growth,y);
     var qE=Math.round(val('qElite')*gf), qV=Math.round(val('qEvery')*gf);
-    var tRev=qE*pElite+qV*pEvery;
-    var rev=tRev+sponsor;
-    var ath=qE+qV;
+    var tRev=qE*pElite+qV*pEvery, rev=tRev+sponsor, ath=qE+qV;
     var vc=ath*perAthlete+tRev*feePct;
     events.push({m:m,y:y,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc});
   }
@@ -321,12 +397,11 @@ function compute(){
   // annual line detail
   var line={};
   function addL(id,y,a){(line[id]=line[id]||new Array(years).fill(0))[y]+=a;}
-  var prodItems=GBY.production, ovhItems=GBY.overhead;
-  var vGoods=[['vTee'],['vMedal'],['vBib'],['vNutrition'],['vAthInsurance']];
-  for(var mm=1;mm<=horizon;mm++){var yy=yi(mm);ovhItems.forEach(function(it){addL(it.id,yy,val(it.id));});}
+  var vGoods=['vTee','vMedal','vBib','vNutrition','vAthInsurance'];
+  for(var mm=1;mm<=horizon;mm++){var yy=yi(mm);ohLines.forEach(function(l){addL(l.id,yy,l.v);});}
   events.forEach(function(e){
-    prodItems.forEach(function(it){addL(it.id,e.y,val(it.id));});
-    vGoods.forEach(function(g){addL(g[0],e.y,e.ath*val(g[0]));});
+    prodLines.forEach(function(l){addL(l.id,e.y,l.v);});
+    vGoods.forEach(function(g){addL(g,e.y,e.ath*val(g));});
     addL('vFee',e.y,e.tRev*feePct);
     addL('rev_elite',e.y,e.qE*pElite);
     addL('rev_every',e.y,e.qV*pEvery);
@@ -334,30 +409,26 @@ function compute(){
   });
 
   // monthly rows
-  var rows=[], cum=openFund, cumEx=0, capexPerPre=(spread&&preop>0)?capexTotal/preop:0;
+  var rows=[], cum=openFund, cumEx=0, capexPerPre=(preop>0)?capexTotal/preop:0;
   for(var m2=1;m2<=horizon;m2++){
     var pre=m2<=preop, e=evByMonth[m2];
     var rev=e?e.rev:0, vc=e?e.vc:0, pc=e?prodTotal:0, oh=ovhMonthly;
     var op=rev-vc-pc-oh;
-    var cx=0;
-    if(spread){ if(pre) cx=capexPerPre; if(preop===0&&m2===1) cx=capexTotal; }
-    else { if(m2===1) cx=capexTotal; }
+    var cx=(preop>0?(pre?capexPerPre:0):(m2===1?capexTotal:0));
     var net=op-cx;
     cum+=net; cumEx+=net;
     rows.push({m:m2,pre:pre,ev:!!e,rev:rev,vc:vc,pc:pc,oh:oh,op:op,cx:cx,net:net,cum:cum,cumEx:cumEx});
   }
 
-  // metrics
   var trough=Infinity,troughM=0,be=0,totRev=0,totOp=0,evCount=0;
   rows.forEach(function(r){
     if(r.cumEx<trough){trough=r.cumEx;troughM=r.m;}
     if(be===0&&r.cumEx>=0&&r.m>=first)be=r.m;
     totRev+=r.rev;totOp+=r.op;if(r.ev)evCount++;
   });
-  var peakFund=trough<0?-trough:0;
-  var endCash=rows[rows.length-1].cum;
+  var peakFund=trough<0?-trough:0, endCash=rows[rows.length-1].cum;
 
-  // per-event steady-state (no growth) for payback
+  // per-event steady state (no growth)
   var qE0=val('qElite'),qV0=val('qEvery');
   var tRev0=qE0*pElite+qV0*pEvery, rev0=tRev0+sponsor, ath0=qE0+qV0;
   var vc0=ath0*perAthlete+tRev0*feePct;
@@ -371,106 +442,203 @@ function compute(){
   var beAth=contribPerAth>0?fixedPerEvent/contribPerAth:Infinity;
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
-    rows:rows,events:events,line:line,openFund:openFund,
+    rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
     simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,
+    roles:roles,totalHead:totalHead,totalGross:totalGross,basicTotal:basicTotal,eosMonthly:eosMonthly,medMonthly:medMonthly,tktMonthly:tktMonthly,
     pElite:pElite,pEvery:pEvery,sponsor:sponsor};
 }
 
-/* ===================== render: assumptions ===================== */
+/* ===================== assumptions rendering ===================== */
+var NUMIDS=[];   // all numeric input ids (without 'in-' prefix)
+function kvGroup(g){
+  var h='<div class="card"><div class="ch">'+g.title+' <span class="csum" id="sum-'+g.key+'">—</span></div><div class="asm">';
+  g.items.forEach(function(it){
+    NUMIDS.push(it.id);DEF[it.id]=it.v;
+    h+='<div class="af'+(it.pct?' pct':'')+'"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
+       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
+  });
+  return h+'</div></div>';
+}
+function equipCard(){
+  var h='<div class="card"><div class="ch"><span>Equipment — Buy or Lease <span class="csum" id="sum-equipment">—</span></span>'+
+        '<span class="toggle" id="masterLease" onclick="toggleAll()"><span class="st">Lease all</span><span class="tsw"></span></span></div>';
+  EQUIP.forEach(function(e){
+    NUMIDS.push('eqbuy_'+e.id);DEF['eqbuy_'+e.id]=e.buy;
+    NUMIDS.push('eqlease_'+e.id);DEF['eqlease_'+e.id]=e.lease;
+    h+='<div class="eq-item'+(leaseState[e.id]?' leasing':'')+'" id="eq-'+e.id+'">'+
+       '<div class="eq-head"><span class="eq-title">'+e.label+'</span>'+
+       '<span class="toggle'+(leaseState[e.id]?' on':'')+'" onclick="toggleEq(\''+e.id+'\')"><span class="st" id="eqst-'+e.id+'">'+(leaseState[e.id]?'Lease':'Buy')+'</span><span class="tsw"></span></span></div>'+
+       '<div class="eq-inputs"><div class="f buycol"><label>Buy — one-time CapEx</label><input type="text" inputmode="decimal" id="in-eqbuy_'+e.id+'" value="'+commaFmt(e.buy)+'"></div>'+
+       '<div class="f leasecol"><label>Lease — per event</label><input type="text" inputmode="decimal" id="in-eqlease_'+e.id+'" value="'+commaFmt(e.lease)+'"></div></div></div>';
+  });
+  return h+'</div>';
+}
+function orgCard(){
+  var h='<div class="card"><div class="ch">Organisation & Payroll <span class="csum" id="sum-org">—</span></div>'+
+        '<div class="scroll"><table class="org"><thead><tr><th>Role</th><th>Head</th><th>Gross / mo</th><th>Basic</th><th>Housing</th><th>Transport</th></tr></thead><tbody>';
+  ROLES.forEach(function(r){
+    NUMIDS.push('rolehead_'+r.id);DEF['rolehead_'+r.id]=r.head;
+    NUMIDS.push('rolesal_'+r.id);DEF['rolesal_'+r.id]=r.sal;
+    h+='<tr>'+
+       '<td><input class="t" type="text" id="in-roletitle_'+r.id+'" value="'+r.title+'" placeholder="(add role)"></td>'+
+       '<td><input class="n" type="text" inputmode="numeric" id="in-rolehead_'+r.id+'" value="'+r.head+'"></td>'+
+       '<td><input class="s" type="text" inputmode="decimal" id="in-rolesal_'+r.id+'" value="'+commaFmt(r.sal)+'"></td>'+
+       '<td class="calc" id="rb-'+r.id+'">—</td><td class="calc" id="rh-'+r.id+'">—</td><td class="calc" id="rt-'+r.id+'">—</td></tr>';
+  });
+  h+='<tr class="orgtot"><td>Total</td><td id="org-head">0</td><td id="org-gross">0</td><td id="org-basic" class="calc">—</td><td class="calc"></td><td class="calc"></td></tr>';
+  h+='</tbody></table></div>';
+  // split + employer add-ons
+  h+='<div class="asm" style="border-top:1px solid var(--line)">';
+  PAYITEMS.forEach(function(it){
+    NUMIDS.push(it.id);DEF[it.id]=it.v;
+    h+='<div class="af pct"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
+       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
+  });
+  h+='</div>';
+  h+='<table class="mono fit" id="org-pnl"></table></div>';
+  return h;
+}
 function renderAssumptions(){
+  NUMIDS=[];
   var h='';
   GROUPS.forEach(function(g){
-    h+='<div class="card"><div class="ch">'+g.title+' <span class="csum" id="sum-'+g.key+'">—</span></div><div class="asm">';
-    g.items.forEach(function(it){
-      h+='<div class="af'+(it.pct?' pct':'')+'"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
-         '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
-    });
-    h+='</div></div>';
+    if(g.special==='equip') h+=equipCard();
+    else if(g.special==='org') h+=orgCard();
+    else h+=kvGroup(g);
   });
-  document.getElementById('asm-groups').innerHTML=h;
-  var all=[]; GROUPS.forEach(function(g){g.items.forEach(function(it){all.push(it.id);DEF[it.id]=it.v;});});
-  all.forEach(function(id){
-    var el=document.getElementById('in-'+id);
-    el.addEventListener('input',build);
-    el.addEventListener('focus',function(){this.value=String(val(id));this.select();});
-    el.addEventListener('blur',function(){this.value=commaFmt(val(id));build();});
+  el('asm-groups').innerHTML=h;
+  // wire numeric inputs
+  NUMIDS.forEach(function(id){
+    var e=el('in-'+id); if(!e)return;
+    e.addEventListener('input',build);
+    e.addEventListener('focus',function(){this.value=String(val(id));this.select();});
+    e.addEventListener('blur',function(){this.value=commaFmt(val(id));build();});
   });
+  // role titles (text)
+  ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.addEventListener('input',build);});
 }
-function resetAll(){GROUPS.forEach(function(g){g.items.forEach(function(it){document.getElementById('in-'+it.id).value=commaFmt(DEF[it.id]);});});build();}
-function updateAsmSums(){
-  ['capex','overhead','production'].forEach(function(k){document.getElementById('sum-'+k).textContent=aed(sumGroup(k))+(k==='overhead'?' / mo':(k==='production'?' / event':''));});
+function toggleEq(id){
+  leaseState[id]=!leaseState[id];
+  el('eq-'+id).classList.toggle('leasing',leaseState[id]);
+  el('eq-'+id).querySelector('.eq-head .toggle').classList.toggle('on',leaseState[id]);
+  el('eqst-'+id).textContent=leaseState[id]?'Lease':'Buy';
+  build();
+}
+function toggleAll(){
+  var allOn=EQUIP.every(function(e){return leaseState[e.id];});
+  var target=!allOn;
+  EQUIP.forEach(function(e){ if(leaseState[e.id]!==target) toggleEq(e.id); });
+  syncMaster();
+}
+function syncMaster(){
+  var allOn=EQUIP.every(function(e){return leaseState[e.id];});
+  el('masterLease').classList.toggle('on',allOn);
+}
+function resetAll(){
+  NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(DEF[id]);});
+  ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=r.title;});
+  EQUIP.forEach(function(e){leaseState[e.id]=e.on;
+    var box=el('eq-'+e.id);box.classList.toggle('leasing',e.on);
+    box.querySelector('.eq-head .toggle').classList.toggle('on',e.on);
+    el('eqst-'+e.id).textContent=e.on?'Lease':'Buy';});
+  syncMaster();build();
+}
+function updateAsmSums(A){
+  el('sum-capex').textContent=aed(GBY.capex.reduce(function(t,it){return t+val(it.id);},0))+' + equip bought';
+  el('sum-overhead').textContent=aed(A.ovhMonthly)+' / mo';
+  el('sum-production').textContent=aed(A.prodTotal)+' / event';
   var athG=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
-  document.getElementById('sum-variable').textContent='AED '+athG+' / athlete + '+val('vFee')+'%';
-  document.getElementById('sum-revenue').textContent=aed(val('qElite')*val('pElite')+val('qEvery')*val('pEvery')+val('sponsor'))+' / event';
-  document.getElementById('sum-timeline').textContent=Math.round(val('horizon'))+' mo · '+Math.round(val('preop'))+' pre-op';
+  el('sum-variable').textContent='AED '+athG+' / athlete + '+val('vFee')+'%';
+  el('sum-revenue').textContent=aed(val('qElite')*val('pElite')+val('qEvery')*val('pEvery')+val('sponsor'))+' / event';
+  el('sum-timeline').textContent=Math.round(val('horizon'))+' mo · '+Math.round(val('preop'))+' pre-op';
+  el('sum-equipment').textContent=A.capexTotal>=0?('CapEx '+aed(A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;}).reduce(function(t,l){return t+l.v;},0))):'';
+  el('sum-org').textContent=A.totalHead+' staff · '+aed(A.totalGross)+' / mo';
+}
+function renderOrgCalc(A){
+  A.roles.forEach(function(r){
+    var basic=r.head*r.sal*(val('splitBasic')/100), hou=r.head*r.sal*(val('splitHousing')/100), tr=r.head*r.sal*(val('splitTransport')/100);
+    if(el('rb-'+r.id)){el('rb-'+r.id).textContent=r.head?fmt(basic):'—';el('rh-'+r.id).textContent=r.head?fmt(hou):'—';el('rt-'+r.id).textContent=r.head?fmt(tr):'—';}
+  });
+  el('org-head').textContent=A.totalHead;
+  el('org-gross').textContent=fmt(A.totalGross);
+  el('org-basic').textContent=fmt(A.basicTotal);
+  // payroll cost summary (monthly)
+  var eosYr=A.basicTotal*(21/30);
+  var h='<tbody><tr class="ph"><td colspan="2">Monthly payroll cost</td></tr>'+
+    '<tr><td>Gross salaries</td><td>'+fmt(A.totalGross)+'</td></tr>'+
+    '<tr><td>End-of-service provision (21 days basic / yr)</td><td>'+fmt(A.eosMonthly)+'</td></tr>'+
+    '<tr><td>Staff medical insurance</td><td>'+fmt(A.medMonthly)+'</td></tr>'+
+    '<tr><td>Staff air tickets</td><td>'+fmt(A.tktMonthly)+'</td></tr>'+
+    '<tr class="tot"><td>Total payroll / month</td><td>'+fmt(A.totalGross+A.eosMonthly+A.medMonthly+A.tktMonthly)+'</td></tr>'+
+    '<tr class="mut"><td>End-of-service accrued / year</td><td>'+fmt(eosYr)+'</td></tr></tbody>';
+  el('org-pnl').innerHTML=h;
 }
 
-/* ===================== render: metric cards ===================== */
-function metCards(list){return list.map(function(mt){
-  return '<div class="met"><div class="band"></div><div class="k">'+mt.k+'</div><div class="v '+(mt.c||'')+'">'+mt.v+'</div><div class="n">'+mt.n+'</div></div>';
-}).join('');}
+/* ===================== per-event P&L (assumptions) ===================== */
+function renderAsmPnl(A){
+  var gm=A.rev0-A.vc0-A.prodTotal, margin=A.rev0>0?(A.contrib0/A.rev0*100):0;
+  el('asm-pnl').innerHTML='<tbody>'+
+   '<tr class="ph"><td colspan="2">Per event — steady state (no growth)</td></tr>'+
+   '<tr><td>Revenue (gross)</td><td>'+fmt(A.rev0)+'</td></tr>'+
+   '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
+   '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
+   '<tr class="tot"><td>Contribution before overhead</td><td class="'+cls(gm)+'">'+fmt(gm)+'</td></tr>'+
+   '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
+   '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event &mdash; '+margin.toFixed(1)+'% margin</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
+   '</tbody>';
+  el('asm-pnl-sum').textContent=aed(A.contrib0)+' / event';
+}
 
-/* ===================== render: income statement ===================== */
+/* ===================== income statement ===================== */
 function renderIncome(A){
   var yrs=A.years;
   function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=1;y<=yrs;y++)s+='<th>Year '+y+'</th>';s+='<th>Total</th></tr>';return s;}
-  function lineRow(label,id,neg){
-    var arr=A.line[id]||new Array(yrs).fill(0),tot=0,s='<tr class="'+(neg?'':'')+'"><td>'+label+'</td>';
+  function lineRow(label,id,neg){var arr=A.line[id]||new Array(yrs).fill(0),tot=0,s='<tr><td>'+label+'</td>';
     for(var y=0;y<yrs;y++){var v=neg?-arr[y]:arr[y];tot+=arr[y];s+='<td class="'+(neg?'neg':'')+'">'+fmt(v)+'</td>';}
-    s+='<td class="'+(neg?'neg':'')+'">'+fmt(neg?-tot:tot)+'</td></tr>';return s;
-  }
-  function sectionTotal(label,ids,neg){
-    var s='<tr class="tot"><td>'+label+'</td>',gt=0;
+    return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-tot:tot)+'</td></tr>';}
+  function sectionTotal(label,ids,neg){var s='<tr class="tot"><td>'+label+'</td>',gt=0;
     for(var y=0;y<yrs;y++){var v=0;ids.forEach(function(id){v+=(A.line[id]||[])[y]||0;});gt+=v;s+='<td class="'+(neg?'neg':'')+'">'+fmt(neg?-v:v)+'</td>';}
-    s+='<td class="'+(neg?'neg':'')+'">'+fmt(neg?-gt:gt)+'</td></tr>';return s;
-  }
+    return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-gt:gt)+'</td></tr>';}
   var revIds=['rev_elite','rev_every','rev_sponsor'];
   var varIds=['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'];
-  var prodIds=GBY.production.map(function(i){return i.id;});
-  var ovhIds=GBY.overhead.map(function(i){return i.id;});
+  var prodIds=A.prodLines.map(function(l){return l.id;});
+  var ohIds=A.ohLines.map(function(l){return l.id;});
   var h='<thead>'+yhead('Line item')+'</thead><tbody>';
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Revenue</td></tr>';
   h+=lineRow('Elite tickets','rev_elite',false)+lineRow('Everyday tickets','rev_every',false)+lineRow('Sponsorship / other','rev_sponsor',false)+sectionTotal('Gross revenue',revIds,false);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Variable costs</td></tr>';
   h+=lineRow('Finishing tee','vTee',true)+lineRow('Finisher tag / medal','vMedal',true)+lineRow('Bib & timing chip','vBib',true)+lineRow('Nutrition & hydration','vNutrition',true)+lineRow('Athlete insurance','vAthInsurance',true)+lineRow('Payment & booking fees','vFee',true)+sectionTotal('Total variable',varIds,true);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Per-event production</td></tr>';
-  GBY.production.forEach(function(it){h+=lineRow(it.label,it.id,true);});
+  A.prodLines.forEach(function(l){h+=lineRow(l.label,l.id,true);});
   h+=sectionTotal('Total production',prodIds,true);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Fixed overhead</td></tr>';
-  GBY.overhead.forEach(function(it){h+=lineRow(it.label,it.id,true);});
-  h+=sectionTotal('Total overhead',ovhIds,true);
-  // operating profit
-  var opNeg=false, s='<tr class="op"><td>Operating profit</td>',gt=0;
-  for(var y=0;y<yrs;y++){
-    var rev=0;revIds.forEach(function(id){rev+=(A.line[id]||[])[y]||0;});
-    var cost=0;varIds.concat(prodIds).concat(ovhIds).forEach(function(id){cost+=(A.line[id]||[])[y]||0;});
-    var op=rev-cost;gt+=op;s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';
-  }
+  A.ohLines.forEach(function(l){h+=lineRow(l.label,l.id,true);});
+  h+=sectionTotal('Total overhead',ohIds,true);
+  var s='<tr class="op"><td>Operating profit</td>',gt=0;
+  for(var y=0;y<yrs;y++){var rev=0;revIds.forEach(function(id){rev+=(A.line[id]||[])[y]||0;});
+    var cost=0;varIds.concat(prodIds).concat(ohIds).forEach(function(id){cost+=(A.line[id]||[])[y]||0;});
+    var op=rev-cost;gt+=op;s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';}
   s+='<td class="'+cls(gt)+'">'+fmt(gt)+'</td></tr>';
-  h+=s+'</tbody>';
-  document.getElementById('inc-annual').innerHTML=h;
-  document.getElementById('inc-op').textContent='Operating profit '+aed(A.totOp)+' / '+A.years+ 'yr';
+  el('inc-annual').innerHTML=h+s+'</tbody>';
+  el('inc-op').textContent='Operating profit '+aed(A.totOp)+' / '+A.years+'yr';
 
-  // monthly summary
   var mh='<thead><tr><th>Month</th><th>Phase</th><th>Revenue</th><th>Variable</th><th>Production</th><th>Overhead</th><th>Operating P&L</th></tr></thead><tbody>';
   var acc={rev:0,vc:0,pc:0,oh:0,op:0};
-  A.rows.forEach(function(r){
-    var rc=r.pre?'pre':(r.ev?'ev':'');
+  A.rows.forEach(function(r){var rc=r.pre?'pre':(r.ev?'ev':'');
     mh+='<tr class="'+rc+'"><td class="mth">'+r.m+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
       '<td>'+fmt(r.rev)+'</td><td class="neg">'+fmt(-r.vc)+'</td><td class="neg">'+fmt(-r.pc)+'</td><td class="neg">'+fmt(-r.oh)+'</td><td class="'+cls(r.op)+'">'+fmt(r.op)+'</td></tr>';
     acc.rev+=r.rev;acc.vc+=r.vc;acc.pc+=r.pc;acc.oh+=r.oh;acc.op+=r.op;
     if(r.m%12===0){mh+='<tr class="yr"><td>Year '+(r.m/12)+'</td><td></td><td>'+fmt(acc.rev)+'</td><td class="neg">'+fmt(-acc.vc)+'</td><td class="neg">'+fmt(-acc.pc)+'</td><td class="neg">'+fmt(-acc.oh)+'</td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td></tr>';acc={rev:0,vc:0,pc:0,oh:0,op:0};}
   });
-  mh+='</tbody>';
-  document.getElementById('inc-monthly').innerHTML=mh;
+  el('inc-monthly').innerHTML=mh+'</tbody>';
 }
 
-/* ===================== render: cash flow ===================== */
+/* ===================== cash flow ===================== */
 function renderCash(A){
-  document.getElementById('cf-mets').innerHTML=metCards([
+  el('cf-mets').innerHTML=metCards([
     {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'deepest trough · month '+A.troughM},
     {k:'Cash-flow breakeven',v:A.be?('Month '+A.be):'>'+A.horizon+' mo',c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'not reached in horizon'},
     {k:'Cash at month '+A.horizon,v:aed(A.endCash),c:A.endCash>=0?'green':'red',n:A.evCount+' events held'},
@@ -478,41 +646,36 @@ function renderCash(A){
   ]);
   var mh='<thead><tr><th>Month</th><th>Phase</th><th>Operating P&L</th><th>CapEx</th><th>Net cash</th><th>Cumulative</th></tr></thead><tbody>';
   var acc={op:0,cx:0,net:0};
-  A.rows.forEach(function(r){
-    var rc=r.pre?'pre':(r.ev?'ev':'');
+  A.rows.forEach(function(r){var rc=r.pre?'pre':(r.ev?'ev':'');
     mh+='<tr class="'+rc+'"><td class="mth">'+r.m+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
       '<td class="'+cls(r.op)+'">'+fmt(r.op)+'</td><td class="neg">'+fmt(-r.cx)+'</td><td class="'+cls(r.net)+'">'+fmt(r.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';
     acc.op+=r.op;acc.cx+=r.cx;acc.net+=r.net;
     if(r.m%12===0){mh+='<tr class="yr"><td>Year '+(r.m/12)+'</td><td></td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td><td class="neg">'+fmt(-acc.cx)+'</td><td class="'+cls(acc.net)+'">'+fmt(acc.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';acc={op:0,cx:0,net:0};}
   });
-  mh+='</tbody>';
-  document.getElementById('cf-monthly').innerHTML=mh;
+  el('cf-monthly').innerHTML=mh+'</tbody>';
   var pts=[{x:0,y:A.openFund}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cum});});
   lineChart('cf-cash',pts,A.horizon,A.troughM,A.be);
 }
 
-/* ===================== render: payback ===================== */
+/* ===================== payback ===================== */
 function renderPayback(A){
-  var pv = A.contrib0>0 ? (A.simpleMonths/12).toFixed(2)+' yrs' : '∞';
-  document.getElementById('pay-mets').innerHTML=metCards([
+  var pv=A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞';
+  el('pay-mets').innerHTML=metCards([
     {k:'Simple payback',v:A.contrib0>0?A.simpleMonths.toFixed(1)+' mo':'∞',c:A.contrib0>0?'':'red',n:A.contrib0>0?(A.simpleEvents.toFixed(1)+' events · '+pv):'event loses money'},
     {k:'Cash payback (incl. pre-op)',v:A.be?('Month '+A.be):'>'+A.horizon+' mo',c:A.be?'green':'red',n:A.be?'cumulative cash turns positive':'beyond horizon'},
     {k:'Peak capital at risk',v:aed(A.peakFund),c:'red',n:'max funding required'},
     {k:'Break-even attendance',v:isFinite(A.beAth)?Math.ceil(A.beAth)+' ath':'—',c:'',n:'per event to cover fixed cost'}
   ]);
-  // unit economics
-  var u='<tbody>'+
+  el('pay-unit').innerHTML='<tbody>'+
     '<tr class="ph"><td colspan="2">Per event (steady state)</td></tr>'+
     '<tr><td>Revenue</td><td>'+fmt(A.rev0)+'</td></tr>'+
     '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
     '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
     '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
-    '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
-    '</tbody>';
-  document.getElementById('pay-unit').innerHTML=u;
-  document.getElementById('pay-contrib').textContent=aed(A.contrib0)+' / event';
-  // capital recovery
-  var c='<tbody>'+
+    '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr></tbody>';
+  el('pay-contrib').textContent=aed(A.contrib0)+' / event';
+  var profitYr=A.contrib0*(12/A.monthsPerEvent);
+  el('pay-cap').innerHTML='<tbody>'+
     '<tr><td>Total CapEx</td><td>'+fmt(A.capexTotal)+'</td></tr>'+
     '<tr><td>Net contribution / event</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
     '<tr><td>Events to repay</td><td>'+(A.contrib0>0?A.simpleEvents.toFixed(2):'∞')+'</td></tr>'+
@@ -520,16 +683,13 @@ function renderPayback(A){
     '<tr class="tot"><td>Simple payback</td><td>'+(A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞')+'</td></tr>'+
     '<tr><td>Pre-op burn added</td><td class="neg">'+fmt(-(A.ovhMonthly*A.preop))+'</td></tr>'+
     '<tr><td>Peak funding requirement</td><td class="neg">'+fmt(-A.peakFund)+'</td></tr>'+
-    '<tr class="tot"><td>Cash payback incl. pre-op</td><td>'+(A.be?('month '+A.be):'>'+A.horizon+' mo')+'</td></tr>'+
-    '</tbody>';
-  document.getElementById('pay-cap').innerHTML=c;
-  // chart: cumulative operating cash vs capital (cumEx)
-  var pts=[{x:0,y:0}]; A.rows.forEach(function(r){pts.push({x:r.m,y:r.cumEx});});
-  lineChart('pay-chart',pts,A.horizon,A.troughM,A.be,A.trough,Math.max.apply(null,pts.map(function(p){return p.y;})));
+    '<tr class="tot"><td>Cash payback incl. pre-op</td><td>'+(A.be?('month '+A.be):'>'+A.horizon+' mo')+'</td></tr></tbody>';
+  var pts=[{x:0,y:0}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cumEx});});
+  lineChart('pay-chart',pts,A.horizon,A.troughM,A.be);
 }
 
 /* ===================== charts ===================== */
-function lineChart(id,pts,xmax,troughM,be,mn0,mx0){
+function lineChart(id,pts,xmax,troughM,be){
   var W=760,H=240,padL=64,padR=16,padT=16,padB=26;
   var vals=pts.map(function(p){return p.y;});
   var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
@@ -545,12 +705,13 @@ function lineChart(id,pts,xmax,troughM,be,mn0,mx0){
   pts.forEach(function(p,i){var x=X(p.x),y=Y(p.y);line+=(i?' L ':'M ')+x+' '+y;area+=' L '+x+' '+y;});
   area+=' L '+X(pts[pts.length-1].x)+' '+zy+' Z';
   s+='<path d="'+area+'" fill="rgba(255,23,23,0.08)"/><path d="'+line+'" fill="none" stroke="#FF1717" stroke-width="2"/>';
-  var ticks=[];for(var t=0;t<=xmax;t+=Math.max(6,Math.round(xmax/6/6)*6))ticks.push(t);if(ticks[ticks.length-1]!==xmax)ticks.push(xmax);
+  var step=Math.max(6,Math.round(xmax/6/6)*6),ticks=[];
+  for(var t=0;t<=xmax;t+=step)ticks.push(t);if(ticks[ticks.length-1]!==xmax)ticks.push(xmax);
   ticks.forEach(function(m){s+='<text x="'+X(m)+'" y="'+(H-8)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="#6a7075">'+m+'</text>';});
   var tp=pts.filter(function(p){return p.x===troughM;})[0];
   if(tp){s+='<circle cx="'+X(tp.x)+'" cy="'+Y(tp.y)+'" r="4" fill="#FF1717"/><text x="'+X(tp.x)+'" y="'+(Y(tp.y)+18)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="#FF1717">'+kfmt(tp.y)+'</text>';}
   if(be){var bp=pts.filter(function(p){return p.x===be;})[0];if(bp){s+='<circle cx="'+X(bp.x)+'" cy="'+Y(bp.y)+'" r="4" fill="#0a8f4c"/><text x="'+X(bp.x)+'" y="'+(Y(bp.y)-9)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="#0a8f4c">m'+be+'</text>';}}
-  document.getElementById(id).innerHTML=s;
+  el(id).innerHTML=s;
 }
 function barChart(id,cats,a,b){
   var W=760,H=240,padL=64,padR=16,padT=16,padB=28;
@@ -559,21 +720,19 @@ function barChart(id,cats,a,b){
   var zy=Y(0),s='',n=cats.length,bw=(W-padL-padR)/n;
   s+='<line x1="'+padL+'" y1="'+zy+'" x2="'+(W-padR)+'" y2="'+zy+'" stroke="rgba(13,16,19,0.35)"/>';
   s+='<text x="'+(padL-8)+'" y="'+(Y(mx)+3)+'" text-anchor="end" font-family="monospace" font-size="9" fill="#6a7075">'+kfmt(mx)+'</text>';
-  for(var i=0;i<n;i++){
-    var x0=padL+i*bw, w=bw*0.32;
-    var xa=x0+bw*0.16, xb=x0+bw*0.52;
+  for(var i=0;i<n;i++){var x0=padL+i*bw,w=bw*0.32,xa=x0+bw*0.16,xb=x0+bw*0.52;
     s+='<rect x="'+xa+'" y="'+Math.min(zy,Y(a[i]))+'" width="'+w+'" height="'+Math.abs(Y(a[i])-zy)+'" fill="#0d1013"/>';
     s+='<rect x="'+xb+'" y="'+Math.min(zy,Y(b[i]))+'" width="'+w+'" height="'+Math.abs(Y(b[i])-zy)+'" fill="#FF1717"/>';
     s+='<text x="'+(x0+bw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-family="monospace" font-size="10" fill="#6a7075">'+cats[i]+'</text>';
     s+='<text x="'+(xa+w/2)+'" y="'+(Y(a[i])-4)+'" text-anchor="middle" font-family="monospace" font-size="8" fill="#0d1013">'+kfmt(a[i])+'</text>';
-    s+='<text x="'+(xb+w/2)+'" y="'+(Y(b[i])-4)+'" text-anchor="middle" font-family="monospace" font-size="8" fill="#FF1717">'+kfmt(b[i])+'</text>';
-  }
-  document.getElementById(id).innerHTML=s;
+    s+='<text x="'+(xb+w/2)+'" y="'+(Y(b[i])-4)+'" text-anchor="middle" font-family="monospace" font-size="8" fill="#FF1717">'+kfmt(b[i])+'</text>';}
+  el(id).innerHTML=s;
 }
 
 /* ===================== dashboard ===================== */
+function metCards(list){return list.map(function(mt){return '<div class="met"><div class="band"></div><div class="k">'+mt.k+'</div><div class="v '+(mt.c||'')+'">'+mt.v+'</div><div class="n">'+mt.n+'</div></div>';}).join('');}
 function renderDash(A){
-  document.getElementById('dash-mets').innerHTML=metCards([
+  el('dash-mets').innerHTML=metCards([
     {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'capital needed · trough m'+A.troughM},
     {k:'Simple payback',v:A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞',c:A.contrib0>0?'green':'red',n:A.contrib0>0?A.simpleMonths.toFixed(0)+' months':'loss-making'},
     {k:'Cash breakeven',v:A.be?('Month '+A.be):'>'+A.horizon,c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'beyond horizon'},
@@ -581,53 +740,33 @@ function renderDash(A){
   ]);
   var pts=[{x:0,y:A.openFund}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cum});});
   lineChart('dash-cash',pts,A.horizon,A.troughM,A.be);
-  // annual bars
   var cats=[],rev=[],op=[];
+  var prodIds=A.prodLines.map(function(l){return l.id;}), ohIds=A.ohLines.map(function(l){return l.id;});
   for(var y=0;y<A.years;y++){cats.push('Y'+(y+1));var rv=0,ct=0;
     ['rev_elite','rev_every','rev_sponsor'].forEach(function(id){rv+=(A.line[id]||[])[y]||0;});
-    var costIds=['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].concat(GBY.production.map(function(i){return i.id;})).concat(GBY.overhead.map(function(i){return i.id;}));
-    costIds.forEach(function(id){ct+=(A.line[id]||[])[y]||0;});
-    rev.push(rv);op.push(rv-ct);
-  }
+    ['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].concat(prodIds).concat(ohIds).forEach(function(id){ct+=(A.line[id]||[])[y]||0;});
+    rev.push(rv);op.push(rv-ct);}
   barChart('dash-bars',cats,rev,op);
 }
 
 /* ===================== build ===================== */
-function renderAsmPnl(A){
-  var gm=A.rev0-A.vc0-A.prodTotal;
-  var margin=A.rev0>0?(A.contrib0/A.rev0*100):0;
-  var h='<tbody>'+
-   '<tr class="ph"><td colspan="2">Per event — steady state (no growth)</td></tr>'+
-   '<tr><td>Revenue (gross)</td><td>'+fmt(A.rev0)+'</td></tr>'+
-   '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
-   '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
-   '<tr class="tot"><td>Contribution before overhead</td><td class="'+cls(gm)+'">'+fmt(gm)+'</td></tr>'+
-   '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
-   '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event &mdash; '+margin.toFixed(1)+'% margin</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
-   '</tbody>';
-  document.getElementById('asm-pnl').innerHTML=h;
-  document.getElementById('asm-pnl-sum').textContent=aed(A.contrib0)+' / event';
-}
 function build(){
   var A=compute();
-  updateAsmSums();
+  updateAsmSums(A);
+  renderOrgCalc(A);
   renderAsmPnl(A);
   renderDash(A);
   renderIncome(A);
   renderCash(A);
   renderPayback(A);
 }
-
-/* tabs */
 document.getElementById('tabs').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
   Array.prototype.forEach.call(this.children,function(x){x.classList.remove('on');});
-  b.classList.add('on');
-  var t=b.getAttribute('data-tab');
+  b.classList.add('on');var t=b.getAttribute('data-tab');
   Array.prototype.forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});
 });
-
-window.addEventListener('DOMContentLoaded',function(){renderAssumptions();build();});
+window.addEventListener('DOMContentLoaded',function(){renderAssumptions();syncMaster();build();});
 </script>
 </body>
 </html>
