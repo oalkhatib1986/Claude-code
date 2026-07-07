@@ -26,10 +26,12 @@
   .htitle{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.6}
   .htitle b{display:block;color:var(--ink);font-weight:700}
   /* tabs */
-  nav.tabs{display:flex;gap:0;border:1px solid rgba(13,16,19,0.24);border-radius:2px;overflow:hidden;background:#fff;margin:0 0 0}
-  nav.tabs button{flex:1;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
-    color:var(--muted);background:#f6f7f8;padding:12px 8px;border:none;border-right:1px solid rgba(13,16,19,0.18);
+  nav.tabs{display:flex;gap:0;border:1px solid rgba(13,16,19,0.24);border-radius:2px;overflow-x:auto;overflow-y:hidden;background:#fff;margin:0 0 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{flex:1 0 auto;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--muted);background:#f6f7f8;padding:12px 14px;border:none;border-right:1px solid rgba(13,16,19,0.18);
     border-top:2px solid transparent;cursor:pointer;transition:color .12s,background .12s;white-space:nowrap}
+  @media(max-width:720px){nav.tabs button{flex:0 0 auto}}
   nav.tabs button:last-child{border-right:none}
   nav.tabs button:hover{color:var(--red);background:#fff}
   nav.tabs button.on{background:#fff;color:var(--red);border-top-color:var(--red)}
@@ -194,56 +196,56 @@ var GROUPS=[
  {key:'timeline',title:'Timeline & Funding',items:[
    {id:'horizon',label:'Model horizon',u:'months',v:36},
    {id:'preop',label:'Pre-operation period',u:'months before event 1',v:3},
-   {id:'evYr',label:'Events per year',u:'cadence after launch',v:4},
+   {id:'evYr',label:'Events per year',u:'cadence after launch',v:5},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
    {id:'capexSpread',label:'Spread CapEx over pre-op',u:'1 = yes · 0 = lump month 1',v:1},
  ]},
  {key:'revenue',title:'Revenue — per event',items:[
-   {id:'pElite',label:'Elite ticket price',u:'AED',v:999},
+   {id:'pElite',label:'Elite ticket price',u:'AED',v:1199},
    {id:'qElite',label:'Elite tickets sold',u:'per event',v:300},
-   {id:'pEvery',label:'Everyday ticket price',u:'AED',v:899},
-   {id:'qEvery',label:'Everyday tickets sold',u:'per event',v:900},
+   {id:'pEvery',label:'Everyday ticket price',u:'AED',v:999},
+   {id:'qEvery',label:'Everyday tickets sold',u:'per event',v:300},
    {id:'sponsor',label:'Sponsorship / other',u:'AED per event',v:0},
    {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0,mod:true},
  ]},
  {key:'capex',title:'Capital Expenditure — one-time',items:[
    {id:'cLED',label:'LED screens',u:'main + secondary',v:420000},
-   {id:'cBarrier',label:'Crowd barriers',u:'buy fleet',v:260000},
-   {id:'cBarrierBrand',label:'Barrier branding',u:'scrim / sleeves',v:70000},
-   {id:'cEquip',label:'Race equipment',u:'ski · row · bike · rigs',v:360000},
-   {id:'cTiming',label:'Timing system',u:'chips · gantry · sw',v:150000},
+   {id:'cBarrier',label:'Crowd barriers',u:'buy fleet',v:50000},
+   {id:'cBarrierBrand',label:'Barrier branding',u:'scrim / sleeves',v:50000},
+   {id:'cEquip',label:'Race equipment',u:'ski · row · bike · rigs',v:350000},
+   {id:'cTiming',label:'Timing system',u:'chips · gantry · sw',v:100000},
    {id:'cStaging',label:'Staging · rig · truss',u:'start/finish',v:120000},
-   {id:'cSound',label:'Sound & PA',u:'speakers · mixer',v:90000},
+   {id:'cSound',label:'Sound & PA',u:'speakers · mixer',v:100000},
    {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:110000},
-   {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:70000},
-   {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:80000},
+   {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
+   {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000},
    {id:'cLaunch',label:'Launch marketing',u:'Season 01 launch',v:140000},
-   {id:'cLegal',label:'Licensing · legal · setup',u:'licence · IP · bond',v:90000},
-   {id:'cContingency',label:'Contingency',u:'capital buffer',v:120000},
+   {id:'cLegal',label:'Licensing · legal · setup',u:'licence · IP · bond',v:50000},
+   {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000},
  ]},
  {key:'overhead',title:'Fixed Overhead — monthly',items:[
    {id:'oRent',label:'Warehouse rent',u:'per month',v:50000},
-   {id:'oSalaries',label:'Salaries & wages',u:'per month',v:50000},
+   {id:'oSalaries',label:'Salaries & wages',u:'per month',v:70000},
    {id:'oUtilities',label:'Utilities & comms',u:'per month',v:7000},
-   {id:'oSoftware',label:'Software & subscriptions',u:'per month',v:4000},
-   {id:'oInsurance',label:'Insurance',u:'per month',v:5000},
-   {id:'oMarketing',label:'Always-on marketing',u:'per month',v:20000},
-   {id:'oAdmin',label:'Accounting & admin',u:'per month',v:1000},
+   {id:'oSoftware',label:'Software & subscriptions',u:'per month',v:1000},
+   {id:'oInsurance',label:'Insurance',u:'per month',v:500},
+   {id:'oMarketing',label:'Always-on marketing',u:'per month',v:25000},
+   {id:'oAdmin',label:'Accounting & admin',u:'per month',v:3000},
  ]},
  {key:'production',title:'Per-Event Production',items:[
-   {id:'pVenue',label:'Venue hire',u:'per event',v:100000},
-   {id:'pPermits',label:'Permits & event licensing',u:'per event',v:20000},
-   {id:'pMedical',label:'Medical & ambulance',u:'per event',v:35000},
-   {id:'pSecurity',label:'Security & marshals',u:'per event',v:30000},
+   {id:'pVenue',label:'Venue hire',u:'per event',v:0},
+   {id:'pPermits',label:'Permits & event licensing',u:'per event',v:25000},
+   {id:'pMedical',label:'Medical & ambulance',u:'per event',v:25000},
+   {id:'pSecurity',label:'Security & marshals',u:'per event',v:25000},
    {id:'pCrew',label:'Event crew & staffing',u:'per event',v:25000},
-   {id:'pPower',label:'Power & generators',u:'per event',v:15000},
-   {id:'pLogistics',label:'Logistics & transport',u:'per event',v:25000},
-   {id:'pRigging',label:'Rigging & setup labour',u:'per event',v:15000},
-   {id:'pMedia',label:'Photo & video',u:'per event',v:30000},
+   {id:'pPower',label:'Power & generators',u:'per event',v:0},
+   {id:'pLogistics',label:'Logistics & transport',u:'per event',v:0},
+   {id:'pRigging',label:'Rigging & setup labour',u:'per event',v:20000},
+   {id:'pMedia',label:'Photo & video',u:'per event',v:50000},
    {id:'pWaste',label:'Waste · cleaning · sanitation',u:'per event',v:5000},
  ]},
  {key:'variable',title:'Per-Athlete Variable',items:[
-   {id:'vTee',label:'Finishing tee',u:'AED each',v:42},
+   {id:'vTee',label:'Finishing tee',u:'AED each',v:30},
    {id:'vMedal',label:'Finisher tag / medal',u:'AED each',v:26},
    {id:'vBib',label:'Bib & timing chip',u:'AED each',v:12},
    {id:'vNutrition',label:'Nutrition & hydration',u:'AED each',v:12},
