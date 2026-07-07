@@ -51,7 +51,6 @@
   .af .u{font-family:var(--mono);font-size:9px;color:var(--muted);display:block;margin-top:1px}
   .af input{width:96px;font-family:var(--mono);font-size:13px;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
   .af input:focus{outline:none;border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
-  .af.pct input{width:64px}
   /* toggle */
   .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);user-select:none}
   .tsw{width:42px;height:23px;border-radius:23px;background:#d3d7da;position:relative;transition:background .15s;flex:0 0 auto}
@@ -72,7 +71,7 @@
   .eq-item:not(.leasing) .leasecol{opacity:0.38}
   .tag{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.08em;padding:3px 7px;border-radius:2px;border:1px solid var(--line);color:var(--muted)}
   /* org table */
-  .org{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;min-width:520px}
+  .org{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;min-width:640px}
   .org th{font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);font-weight:400}
   .org th:first-child{text-align:left}
   .org td{padding:5px 12px;border-bottom:1px solid rgba(13,16,19,0.05);text-align:right}
@@ -510,7 +509,7 @@ function equipCard(){
   return h+'</div>';
 }
 function orgInner(){
-  var h='<div class="scroll"><table class="org"><thead><tr><th>Role</th><th>Head</th><th>Gross / mo</th><th>Basic</th><th>Housing</th><th>Transport</th></tr></thead><tbody>';
+  var h='<div class="scroll"><table class="org"><thead><tr><th>Role</th><th>Head</th><th>Salary / head</th><th>Total / mo</th><th>Basic</th><th>Housing</th><th>Transport</th></tr></thead><tbody>';
   ROLES.forEach(function(r){
     NUMIDS.push('rolehead_'+r.id);DEF['rolehead_'+r.id]=r.head;
     NUMIDS.push('rolesal_'+r.id);DEF['rolesal_'+r.id]=r.sal;
@@ -518,9 +517,9 @@ function orgInner(){
        '<td><input class="t" type="text" id="in-roletitle_'+r.id+'" value="'+r.title+'" placeholder="(add role)"></td>'+
        '<td><input class="n" type="text" inputmode="numeric" id="in-rolehead_'+r.id+'" value="'+r.head+'"></td>'+
        '<td><input class="s" type="text" inputmode="decimal" id="in-rolesal_'+r.id+'" value="'+commaFmt(r.sal)+'"></td>'+
-       '<td class="calc" id="rb-'+r.id+'">—</td><td class="calc" id="rh-'+r.id+'">—</td><td class="calc" id="rt-'+r.id+'">—</td></tr>';
+       '<td class="calc" id="rtot-'+r.id+'">—</td><td class="calc" id="rb-'+r.id+'">—</td><td class="calc" id="rh-'+r.id+'">—</td><td class="calc" id="rt-'+r.id+'">—</td></tr>';
   });
-  h+='<tr class="orgtot"><td>Total</td><td id="org-head">0</td><td id="org-gross">0</td><td id="org-basic" class="calc">—</td><td class="calc"></td><td class="calc"></td></tr>';
+  h+='<tr class="orgtot"><td>Total</td><td id="org-head">0</td><td></td><td id="org-gross">0</td><td id="org-basic" class="calc">—</td><td id="org-hou" class="calc">—</td><td id="org-tra" class="calc">—</td></tr>';
   h+='</tbody></table></div>';
   h+='<div class="asm">';
   PAYITEMS.forEach(function(it){
@@ -608,13 +607,21 @@ function updateAsmSums(A){
   el('sum-org').textContent=A.totalHead+' staff · '+aed(A.totalGross)+' / mo';
 }
 function renderOrgCalc(A){
+  var bp=val('splitBasic')/100, hp=val('splitHousing')/100, tp=val('splitTransport')/100;
   A.roles.forEach(function(r){
-    var basic=r.head*r.sal*(val('splitBasic')/100), hou=r.head*r.sal*(val('splitHousing')/100), tr=r.head*r.sal*(val('splitTransport')/100);
-    if(el('rb-'+r.id)){el('rb-'+r.id).textContent=r.head?fmt(basic):'—';el('rh-'+r.id).textContent=r.head?fmt(hou):'—';el('rt-'+r.id).textContent=r.head?fmt(tr):'—';}
+    var tot=r.head*r.sal;
+    if(el('rtot-'+r.id)){
+      el('rtot-'+r.id).textContent=r.head?fmt(tot):'—';
+      el('rb-'+r.id).textContent=r.head?fmt(tot*bp):'—';
+      el('rh-'+r.id).textContent=r.head?fmt(tot*hp):'—';
+      el('rt-'+r.id).textContent=r.head?fmt(tot*tp):'—';
+    }
   });
   el('org-head').textContent=A.totalHead;
   el('org-gross').textContent=fmt(A.totalGross);
   el('org-basic').textContent=fmt(A.basicTotal);
+  el('org-hou').textContent=fmt(A.totalGross*hp);
+  el('org-tra').textContent=fmt(A.totalGross*tp);
   // payroll cost summary (monthly)
   var eosYr=A.basicTotal*(21/30);
   var h='<tbody><tr class="ph"><td colspan="2">Monthly payroll cost</td></tr>'+
