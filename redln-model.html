@@ -12,6 +12,7 @@
     --mono:'Space Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
   }
   *{box-sizing:border-box}
+  html,body{overflow-x:clip}
   body{margin:0;background:var(--paper);color:var(--ink);
     font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
     background-image:linear-gradient(rgba(60,90,120,0.045) 1px,transparent 1px),
@@ -20,9 +21,8 @@
   .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
   header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
   .hrow{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:60px;padding:10px 0;flex-wrap:wrap}
-  .mark{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:0.01em;text-transform:uppercase;
-    border:1.6px solid var(--ink);border-radius:2px;padding:5px 10px;line-height:1;display:inline-flex;align-items:flex-start}
-  .mark i{color:var(--red);font-style:normal}.mark sup{font-size:0.42em;margin-left:2px}
+  .brand-logo{height:42px;width:auto;object-fit:contain;display:block}
+  @media(max-width:520px){.brand-logo{height:34px}}
   .htitle{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.6}
   .htitle b{display:block;color:var(--ink);font-weight:700}
   /* tabs */
@@ -35,7 +35,7 @@
   nav.tabs button:last-child{border-right:none}
   nav.tabs button:hover{color:var(--red);background:#fff}
   nav.tabs button.on{background:#fff;color:var(--red);border-top-color:var(--red)}
-  .tabwrap{padding:12px 0 6px}
+  .tabwrap{padding-top:12px;padding-bottom:6px}
   section.tab{display:none}section.tab.on{display:block}
   h1{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:26px;margin:26px 0 4px}
   .sub{font-family:var(--mono);font-size:12px;letter-spacing:0.04em;color:var(--muted);margin-bottom:22px;max-width:760px;line-height:1.7}
@@ -93,7 +93,7 @@
 <body>
 <header><div class="wrap">
   <div class="hrow">
-    <span class="mark">REDLN<i>.</i><sup>&reg;</sup></span>
+    <img class="brand-logo" src="redln-badge-final.png" alt="REDLN">
     <span class="htitle"><b>Financial Model</b>Season 01 · internal · AED</span>
   </div>
   <nav class="tabs" id="tabs">
@@ -257,7 +257,8 @@ var GBY={}; GROUPS.forEach(function(g){GBY[g.key]=g.items;});
 var DEF={};
 
 /* ===================== formatters ===================== */
-function val(id){var e=document.getElementById('in-'+id);var n=parseFloat(e.value);return isNaN(n)?0:n;}
+function val(id){var e=document.getElementById('in-'+id);var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
+function commaFmt(n){return Number(n).toLocaleString('en-US',{maximumFractionDigits:6});}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function aed(n){var neg=n<0;var s=Math.round(Math.abs(n)).toLocaleString('en-US');return (neg?'−':'')+'AED '+s;}
 function kfmt(n){return (Math.round(n/1000)).toLocaleString('en-US')+'k';}
@@ -365,15 +366,20 @@ function renderAssumptions(){
     h+='<div class="card"><div class="ch">'+g.title+' <span class="csum" id="sum-'+g.key+'">—</span></div><div class="asm">';
     g.items.forEach(function(it){
       h+='<div class="af'+(it.pct?' pct':'')+'"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
-         '<input type="number" id="in-'+it.id+'" value="'+it.v+'"'+(it.pct?' step="0.1"':'')+'></div>';
+         '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
     });
     h+='</div></div>';
   });
   document.getElementById('asm-groups').innerHTML=h;
   var all=[]; GROUPS.forEach(function(g){g.items.forEach(function(it){all.push(it.id);DEF[it.id]=it.v;});});
-  all.forEach(function(id){document.getElementById('in-'+id).addEventListener('input',build);});
+  all.forEach(function(id){
+    var el=document.getElementById('in-'+id);
+    el.addEventListener('input',build);
+    el.addEventListener('focus',function(){this.value=String(val(id));this.select();});
+    el.addEventListener('blur',function(){this.value=commaFmt(val(id));build();});
+  });
 }
-function resetAll(){GROUPS.forEach(function(g){g.items.forEach(function(it){document.getElementById('in-'+it.id).value=DEF[it.id];});});build();}
+function resetAll(){GROUPS.forEach(function(g){g.items.forEach(function(it){document.getElementById('in-'+it.id).value=commaFmt(DEF[it.id]);});});build();}
 function updateAsmSums(){
   ['capex','overhead','production'].forEach(function(k){document.getElementById('sum-'+k).textContent=aed(sumGroup(k))+(k==='overhead'?' / mo':(k==='production'?' / event':''));});
   var athG=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
