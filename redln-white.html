@@ -464,6 +464,13 @@ nav a{cursor:pointer}
 .foot-links a:hover{color:var(--red)}
 
 .labtag{order:3;writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-weight:700;font-size:7px;letter-spacing:0.06em;text-transform:uppercase;color:var(--red);white-space:nowrap;line-height:1;height:46px;display:flex;align-items:center;justify-content:center;margin-left:10px;align-self:center}
+.foot-desc{font-size:clamp(14px,1.5vw,16px);line-height:1.55;color:#33383d;max-width:52ch;margin:0}
+.foot-desc i{color:var(--red);font-style:normal}
+.foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:34px;padding-top:30px;border-top:1px solid var(--line)}
+.fcol .fh{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.fcol a{display:block;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:0.01em;text-transform:uppercase;color:var(--ink);padding:7px 0;cursor:pointer}
+.fcol a:hover{color:var(--red)}
+@media(max-width:560px){.foot-cols{gap:12px}.fcol a{font-size:13px}.fcol .fh{font-size:9px}}
 @media (prefers-reduced-motion:reduce){*{animation:none !important}}
 
 .hbtns{display:flex;gap:8px;align-items:center;order:2}
@@ -494,7 +501,7 @@ nav a{cursor:pointer}
   <div class="rcol">
     <div class="unit"><span class="bolt a"></span><span class="bolt b"></span><span class="bolt c"></span><span class="bolt d"></span>
       <div class="screen pass"><div class="scan"></div><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
-        <div class="pass-head"><div class="pass-mark"><img src="redln-badge-final.png" alt="REDLN" style="height:24px;width:auto;display:block"></div><div class="pass-eyebrow">Team Pass<br><span class="r">&bull; Sample</span></div></div>
+        <div class="pass-head"><div class="pass-mark"><img src="redln-badge-final.png" alt="REDLN" style="height:38px;width:auto;display:block"></div><div class="pass-eyebrow">Team Pass<br><span class="r">&bull; Sample</span></div></div>
         <div class="pass-rule"></div>
         <div class="pass-athlete">Alex Carter</div>
         <div class="pass-id">RDLN #04821 &middot; Captain</div>
@@ -634,11 +641,14 @@ nav a{cursor:pointer}
   <div class="wrap foot-brand">
     <img class="foot-logo" src="redln-badge-final.png" alt="REDLN">
     <div class="foot-brandtxt">
-      <div class="foot-tag">Find your limit,<br><i>then cross it.</i></div>
-      <div class="foot-meta">REDLN&reg; &mdash; Season 01 &middot; Dubai &middot; MMXXVI</div>
+      <p class="foot-desc">A hybrid fitness race. Find your limit, then cross it. Built in Dubai &mdash; made to <i>Dubai-it</i>: the extraordinary, in record time.</p>
     </div>
   </div>
-  <div class="wrap foot-links"><a data-p="why">The Why</a><a data-p="workout">The Workout</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a><a data-p="account">Account</a></div>
+  <div class="wrap foot-cols">
+    <div class="fcol"><div class="fh">Race</div><a data-p="workout">The Workout</a><a data-p="calendar">Calendar</a><a data-p="tickets">Tickets</a></div>
+    <div class="fcol"><div class="fh">Company</div><a data-p="why">The Why</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a></div>
+    <div class="fcol"><div class="fh">Account</div><a data-p="login">Sign in</a><a data-p="signup">Create account</a><a data-p="account">My bookings</a><a data-p="choose">Register</a></div>
+  </div>
   <div class="wrap foot-in"><span class="r">REDLN&reg; LABS</span><span>Find your limit, then cross it</span><span>DXB &middot; MMXXVI</span></div>
 </footer>
 <script>
