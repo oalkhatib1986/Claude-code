@@ -253,8 +253,6 @@ var GROUPS=[
  ]},
  {key:'equipment',title:'Equipment — Buy or Lease',special:'equip'},
  {key:'capex',title:'Other Capital Expenditure — one-time',items:[
-   {id:'cEquip',label:'Race equipment',u:'ski · row · bike · rigs',v:350000},
-   {id:'cTiming',label:'Timing system',u:'chips · gantry · sw',v:100000},
    {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:110000},
    {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
    {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000},
@@ -306,6 +304,8 @@ var EQUIP=[
  {id:'audio',label:'Audio & PA',buy:100000,lease:25000,on:true},
  {id:'light',label:'Lighting rig',buy:120000,lease:20000,on:true},
  {id:'staging',label:'Staging · rig · truss',buy:120000,lease:40000,on:false},
+ {id:'race',label:'Race equipment (ski · row · bike · rigs)',buy:350000,lease:70000,on:false},
+ {id:'timing',label:'Timing system (chips · gantry · sw)',buy:100000,lease:20000,on:false},
 ];
 var leaseState={}; EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
 
