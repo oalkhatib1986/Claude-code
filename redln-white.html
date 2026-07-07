@@ -21,10 +21,10 @@ a{color:inherit;text-decoration:none}
 .strip .in{display:flex;justify-content:space-between;align-items:center;height:32px;font-family:var(--mono);font-size:6.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
 .strip .r{color:var(--red)}
 header{position:sticky;top:0;z-index:20;background:rgba(244,245,246,0.9);border-bottom:1px solid var(--line)}
-.hrow{display:flex;align-items:center;justify-content:space-between;height:66px}
+.hrow{display:flex;align-items:center;justify-content:space-between;min-height:66px}
 .brand{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:0.02em}.brand i{color:var(--red);font-style:normal}
 .brand-badge{display:block;flex:0 0 auto;line-height:0}
-.brand-vid{height:60px;width:60px;object-fit:cover;background:#fff;border:1px solid var(--line);border-radius:3px;display:block}
+.brand-vid{height:62px;width:auto;object-fit:contain;display:block}
 nav{display:flex;gap:4px;align-items:center}nav a{font-family:var(--mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);opacity:0.74;padding:9px 13px;border-radius:7px;transition:.18s;white-space:nowrap}nav a:hover{opacity:1;color:var(--red);background:rgba(255,23,23,0.08)}nav a.on{opacity:1;color:var(--red);background:rgba(255,23,23,0.11);box-shadow:inset 0 0 0 1px rgba(255,23,23,0.55)}
 .hbtn{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#fff;background:var(--red);padding:11px 18px;border-radius:2px}
 
@@ -97,7 +97,7 @@ section{padding:82px 0}
 .ovp{font-family:var(--body);font-size:15px;line-height:1.55;color:#4a5057;margin-top:12px;max-width:54ch}.ovcta{margin-top:38px}
 footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;justify-content:space-between;align-items:center;height:82px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}.foot-in .r{color:var(--red)}
 .foot-brand{display:flex;flex-wrap:wrap;align-items:center;gap:28px;padding:44px 0 34px;border-bottom:1px solid var(--line)}
-.foot-logo{width:158px;height:158px;flex:0 0 auto;object-fit:cover;background:#fff;border:1px solid var(--line);border-radius:2px;box-shadow:0 12px 34px rgba(20,24,30,0.10)}
+.foot-logo{width:auto;height:150px;flex:0 0 auto;object-fit:contain;display:block}
 .foot-brandtxt{flex:1;min-width:210px}
 .foot-tag{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,4.6vw,38px);line-height:0.92;letter-spacing:0.01em}
 .foot-tag i{color:var(--red);font-style:normal}
@@ -243,7 +243,7 @@ body{background:#e7e9eb !important;
   .ticker-logo{position:absolute;left:0;top:0;bottom:0;z-index:4;display:flex;align-items:center;
     padding:0 26px 0 18px;pointer-events:none;
     background:linear-gradient(to right,#e01313 0%,#e01313 62%,rgba(224,19,19,0) 100%)}
-  .ticker-logo-img{height:22px;width:22px;object-fit:cover;display:block;border-radius:1px;box-shadow:0 0 0 1px rgba(0,0,0,0.18)}
+  .ticker-logo-img{height:26px;width:auto;object-fit:contain;display:block}
   .ticker-track{display:inline-flex;gap:0;padding:2px 0;position:relative;z-index:1;white-space:nowrap;animation:scroll 34s linear infinite}
   /* B — coarse separated dots (letters built from a clipped round-dot grid) */
   .ticker span{font-family:var(--mono);font-size:6.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#ffffff;
@@ -463,18 +463,18 @@ nav a{cursor:pointer}
 .foot-links a{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);cursor:pointer}
 .foot-links a:hover{color:var(--red)}
 
+.labtag{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-weight:700;font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red);white-space:nowrap;line-height:1;margin-left:6px;align-self:center}
 @media (prefers-reduced-motion:reduce){*{animation:none !important}}
 
 .hbtns{display:flex;gap:8px;align-items:center;order:2}
 .hbtn-line{background:var(--panel) !important;color:var(--ink) !important;box-shadow:inset 0 0 0 1.4px var(--ink)}
 </style></head><body>
 
-<div class="strip"><div class="wrap in"><span><span class="r">REDLN&reg; LABS</span> &nbsp; Season 01 &nbsp; DXB &nbsp; No.001</span><span>Run / Bike / Row / Ski</span></div></div>
-<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-logo-poster.jpg" alt="REDLN"></a></div>
+<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-badge-final.png" alt="REDLN"></a></div>
   <nav><a class="on" data-p="home">Overview</a><a data-p="workout">The Workout</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a></nav>
-  <span class="hbtns"><a class="hbtn hbtn-line" data-p="account">Account</a><a class="hbtn" data-p="choose">Register &rarr;</a></span></div></header>
+  <span class="hbtns"><a class="hbtn hbtn-line" data-p="account">Account</a><a class="hbtn" data-p="choose">Register &rarr;</a><span class="labtag">REDLN&reg; LABS</span></span></div></header>
   <div class="ticker">
-    <div class="ticker-logo"><img class="ticker-logo-img" src="redln-logo-poster.jpg" alt="REDLN"></div>
+    <div class="ticker-logo"><img class="ticker-logo-img" src="redln-badge-final.png" alt="REDLN"></div>
     <div class="ticker-track">
       <span><b>Set the pace</b><b>Hold the line</b><b>Run until it hurts</b><b>Win as a team</b><b>Strategy beats strength</b><b>Find your limit</b><b>Then cross it</b><b>Empty the tank</b><b>Move as one</b><b>Chase a faster line</b><b>Trust your four</b><b>Outwork the clock</b><b>Pain is the plan</b><b>Every second counts</b><b>Leave nothing on the floor</b><b>Redline together</b><b>Set the pace</b><b>Hold the line</b><b>Run until it hurts</b><b>Win as a team</b><b>Strategy beats strength</b><b>Find your limit</b><b>Then cross it</b><b>Empty the tank</b><b>Move as one</b><b>Chase a faster line</b><b>Trust your four</b><b>Outwork the clock</b><b>Pain is the plan</b><b>Every second counts</b><b>Leave nothing on the floor</b><b>Redline together</b></span>
     </div>
@@ -632,7 +632,7 @@ nav a{cursor:pointer}
 </main>
 <footer>
   <div class="wrap foot-brand">
-    <img class="foot-logo" src="redln-logo-poster.jpg" alt="REDLN">
+    <img class="foot-logo" src="redln-badge-final.png" alt="REDLN">
     <div class="foot-brandtxt">
       <div class="foot-tag">Find your limit,<br><i>then cross it.</i></div>
       <div class="foot-meta">REDLN&reg; &mdash; Season 01 &middot; Dubai &middot; MMXXVI</div>
