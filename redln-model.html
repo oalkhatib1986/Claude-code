@@ -114,6 +114,9 @@
   .rr.imp{background:#fafbfb}
   .rr.imp span:first-child::before{content:'\21B3';color:var(--red);margin-right:6px}
   .rr.tot{font-weight:700;color:var(--ink);background:#f5faf6;border-top:1px solid var(--line);border-bottom:none}
+  .subh{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);font-weight:700;
+    padding:11px 16px;border-bottom:1px solid var(--line);background:#fbfcfd;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .subh .subsum{color:var(--muted);font-weight:400;letter-spacing:0.04em}
   .neg{color:var(--red)}.pos{color:var(--good)}.mut{color:var(--muted)}
   td.mth{font-weight:700;color:var(--ink)}
   tr.pre td{background:#fff7ee}
@@ -260,8 +263,7 @@ var GROUPS=[
    {id:'cSetup',label:'Legal & incorporation',u:'one-time · IP · bond',v:50000},
    {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000},
  ]},
- {key:'org',title:'Organisation & Payroll',special:'org'},
- {key:'overhead',title:'Fixed Overhead',items:[
+ {key:'overhead',title:'Fixed Overhead',special:'fixedoh',items:[
    {id:'oRent',label:'Warehouse rent',u:'per month',v:50000},
    {id:'oLicence',label:'Trade licence & govt renewals',u:'per year',v:40000,yearly:true},
    {id:'oUtilities',label:'Utilities (DEWA)',u:'per month',v:7000},
@@ -491,7 +493,7 @@ function renderRecon(A){
   var oOpex=A.ohLines.filter(function(l){return l.id.indexOf('pay_')!==0;});
   var oPay=A.ohLines.filter(function(l){return l.id.indexOf('pay_')===0;});
   reconBlock('recon-overhead','Operating overhead subtotal (monthly)',oOpex.reduce(function(t,l){return t+l.v;},0),
-    oPay.map(function(l){return {label:l.label+' — Payroll',v:l.v};}),'Total overhead / month',A.ovhMonthly);
+    oPay.map(function(l){return {label:l.label+' — Operating Payroll',v:l.v};}),'Total fixed overhead / month',A.ovhMonthly);
 }
 function equipCard(){
   var h='<div class="card"><div class="ch"><span>Equipment — Buy or Lease <span class="csum" id="sum-equipment">—</span></span>'+
@@ -507,9 +509,8 @@ function equipCard(){
   });
   return h+'</div>';
 }
-function orgCard(){
-  var h='<div class="card"><div class="ch">Organisation & Payroll <span class="csum" id="sum-org">—</span></div>'+
-        '<div class="scroll"><table class="org"><thead><tr><th>Role</th><th>Head</th><th>Gross / mo</th><th>Basic</th><th>Housing</th><th>Transport</th></tr></thead><tbody>';
+function orgInner(){
+  var h='<div class="scroll"><table class="org"><thead><tr><th>Role</th><th>Head</th><th>Gross / mo</th><th>Basic</th><th>Housing</th><th>Transport</th></tr></thead><tbody>';
   ROLES.forEach(function(r){
     NUMIDS.push('rolehead_'+r.id);DEF['rolehead_'+r.id]=r.head;
     NUMIDS.push('rolesal_'+r.id);DEF['rolesal_'+r.id]=r.sal;
@@ -521,23 +522,39 @@ function orgCard(){
   });
   h+='<tr class="orgtot"><td>Total</td><td id="org-head">0</td><td id="org-gross">0</td><td id="org-basic" class="calc">—</td><td class="calc"></td><td class="calc"></td></tr>';
   h+='</tbody></table></div>';
-  // split + employer add-ons
-  h+='<div class="asm" style="border-top:1px solid var(--line)">';
+  h+='<div class="asm">';
   PAYITEMS.forEach(function(it){
     NUMIDS.push(it.id);DEF[it.id]=it.v;
     h+='<div class="af pct"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
        '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
   });
   h+='</div>';
-  h+='<table class="mono fit" id="org-pnl"></table></div>';
+  h+='<table class="mono fit" id="org-pnl"></table>';
   return h;
+}
+function opexGrid(){
+  var h='<div class="asm">';
+  GBY.overhead.forEach(function(it){
+    NUMIDS.push(it.id);DEF[it.id]=it.v;
+    h+='<div class="af"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
+       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
+  });
+  return h+'</div>';
+}
+function fixedOhCard(){
+  return '<div class="card"><div class="ch">Fixed Overhead <span class="csum" id="sum-overhead">—</span></div>'+
+    '<div class="subh">Operating Payroll <span class="subsum" id="sum-org">—</span></div>'+
+    orgInner()+
+    '<div class="subh">Operating Overhead</div>'+
+    opexGrid()+
+    '<div class="recon" id="recon-overhead"></div></div>';
 }
 function renderAssumptions(){
   NUMIDS=[];
   var h='';
   GROUPS.forEach(function(g){
     if(g.special==='equip') h+=equipCard();
-    else if(g.special==='org') h+=orgCard();
+    else if(g.special==='fixedoh') h+=fixedOhCard();
     else h+=kvGroup(g);
   });
   el('asm-groups').innerHTML=h;
