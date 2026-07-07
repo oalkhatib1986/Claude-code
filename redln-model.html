@@ -129,6 +129,10 @@
     <h1>Assumptions</h1>
     <p class="sub">Every driver is its own field — edit any single line. Grouped only for readability. Granular defaults sum to the planning totals; overwrite with real quotes as they land.</p>
     <div id="asm-groups"></div>
+    <div class="card">
+      <div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div>
+      <div class="scroll"><table class="mono" id="asm-pnl"></table></div>
+    </div>
     <button class="reset" onclick="resetAll()">Reset all to defaults</button>
   </section>
 
@@ -586,9 +590,25 @@ function renderDash(A){
 }
 
 /* ===================== build ===================== */
+function renderAsmPnl(A){
+  var gm=A.rev0-A.vc0-A.prodTotal;
+  var margin=A.rev0>0?(A.contrib0/A.rev0*100):0;
+  var h='<tbody>'+
+   '<tr class="ph"><td colspan="2">Per event — steady state (no growth)</td></tr>'+
+   '<tr><td>Revenue (gross)</td><td>'+fmt(A.rev0)+'</td></tr>'+
+   '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
+   '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
+   '<tr class="tot"><td>Contribution before overhead</td><td class="'+cls(gm)+'">'+fmt(gm)+'</td></tr>'+
+   '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
+   '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event &mdash; '+margin.toFixed(1)+'% margin</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
+   '</tbody>';
+  document.getElementById('asm-pnl').innerHTML=h;
+  document.getElementById('asm-pnl-sum').textContent=aed(A.contrib0)+' / event';
+}
 function build(){
   var A=compute();
   updateAsmSums();
+  renderAsmPnl(A);
   renderDash(A);
   renderIncome(A);
   renderCash(A);
