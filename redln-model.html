@@ -83,6 +83,9 @@
   tr.op td{font-weight:700;font-size:13px;background:#f5faf6;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
   tr.op.neg2 td{background:#fff4f4}
   .minmax{min-width:820px}
+  table.mono.fit{table-layout:fixed;width:100%}
+  table.mono.fit td:first-child,table.mono.fit th:first-child{white-space:normal;word-break:break-word;padding-right:8px}
+  table.mono.fit td:last-child,table.mono.fit th:last-child{width:36%;white-space:nowrap}
   .foot{font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0 46px;line-height:1.8;max-width:900px}
   .reset{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:8px 14px;cursor:pointer;margin:4px 0 30px}
   .reset:hover{border-color:var(--red);color:var(--red)}
@@ -131,7 +134,7 @@
     <div id="asm-groups"></div>
     <div class="card">
       <div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div>
-      <div class="scroll"><table class="mono" id="asm-pnl"></table></div>
+      <table class="mono fit" id="asm-pnl"></table>
     </div>
     <button class="reset" onclick="resetAll()">Reset all to defaults</button>
   </section>
