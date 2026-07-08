@@ -269,11 +269,11 @@ var GROUPS=[
    {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0},
  ]},
  {key:'capex',title:'Capital Expenditure',special:'capexcard',items:[
-   {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:110000},
+   {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:100000},
    {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
    {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000},
-   {id:'cLaunch',label:'Launch marketing',u:'Season 01 launch',v:140000},
-   {id:'cSetup',label:'Legal & incorporation',u:'one-time · IP · bond',v:50000},
+   {id:'cLaunch',label:'Launch marketing',u:'Season 01 launch',v:200000},
+   {id:'cSetup',label:'Legal & incorporation',u:'one-time · IP · bond',v:20000},
    {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000},
  ]},
  {key:'overhead',title:'Fixed Overhead',special:'fixedoh',items:[
@@ -326,11 +326,11 @@ var leaseState={}; EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
 
 /* org roles */
 var ROLES=[
- {id:'md',title:'Founder / Managing Director',head:1,sal:35000},
- {id:'ops',title:'Operations & Event Lead',head:1,sal:22000},
- {id:'mkt',title:'Marketing & Partnerships',head:1,sal:18000},
- {id:'com',title:'Community / Athlete Experience',head:1,sal:12000},
- {id:'fin',title:'Finance & Admin',head:1,sal:13000},
+ {id:'md',title:'Founder',head:1,sal:0},
+ {id:'ops',title:'Head of Events',head:1,sal:45000},
+ {id:'mkt',title:'Sales & PR',head:1,sal:15000},
+ {id:'com',title:'Assistant',head:1,sal:8000},
+ {id:'fin',title:'',head:0,sal:0},
  {id:'x1',title:'',head:0,sal:0},
  {id:'x2',title:'',head:0,sal:0},
 ];
