@@ -491,9 +491,12 @@ function renderRecon(A){
 
   var oOpex=A.ohLines.filter(function(l){return l.id.indexOf('pay_')!==0;});
   var oPay=A.ohLines.filter(function(l){return l.id.indexOf('pay_')===0;});
+  var opexSub=oOpex.reduce(function(t,l){return t+l.v;},0);
   var payTotal=oPay.reduce(function(t,l){return t+l.v;},0);
-  reconBlock('recon-overhead','Operating overhead subtotal (monthly)',oOpex.reduce(function(t,l){return t+l.v;},0),
-    [{label:'Total operating payroll',v:payTotal}],'Total fixed overhead / month',A.ovhMonthly);
+  if(el('recon-overhead'))el('recon-overhead').innerHTML=
+    '<div class="rr"><span>Total operating overhead</span><span>'+fmt(opexSub)+'</span></div>'+
+    '<div class="rr"><span>Total operating payroll</span><span>'+fmt(payTotal)+'</span></div>'+
+    '<div class="rr tot"><span>Total fixed overhead / month</span><span>'+fmt(A.ovhMonthly)+'</span></div>';
 }
 function equipCard(){
   var h='<div class="card"><div class="ch"><span>Equipment — Buy or Lease <span class="csum" id="sum-equipment">—</span></span>'+
