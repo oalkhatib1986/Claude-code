@@ -270,7 +270,8 @@
 var GROUPS=[
  {key:'timeline',title:'Timeline & Funding',items:[
    {id:'horizon',label:'Model horizon',u:'months',v:36},
-   {id:'preop',label:'Pre-operation period',u:'months before event 1',v:3},
+   {id:'launchYear',label:'Launch year',u:'pre-op starts 1 Sep of this year',v:2026},
+   {id:'preop',label:'Pre-operation period',u:'months · starts 1 Sep',v:3},
    {id:'evYr',label:'Events per year',u:'cadence after launch',v:5},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
  ]},
@@ -432,8 +433,16 @@ function compute(){
 
   var first=preop+1;
   var monthsPerEvent=12/evYr;
-  var years=Math.ceil(horizon/12);
-  var yi=function(m){return Math.floor((m-1)/12);};
+  // ---- calendar: month index 1 = September of launchYear (pre-op start) ----
+  var START_MONTH=9; // September
+  var launchYear=Math.round(val('launchYear'))||2026;
+  var calMonthOf=function(m){return ((START_MONTH-1)+(m-1))%12+1;};       // 1..12
+  var calYearOf=function(m){return launchYear+Math.floor(((START_MONTH-1)+(m-1))/12);};
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var monLabel=function(m){return MON[calMonthOf(m)-1]+" '"+String(calYearOf(m)).slice(2);};
+  var yearsList=[]; for(var mm0=1;mm0<=horizon;mm0++){var cy=calYearOf(mm0);if(yearsList.indexOf(cy)<0)yearsList.push(cy);}
+  var years=yearsList.length;
+  var yi=function(m){return yearsList.indexOf(calYearOf(m));};
 
   // event months: anchor after pre-op, accumulate exact 12/evYr spacing
   var eventMonths=[],seenM={};
@@ -504,6 +513,7 @@ function compute(){
   var revPerTeam=avgTeamPrice, revPerAth=ath0>0?tRev0/ath0:0;
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
+    monLabel:monLabel,yearsList:yearsList,calMonthOf:calMonthOf,calYearOf:calYearOf,launchYear:launchYear,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
@@ -789,7 +799,7 @@ function renderAsmPnl(A){
 /* ===================== income statement ===================== */
 function renderIncome(A){
   var yrs=A.years;
-  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=1;y<=yrs;y++)s+='<th>Year '+y+'</th>';s+='<th>Total</th></tr>';return s;}
+  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=0;y<yrs;y++)s+='<th>'+A.yearsList[y]+'</th>';s+='<th>Total</th></tr>';return s;}
   function lineRow(label,id,neg){var arr=A.line[id]||new Array(yrs).fill(0),tot=0,s='<tr><td>'+label+'</td>';
     for(var y=0;y<yrs;y++){var v=neg?-arr[y]:arr[y];tot+=arr[y];s+='<td class="'+(neg?'neg':'')+'">'+fmt(v)+'</td>';}
     return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-tot:tot)+'</td></tr>';}
@@ -817,15 +827,15 @@ function renderIncome(A){
     var op=rev-cost;gt+=op;s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';}
   s+='<td class="'+cls(gt)+'">'+fmt(gt)+'</td></tr>';
   el('inc-annual').innerHTML=h+s+'</tbody>';
-  el('inc-op').textContent='Operating profit '+aed(A.totOp)+' / '+A.years+'yr';
+  el('inc-op').textContent='Operating profit '+aed(A.totOp)+' · '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1];
 
   var mh='<thead><tr><th>Month</th><th>Phase</th><th>Revenue</th><th>Variable</th><th>Production</th><th>Overhead</th><th>Operating P&L</th></tr></thead><tbody>';
   var acc={rev:0,vc:0,pc:0,oh:0,op:0};
   A.rows.forEach(function(r){var rc=r.pre?'pre':(r.ev?'ev':'');
-    mh+='<tr class="'+rc+'"><td class="mth">'+r.m+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
+    mh+='<tr class="'+rc+'"><td class="mth">'+A.monLabel(r.m)+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
       '<td>'+fmt(r.rev)+'</td><td class="neg">'+fmt(-r.vc)+'</td><td class="neg">'+fmt(-r.pc)+'</td><td class="neg">'+fmt(-r.oh)+'</td><td class="'+cls(r.op)+'">'+fmt(r.op)+'</td></tr>';
     acc.rev+=r.rev;acc.vc+=r.vc;acc.pc+=r.pc;acc.oh+=r.oh;acc.op+=r.op;
-    if(r.m%12===0){mh+='<tr class="yr"><td>Year '+(r.m/12)+'</td><td></td><td>'+fmt(acc.rev)+'</td><td class="neg">'+fmt(-acc.vc)+'</td><td class="neg">'+fmt(-acc.pc)+'</td><td class="neg">'+fmt(-acc.oh)+'</td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td></tr>';acc={rev:0,vc:0,pc:0,oh:0,op:0};}
+    if(A.calMonthOf(r.m)===12||r.m===A.horizon){mh+='<tr class="yr"><td>'+A.calYearOf(r.m)+'</td><td></td><td>'+fmt(acc.rev)+'</td><td class="neg">'+fmt(-acc.vc)+'</td><td class="neg">'+fmt(-acc.pc)+'</td><td class="neg">'+fmt(-acc.oh)+'</td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td></tr>';acc={rev:0,vc:0,pc:0,oh:0,op:0};}
   });
   el('inc-monthly').innerHTML=mh+'</tbody>';
 }
@@ -834,17 +844,17 @@ function renderIncome(A){
 function renderCash(A){
   el('cf-mets').innerHTML=metCards([
     {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'deepest trough · month '+A.troughM},
-    {k:'Cash-flow breakeven',v:A.be?('Month '+A.be):'>'+A.horizon+' mo',c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'not reached in horizon'},
-    {k:'Cash at month '+A.horizon,v:aed(A.endCash),c:A.endCash>=0?'green':'red',n:A.evCount+' events held'},
-    {k:A.years+'-yr operating profit',v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'revenue '+aed(A.totRev)}
+    {k:'Cash-flow breakeven',v:A.be?A.monLabel(A.be):'beyond horizon',c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'not reached in horizon'},
+    {k:'Cash at '+A.monLabel(A.horizon),v:aed(A.endCash),c:A.endCash>=0?'green':'red',n:A.evCount+' events held'},
+    {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'revenue '+aed(A.totRev)}
   ]);
   var mh='<thead><tr><th>Month</th><th>Phase</th><th>Operating P&L</th><th>CapEx</th><th>Net cash</th><th>Cumulative</th></tr></thead><tbody>';
   var acc={op:0,cx:0,net:0};
   A.rows.forEach(function(r){var rc=r.pre?'pre':(r.ev?'ev':'');
-    mh+='<tr class="'+rc+'"><td class="mth">'+r.m+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
+    mh+='<tr class="'+rc+'"><td class="mth">'+A.monLabel(r.m)+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
       '<td class="'+cls(r.op)+'">'+fmt(r.op)+'</td><td class="neg">'+fmt(-r.cx)+'</td><td class="'+cls(r.net)+'">'+fmt(r.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';
     acc.op+=r.op;acc.cx+=r.cx;acc.net+=r.net;
-    if(r.m%12===0){mh+='<tr class="yr"><td>Year '+(r.m/12)+'</td><td></td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td><td class="neg">'+fmt(-acc.cx)+'</td><td class="'+cls(acc.net)+'">'+fmt(acc.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';acc={op:0,cx:0,net:0};}
+    if(A.calMonthOf(r.m)===12||r.m===A.horizon){mh+='<tr class="yr"><td>'+A.calYearOf(r.m)+'</td><td></td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td><td class="neg">'+fmt(-acc.cx)+'</td><td class="'+cls(acc.net)+'">'+fmt(acc.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';acc={op:0,cx:0,net:0};}
   });
   el('cf-monthly').innerHTML=mh+'</tbody>';
   var pts=[{x:0,y:A.openFund}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cum});});
@@ -856,7 +866,7 @@ function renderPayback(A){
   var pv=A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞';
   el('pay-mets').innerHTML=metCards([
     {k:'Simple payback',v:A.contrib0>0?A.simpleMonths.toFixed(1)+' mo':'∞',c:A.contrib0>0?'':'red',n:A.contrib0>0?(A.simpleEvents.toFixed(1)+' events · '+pv):'event loses money'},
-    {k:'Cash payback (incl. pre-op)',v:A.be?('Month '+A.be):'>'+A.horizon+' mo',c:A.be?'green':'red',n:A.be?'cumulative cash turns positive':'beyond horizon'},
+    {k:'Cash payback (incl. pre-op)',v:A.be?A.monLabel(A.be):'beyond horizon',c:A.be?'green':'red',n:A.be?'cumulative cash turns positive':'beyond horizon'},
     {k:'Break-even teams / event',v:isFinite(A.beTeams)?Math.ceil(A.beTeams)+' teams':'—',c:'',n:isFinite(A.beTeams)?('vs '+A.teams0+' sold · '+Math.ceil(A.beAth)+' athletes'):'contribution ≤ 0'},
     {k:'Break-even athletes / event',v:isFinite(A.beAth)?Math.ceil(A.beAth)+' ath':'—',c:'',n:'teams × '+A.teamSize+' per team'}
   ]);
@@ -938,14 +948,14 @@ function renderDash(A){
   el('dash-mets').innerHTML=metCards([
     {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'capital needed · trough m'+A.troughM},
     {k:'Simple payback',v:A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞',c:A.contrib0>0?'green':'red',n:A.contrib0>0?A.simpleMonths.toFixed(0)+' months':'loss-making'},
-    {k:'Cash breakeven',v:A.be?('Month '+A.be):'>'+A.horizon,c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'beyond horizon'},
-    {k:A.years+'-yr operating profit',v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'net margin '+(A.totRev>0?(A.totOp/A.totRev*100).toFixed(0):0)+'%'}
+    {k:'Cash breakeven',v:A.be?A.monLabel(A.be):'beyond',c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'beyond horizon'},
+    {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'net margin '+(A.totRev>0?(A.totOp/A.totRev*100).toFixed(0):0)+'%'}
   ]);
   var pts=[{x:0,y:A.openFund}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cum});});
   lineChart('dash-cash',pts,A.horizon,A.troughM,A.be);
   var cats=[],rev=[],op=[];
   var prodIds=A.prodLines.map(function(l){return l.id;}), ohIds=A.ohLines.map(function(l){return l.id;});
-  for(var y=0;y<A.years;y++){cats.push('Y'+(y+1));var rv=0,ct=0;
+  for(var y=0;y<A.years;y++){cats.push(String(A.yearsList[y]));var rv=0,ct=0;
     ['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail'].forEach(function(id){rv+=(A.line[id]||[])[y]||0;});
     ['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].concat(prodIds).concat(ohIds).forEach(function(id){ct+=(A.line[id]||[])[y]||0;});
     rev.push(rv);op.push(rv-ct);}
