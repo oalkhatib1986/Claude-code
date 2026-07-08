@@ -273,6 +273,12 @@ var GROUPS=[
    {id:'sponsor',label:'Sponsorship / other',u:'AED per event',v:0},
    {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0},
  ]},
+ {key:'ancillary',title:'Ancillary Revenue — per event',items:[
+   {id:'fbGross',label:'F&B gross sales (ex VAT)',u:'AED / event',v:150000},
+   {id:'fbPct',label:'F&B commission to REDLN',u:'% of gross',v:15,pct:true},
+   {id:'retGross',label:'Retail / merch gross sales',u:'AED / event',v:80000},
+   {id:'retPct',label:'Retail margin to REDLN',u:'% of gross',v:40,pct:true},
+ ]},
  {key:'capex',title:'Capital Expenditure',special:'capexcard',items:[
    {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:100000},
    {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
@@ -294,6 +300,9 @@ var GROUPS=[
    {id:'oMarketing',label:'Always-on marketing',u:'per month',v:25000},
    {id:'oAccounting',label:'Accounting & audit',u:'per month',v:3000},
    {id:'oMisc',label:'Miscellaneous',u:'per month',v:2000},
+   {id:'oSeason1',label:'Season prize — 1st place',u:'per year',v:50000,yearly:true},
+   {id:'oSeason2',label:'Season prize — 2nd place',u:'per year',v:25000,yearly:true},
+   {id:'oSeason3',label:'Season prize — 3rd place',u:'per year',v:10000,yearly:true},
  ]},
  {key:'production',title:'Per-Event Production',items:[
    {id:'pVenue',label:'Venue hire',u:'per event',v:0},
@@ -308,6 +317,9 @@ var GROUPS=[
    {id:'pWaste',label:'Waste · cleaning · sanitation',u:'per event',v:5000},
    {id:'pDJ',label:'DJ / entertainment',u:'per event',v:20000},
    {id:'pMisc',label:'Miscellaneous',u:'per event',v:10000},
+   {id:'pPrize1',label:'Event prize — 1st place',u:'per event',v:20000},
+   {id:'pPrize2',label:'Event prize — 2nd place',u:'per event',v:10000},
+   {id:'pPrize3',label:'Event prize — 3rd place',u:'per event',v:5000},
  ]},
  {key:'variable',title:'Per-Athlete Variable',special:'varcard',items:[
    {id:'vTee',label:'Finishing tee',u:'AED each',v:30},
@@ -372,6 +384,8 @@ function compute(){
   var teamSize=Math.max(1,val('teamSize'));
   var perAthlete=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
   var feePct=val('vFee')/100;
+  var fbNet=val('fbGross')*(val('fbPct')/100), retNet=val('retGross')*(val('retPct')/100);
+  var ancillaryNet=fbNet+retNet;
 
   // ---- equipment: split into capex (buy) vs production (lease) ----
   var capexLines=[],prodLines=[];
@@ -419,7 +433,7 @@ function compute(){
   for(var ei=0;ei<eventMonths.length;ei++){
     var m=eventMonths[ei], y=yi(m), gf=Math.pow(1+growth,y);
     var qE=Math.round(val('qElite')*gf), qV=Math.round(val('qEvery')*gf);
-    var tRev=qE*pElite+qV*pEvery, rev=tRev+sponsor, ath=(qE+qV)*teamSize;
+    var tRev=qE*pElite+qV*pEvery, rev=tRev+sponsor+ancillaryNet, ath=(qE+qV)*teamSize;
     var vc=ath*perAthlete+tRev*feePct;
     events.push({m:m,y:y,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc});
   }
@@ -437,6 +451,8 @@ function compute(){
     addL('rev_elite',e.y,e.qE*pElite);
     addL('rev_every',e.y,e.qV*pEvery);
     addL('rev_sponsor',e.y,sponsor);
+    addL('rev_fb',e.y,fbNet);
+    addL('rev_retail',e.y,retNet);
   });
 
   // monthly rows
@@ -461,7 +477,7 @@ function compute(){
 
   // per-event steady state (no growth)
   var qE0=val('qElite'),qV0=val('qEvery'), teams0=qE0+qV0;
-  var tRev0=qE0*pElite+qV0*pEvery, rev0=tRev0+sponsor, ath0=teams0*teamSize;
+  var tRev0=qE0*pElite+qV0*pEvery, rev0=tRev0+sponsor+ancillaryNet, ath0=teams0*teamSize;
   var vc0=ath0*perAthlete+tRev0*feePct;
   var ohAlloc=ovhMonthly*monthsPerEvent;
   var contrib0=rev0-vc0-prodTotal-ohAlloc;
@@ -484,6 +500,7 @@ function compute(){
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
     simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,beTeams:beTeams,
     teamSize:teamSize,teams0:teams0,contribPerTeam:contribPerTeam,contribPerAth:contribPerAth,revPerTeam:revPerTeam,revPerAth:revPerAth,goodsPerTeam:goodsPerTeam,
+    fbNet:fbNet,retNet:retNet,ancillaryNet:ancillaryNet,
     roles:roles,totalHead:totalHead,totalGross:totalGross,basicTotal:basicTotal,eosMonthly:eosMonthly,medMonthly:medMonthly,tktMonthly:tktMonthly,
     pElite:pElite,pEvery:pEvery,sponsor:sponsor};
 }
@@ -710,6 +727,7 @@ function updateAsmSums(A){
   el('sum-variable').textContent=aed(A.vc0)+' / event total';
   el('sum-revenue').textContent=aed(val('qElite')*val('pElite')+val('qEvery')*val('pEvery')+val('sponsor'))+' / event';
   el('sum-timeline').textContent=Math.round(val('horizon'))+' mo · '+Math.round(val('preop'))+' pre-op';
+  if(el('sum-ancillary'))el('sum-ancillary').textContent=aed(A.ancillaryNet)+' net / event';
   el('sum-equipment').textContent='Buy '+aed(boughtEq)+' · Lease '+aed(leasedEq)+'/event';
   el('sum-org').textContent=A.totalHead+' staff · '+aed(A.totalGross+A.eosMonthly+A.medMonthly+A.tktMonthly)+' / mo';
 }
@@ -766,13 +784,13 @@ function renderIncome(A){
   function sectionTotal(label,ids,neg){var s='<tr class="tot"><td>'+label+'</td>',gt=0;
     for(var y=0;y<yrs;y++){var v=0;ids.forEach(function(id){v+=(A.line[id]||[])[y]||0;});gt+=v;s+='<td class="'+(neg?'neg':'')+'">'+fmt(neg?-v:v)+'</td>';}
     return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-gt:gt)+'</td></tr>';}
-  var revIds=['rev_elite','rev_every','rev_sponsor'];
+  var revIds=['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail'];
   var varIds=['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'];
   var prodIds=A.prodLines.map(function(l){return l.id;});
   var ohIds=A.ohLines.map(function(l){return l.id;});
   var h='<thead>'+yhead('Line item')+'</thead><tbody>';
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Revenue</td></tr>';
-  h+=lineRow('Elite tickets','rev_elite',false)+lineRow('Everyday tickets','rev_every',false)+lineRow('Sponsorship / other','rev_sponsor',false)+sectionTotal('Gross revenue',revIds,false);
+  h+=lineRow('Elite tickets','rev_elite',false)+lineRow('Everyday tickets','rev_every',false)+lineRow('Sponsorship / other','rev_sponsor',false)+lineRow('F&B commission','rev_fb',false)+lineRow('Retail / merch margin','rev_retail',false)+sectionTotal('Gross revenue',revIds,false);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Variable costs</td></tr>';
   h+=lineRow('Finishing tee','vTee',true)+lineRow('Finisher tag / medal','vMedal',true)+lineRow('Bib & timing chip','vBib',true)+lineRow('Nutrition & hydration','vNutrition',true)+lineRow('Athlete insurance','vAthInsurance',true)+lineRow('Payment & booking fees','vFee',true)+sectionTotal('Total variable',varIds,true);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Per-event production</td></tr>';
@@ -916,7 +934,7 @@ function renderDash(A){
   var cats=[],rev=[],op=[];
   var prodIds=A.prodLines.map(function(l){return l.id;}), ohIds=A.ohLines.map(function(l){return l.id;});
   for(var y=0;y<A.years;y++){cats.push('Y'+(y+1));var rv=0,ct=0;
-    ['rev_elite','rev_every','rev_sponsor'].forEach(function(id){rv+=(A.line[id]||[])[y]||0;});
+    ['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail'].forEach(function(id){rv+=(A.line[id]||[])[y]||0;});
     ['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].concat(prodIds).concat(ohIds).forEach(function(id){ct+=(A.line[id]||[])[y]||0;});
     rev.push(rv);op.push(rv-ct);}
   barChart('dash-bars',cats,rev,op);
