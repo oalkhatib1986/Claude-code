@@ -215,7 +215,7 @@
       <div class="ch">Monthly income statement</div>
       <div class="scroll"><table class="mono minmax" id="inc-monthly"></table></div>
     </div>
-    <p class="foot">Operating profit = revenue − variable − per-event production − fixed overhead (incl. payroll, end-of-service provision, staff insurance &amp; air tickets). Depreciation excluded — capital recovery is shown on the Payback tab. Year 1 typically holds fewer events because the pre-operation months push the first event later in the calendar.</p>
+    <p class="foot">EBITDA = revenue − variable − per-event production − fixed overhead (incl. payroll, end-of-service, staff insurance &amp; air tickets). Depreciation is CapEx straight-lined over its useful life (set on the Setup tab), starting when operations begin — a non-cash charge, so EBITDA − depreciation = EBIT. The Cash Flow tab is unaffected: it shows the actual CapEx outlay when spent, not depreciation (including both would double-count). Calendar years 2026 and the final year are partial.</p>
   </section>
 
   <!-- CASH FLOW -->
@@ -274,6 +274,7 @@ var GROUPS=[
    {id:'preop',label:'Pre-operation period',u:'months · starts 1 Sep',v:3},
    {id:'evYr',label:'Events per year',u:'cadence after launch',v:5},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
+   {id:'depYears',label:'CapEx depreciation life',u:'years · straight-line',v:5},
  ]},
  {key:'revenue',title:'Revenue — per event',items:[
    {id:'teamSize',label:'Team size',u:'athletes / ticket',v:4},
@@ -474,16 +475,23 @@ function compute(){
     addL('rev_retail',e.y,retNet);
   });
 
+  // depreciation (straight-line over useful life, starts when operations begin)
+  var depYears=Math.max(0,val('depYears')), depLifeM=depYears*12;
+  var monthlyDep=depLifeM>0?capexTotal/depLifeM:0;
+
   // monthly rows
   var rows=[], cum=openFund, cumEx=0, capexPerPre=(preop>0)?capexTotal/preop:0;
   for(var m2=1;m2<=horizon;m2++){
     var pre=m2<=preop, e=evByMonth[m2];
     var rev=e?e.rev:0, vc=e?e.vc:0, pc=e?prodTotal:0, oh=ovhMonthly;
     var op=rev-vc-pc-oh;
+    var dep=(!pre && (m2-preop)<=depLifeM && monthlyDep>0)?monthlyDep:0;
+    addL('dep',yi(m2),dep);
+    var ebit=op-dep;
     var cx=(preop>0?(pre?capexPerPre:0):(m2===1?capexTotal:0));
     var net=op-cx;
     cum+=net; cumEx+=net;
-    rows.push({m:m2,pre:pre,ev:!!e,rev:rev,vc:vc,pc:pc,oh:oh,op:op,cx:cx,net:net,cum:cum,cumEx:cumEx});
+    rows.push({m:m2,pre:pre,ev:!!e,rev:rev,vc:vc,pc:pc,oh:oh,op:op,dep:dep,ebit:ebit,cx:cx,net:net,cum:cum,cumEx:cumEx});
   }
 
   var trough=Infinity,troughM=0,be=0,totRev=0,totOp=0,evCount=0;
@@ -514,6 +522,7 @@ function compute(){
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
     monLabel:monLabel,yearsList:yearsList,calMonthOf:calMonthOf,calYearOf:calYearOf,launchYear:launchYear,
+    monthlyDep:monthlyDep,depYears:depYears,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
@@ -821,12 +830,21 @@ function renderIncome(A){
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Fixed overhead</td></tr>';
   A.ohLines.forEach(function(l){h+=lineRow(l.label,l.id,true);});
   h+=sectionTotal('Total overhead',ohIds,true);
-  var s='<tr class="op"><td>Operating profit</td>',gt=0;
+  var opArr=[],gtOp=0;
   for(var y=0;y<yrs;y++){var rev=0;revIds.forEach(function(id){rev+=(A.line[id]||[])[y]||0;});
     var cost=0;varIds.concat(prodIds).concat(ohIds).forEach(function(id){cost+=(A.line[id]||[])[y]||0;});
-    var op=rev-cost;gt+=op;s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';}
-  s+='<td class="'+cls(gt)+'">'+fmt(gt)+'</td></tr>';
-  el('inc-annual').innerHTML=h+s+'</tbody>';
+    var op=rev-cost;opArr.push(op);gtOp+=op;}
+  var s='<tr class="op"><td>Operating profit (EBITDA)</td>';
+  opArr.forEach(function(op){s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';});
+  s+='<td class="'+cls(gtOp)+'">'+fmt(gtOp)+'</td></tr>';
+  var depArr=A.line['dep']||new Array(yrs).fill(0),gtDep=0;
+  s+='<tr><td>Depreciation (CapEx · '+A.depYears+'yr)</td>';
+  for(var yd=0;yd<yrs;yd++){gtDep+=depArr[yd]||0;s+='<td class="neg">'+fmt(-(depArr[yd]||0))+'</td>';}
+  s+='<td class="neg">'+fmt(-gtDep)+'</td></tr>';
+  var s2='<tr class="op"><td>Profit after depreciation (EBIT)</td>',gtE=0;
+  for(var ye=0;ye<yrs;ye++){var e=opArr[ye]-(depArr[ye]||0);gtE+=e;s2+='<td class="'+cls(e)+'">'+fmt(e)+'</td>';}
+  s2+='<td class="'+cls(gtE)+'">'+fmt(gtE)+'</td></tr>';
+  el('inc-annual').innerHTML=h+s+s2+'</tbody>';
   el('inc-op').textContent='Operating profit '+aed(A.totOp)+' · '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1];
 
   var mh='<thead><tr><th>Month</th><th>Phase</th><th>Revenue</th><th>Variable</th><th>Production</th><th>Overhead</th><th>Operating P&L</th></tr></thead><tbody>';
