@@ -253,8 +253,7 @@ var GROUPS=[
    {id:'sponsor',label:'Sponsorship / other',u:'AED per event',v:0},
    {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0},
  ]},
- {key:'equipment',title:'Equipment — Buy or Lease',special:'equip'},
- {key:'capex',title:'Other Capital Expenditure — one-time',items:[
+ {key:'capex',title:'Capital Expenditure',special:'capexcard',items:[
    {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:110000},
    {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
    {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000},
@@ -486,8 +485,12 @@ function renderRecon(A){
 
   var cSchema=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')!==0;});
   var cBuy=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;});
-  reconBlock('recon-capex','Other CapEx subtotal (this section)',cSchema.reduce(function(t,l){return t+l.v;},0),
-    cBuy.map(function(l){return {label:l.label+' — bought · Equipment',v:l.v};}),'Total capital (one-time)',A.capexTotal);
+  var otherTotal=cSchema.reduce(function(t,l){return t+l.v;},0);
+  var equipTotal=cBuy.reduce(function(t,l){return t+l.v;},0);
+  if(el('recon-capex'))el('recon-capex').innerHTML=
+    '<div class="rr"><span>Total equipment CapEx</span><span>'+fmt(equipTotal)+'</span></div>'+
+    '<div class="rr"><span>Total other CapEx</span><span>'+fmt(otherTotal)+'</span></div>'+
+    '<div class="rr tot"><span>Total capital (one-time)</span><span>'+fmt(A.capexTotal)+'</span></div>';
 
   var oOpex=A.ohLines.filter(function(l){return l.id.indexOf('pay_')!==0;});
   var oPay=A.ohLines.filter(function(l){return l.id.indexOf('pay_')===0;});
@@ -498,9 +501,8 @@ function renderRecon(A){
     '<div class="rr"><span>Total operating payroll</span><span>'+fmt(payTotal)+'</span></div>'+
     '<div class="rr tot"><span>Total fixed overhead / month</span><span>'+fmt(A.ovhMonthly)+'</span></div>';
 }
-function equipCard(){
-  var h='<div class="card"><div class="ch"><span>Equipment — Buy or Lease <span class="csum" id="sum-equipment">—</span></span>'+
-        '<span class="toggle" id="masterLease" onclick="toggleAll()"><span class="st">Lease all</span><span class="tsw"></span></span></div>';
+function equipInner(){
+  var h='';
   EQUIP.forEach(function(e){
     NUMIDS.push('eqbuy_'+e.id);DEF['eqbuy_'+e.id]=e.buy;
     NUMIDS.push('eqlease_'+e.id);DEF['eqlease_'+e.id]=e.lease;
@@ -510,7 +512,26 @@ function equipCard(){
        '<div class="eq-inputs"><div class="f buycol"><label>Buy — one-time CapEx</label><input type="text" inputmode="decimal" id="in-eqbuy_'+e.id+'" value="'+commaFmt(e.buy)+'"></div>'+
        '<div class="f leasecol"><label>Lease — per event</label><input type="text" inputmode="decimal" id="in-eqlease_'+e.id+'" value="'+commaFmt(e.lease)+'"></div></div></div>';
   });
+  return h;
+}
+function otherCapexGrid(){
+  var h='<div class="asm">';
+  GBY.capex.forEach(function(it){
+    NUMIDS.push(it.id);DEF[it.id]=it.v;
+    h+='<div class="af"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
+       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
+  });
   return h+'</div>';
+}
+function capexCard(){
+  return '<div class="card"><div class="ch">Capital Expenditure <span class="csum" id="sum-capex">—</span></div>'+
+    '<div class="subh"><span>Equipment CapEx</span><span style="display:flex;gap:14px;align-items:center">'+
+      '<span class="subsum" id="sum-equipment">—</span>'+
+      '<span class="toggle" id="masterLease" onclick="toggleAll()"><span class="st">Lease all</span><span class="tsw"></span></span></span></div>'+
+    equipInner()+
+    '<div class="subh">Other CapEx</div>'+
+    otherCapexGrid()+
+    '<div class="recon" id="recon-capex"></div></div>';
 }
 function orgInner(){
   var h='<div class="scroll"><table class="org"><thead><tr><th>Role</th><th>Head</th><th>Salary / head</th><th>Total / mo</th><th>Basic</th><th>Housing</th><th>Transport</th></tr></thead><tbody>';
@@ -556,7 +577,7 @@ function renderAssumptions(){
   NUMIDS=[];
   var h='';
   GROUPS.forEach(function(g){
-    if(g.special==='equip') h+=equipCard();
+    if(g.special==='capexcard') h+=capexCard();
     else if(g.special==='fixedoh') h+=fixedOhCard();
     else h+=kvGroup(g);
   });
