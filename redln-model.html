@@ -241,6 +241,10 @@
       </div>
     </div>
     <div class="card">
+      <div class="ch">Unit KPIs — team &amp; athlete <span class="csum" id="kpi-sum">—</span></div>
+      <div class="scroll"><table class="mono" id="pay-kpi"></table></div>
+    </div>
+    <div class="card">
       <div class="ch">Capital recovered over time</div>
       <div class="chartwrap"><svg id="pay-chart" viewBox="0 0 760 240" preserveAspectRatio="xMidYMid meet"></svg></div>
       <div class="lg"><span><span class="sw" style="background:var(--red)"></span>Cumulative operating cash vs. capital</span><span><b>0</b> line = capital fully recovered</span></div>
@@ -261,10 +265,11 @@ var GROUPS=[
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
  ]},
  {key:'revenue',title:'Revenue — per event',items:[
-   {id:'pElite',label:'Elite ticket price',u:'AED',v:1299},
-   {id:'qElite',label:'Elite tickets sold',u:'per event',v:300},
-   {id:'pEvery',label:'Everyday ticket price',u:'AED',v:1099},
-   {id:'qEvery',label:'Everyday tickets sold',u:'per event',v:300},
+   {id:'teamSize',label:'Team size',u:'athletes / ticket',v:4},
+   {id:'pElite',label:'Elite ticket price',u:'AED / team',v:1299},
+   {id:'qElite',label:'Elite tickets sold',u:'teams / event',v:300},
+   {id:'pEvery',label:'Everyday ticket price',u:'AED / team',v:1099},
+   {id:'qEvery',label:'Everyday tickets sold',u:'teams / event',v:300},
    {id:'sponsor',label:'Sponsorship / other',u:'AED per event',v:0},
    {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0},
  ]},
@@ -361,6 +366,7 @@ function compute(){
   var openFund=val('openFund');
   var pElite=val('pElite'),pEvery=val('pEvery'),sponsor=val('sponsor');
   var growth=val('volGrowth')/100;
+  var teamSize=Math.max(1,val('teamSize'));
   var perAthlete=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
   var feePct=val('vFee')/100;
 
@@ -410,7 +416,7 @@ function compute(){
   for(var ei=0;ei<eventMonths.length;ei++){
     var m=eventMonths[ei], y=yi(m), gf=Math.pow(1+growth,y);
     var qE=Math.round(val('qElite')*gf), qV=Math.round(val('qEvery')*gf);
-    var tRev=qE*pElite+qV*pEvery, rev=tRev+sponsor, ath=qE+qV;
+    var tRev=qE*pElite+qV*pEvery, rev=tRev+sponsor, ath=(qE+qV)*teamSize;
     var vc=ath*perAthlete+tRev*feePct;
     events.push({m:m,y:y,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc});
   }
@@ -451,24 +457,30 @@ function compute(){
   var peakFund=trough<0?-trough:0, endCash=rows[rows.length-1].cum;
 
   // per-event steady state (no growth)
-  var qE0=val('qElite'),qV0=val('qEvery');
-  var tRev0=qE0*pElite+qV0*pEvery, rev0=tRev0+sponsor, ath0=qE0+qV0;
+  var qE0=val('qElite'),qV0=val('qEvery'), teams0=qE0+qV0;
+  var tRev0=qE0*pElite+qV0*pEvery, rev0=tRev0+sponsor, ath0=teams0*teamSize;
   var vc0=ath0*perAthlete+tRev0*feePct;
   var ohAlloc=ovhMonthly*monthsPerEvent;
   var contrib0=rev0-vc0-prodTotal-ohAlloc;
   var simpleEvents=contrib0>0?capexTotal/contrib0:Infinity;
   var simpleMonths=simpleEvents*monthsPerEvent;
-  var avgTicket=ath0>0?tRev0/ath0:0;
-  var contribPerAth=avgTicket*(1-feePct)-perAthlete;
   var fixedPerEvent=prodTotal+ohAlloc-sponsor;
-  var beAth=contribPerAth>0?fixedPerEvent/contribPerAth:Infinity;
+  // per-team economics
+  var avgTeamPrice=teams0>0?tRev0/teams0:0;
+  var goodsPerTeam=perAthlete*teamSize;
+  var contribPerTeam=avgTeamPrice*(1-feePct)-goodsPerTeam;
+  var beTeams=contribPerTeam>0?fixedPerEvent/contribPerTeam:Infinity;
+  var beAth=isFinite(beTeams)?beTeams*teamSize:Infinity;
+  var contribPerAth=teamSize>0?contribPerTeam/teamSize:0;
+  var revPerTeam=avgTeamPrice, revPerAth=ath0>0?tRev0/ath0:0;
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
-    simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,
+    simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,beTeams:beTeams,
+    teamSize:teamSize,teams0:teams0,contribPerTeam:contribPerTeam,contribPerAth:contribPerAth,revPerTeam:revPerTeam,revPerAth:revPerAth,goodsPerTeam:goodsPerTeam,
     roles:roles,totalHead:totalHead,totalGross:totalGross,basicTotal:basicTotal,eosMonthly:eosMonthly,medMonthly:medMonthly,tktMonthly:tktMonthly,
     pElite:pElite,pEvery:pEvery,sponsor:sponsor};
 }
@@ -787,9 +799,18 @@ function renderPayback(A){
   el('pay-mets').innerHTML=metCards([
     {k:'Simple payback',v:A.contrib0>0?A.simpleMonths.toFixed(1)+' mo':'∞',c:A.contrib0>0?'':'red',n:A.contrib0>0?(A.simpleEvents.toFixed(1)+' events · '+pv):'event loses money'},
     {k:'Cash payback (incl. pre-op)',v:A.be?('Month '+A.be):'>'+A.horizon+' mo',c:A.be?'green':'red',n:A.be?'cumulative cash turns positive':'beyond horizon'},
-    {k:'Peak capital at risk',v:aed(A.peakFund),c:'red',n:'max funding required'},
-    {k:'Break-even attendance',v:isFinite(A.beAth)?Math.ceil(A.beAth)+' ath':'—',c:'',n:'per event to cover fixed cost'}
+    {k:'Break-even teams / event',v:isFinite(A.beTeams)?Math.ceil(A.beTeams)+' teams':'—',c:'',n:isFinite(A.beTeams)?('vs '+A.teams0+' sold · '+Math.ceil(A.beAth)+' athletes'):'contribution ≤ 0'},
+    {k:'Break-even athletes / event',v:isFinite(A.beAth)?Math.ceil(A.beAth)+' ath':'—',c:'',n:'teams × '+A.teamSize+' per team'}
   ]);
+  el('kpi-sum').textContent=A.teams0+' teams · '+A.ath0+' athletes / event';
+  el('pay-kpi').innerHTML='<thead><tr><th>Metric</th><th>Per team</th><th>Per athlete</th></tr></thead><tbody>'+
+    '<tr><td>Team size</td><td>'+A.teamSize+' athletes</td><td>—</td></tr>'+
+    '<tr><td>Sold / event</td><td>'+fmt(A.teams0)+' teams</td><td>'+fmt(A.ath0)+' athletes</td></tr>'+
+    '<tr><td>Revenue</td><td>'+fmt(A.revPerTeam)+'</td><td>'+fmt(A.revPerAth)+'</td></tr>'+
+    '<tr><td>Variable cost (goods + fee)</td><td class="neg">'+fmt(-(A.goodsPerTeam+A.revPerTeam*A.feePct))+'</td><td class="neg">'+fmt(-(A.perAthlete+A.revPerAth*A.feePct))+'</td></tr>'+
+    '<tr class="tot"><td>Contribution (pre-overhead)</td><td class="'+cls(A.contribPerTeam)+'">'+fmt(A.contribPerTeam)+'</td><td class="'+cls(A.contribPerAth)+'">'+fmt(A.contribPerAth)+'</td></tr>'+
+    '<tr><td>Break-even / event</td><td>'+(isFinite(A.beTeams)?Math.ceil(A.beTeams)+' teams':'—')+'</td><td>'+(isFinite(A.beAth)?Math.ceil(A.beAth)+' athletes':'—')+'</td></tr>'+
+    '</tbody>';
   el('pay-unit').innerHTML='<tbody>'+
     '<tr class="ph"><td colspan="2">Per event (steady state)</td></tr>'+
     '<tr><td>Revenue</td><td>'+fmt(A.rev0)+'</td></tr>'+
