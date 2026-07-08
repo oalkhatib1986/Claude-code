@@ -116,6 +116,9 @@
   .subh{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);font-weight:700;
     padding:11px 16px;border-bottom:1px solid var(--line);background:#fbfcfd;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .subh .subsum{color:var(--muted);font-weight:400;letter-spacing:0.04em}
+  .af.ro{background:#fafbfb}
+  .af .roval{width:96px;flex:0 0 auto;text-align:right;font-family:var(--mono);font-size:13px;color:var(--muted);padding:6px 8px;border:1px dashed rgba(13,16,19,0.28);border-radius:2px;background:#f1f3f4}
+  .af .gt{flex:0 0 auto;width:92px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
   .neg{color:var(--red)}.pos{color:var(--good)}.mut{color:var(--muted)}
   td.mth{font-weight:700;color:var(--ink)}
   tr.pre td{background:#fff7ee}
@@ -461,13 +464,15 @@ function compute(){
 /* ===================== assumptions rendering ===================== */
 var NUMIDS=[];   // all numeric input ids (without 'in-' prefix)
 function kvGroup(g){
-  var h='<div class="card"><div class="ch">'+g.title+' <span class="csum" id="sum-'+g.key+'">—</span></div><div class="asm">';
+  var gridId=(g.key==='production')?' id="prod-grid"':'';
+  var h='<div class="card"><div class="ch">'+g.title+' <span class="csum" id="sum-'+g.key+'">—</span></div><div class="asm"'+gridId+'>';
   g.items.forEach(function(it){
     NUMIDS.push(it.id);DEF[it.id]=it.v;
+    var gt=(g.key==='variable')?'<span class="gt" id="gt-'+it.id+'">—</span>':'';
     h+='<div class="af'+(it.pct?' pct':'')+'"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
-       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
+       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'">'+gt+'</div>';
   });
-  var recon=(g.key==='production'||g.key==='capex'||g.key==='overhead')?'<div class="recon" id="recon-'+g.key+'"></div>':'';
+  var recon=(g.key==='production')?'<div class="recon" id="recon-production"></div>':'';
   return h+'</div>'+recon+'</div>';
 }
 function reconBlock(id,subLabel,subtotal,imported,totLabel,total){
@@ -477,11 +482,24 @@ function reconBlock(id,subLabel,subtotal,imported,totLabel,total){
   s+='<div class="rr tot"><span>'+totLabel+'</span><span>'+fmt(total)+'</span></div>';
   el(id).innerHTML=s;
 }
+function renderProdLeased(A){
+  var grid=el('prod-grid'); if(!grid)return;
+  Array.prototype.slice.call(grid.querySelectorAll('.af.ro')).forEach(function(n){n.parentNode.removeChild(n);});
+  A.prodLines.filter(function(l){return l.id.indexOf('eql_')===0;}).forEach(function(l){
+    var name=l.label.replace(' (lease)','');
+    var d=document.createElement('div');
+    d.className='af ro';
+    d.innerHTML='<div class="lab"><label>'+name+'</label><span class="u">leased &middot; from Equipment</span></div><span class="roval">'+fmt(l.v)+'</span>';
+    grid.appendChild(d);
+  });
+  if(el('recon-production'))el('recon-production').innerHTML='<div class="rr tot"><span>Total per event</span><span>'+fmt(A.prodTotal)+'</span></div>';
+}
+function renderVarGross(A){
+  ['vTee','vMedal','vBib','vNutrition','vAthInsurance'].forEach(function(id){var e=el('gt-'+id);if(e)e.textContent='= '+fmt(val(id)*A.ath0);});
+  var f=el('gt-vFee');if(f)f.textContent='= '+fmt(A.tRev0*A.feePct);
+}
 function renderRecon(A){
-  var pSchema=A.prodLines.filter(function(l){return l.id.indexOf('eql_')!==0;});
-  var pLease=A.prodLines.filter(function(l){return l.id.indexOf('eql_')===0;});
-  reconBlock('recon-production','Production subtotal (this section)',pSchema.reduce(function(t,l){return t+l.v;},0),
-    pLease.map(function(l){return {label:l.label.replace(' (lease)','')+' — leased · Equipment',v:l.v};}),'Total per event',A.prodTotal);
+  renderProdLeased(A);
 
   var cSchema=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')!==0;});
   var cBuy=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;});
@@ -836,6 +854,7 @@ function build(){
   var A=compute();
   updateAsmSums(A);
   renderRecon(A);
+  renderVarGross(A);
   renderOrgCalc(A);
   renderAsmPnl(A);
   renderDash(A);
