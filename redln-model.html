@@ -36,6 +36,13 @@
   @media(max-width:720px){nav.tabs button{flex:0 0 auto}}
   .tabwrap{padding-top:12px;padding-bottom:6px}
   section.tab{display:none}section.tab.on{display:block}
+  nav.subtabs{display:flex;gap:0;border:1px solid rgba(13,16,19,0.2);border-radius:2px;overflow-x:auto;background:#fff;margin:0 0 18px;scrollbar-width:none}
+  nav.subtabs::-webkit-scrollbar{display:none}
+  nav.subtabs button{flex:1 0 auto;font-family:var(--mono);font-size:11px;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);background:#f6f7f8;padding:11px 18px;border:none;border-right:1px solid rgba(13,16,19,0.14);border-top:2px solid transparent;cursor:pointer;transition:color .12s,background .12s}
+  nav.subtabs button:last-child{border-right:none}
+  nav.subtabs button:hover{color:var(--red);background:#fff}
+  nav.subtabs button.on{background:#fff;color:var(--red);border-top-color:var(--red)}
+  .asmsub{display:none}.asmsub.on{display:block}
   h1{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:26px;margin:26px 0 4px}
   .sub{font-family:var(--mono);font-size:12px;letter-spacing:0.04em;color:var(--muted);margin-bottom:22px;max-width:760px;line-height:1.7}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:3px;margin-bottom:20px}
@@ -185,11 +192,14 @@
   <section class="tab" id="tab-asm">
     <h1>Assumptions</h1>
     <p class="sub">Every driver is its own field — edit any single line. Equipment can be bought (CapEx) or leased per event via the toggles. Payroll builds from the org table with UAE end-of-service auto-calculated. <b>Your changes save automatically in this browser</b> and persist on refresh. All figures AED.</p>
-    <div id="asm-groups"></div>
-    <div class="card">
-      <div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div>
-      <table class="mono fit" id="asm-pnl"></table>
-    </div>
+    <nav class="subtabs" id="asm-subtabs">
+      <button data-sub="setup" class="on">Setup</button>
+      <button data-sub="revenue">Revenue</button>
+      <button data-sub="costs">Costs</button>
+    </nav>
+    <div class="asmsub on" id="asm-setup"></div>
+    <div class="asmsub" id="asm-revenue"></div>
+    <div class="asmsub" id="asm-costs"></div>
     <button class="reset" onclick="resetAll()">Reset all to defaults (clears saved)</button>
   </section>
 
@@ -646,16 +656,18 @@ function fixedOhCard(){
     opexGrid()+
     '<div class="recon" id="recon-overhead"></div></div>';
 }
+var SUBOF={timeline:'setup',revenue:'revenue',ancillary:'revenue',capex:'costs',overhead:'costs',production:'costs',variable:'costs'};
 function renderAssumptions(){
   NUMIDS=[];
-  var h='';
+  var buckets={setup:'',revenue:'',costs:''};
   GROUPS.forEach(function(g){
-    if(g.special==='capexcard') h+=capexCard();
-    else if(g.special==='varcard') h+=varCard();
-    else if(g.special==='fixedoh') h+=fixedOhCard();
-    else h+=kvGroup(g);
+    var html = g.special==='capexcard'?capexCard(): g.special==='varcard'?varCard(): g.special==='fixedoh'?fixedOhCard(): kvGroup(g);
+    buckets[SUBOF[g.key]||'costs']+=html;
   });
-  el('asm-groups').innerHTML=h;
+  buckets.costs+='<div class="card"><div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div><table class="mono fit" id="asm-pnl"></table></div>';
+  el('asm-setup').innerHTML=buckets.setup;
+  el('asm-revenue').innerHTML=buckets.revenue;
+  el('asm-costs').innerHTML=buckets.costs;
   // wire numeric inputs
   NUMIDS.forEach(function(id){
     var e=el('in-'+id); if(!e)return;
@@ -959,6 +971,12 @@ document.getElementById('tabs').addEventListener('click',function(e){
   Array.prototype.forEach.call(this.children,function(x){x.classList.remove('on');});
   b.classList.add('on');var t=b.getAttribute('data-tab');
   Array.prototype.forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});
+});
+document.getElementById('asm-subtabs').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  Array.prototype.forEach.call(this.children,function(x){x.classList.remove('on');});
+  b.classList.add('on');var t=b.getAttribute('data-sub');
+  ['setup','revenue','costs'].forEach(function(s){el('asm-'+s).classList.toggle('on',s===t);});
 });
 window.addEventListener('DOMContentLoaded',function(){renderAssumptions();loadState();syncMaster();build();});
 </script>
