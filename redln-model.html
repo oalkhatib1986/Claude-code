@@ -184,13 +184,13 @@
   <!-- ASSUMPTIONS -->
   <section class="tab" id="tab-asm">
     <h1>Assumptions</h1>
-    <p class="sub">Every driver is its own field — edit any single line. Equipment can be bought (CapEx) or leased per event via the toggles. Payroll builds from the org table with UAE end-of-service auto-calculated. All figures AED.</p>
+    <p class="sub">Every driver is its own field — edit any single line. Equipment can be bought (CapEx) or leased per event via the toggles. Payroll builds from the org table with UAE end-of-service auto-calculated. <b>Your changes save automatically in this browser</b> and persist on refresh. All figures AED.</p>
     <div id="asm-groups"></div>
     <div class="card">
       <div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div>
       <table class="mono fit" id="asm-pnl"></table>
     </div>
-    <button class="reset" onclick="resetAll()">Reset all to defaults</button>
+    <button class="reset" onclick="resetAll()">Reset all to defaults (clears saved)</button>
   </section>
 
   <!-- INCOME STATEMENT -->
@@ -666,13 +666,38 @@ function syncMaster(){
   var allOn=EQUIP.every(function(e){return leaseState[e.id];});
   el('masterLease').classList.toggle('on',allOn);
 }
+var STORAGE_KEY='redln-model-v1';
+function saveState(){
+  try{
+    var s={nums:{},titles:{},lease:{}};
+    NUMIDS.forEach(function(id){s.nums[id]=val(id);});
+    ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
+    EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
+  }catch(e){}
+}
+function applyEquipUI(){
+  EQUIP.forEach(function(e){var box=el('eq-'+e.id);if(!box)return;
+    box.classList.toggle('leasing',leaseState[e.id]);
+    box.querySelector('.eq-head .toggle').classList.toggle('on',leaseState[e.id]);
+    el('eqst-'+e.id).textContent=leaseState[e.id]?'Lease':'Buy';});
+}
+function loadState(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY); if(!raw)return;
+    var s=JSON.parse(raw);
+    if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(s.nums[id]);});
+    if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
+    if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
+    applyEquipUI();
+  }catch(e){}
+}
 function resetAll(){
+  try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
   NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(DEF[id]);});
   ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=r.title;});
-  EQUIP.forEach(function(e){leaseState[e.id]=e.on;
-    var box=el('eq-'+e.id);box.classList.toggle('leasing',e.on);
-    box.querySelector('.eq-head .toggle').classList.toggle('on',e.on);
-    el('eqst-'+e.id).textContent=e.on?'Lease':'Buy';});
+  EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
+  applyEquipUI();
   syncMaster();build();
 }
 function updateAsmSums(A){
@@ -909,6 +934,7 @@ function build(){
   renderIncome(A);
   renderCash(A);
   renderPayback(A);
+  saveState();
 }
 document.getElementById('tabs').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
@@ -916,7 +942,7 @@ document.getElementById('tabs').addEventListener('click',function(e){
   b.classList.add('on');var t=b.getAttribute('data-tab');
   Array.prototype.forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});
 });
-window.addEventListener('DOMContentLoaded',function(){renderAssumptions();syncMaster();build();});
+window.addEventListener('DOMContentLoaded',function(){renderAssumptions();loadState();syncMaster();build();});
 </script>
 </body>
 </html>
