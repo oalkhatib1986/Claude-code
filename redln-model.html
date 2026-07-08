@@ -491,8 +491,9 @@ function renderRecon(A){
 
   var oOpex=A.ohLines.filter(function(l){return l.id.indexOf('pay_')!==0;});
   var oPay=A.ohLines.filter(function(l){return l.id.indexOf('pay_')===0;});
+  var payTotal=oPay.reduce(function(t,l){return t+l.v;},0);
   reconBlock('recon-overhead','Operating overhead subtotal (monthly)',oOpex.reduce(function(t,l){return t+l.v;},0),
-    oPay.map(function(l){return {label:l.label+' — Operating Payroll',v:l.v};}),'Total fixed overhead / month',A.ovhMonthly);
+    [{label:'Total operating payroll',v:payTotal}],'Total fixed overhead / month',A.ovhMonthly);
 }
 function equipCard(){
   var h='<div class="card"><div class="ch"><span>Equipment — Buy or Lease <span class="csum" id="sum-equipment">—</span></span>'+
@@ -629,7 +630,7 @@ function renderOrgCalc(A){
     '<tr><td>End-of-service provision (21 days basic / yr)</td><td>'+fmt(A.eosMonthly)+'</td></tr>'+
     '<tr><td>Staff medical insurance</td><td>'+fmt(A.medMonthly)+'</td></tr>'+
     '<tr><td>Staff air tickets</td><td>'+fmt(A.tktMonthly)+'</td></tr>'+
-    '<tr class="tot"><td>Total payroll / month</td><td>'+fmt(A.totalGross+A.eosMonthly+A.medMonthly+A.tktMonthly)+'</td></tr>'+
+    '<tr class="tot"><td>Total operating payroll</td><td>'+fmt(A.totalGross+A.eosMonthly+A.medMonthly+A.tktMonthly)+'</td></tr>'+
     '<tr class="mut"><td>End-of-service accrued / year</td><td>'+fmt(eosYr)+'</td></tr></tbody>';
   el('org-pnl').innerHTML=h;
 }
