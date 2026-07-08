@@ -608,7 +608,7 @@ function updateAsmSums(A){
   el('sum-revenue').textContent=aed(val('qElite')*val('pElite')+val('qEvery')*val('pEvery')+val('sponsor'))+' / event';
   el('sum-timeline').textContent=Math.round(val('horizon'))+' mo · '+Math.round(val('preop'))+' pre-op';
   el('sum-equipment').textContent='Buy '+aed(boughtEq)+' · Lease '+aed(leasedEq)+'/event';
-  el('sum-org').textContent=A.totalHead+' staff · '+aed(A.totalGross)+' / mo';
+  el('sum-org').textContent=A.totalHead+' staff · '+aed(A.totalGross+A.eosMonthly+A.medMonthly+A.tktMonthly)+' / mo';
 }
 function renderOrgCalc(A){
   var bp=val('splitBasic')/100, hp=val('splitHousing')/100, tp=val('splitTransport')/100;
