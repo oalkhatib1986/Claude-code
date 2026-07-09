@@ -185,6 +185,7 @@
     <button data-tab="asm">Assumptions</button>
     <button data-tab="inc">Income Statement</button>
     <button data-tab="cf">Cash Flow</button>
+    <button data-tab="bs">Balance Sheet</button>
     <button data-tab="pay">Payback Analysis</button>
   </nav>
 </div></header>
@@ -282,6 +283,18 @@
       <div class="lg"><span><span class="sw" style="background:var(--red)"></span>Cumulative operating cash vs. capital</span><span><b>0</b> line = capital fully recovered</span></div>
     </div>
     <p class="foot">Simple payback = total CapEx ÷ net contribution per event (steady-state, no growth). Cash payback (incl. pre-op) is when cumulative cash — after paying CapEx and pre-operation overhead — returns to zero. Break-even athletes is the attendance per event at which an event exactly covers its production + allocated overhead.</p>
+  </section>
+
+  <!-- BALANCE SHEET -->
+  <section class="tab" id="tab-bs">
+    <h1>Balance Sheet</h1>
+    <p class="sub">Year-end position. Assets (cash + fixed assets net of depreciation) always equal Liabilities + Equity (paid-in capital + retained earnings). All figures AED.</p>
+    <div class="mets" id="bs-mets"></div>
+    <div class="card">
+      <div class="ch">Annual balance sheet — year-end <span class="csum" id="bs-check">—</span></div>
+      <div class="scroll"><table class="mono" id="bs-annual"></table></div>
+    </div>
+    <p class="foot">Cash = the cumulative cash position from the Cash Flow tab. Net fixed assets = cumulative CapEx − accumulated depreciation (each asset over its own useful life). Retained earnings = cumulative profit after depreciation (EBIT). Paid-in capital = opening funding you inject. On a prepaid, cash-collection model there are no material receivables/payables, and end-of-service is expensed and cash-reserved monthly rather than carried as a provision — so the sheet balances to equity. Negative equity in a year means cumulative losses exceed the capital injected: that gap is the funding still required.</p>
   </section>
 
   <p class="sub" style="margin-top:8px">Related: <a href="redln-cashflow.html" style="color:var(--red)">3-yr cash flow (standalone)</a> · <a href="redln-roi.html" style="color:var(--red)">capital-return model</a> · <a href="redln-white.html" style="color:var(--red)">REDLN site</a></p>
@@ -976,6 +989,51 @@ function renderIncome(A){
   el('inc-monthly').innerHTML=mh+'</tbody>';
 }
 
+/* ===================== balance sheet ===================== */
+function renderBalance(A){
+  var yrs=A.years;
+  var lastMByYear={};
+  A.rows.forEach(function(r){lastMByYear[A.calYearOf(r.m)]=r.m;});
+  var cumCapex=0,accumDep=0,retained=0,snap=[];
+  A.rows.forEach(function(r){
+    cumCapex+=r.cx; accumDep+=r.dep; retained+=(r.op-r.dep);
+    if(r.m===lastMByYear[A.calYearOf(r.m)]){
+      var netFixed=cumCapex-accumDep, cash=r.cum, assets=cash+netFixed;
+      var paidIn=A.openFund, equity=paidIn+retained, liab=0;
+      snap.push({year:A.calYearOf(r.m),cash:cash,cost:cumCapex,dep:accumDep,netFixed:netFixed,assets:assets,liab:liab,paidIn:paidIn,retained:retained,equity:equity,chk:assets-(liab+equity)});
+    }
+  });
+  function hd(){var s='<tr><th>Balance sheet (year-end)</th>';snap.forEach(function(p){s+='<th>'+p.year+'</th>';});return s+'</tr>';}
+  function row(label,key,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>';
+    snap.forEach(function(p){var v=p[key];s+='<td class="'+(neg?'neg ':'')+(klass==='op'?cls(v):'')+'">'+fmt(neg?-v:v)+'</td>';});return s+'</tr>';}
+  var h='<thead>'+hd()+'</thead><tbody>';
+  h+='<tr class="ph"><td colspan="'+(yrs+1)+'">Assets</td></tr>';
+  h+=row('Cash &amp; equivalents','cash',false,'');
+  h+=row('Fixed assets at cost','cost',false,'');
+  h+=row('Less: accumulated depreciation','dep',true,'');
+  h+=row('Net fixed assets','netFixed',false,'sub');
+  h+=row('Total assets','assets',false,'tot');
+  h+='<tr class="ph"><td colspan="'+(yrs+1)+'">Liabilities</td></tr>';
+  h+='<tr><td>Trade &amp; other payables</td>'+snap.map(function(){return '<td>'+fmt(0)+'</td>';}).join('')+'</tr>';
+  h+='<tr><td>Provisions (end-of-service)</td>'+snap.map(function(){return '<td>'+fmt(0)+'</td>';}).join('')+'</tr>';
+  h+=row('Total liabilities','liab',false,'tot');
+  h+='<tr class="ph"><td colspan="'+(yrs+1)+'">Equity</td></tr>';
+  h+=row('Paid-in capital','paidIn',false,'');
+  h+=row('Retained earnings','retained',false,'');
+  h+=row('Total equity','equity',false,'tot');
+  h+=row('Check: assets − (liabilities + equity)','chk',false,'op');
+  el('bs-annual').innerHTML=h+'</tbody>';
+  var last=snap[snap.length-1]||{assets:0,netFixed:0,equity:0,retained:0};
+  var maxChk=snap.reduce(function(m,p){return Math.max(m,Math.abs(p.chk));},0);
+  el('bs-check').textContent=maxChk<1?'Balanced ✓':'off by '+fmt(maxChk);
+  el('bs-mets').innerHTML=metCards([
+    {k:'Total assets '+last.year,v:aed(last.assets),c:last.assets>=0?'':'red',n:'cash + net fixed assets'},
+    {k:'Net fixed assets '+last.year,v:aed(last.netFixed),c:'',n:'CapEx cost − accumulated depreciation'},
+    {k:'Shareholders’ equity '+last.year,v:aed(last.equity),c:last.equity>=0?'green':'red',n:last.equity>=0?'net worth':'funding gap to cover'},
+    {k:'Retained earnings '+last.year,v:aed(last.retained),c:last.retained>=0?'green':'red',n:'accumulated profit after depreciation'}
+  ]);
+}
+
 /* ===================== cash flow ===================== */
 function renderCash(A){
   el('cf-mets').innerHTML=metCards([
@@ -1109,6 +1167,7 @@ function build(){
   renderDash(A);
   renderIncome(A);
   renderCash(A);
+  renderBalance(A);
   renderPayback(A);
   saveState();
 }
