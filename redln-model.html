@@ -194,6 +194,7 @@
     <button data-tab="inc">Income Statement</button>
     <button data-tab="cf">Cash Flow</button>
     <button data-tab="bs">Balance Sheet</button>
+    <button data-tab="dep">Depreciation</button>
     <button data-tab="pay">Payback Analysis</button>
   </nav>
 </div></header>
@@ -307,6 +308,27 @@
       <div class="scroll"><table class="mono minmax" id="bs-monthly"></table></div>
     </div>
     <p class="foot">Cash = the cumulative cash position from the Cash Flow tab. Net fixed assets = cumulative CapEx − accumulated depreciation (each asset over its own useful life). <b>Deferred ticket revenue</b> is cash collected for events not yet held (registrations arrive the "ticket collection lead" months ahead), released to revenue when the event runs. <b>End-of-service provision</b> is the accrued UAE gratuity — expensed in the P&amp;L but held as a cash reserve, not paid until an employee leaves. Retained earnings = cumulative profit after depreciation (EBIT); paid-in capital = opening funding you inject. Assets = liabilities + equity to the dirham every period. Negative equity means cumulative losses exceed capital injected — that gap is the funding still required.</p>
+  </section>
+
+  <!-- DEPRECIATION -->
+  <section class="tab" id="tab-dep">
+    <h1>Depreciation Schedule</h1>
+    <p class="sub">Straight-line depreciation of owned CapEx — each asset over its own useful life, starting when operations begin. Leased equipment is not depreciated (it's a per-event cost). All figures AED.</p>
+    <div class="mets" id="dep-mets"></div>
+    <div class="card">
+      <div class="ch">Assumptions — per asset <span class="csum" id="dep-asum">—</span></div>
+      <div class="scroll"><table class="mono" id="dep-assumptions"></table></div>
+      <p class="foot" style="padding:0 16px 14px">Useful lives are editable per asset on the <b>CapEx</b> tab (Buy items and Other CapEx). Method is straight-line; residual value is assumed nil.</p>
+    </div>
+    <div class="card">
+      <div class="ch">Depreciation charge by year <span class="csum" id="dep-total">—</span></div>
+      <div class="scroll"><table class="mono" id="dep-schedule"></table></div>
+    </div>
+    <div class="card">
+      <div class="ch">Net book value roll-forward</div>
+      <div class="scroll"><table class="mono" id="dep-nbv"></table></div>
+    </div>
+    <p class="foot">Depreciation begins when operations start (assets are bought during pre-operation). Each calendar year's charge is the sum of the monthly straight-line amounts for assets still within their useful life; the first and last years may be partial. Closing net book value = cumulative CapEx − accumulated depreciation, and reconciles to Net fixed assets on the Balance Sheet.</p>
   </section>
 
   <p class="sub" style="margin-top:8px">Related: <a href="redln-cashflow.html" style="color:var(--red)">3-yr cash flow (standalone)</a> · <a href="redln-roi.html" style="color:var(--red)">capital-return model</a> · <a href="redln-white.html" style="color:var(--red)">REDLN site</a></p>
@@ -1105,6 +1127,58 @@ function renderBalance(A){
   ]);
 }
 
+/* ===================== depreciation schedule ===================== */
+function renderDep(A){
+  var yrs=A.years, YL=A.yearsList;
+  var yiOf=function(m){return YL.indexOf(A.calYearOf(m));};
+  var assets=A.capexLines.map(function(l){
+    var lm=Math.round((l.life||0)*12), per=lm>0?l.v/lm:0;
+    var annual=new Array(yrs).fill(0);
+    for(var mm=1;mm<=A.horizon;mm++){var k=mm-A.preop; if(k>=1&&k<=lm) annual[yiOf(mm)]+=per;}
+    return {label:l.label,cost:l.v,life:l.life||0,per:per,annual:annual};
+  });
+  var depY=new Array(yrs).fill(0); assets.forEach(function(a){a.annual.forEach(function(v,y){depY[y]+=v;});});
+  var addY=new Array(yrs).fill(0); A.rows.forEach(function(r){addY[yiOf(r.m)]+=r.cx;});
+  var totalCost=assets.reduce(function(t,a){return t+a.cost;},0);
+  var totalDep=depY.reduce(function(t,v){return t+v;},0);
+  var inService=A.monLabel(A.preop+1);
+
+  // assumptions table
+  var ah='<thead><tr><th>Asset</th><th>Cost</th><th>Method</th><th>Useful life</th><th>Annual depreciation</th><th>In service</th></tr></thead><tbody>';
+  assets.forEach(function(a){
+    ah+='<tr><td>'+a.label+'</td><td>'+fmt(a.cost)+'</td><td class="mut">Straight-line</td><td>'+(a.life?a.life+' yr':'—')+'</td><td>'+(a.life?fmt(a.cost/a.life):'—')+'</td><td class="mut">'+inService+'</td></tr>';
+  });
+  ah+='<tr class="tot"><td>Total depreciable CapEx</td><td>'+fmt(totalCost)+'</td><td></td><td class="mut">~'+(A.depAvgLife?A.depAvgLife.toFixed(1):'0')+' yr avg</td><td>'+fmt(A.monthlyDep*12)+'</td><td></td></tr>';
+  el('dep-assumptions').innerHTML=ah+'</tbody>';
+  el('dep-asum').textContent=assets.length+' owned asset'+(assets.length===1?'':'s');
+
+  // per-asset charge by year
+  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=0;y<yrs;y++)s+='<th>'+YL[y]+'</th>';return s+'<th>Total</th></tr>';}
+  var sh='<thead>'+yhead('Asset')+'</thead><tbody>';
+  assets.forEach(function(a){var t=0;sh+='<tr><td>'+a.label+'</td>';for(var y=0;y<yrs;y++){t+=a.annual[y];sh+='<td class="neg">'+fmt(-a.annual[y])+'</td>';}sh+='<td class="neg">'+fmt(-t)+'</td></tr>';});
+  sh+='<tr class="tot"><td>Total depreciation</td>';for(var y=0;y<yrs;y++)sh+='<td class="neg">'+fmt(-depY[y])+'</td>';sh+='<td class="neg">'+fmt(-totalDep)+'</td></tr>';
+  el('dep-schedule').innerHTML=sh+'</tbody>';
+  el('dep-total').textContent=aed(totalDep)+' over '+YL[0]+'–'+YL[yrs-1];
+
+  // NBV roll-forward
+  var nh='<thead>'+yhead('Net book value')+'</thead><tbody>';
+  var open=0, openArr=[],addArr=[],depArr=[],closeArr=[];
+  for(var y=0;y<yrs;y++){var cl=open+addY[y]-depY[y];openArr.push(open);addArr.push(addY[y]);depArr.push(depY[y]);closeArr.push(cl);open=cl;}
+  function nrow(label,arr,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;for(var y=0;y<yrs;y++){t+=arr[y];s+='<td class="'+(neg?'neg':'')+'">'+fmt(neg?-arr[y]:arr[y])+'</td>';}return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-(klass==='tot'?closeArr[yrs-1]:t):(klass==='tot'?closeArr[yrs-1]:t))+'</td></tr>';}
+  nh+='<tr><td>Opening net book value</td>';for(var y=0;y<yrs;y++)nh+='<td>'+fmt(openArr[y])+'</td>';nh+='<td>'+fmt(openArr[0])+'</td></tr>';
+  nh+=nrow('Additions (CapEx)',addArr,false,'');
+  nh+=nrow('Depreciation charge',depArr,true,'');
+  nh+='<tr class="tot"><td>Closing net book value</td>';for(var y=0;y<yrs;y++)nh+='<td>'+fmt(closeArr[y])+'</td>';nh+='<td>'+fmt(closeArr[yrs-1])+'</td></tr>';
+  el('dep-nbv').innerHTML=nh+'</tbody>';
+
+  el('dep-mets').innerHTML=metCards([
+    {k:'Depreciable CapEx',v:aed(totalCost),c:'',n:assets.length+' owned assets · straight-line'},
+    {k:'Annual depreciation (full yr)',v:aed(A.monthlyDep*12),c:'',n:'all assets in service'},
+    {k:'Weighted avg useful life',v:(A.depAvgLife?A.depAvgLife.toFixed(1):'0')+' yr',c:'',n:'by asset value'},
+    {k:'Net book value '+YL[yrs-1],v:aed(closeArr[yrs-1]),c:'',n:'cost − accumulated depreciation'}
+  ]);
+}
+
 /* ===================== cash flow ===================== */
 function renderCash(A){
   el('cf-mets').innerHTML=metCards([
@@ -1239,6 +1313,7 @@ function build(){
   renderIncome(A);
   renderCash(A);
   renderBalance(A);
+  renderDep(A);
   renderPayback(A);
   saveState();
 }
