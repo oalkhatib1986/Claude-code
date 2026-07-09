@@ -87,6 +87,14 @@
   .evcard .evmon{font-family:var(--mono);font-size:12px;padding:5px 7px;border:1px solid var(--line);border-radius:2px;background:#fff;cursor:pointer}
   .evdel{border:1px solid var(--line);background:#fff;color:var(--muted);width:26px;height:26px;border-radius:2px;cursor:pointer;font-size:12px;line-height:1}
   .evdel:hover{border-color:var(--red);color:var(--red)}
+  .games{display:flex;flex-wrap:wrap;gap:10px;padding:12px 16px;align-items:center}
+  .gamechip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:3px;padding:5px 6px 5px 10px;background:#fff}
+  .gamechip .glabel{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+  .gamechip .evmon{font-family:var(--mono);font-size:12px;padding:4px 6px;border:1px solid var(--line);border-radius:2px;background:#fff;cursor:pointer}
+  .gdel{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;line-height:1;padding:2px}
+  .gdel:hover{color:var(--red)}
+  .addgame{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--red);background:#fff;border:1px dashed var(--red);border-radius:3px;padding:7px 12px;cursor:pointer}
+  .addgame:hover{background:var(--red);color:#fff}
   .eq-inputs .f{display:flex;flex-direction:column;gap:3px}
   .eq-inputs .f label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
   .eq-inputs input{width:100%;font-family:var(--mono);font-size:13px;text-align:right;padding:7px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
@@ -408,27 +416,29 @@ var EV_SECTIONS=[
  {title:'Gross ticket sales',fields:[
    {id:'teamSize',label:'Team size',u:'athletes / ticket'},
    {id:'pElite',label:'Elite ticket price',u:'AED / team'},
-   {id:'qElite',label:'Elite tickets sold',u:'teams'},
+   {id:'qElite',label:'Elite tickets sold',u:'teams / game'},
    {id:'pEvery',label:'Everyday ticket price',u:'AED / team'},
-   {id:'qEvery',label:'Everyday tickets sold',u:'teams'},
+   {id:'qEvery',label:'Everyday tickets sold',u:'teams / game'},
  ]},
  {title:'Ancillary revenue',fields:[
-   {id:'fbGross',label:'F&B gross sales (ex VAT)',u:'AED / event'},
+   {id:'fbGross',label:'F&B gross sales (ex VAT)',u:'AED / game'},
    {id:'fbPct',label:'F&B commission to REDLN',u:'% of gross',pct:true},
-   {id:'retGross',label:'Retail / merch gross',u:'AED / event'},
+   {id:'retGross',label:'Retail / merch gross',u:'AED / game'},
    {id:'retPct',label:'Retail margin to REDLN',u:'% of gross',pct:true},
  ]},
  {title:'Sponsorship revenue',fields:[
-   {id:'sponsor',label:'Sponsorship / other',u:'AED per event'},
+   {id:'sponsor',label:'Sponsorship / other',u:'AED per season (once)'},
  ]},
 ];
 var EV_FIELDS=[]; EV_SECTIONS.forEach(function(s){s.fields.forEach(function(f){EV_FIELDS.push(f.id);});});
+// each event is a SEASON with one or more games (each on its own calendar month). Ticket & ancillary
+// assumptions apply per game; sponsorship is counted once per season. Costs use the shared template.
 var EVENTS=[
- {name:'Season Opener',month:2,vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
- {name:'Round 2',month:4,vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
- {name:'Mid-Season Clash',month:6,vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
- {name:'Round 4',month:9,vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
- {name:'Championship Finals',month:11,vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
+ {name:'Season Opener',games:[{month:2}],vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
+ {name:'Round 2',games:[{month:4}],vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
+ {name:'Mid-Season Clash',games:[{month:6}],vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
+ {name:'Round 4',games:[{month:9}],vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
+ {name:'Championship Finals',games:[{month:11}],vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
 var DEF={};
@@ -492,7 +502,8 @@ function compute(){
   var capexTotal=0; capexLines.forEach(function(l){capexTotal+=l.v;});
 
   var first=preop+1;
-  var monthsPerEvent=12/Math.max(1,EVENTS.length);
+  var totalGames=EVENTS.reduce(function(t,E){return t+((E.games&&E.games.length)||1);},0);
+  var monthsPerEvent=12/Math.max(1,totalGames);
   // ---- calendar: month index 1 = START_MONTH of launchYear (pre-op start, user-selectable) ----
   var START_MONTH=Math.min(12,Math.max(1,Math.round(val('startMonth'))||9));
   var launchYear=Math.round(val('launchYear'))||2026;
@@ -504,23 +515,28 @@ function compute(){
   var years=yearsList.length;
   var yi=function(m){return yearsList.indexOf(calYearOf(m));};
 
-  // ---- schedule event instances from EVENTS (each recurs annually in its calendar month) ----
+  // ---- schedule game instances: each event is a season; each game runs in its own calendar month,
+  //      repeating annually. Ticket & ancillary apply per game; sponsorship is counted once per season. ----
   var events=[];
   EVENTS.forEach(function(E){
-    var cm=Math.min(12,Math.max(1,Math.round(E.month||1)));
+    var games=(E.games&&E.games.length)?E.games:[{month:E.month||6}];
     for(var yIdx=0;yIdx<years;yIdx++){
       var cy=yearsList[yIdx];
+      games.forEach(function(g,gi){
+      var cm=Math.min(12,Math.max(1,Math.round((g&&g.month)||6)));
       var m=(cy-launchYear)*12+(cm-START_MONTH)+1;  // horizon month index for (calMonth cm, calYear cy)
-      if(m<first||m>horizon)continue;              // before ops start or beyond horizon
+      if(m<first||m>horizon)return;                // before ops start or beyond horizon
       var y=yi(m), gf=Math.pow(1+growth,y);
       var gv=function(id){return (E.vals&&E.vals[id]!=null)?E.vals[id]:val(id);};
       var ts=Math.max(1,gv('teamSize'));
       var qE=Math.round(gv('qElite')*gf), qV=Math.round(gv('qEvery')*gf);
-      var pE=gv('pElite'),pV=gv('pEvery'),spn=gv('sponsor');
+      var pE=gv('pElite'),pV=gv('pEvery'),spn=(gi===0)?gv('sponsor'):0;  // sponsorship once per season
       var fbn=gv('fbGross')*(gv('fbPct')/100), rtn=gv('retGross')*(gv('retPct')/100);
       var tRev=qE*pE+qV*pV, rev=tRev+spn+fbn+rtn, ath=(qE+qV)*ts;
       var vc=ath*perAthlete+tRev*feePct;
-      events.push({m:m,y:y,name:E.name,ts:ts,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc,pc:prodTotal,fbn:fbn,rtn:rtn,spn:spn,pE:pE,pV:pV});
+      var gname=E.name+(games.length>1?' · Game '+(gi+1):'');
+      events.push({m:m,y:y,name:gname,ts:ts,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc,pc:prodTotal,fbn:fbn,rtn:rtn,spn:spn,pE:pE,pV:pV});
+      });
     }
   });
   events.sort(function(a,b){return a.m-b.m;});
@@ -781,43 +797,63 @@ function fixedOhCard(){
 var MONTHS3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function escq(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function monthOpts(sel){var s='';for(var i=1;i<=12;i++)s+='<option value="'+i+'"'+(i==sel?' selected':'')+'>'+MONTHS3[i-1]+'</option>';return s;}
-// ensure every event carries every field (back-fills events restored from older saved state)
-function normEvents(){var d=EVENTS_DEFAULT[0].vals;EVENTS.forEach(function(E){E.vals=E.vals||{};EV_FIELDS.forEach(function(k){if(E.vals[k]==null)E.vals[k]=(d[k]!=null?d[k]:0);});});}
+// ensure every event carries every field + a valid games list (back-fills older saved state)
+function normEvents(){var d=EVENTS_DEFAULT[0].vals;EVENTS.forEach(function(E){
+  E.vals=E.vals||{};EV_FIELDS.forEach(function(k){if(E.vals[k]==null)E.vals[k]=(d[k]!=null?d[k]:0);});
+  if(!E.games||!E.games.length){E.games=(E.month!=null)?[{month:E.month}]:[{month:6}];}
+  E.games=E.games.map(function(g){return {month:Math.min(12,Math.max(1,Math.round((g&&g.month)||6)))};});
+});}
 function evg(E,id){var v=E.vals[id];return v==null?0:v;}
 function renderEventsRevenue(){
   if(!el('ev-wrap'))return;
   normEvents();
-  var h='<div class="card intro-ev"><div class="ch">Events &amp; per-event revenue <span class="csum">'+EVENTS.length+' event'+(EVENTS.length===1?'':'s')+' / year</span></div>'+
-    '<p class="sub" style="padding:0 16px 4px">Each event has its own revenue assumptions — ticket sales, ancillary and sponsorship. Add or remove events freely; each one repeats annually in its chosen calendar month.</p></div>';
+  var totGames=EVENTS.reduce(function(t,E){return t+E.games.length;},0);
+  var h='<div class="card intro-ev"><div class="ch">Seasons, games &amp; revenue <span class="csum">'+EVENTS.length+' season'+(EVENTS.length===1?'':'s')+' · '+totGames+' game'+(totGames===1?'':'s')+' / yr</span></div>'+
+    '<p class="sub" style="padding:0 16px 4px">Each <b>season</b> (event) holds one or more <b>games</b> on their own dates. Ticket &amp; ancillary figures below are <b>per game</b>; sponsorship is counted once per season. Every season repeats annually.</p></div>';
   EVENTS.forEach(function(E,i){
+    var G=E.games.length;
+    var fbShare=evg(E,'fbGross')*evg(E,'fbPct')/100, retShare=evg(E,'retGross')*evg(E,'retPct')/100;
     var tick=evg(E,'qElite')*evg(E,'pElite')+evg(E,'qEvery')*evg(E,'pEvery');
-    var anc=evg(E,'fbGross')*evg(E,'fbPct')/100+evg(E,'retGross')*evg(E,'retPct')/100;
+    var anc=fbShare+retShare;
     var spn=evg(E,'sponsor');
-    var tot=tick+anc+spn;
+    var seasonTot=(tick+anc)*G+spn;
     h+='<div class="card evcard"><div class="ch evhead">'+
-       '<input class="evname" type="text" value="'+escq(E.name)+'" oninput="setEvName('+i+',this.value)" placeholder="Event name">'+
-       '<span class="evmeta"><select class="evmon" onchange="setEvMonth('+i+',this.value)">'+monthOpts(E.month)+'</select>'+
-       '<span class="csum">'+aed(tot)+' / event</span>'+
-       '<button class="evdel" onclick="delEvent('+i+')" title="remove event">✕</button></span></div>';
-    var subsum=[aed(tick),aed(anc),aed(spn)];
+       '<input class="evname" type="text" value="'+escq(E.name)+'" oninput="setEvName('+i+',this.value)" placeholder="Season name">'+
+       '<span class="evmeta"><span class="csum">'+aed(seasonTot)+' / season</span>'+
+       '<button class="evdel" onclick="delEvent('+i+')" title="remove season">✕</button></span></div>';
+    // schedule of games
+    h+='<div class="subh"><span>Season schedule</span><span class="subsum">'+G+' game'+(G===1?'':'s')+'</span></div><div class="games">';
+    E.games.forEach(function(g,gi){
+      h+='<span class="gamechip"><span class="glabel">Game '+(gi+1)+'</span>'+
+         '<select class="evmon" onchange="setGameMonth('+i+','+gi+',this.value)">'+monthOpts(g.month)+'</select>'+
+         (G>1?'<button class="gdel" onclick="delGame('+i+','+gi+')" title="remove game">✕</button>':'')+'</span>';
+    });
+    h+='<button class="addgame" onclick="addGame('+i+')">+ Game</button></div>';
+    // revenue sections (per game)
+    var subsum=[aed(tick)+' / game',aed(anc)+' / game',aed(spn)+' / season'];
     EV_SECTIONS.forEach(function(sec,si){
       h+='<div class="subh"><span>'+sec.title+'</span><span class="subsum">'+subsum[si]+'</span></div><div class="asm">';
       sec.fields.forEach(function(f){
         h+='<div class="af'+(f.pct?' pct':'')+'"><div class="lab"><label>'+f.label+'</label><span class="u">'+f.u+'</span></div>'+
            '<input type="text" inputmode="decimal" value="'+commaFmt(evg(E,f.id))+'" onchange="setEvVal('+i+',\''+f.id+'\',this.value)">'+
            '</div>';
+        // show REDLN's actual share right under each ancillary gross line
+        if(f.id==='fbPct') h+='<div class="af ro"><div class="lab"><label>REDLN F&amp;B share</label><span class="u">gross × commission · per game</span></div><span class="roval">'+aed(fbShare)+'</span></div>';
+        if(f.id==='retPct') h+='<div class="af ro"><div class="lab"><label>REDLN retail share</label><span class="u">gross × margin · per game</span></div><span class="roval">'+aed(retShare)+'</span></div>';
       });
       h+='</div>';
     });
     h+='</div>';
   });
-  h+='<button class="reset" style="margin:2px 0 14px" onclick="addEvent()">+ Add event</button>';
+  h+='<button class="reset" style="margin:2px 0 14px" onclick="addEvent()">+ Add season</button>';
   el('ev-wrap').innerHTML=h;
 }
 function setEvName(i,v){EVENTS[i].name=v;saveState();build();}
-function setEvMonth(i,v){EVENTS[i].month=parseInt(v,10)||1;renderEventsRevenue();build();}
 function setEvVal(i,id,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].vals[id]=isNaN(n)?0:n;renderEventsRevenue();build();}
-function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Event '+(EVENTS.length+1),month:6,vals:JSON.parse(JSON.stringify(d.vals))});renderEventsRevenue();build();}
+function setGameMonth(i,gi,v){EVENTS[i].games[gi].month=parseInt(v,10)||1;renderEventsRevenue();build();}
+function addGame(i){EVENTS[i].games.push({month:6});renderEventsRevenue();build();}
+function delGame(i,gi){if(EVENTS[i].games.length>1){EVENTS[i].games.splice(gi,1);renderEventsRevenue();build();}}
+function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Season '+(EVENTS.length+1),games:[{month:6}],vals:JSON.parse(JSON.stringify(d.vals))});renderEventsRevenue();build();}
 function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsRevenue();build();}}
 var SUBOF={timeline:'setup',revenue:'revenue',capex:'capex',overhead:'costs',production:'costs',variable:'costs'};
 function renderAssumptions(){
