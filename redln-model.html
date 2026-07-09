@@ -275,7 +275,6 @@ var GROUPS=[
    {id:'horizon',label:'Model horizon',u:'months',v:36},
    {id:'launchYear',label:'Launch year',u:'pre-op starts 1 Sep of this year',v:2026},
    {id:'preop',label:'Pre-operation period',u:'months · starts 1 Sep',v:3},
-   {id:'evYr',label:'Events per year',u:'cadence after launch',v:5},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
    {id:'depYears',label:'CapEx depreciation life',u:'years · straight-line',v:5},
  ]},
@@ -390,8 +389,10 @@ var EV_COLS=[
  {id:'retGross',label:'Retail gross',w:90},
 ];
 var EVENTS=[
- {name:'Season Opener',month:3,vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,retGross:50000}},
+ {name:'Season Opener',month:2,vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,retGross:50000}},
+ {name:'Round 2',month:4,vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,retGross:60000}},
  {name:'Mid-Season Clash',month:6,vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,retGross:70000}},
+ {name:'Round 4',month:9,vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,retGross:100000}},
  {name:'Championship Finals',month:11,vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,retGross:130000}},
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
