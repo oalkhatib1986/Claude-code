@@ -325,6 +325,10 @@
       <div class="scroll"><table class="mono" id="dep-schedule"></table></div>
     </div>
     <div class="card">
+      <div class="ch">Monthly depreciation schedule</div>
+      <div class="scroll"><table class="mono minmax" id="dep-monthly"></table></div>
+    </div>
+    <div class="card">
       <div class="ch">Net book value roll-forward</div>
       <div class="scroll"><table class="mono" id="dep-nbv"></table></div>
     </div>
@@ -1159,6 +1163,19 @@ function renderDep(A){
   sh+='<tr class="tot"><td>Total depreciation</td>';for(var y=0;y<yrs;y++)sh+='<td class="neg">'+fmt(-depY[y])+'</td>';sh+='<td class="neg">'+fmt(-totalDep)+'</td></tr>';
   el('dep-schedule').innerHTML=sh+'</tbody>';
   el('dep-total').textContent=aed(totalDep)+' over '+YL[0]+'–'+YL[yrs-1];
+
+  // monthly depreciation schedule (charge, accumulated, net book value)
+  var mh='<thead><tr><th>Month</th><th>Phase</th><th>Depreciation</th><th>Accumulated dep.</th><th>Net book value</th></tr></thead><tbody>';
+  var cumCx=0, accDep=0, accYr=0;
+  A.rows.forEach(function(r){
+    cumCx+=r.cx; accDep+=r.dep; accYr+=r.dep; var nbv=cumCx-accDep;
+    var rc=r.pre?'pre':(r.ev?'ev':'');
+    mh+='<tr class="'+rc+'"><td class="mth">'+A.monLabel(r.m)+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
+      '<td class="neg">'+fmt(-r.dep)+'</td><td class="neg">'+fmt(-accDep)+'</td><td>'+fmt(nbv)+'</td></tr>';
+    if(A.calMonthOf(r.m)===12||r.m===A.horizon){
+      mh+='<tr class="yr"><td>'+A.calYearOf(r.m)+'</td><td></td><td class="neg">'+fmt(-accYr)+'</td><td class="neg">'+fmt(-accDep)+'</td><td>'+fmt(nbv)+'</td></tr>';accYr=0;}
+  });
+  el('dep-monthly').innerHTML=mh+'</tbody>';
 
   // NBV roll-forward
   var nh='<thead>'+yhead('Net book value')+'</thead><tbody>';
