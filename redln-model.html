@@ -70,6 +70,23 @@
   .eq-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px}
   .eq-title{font-size:13.5px;font-weight:600}
   .eq-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .eq-inputs.eq3{grid-template-columns:1fr 1fr 96px}
+  .selin{width:120px;font-family:var(--mono);font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);cursor:pointer}
+  .selin:focus{outline:none;border-color:var(--red)}
+  .af.cap2 .capinputs{display:flex;align-items:center;gap:8px}
+  .af.cap2 .capinputs>input{width:96px}
+  .lifewrap{display:flex;align-items:center;gap:4px}
+  .lifein{width:44px!important;text-align:center!important}
+  .lifewrap .yr{font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap}
+  .af.ro.owned .u{color:var(--red)}
+  .roval.owned{color:var(--muted);font-style:italic}
+  .evcard .evhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .evcard .evname{flex:1;min-width:140px;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:0.02em;color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:6px 9px;background:#fff}
+  .evcard .evname:focus{outline:none;border-color:var(--red)}
+  .evcard .evmeta{display:flex;align-items:center;gap:10px}
+  .evcard .evmon{font-family:var(--mono);font-size:12px;padding:5px 7px;border:1px solid var(--line);border-radius:2px;background:#fff;cursor:pointer}
+  .evdel{border:1px solid var(--line);background:#fff;color:var(--muted);width:26px;height:26px;border-radius:2px;cursor:pointer;font-size:12px;line-height:1}
+  .evdel:hover{border-color:var(--red);color:var(--red)}
   .eq-inputs .f{display:flex;flex-direction:column;gap:3px}
   .eq-inputs .f label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
   .eq-inputs input{width:100%;font-family:var(--mono);font-size:13px;text-align:right;padding:7px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
@@ -199,10 +216,12 @@
       <button data-sub="setup" class="on">Setup</button>
       <button data-sub="revenue">Revenue</button>
       <button data-sub="costs">Costs</button>
+      <button data-sub="capex">CapEx</button>
     </nav>
     <div class="asmsub on" id="asm-setup"></div>
     <div class="asmsub" id="asm-revenue"></div>
     <div class="asmsub" id="asm-costs"></div>
+    <div class="asmsub" id="asm-capex"></div>
     <button class="reset" onclick="resetAll()">Reset all to defaults (clears saved)</button>
   </section>
 
@@ -273,33 +292,21 @@
 var GROUPS=[
  {key:'timeline',title:'Timeline & Funding',items:[
    {id:'horizon',label:'Model horizon',u:'months',v:36},
-   {id:'launchYear',label:'Launch year',u:'pre-op starts 1 Sep of this year',v:2026},
-   {id:'preop',label:'Pre-operation period',u:'months · starts 1 Sep',v:3},
+   {id:'launchYear',label:'Launch year',u:'the year pre-operation begins',v:2026},
+   {id:'startMonth',label:'Pre-operation starts',u:'month the timeline begins',v:9,sel:'month'},
+   {id:'preop',label:'Pre-operation period',u:'months before first event',v:3},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
-   {id:'depYears',label:'CapEx depreciation life',u:'years · straight-line',v:5},
  ]},
- {key:'revenue',title:'Revenue — per event',items:[
-   {id:'teamSize',label:'Team size',u:'athletes / ticket',v:4},
-   {id:'pElite',label:'Elite ticket price',u:'AED / team',v:1299},
-   {id:'qElite',label:'Elite tickets sold',u:'teams / event',v:300},
-   {id:'pEvery',label:'Everyday ticket price',u:'AED / team',v:1099},
-   {id:'qEvery',label:'Everyday tickets sold',u:'teams / event',v:300},
-   {id:'sponsor',label:'Sponsorship / other',u:'AED per event',v:0},
-   {id:'volGrowth',label:'Ticket volume growth',u:'% per year',v:0},
- ]},
- {key:'ancillary',title:'Ancillary Revenue — per event',items:[
-   {id:'fbGross',label:'F&B gross sales (ex VAT)',u:'AED / event',v:150000},
-   {id:'fbPct',label:'F&B commission to REDLN',u:'% of gross',v:15,pct:true},
-   {id:'retGross',label:'Retail / merch gross sales',u:'AED / event',v:80000},
-   {id:'retPct',label:'Retail margin to REDLN',u:'% of gross',v:40,pct:true},
+ {key:'revenue',title:'Revenue Settings (all events)',items:[
+   {id:'volGrowth',label:'Ticket volume growth',u:'% per year · applied to every event',v:0},
  ]},
  {key:'capex',title:'Capital Expenditure',special:'capexcard',items:[
-   {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:100000},
-   {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000},
-   {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000},
-   {id:'cLaunch',label:'Launch marketing',u:'Season 01 launch',v:200000},
-   {id:'cSetup',label:'Legal & incorporation',u:'one-time · IP · bond',v:20000},
-   {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000},
+   {id:'cSignage',label:'General branding & signage',u:'arch · flags',v:100000,life:5},
+   {id:'cTech',label:'Website · app · platform',u:'reg + leaderboard',v:50000,life:3},
+   {id:'cFitout',label:'Warehouse fit-out',u:'racking · office',v:100000,life:7},
+   {id:'cLaunch',label:'Launch marketing',u:'Season 01 launch',v:200000,life:3},
+   {id:'cSetup',label:'Legal & incorporation',u:'one-time · IP · bond',v:20000,life:5},
+   {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000,life:5},
  ]},
  {key:'overhead',title:'Fixed Overhead',special:'fixedoh',items:[
    {id:'oRent',label:'Warehouse rent',u:'per month',v:50000},
@@ -348,13 +355,13 @@ var GBY={}; GROUPS.forEach(function(g){if(g.items)GBY[g.key]=g.items;});
 
 /* equipment: buy price + lease/event; leaseState toggled by user */
 var EQUIP=[
- {id:'led',label:'LED screens',buy:420000,lease:60000,on:true},
- {id:'barrier',label:'Crowd barriers',buy:50000,lease:15000,on:true},
- {id:'audio',label:'Audio & PA',buy:100000,lease:25000,on:true},
- {id:'light',label:'Lighting rig',buy:120000,lease:20000,on:true},
- {id:'staging',label:'Staging · rig · truss',buy:120000,lease:40000,on:true},
- {id:'race',label:'Race equipment (ski · row · bike · rigs)',buy:350000,lease:35000,on:true},
- {id:'timing',label:'Timing system (chips · gantry · sw)',buy:100000,lease:20000,on:true},
+ {id:'led',label:'LED screens',buy:420000,lease:60000,on:true,life:5},
+ {id:'barrier',label:'Crowd barriers',buy:50000,lease:15000,on:true,life:10},
+ {id:'audio',label:'Audio & PA',buy:100000,lease:25000,on:true,life:5},
+ {id:'light',label:'Lighting rig',buy:120000,lease:20000,on:true,life:5},
+ {id:'staging',label:'Staging · rig · truss',buy:120000,lease:40000,on:true,life:7},
+ {id:'race',label:'Race equipment (ski · row · bike · rigs)',buy:350000,lease:35000,on:true,life:5},
+ {id:'timing',label:'Timing system (chips · gantry · sw)',buy:100000,lease:20000,on:true,life:4},
 ];
 var leaseState={}; EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
 
@@ -378,22 +385,32 @@ var PAYITEMS=[
 ];
 /* ===== EVENTS: each event is scheduled on a calendar month and overrides its revenue drivers.
    Costs (production, per-athlete kit, overhead, payroll, CapEx) use the shared template on the Costs tab. ===== */
-var EV_COLS=[
- {id:'teamSize',label:'Team size',w:64},
- {id:'pElite',label:'Elite price',w:80},
- {id:'qElite',label:'Elite teams',w:80},
- {id:'pEvery',label:'Everyday price',w:80},
- {id:'qEvery',label:'Everyday teams',w:80},
- {id:'sponsor',label:'Sponsorship',w:90},
- {id:'fbGross',label:'F&B gross',w:90},
- {id:'retGross',label:'Retail gross',w:90},
+// per-event revenue is organised into 3 sections; each section holds its own fields
+var EV_SECTIONS=[
+ {title:'Gross ticket sales',fields:[
+   {id:'teamSize',label:'Team size',u:'athletes / ticket'},
+   {id:'pElite',label:'Elite ticket price',u:'AED / team'},
+   {id:'qElite',label:'Elite tickets sold',u:'teams'},
+   {id:'pEvery',label:'Everyday ticket price',u:'AED / team'},
+   {id:'qEvery',label:'Everyday tickets sold',u:'teams'},
+ ]},
+ {title:'Ancillary revenue',fields:[
+   {id:'fbGross',label:'F&B gross sales (ex VAT)',u:'AED / event'},
+   {id:'fbPct',label:'F&B commission to REDLN',u:'% of gross',pct:true},
+   {id:'retGross',label:'Retail / merch gross',u:'AED / event'},
+   {id:'retPct',label:'Retail margin to REDLN',u:'% of gross',pct:true},
+ ]},
+ {title:'Sponsorship revenue',fields:[
+   {id:'sponsor',label:'Sponsorship / other',u:'AED per event'},
+ ]},
 ];
+var EV_FIELDS=[]; EV_SECTIONS.forEach(function(s){s.fields.forEach(function(f){EV_FIELDS.push(f.id);});});
 var EVENTS=[
- {name:'Season Opener',month:2,vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,retGross:50000}},
- {name:'Round 2',month:4,vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,retGross:60000}},
- {name:'Mid-Season Clash',month:6,vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,retGross:70000}},
- {name:'Round 4',month:9,vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,retGross:100000}},
- {name:'Championship Finals',month:11,vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,retGross:130000}},
+ {name:'Season Opener',month:2,vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
+ {name:'Round 2',month:4,vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
+ {name:'Mid-Season Clash',month:6,vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
+ {name:'Round 4',month:9,vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
+ {name:'Championship Finals',month:11,vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
 var DEF={};
@@ -402,6 +419,9 @@ var DEF={};
 function el(id){return document.getElementById(id);}
 function val(id){var e=el('in-'+id);if(!e)return 0;var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
 function commaFmt(n){return Number(n).toLocaleString('en-US',{maximumFractionDigits:6});}
+var RAWIDS={launchYear:1}; // fields shown without thousands separators (e.g. a year)
+function fmtIn(id,v){return RAWIDS[id]?String(Math.round(v)):commaFmt(v);}
+var MONSEL=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function aed(n){var neg=n<0;var s=Math.round(Math.abs(n)).toLocaleString('en-US');return (neg?'−':'')+'AED '+s;}
 function kfmt(n){return (Math.round(n/1000)).toLocaleString('en-US')+'k';}
@@ -417,16 +437,16 @@ function compute(){
   var teamSize=Math.max(1,val('teamSize'));
   var perAthlete=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
   var feePct=val('vFee')/100;
-  var fbNet=val('fbGross')*(val('fbPct')/100), retNet=val('retGross')*(val('retPct')/100);
-  var ancillaryNet=fbNet+retNet;
+  var fbNet=0, retNet=0, ancillaryNet=0; // filled as event-average once events are scheduled
 
   // ---- equipment: split into capex (buy) vs production (lease) ----
   var capexLines=[],prodLines=[];
-  GBY.capex.forEach(function(it){capexLines.push({id:it.id,label:it.label,v:val(it.id)});});
+  GBY.capex.forEach(function(it){capexLines.push({id:it.id,label:it.label,v:val(it.id),life:Math.max(0,val('life_'+it.id)||it.life||0)});});
   EQUIP.forEach(function(e){
     var buy=val('eqbuy_'+e.id), lease=val('eqlease_'+e.id);
     if(leaseState[e.id]) prodLines.push({id:'eql_'+e.id,label:e.label+' (lease)',v:lease});
-    else capexLines.push({id:'eqb_'+e.id,label:e.label,v:buy});
+    else { capexLines.push({id:'eqb_'+e.id,label:e.label,v:buy,life:Math.max(0,val('eqlife_'+e.id)||e.life||0)});
+           prodLines.push({id:'eqo_'+e.id,label:e.label,v:0,owned:true}); } // owned: shown in cost table at 0
   });
   GBY.production.forEach(function(it){prodLines.push({id:it.id,label:it.label,v:val(it.id)});});
 
@@ -455,8 +475,8 @@ function compute(){
 
   var first=preop+1;
   var monthsPerEvent=12/Math.max(1,EVENTS.length);
-  // ---- calendar: month index 1 = September of launchYear (pre-op start) ----
-  var START_MONTH=9; // September
+  // ---- calendar: month index 1 = START_MONTH of launchYear (pre-op start, user-selectable) ----
+  var START_MONTH=Math.min(12,Math.max(1,Math.round(val('startMonth'))||9));
   var launchYear=Math.round(val('launchYear'))||2026;
   var calMonthOf=function(m){return ((START_MONTH-1)+(m-1))%12+1;};       // 1..12
   var calYearOf=function(m){return launchYear+Math.floor(((START_MONTH-1)+(m-1))/12);};
@@ -467,20 +487,19 @@ function compute(){
   var yi=function(m){return yearsList.indexOf(calYearOf(m));};
 
   // ---- schedule event instances from EVENTS (each recurs annually in its calendar month) ----
-  var fbP=val('fbPct')/100, retP=val('retPct')/100;
   var events=[];
   EVENTS.forEach(function(E){
     var cm=Math.min(12,Math.max(1,Math.round(E.month||1)));
     for(var yIdx=0;yIdx<years;yIdx++){
       var cy=yearsList[yIdx];
-      var m=(cy-launchYear)*12+(cm-9)+1;           // horizon month index for (calMonth cm, calYear cy)
+      var m=(cy-launchYear)*12+(cm-START_MONTH)+1;  // horizon month index for (calMonth cm, calYear cy)
       if(m<first||m>horizon)continue;              // before ops start or beyond horizon
       var y=yi(m), gf=Math.pow(1+growth,y);
       var gv=function(id){return (E.vals&&E.vals[id]!=null)?E.vals[id]:val(id);};
       var ts=Math.max(1,gv('teamSize'));
       var qE=Math.round(gv('qElite')*gf), qV=Math.round(gv('qEvery')*gf);
       var pE=gv('pElite'),pV=gv('pEvery'),spn=gv('sponsor');
-      var fbn=gv('fbGross')*fbP, rtn=gv('retGross')*retP;
+      var fbn=gv('fbGross')*(gv('fbPct')/100), rtn=gv('retGross')*(gv('retPct')/100);
       var tRev=qE*pE+qV*pV, rev=tRev+spn+fbn+rtn, ath=(qE+qV)*ts;
       var vc=ath*perAthlete+tRev*feePct;
       events.push({m:m,y:y,name:E.name,ts:ts,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc,pc:prodTotal,fbn:fbn,rtn:rtn,spn:spn,pE:pE,pV:pV});
@@ -505,9 +524,14 @@ function compute(){
     addL('rev_retail',e.y,e.rtn);
   });
 
-  // depreciation (straight-line over useful life, starts when operations begin)
-  var depYears=Math.max(0,val('depYears')), depLifeM=depYears*12;
-  var monthlyDep=depLifeM>0?capexTotal/depLifeM:0;
+  // depreciation (straight-line, each asset over ITS OWN useful life, starting when operations begin)
+  var depAssets=capexLines.map(function(l){var lm=Math.round((l.life||0)*12);return {lm:lm,per:lm>0?l.v/lm:0,v:l.v,life:l.life||0};});
+  var monthlyDepAt=function(k){ // k = ops-month index (1..); dep total that month
+    var d=0; depAssets.forEach(function(a){ if(k>=1 && k<=a.lm) d+=a.per; }); return d;
+  };
+  var monthlyDep=monthlyDepAt(1); // first-year monthly depreciation (all assets active)
+  var depCapex=0; depAssets.forEach(function(a){ if(a.lm>0) depCapex+=a.v; }); // depreciable base
+  var wLife=depCapex>0?(function(){var s=0;depAssets.forEach(function(a){if(a.lm>0)s+=a.v*a.life;});return s/depCapex;})():0; // value-weighted avg life
 
   // monthly rows
   var rows=[], cum=openFund, cumEx=0, capexPerPre=(preop>0)?capexTotal/preop:0;
@@ -516,7 +540,7 @@ function compute(){
     var rev=0,vc=0,pc=0; evs.forEach(function(x){rev+=x.rev;vc+=x.vc;pc+=x.pc;});
     var oh=ovhMonthly, isEv=evs.length>0;
     var op=rev-vc-pc-oh;
-    var dep=(!pre && (m2-preop)<=depLifeM && monthlyDep>0)?monthlyDep:0;
+    var dep=pre?0:monthlyDepAt(m2-preop);
     addL('dep',yi(m2),dep);
     var ebit=op-dep;
     var cx=(preop>0?(pre?capexPerPre:0):(m2===1?capexTotal:0));
@@ -536,9 +560,10 @@ function compute(){
 
   // ---- average event (across all scheduled instances) for KPIs / payback ----
   var N=events.length||1;
-  var sRev=0,sVc=0,sTRev=0,sAth=0,sTeams=0,sSpn=0;
-  events.forEach(function(e){sRev+=e.rev;sVc+=e.vc;sTRev+=e.tRev;sAth+=e.ath;sTeams+=(e.qE+e.qV);sSpn+=e.spn;});
+  var sRev=0,sVc=0,sTRev=0,sAth=0,sTeams=0,sSpn=0,sFb=0,sRt=0;
+  events.forEach(function(e){sRev+=e.rev;sVc+=e.vc;sTRev+=e.tRev;sAth+=e.ath;sTeams+=(e.qE+e.qV);sSpn+=e.spn;sFb+=e.fbn;sRt+=e.rtn;});
   var rev0=sRev/N, vc0=sVc/N, tRev0=sTRev/N, ath0=Math.round(sAth/N), teams0=Math.round(sTeams/N), avgSpn=sSpn/N;
+  fbNet=sFb/N; retNet=sRt/N; ancillaryNet=fbNet+retNet;
   var teamSizeAvg=teams0>0?ath0/teams0:1;
   var ohAlloc=ovhMonthly*monthsPerEvent;
   var contrib0=rev0-vc0-prodTotal-ohAlloc;
@@ -557,7 +582,7 @@ function compute(){
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
     monLabel:monLabel,yearsList:yearsList,calMonthOf:calMonthOf,calYearOf:calYearOf,launchYear:launchYear,
-    monthlyDep:monthlyDep,depYears:depYears,
+    monthlyDep:monthlyDep,depAvgLife:wLife,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
@@ -577,8 +602,11 @@ function kvGroup(g){
   g.items.forEach(function(it){
     NUMIDS.push(it.id);DEF[it.id]=it.v;
     var gt=(g.key==='variable')?'<span class="gt" id="gt-'+it.id+'">—</span>':'';
+    var field=(it.sel==='month')
+      ? '<select id="in-'+it.id+'" class="selin">'+MONSEL.map(function(mn,ix){return '<option value="'+(ix+1)+'"'+((ix+1)===it.v?' selected':'')+'>'+mn+'</option>';}).join('')+'</select>'
+      : '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+fmtIn(it.id,it.v)+'">';
     h+='<div class="af'+(it.pct?' pct':'')+'"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
-       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'">'+gt+'</div>';
+       field+gt+'</div>';
   });
   var recon=(g.key==='production')?'<div class="recon" id="recon-production"></div>':'';
   return h+'</div>'+recon+'</div>';
@@ -593,11 +621,14 @@ function reconBlock(id,subLabel,subtotal,imported,totLabel,total){
 function renderProdLeased(A){
   var grid=el('prod-grid'); if(!grid)return;
   Array.prototype.slice.call(grid.querySelectorAll('.af.ro')).forEach(function(n){n.parentNode.removeChild(n);});
-  A.prodLines.filter(function(l){return l.id.indexOf('eql_')===0;}).forEach(function(l){
+  A.prodLines.filter(function(l){return l.id.indexOf('eql_')===0||l.id.indexOf('eqo_')===0;}).forEach(function(l){
+    var owned=l.id.indexOf('eqo_')===0;
     var name=l.label.replace(' (lease)','');
     var d=document.createElement('div');
-    d.className='af ro';
-    d.innerHTML='<div class="lab"><label>'+name+'</label><span class="u">leased &middot; from Equipment</span></div><span class="roval">'+fmt(l.v)+'</span>';
+    d.className='af ro'+(owned?' owned':'');
+    var note=owned?'Owned Equipment &middot; no per-event cost':'leased &middot; from Equipment';
+    var rv=owned?'<span class="roval owned">0</span>':'<span class="roval">'+fmt(l.v)+'</span>';
+    d.innerHTML='<div class="lab"><label>'+name+'</label><span class="u">'+note+'</span></div>'+rv;
     grid.appendChild(d);
   });
   if(el('recon-production'))el('recon-production').innerHTML='<div class="rr tot"><span>Total per event</span><span>'+fmt(A.prodTotal)+'</span></div>';
@@ -643,11 +674,13 @@ function equipInner(){
   EQUIP.forEach(function(e){
     NUMIDS.push('eqbuy_'+e.id);DEF['eqbuy_'+e.id]=e.buy;
     NUMIDS.push('eqlease_'+e.id);DEF['eqlease_'+e.id]=e.lease;
+    NUMIDS.push('eqlife_'+e.id);DEF['eqlife_'+e.id]=e.life;
     h+='<div class="eq-item'+(leaseState[e.id]?' leasing':'')+'" id="eq-'+e.id+'">'+
        '<div class="eq-head"><span class="eq-title">'+e.label+'</span>'+
        '<span class="toggle'+(leaseState[e.id]?' on':'')+'" onclick="toggleEq(\''+e.id+'\')"><span class="st" id="eqst-'+e.id+'">'+(leaseState[e.id]?'Lease':'Buy')+'</span><span class="tsw"></span></span></div>'+
-       '<div class="eq-inputs"><div class="f buycol"><label>Buy — one-time CapEx</label><input type="text" inputmode="decimal" id="in-eqbuy_'+e.id+'" value="'+commaFmt(e.buy)+'"></div>'+
-       '<div class="f leasecol"><label>Lease — per event</label><input type="text" inputmode="decimal" id="in-eqlease_'+e.id+'" value="'+commaFmt(e.lease)+'"></div></div></div>';
+       '<div class="eq-inputs eq3"><div class="f buycol"><label>Buy — one-time CapEx</label><input type="text" inputmode="decimal" id="in-eqbuy_'+e.id+'" value="'+commaFmt(e.buy)+'"></div>'+
+       '<div class="f leasecol"><label>Lease — per event</label><input type="text" inputmode="decimal" id="in-eqlease_'+e.id+'" value="'+commaFmt(e.lease)+'"></div>'+
+       '<div class="f lifecol"><label>Depreciation — yrs</label><input type="text" inputmode="decimal" id="in-eqlife_'+e.id+'" value="'+commaFmt(e.life)+'"></div></div></div>';
   });
   return h;
 }
@@ -655,8 +688,10 @@ function otherCapexGrid(){
   var h='<div class="asm">';
   GBY.capex.forEach(function(it){
     NUMIDS.push(it.id);DEF[it.id]=it.v;
-    h+='<div class="af"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
-       '<input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'"></div>';
+    NUMIDS.push('life_'+it.id);DEF['life_'+it.id]=it.life;
+    h+='<div class="af cap2"><div class="lab"><label>'+it.label+'</label><span class="u">'+it.u+'</span></div>'+
+       '<div class="capinputs"><input type="text" inputmode="decimal" id="in-'+it.id+'" value="'+commaFmt(it.v)+'">'+
+       '<span class="lifewrap"><input type="text" inputmode="decimal" class="lifein" id="in-life_'+it.id+'" value="'+commaFmt(it.life)+'"><span class="yr">yr life</span></span></div></div>';
   });
   return h+'</div>';
 }
@@ -714,47 +749,66 @@ function fixedOhCard(){
 var MONTHS3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function escq(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function monthOpts(sel){var s='';for(var i=1;i<=12;i++)s+='<option value="'+i+'"'+(i==sel?' selected':'')+'>'+MONTHS3[i-1]+'</option>';return s;}
-function renderEventsTable(){
+// ensure every event carries every field (back-fills events restored from older saved state)
+function normEvents(){var d=EVENTS_DEFAULT[0].vals;EVENTS.forEach(function(E){E.vals=E.vals||{};EV_FIELDS.forEach(function(k){if(E.vals[k]==null)E.vals[k]=(d[k]!=null?d[k]:0);});});}
+function evg(E,id){var v=E.vals[id];return v==null?0:v;}
+function renderEventsRevenue(){
   if(!el('ev-wrap'))return;
-  var minw=260+EV_COLS.length*92;
-  var h='<div class="card"><div class="ch">Events <span class="csum">'+EVENTS.length+' events / year</span></div>'+
-    '<div class="scroll"><table class="org" style="min-width:'+minw+'px"><thead><tr><th>Event</th><th>Month</th>';
-  EV_COLS.forEach(function(c){h+='<th>'+c.label+'</th>';});
-  h+='<th></th></tr></thead><tbody>';
+  normEvents();
+  var h='<div class="card intro-ev"><div class="ch">Events &amp; per-event revenue <span class="csum">'+EVENTS.length+' event'+(EVENTS.length===1?'':'s')+' / year</span></div>'+
+    '<p class="sub" style="padding:0 16px 4px">Each event has its own revenue assumptions — ticket sales, ancillary and sponsorship. Add or remove events freely; each one repeats annually in its chosen calendar month.</p></div>';
   EVENTS.forEach(function(E,i){
-    h+='<tr><td><input class="t" type="text" value="'+escq(E.name)+'" oninput="setEvName('+i+',this.value)"></td>'+
-       '<td><select class="evmon" onchange="setEvMonth('+i+',this.value)">'+monthOpts(E.month)+'</select></td>';
-    EV_COLS.forEach(function(c){h+='<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(E.vals[c.id]!=null?E.vals[c.id]:0)+'" onchange="setEvVal('+i+',\''+c.id+'\',this.value)"></td>';});
-    h+='<td><button class="evdel" onclick="delEvent('+i+')" title="remove event">✕</button></td></tr>';
+    var tick=evg(E,'qElite')*evg(E,'pElite')+evg(E,'qEvery')*evg(E,'pEvery');
+    var anc=evg(E,'fbGross')*evg(E,'fbPct')/100+evg(E,'retGross')*evg(E,'retPct')/100;
+    var spn=evg(E,'sponsor');
+    var tot=tick+anc+spn;
+    h+='<div class="card evcard"><div class="ch evhead">'+
+       '<input class="evname" type="text" value="'+escq(E.name)+'" oninput="setEvName('+i+',this.value)" placeholder="Event name">'+
+       '<span class="evmeta"><select class="evmon" onchange="setEvMonth('+i+',this.value)">'+monthOpts(E.month)+'</select>'+
+       '<span class="csum">'+aed(tot)+' / event</span>'+
+       '<button class="evdel" onclick="delEvent('+i+')" title="remove event">✕</button></span></div>';
+    var subsum=[aed(tick),aed(anc),aed(spn)];
+    EV_SECTIONS.forEach(function(sec,si){
+      h+='<div class="subh"><span>'+sec.title+'</span><span class="subsum">'+subsum[si]+'</span></div><div class="asm">';
+      sec.fields.forEach(function(f){
+        h+='<div class="af'+(f.pct?' pct':'')+'"><div class="lab"><label>'+f.label+'</label><span class="u">'+f.u+'</span></div>'+
+           '<input type="text" inputmode="decimal" value="'+commaFmt(evg(E,f.id))+'" onchange="setEvVal('+i+',\''+f.id+'\',this.value)">'+
+           '</div>';
+      });
+      h+='</div>';
+    });
+    h+='</div>';
   });
-  h+='</tbody></table></div><button class="reset" style="margin:12px 16px 14px" onclick="addEvent()">+ Add event</button></div>';
+  h+='<button class="reset" style="margin:2px 0 14px" onclick="addEvent()">+ Add event</button>';
   el('ev-wrap').innerHTML=h;
 }
-function setEvName(i,v){EVENTS[i].name=v;build();}
-function setEvMonth(i,v){EVENTS[i].month=parseInt(v,10)||1;build();}
-function setEvVal(i,id,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].vals[id]=isNaN(n)?0:n;renderEventsTable();build();}
-function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Event '+(EVENTS.length+1),month:6,vals:JSON.parse(JSON.stringify(d.vals))});renderEventsTable();build();}
-function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsTable();build();}}
-var SUBOF={timeline:'setup',revenue:'revenue',ancillary:'revenue',capex:'costs',overhead:'costs',production:'costs',variable:'costs'};
+function setEvName(i,v){EVENTS[i].name=v;saveState();build();}
+function setEvMonth(i,v){EVENTS[i].month=parseInt(v,10)||1;renderEventsRevenue();build();}
+function setEvVal(i,id,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].vals[id]=isNaN(n)?0:n;renderEventsRevenue();build();}
+function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Event '+(EVENTS.length+1),month:6,vals:JSON.parse(JSON.stringify(d.vals))});renderEventsRevenue();build();}
+function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsRevenue();build();}}
+var SUBOF={timeline:'setup',revenue:'revenue',capex:'capex',overhead:'costs',production:'costs',variable:'costs'};
 function renderAssumptions(){
   NUMIDS=[];
-  var buckets={setup:'',revenue:'',costs:''};
+  var buckets={setup:'',revenue:'',costs:'',capex:''};
   GROUPS.forEach(function(g){
     var html = g.special==='capexcard'?capexCard(): g.special==='varcard'?varCard(): g.special==='fixedoh'?fixedOhCard(): kvGroup(g);
     buckets[SUBOF[g.key]||'costs']+=html;
   });
-  buckets.setup+='<div id="ev-wrap"></div>';
+  buckets.revenue='<div id="ev-wrap"></div>'+buckets.revenue;
   buckets.costs+='<div class="card"><div class="ch">Average-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div><table class="mono fit" id="asm-pnl"></table></div>';
   el('asm-setup').innerHTML=buckets.setup;
   el('asm-revenue').innerHTML=buckets.revenue;
   el('asm-costs').innerHTML=buckets.costs;
-  renderEventsTable();
+  el('asm-capex').innerHTML=buckets.capex;
+  renderEventsRevenue();
   // wire numeric inputs
   NUMIDS.forEach(function(id){
     var e=el('in-'+id); if(!e)return;
+    if(e.tagName==='SELECT'){e.addEventListener('change',build);return;}
     e.addEventListener('input',build);
     e.addEventListener('focus',function(){this.value=String(val(id));this.select();});
-    e.addEventListener('blur',function(){this.value=commaFmt(val(id));build();});
+    e.addEventListener('blur',function(){this.value=fmtIn(id,val(id));build();});
   });
   // role titles (text)
   ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.addEventListener('input',build);});
@@ -796,19 +850,19 @@ function loadState(){
   try{
     var raw=localStorage.getItem(STORAGE_KEY); if(!raw)return;
     var s=JSON.parse(raw);
-    if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(s.nums[id]);});
+    if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,s.nums[id]);});
     if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
     if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
-    if(s.events&&s.events.length){EVENTS=s.events;renderEventsTable();}
+    if(s.events&&s.events.length){EVENTS=s.events;normEvents();renderEventsRevenue();}
     applyEquipUI();
   }catch(e){}
 }
 function resetAll(){
   try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
-  NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(DEF[id]);});
+  NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,DEF[id]);});
   ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=r.title;});
   EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
-  EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));renderEventsTable();
+  EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));renderEventsRevenue();
   applyEquipUI();
   syncMaster();build();
 }
@@ -902,7 +956,7 @@ function renderIncome(A){
   opArr.forEach(function(op){s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';});
   s+='<td class="'+cls(gtOp)+'">'+fmt(gtOp)+'</td></tr>';
   var depArr=A.line['dep']||new Array(yrs).fill(0),gtDep=0;
-  s+='<tr><td>Depreciation (CapEx · '+A.depYears+'yr)</td>';
+  s+='<tr><td>Depreciation (CapEx · by asset, ~'+(A.depAvgLife?A.depAvgLife.toFixed(1):'0')+'yr avg)</td>';
   for(var yd=0;yd<yrs;yd++){gtDep+=depArr[yd]||0;s+='<td class="neg">'+fmt(-(depArr[yd]||0))+'</td>';}
   s+='<td class="neg">'+fmt(-gtDep)+'</td></tr>';
   var s2='<tr class="op"><td>Profit after depreciation (EBIT)</td>',gtE=0;
@@ -1068,7 +1122,7 @@ document.getElementById('asm-subtabs').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
   Array.prototype.forEach.call(this.children,function(x){x.classList.remove('on');});
   b.classList.add('on');var t=b.getAttribute('data-sub');
-  ['setup','revenue','costs'].forEach(function(s){el('asm-'+s).classList.toggle('on',s===t);});
+  ['setup','revenue','costs','capex'].forEach(function(s){el('asm-'+s).classList.toggle('on',s===t);});
 });
 window.addEventListener('DOMContentLoaded',function(){renderAssumptions();loadState();syncMaster();build();});
 </script>
