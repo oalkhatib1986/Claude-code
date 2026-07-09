@@ -255,7 +255,7 @@
       <div class="ch">Monthly cash flow statement</div>
       <div class="scroll"><table class="mono minmax" id="cf-monthly"></table></div>
     </div>
-    <p class="foot">Cash basis: ticket revenue collected in the event month. CapEx spent during pre-op. Overhead (incl. payroll) paid every month including pre-op. End-of-service is accrued monthly as a cash reserve. Net cash = operating P&amp;L − CapEx. Peak funding requirement is the deepest cumulative trough (excludes any opening funding you inject).</p>
+    <p class="foot">Cash basis. <b>EBITDA</b> is the accrual operating profit. <b>+ EOS accr.</b> adds back end-of-service, which is expensed but not paid in cash (it builds as a provision, released only on termination). <b>Δ Deferred</b> shifts ticket cash earlier: registrations are collected the "ticket collection lead" number of months before each event, so cash arrives ahead of the event (a deferred-revenue liability until the event is held). CapEx spent during pre-op. Net cash = EBITDA + EOS accrual + deferred-revenue movement − CapEx. Peak funding requirement is the deepest cumulative trough (excludes any opening funding you inject).</p>
   </section>
 
   <!-- PAYBACK -->
@@ -294,7 +294,11 @@
       <div class="ch">Annual balance sheet — year-end <span class="csum" id="bs-check">—</span></div>
       <div class="scroll"><table class="mono" id="bs-annual"></table></div>
     </div>
-    <p class="foot">Cash = the cumulative cash position from the Cash Flow tab. Net fixed assets = cumulative CapEx − accumulated depreciation (each asset over its own useful life). Retained earnings = cumulative profit after depreciation (EBIT). Paid-in capital = opening funding you inject. On a prepaid, cash-collection model there are no material receivables/payables, and end-of-service is expensed and cash-reserved monthly rather than carried as a provision — so the sheet balances to equity. Negative equity in a year means cumulative losses exceed the capital injected: that gap is the funding still required.</p>
+    <div class="card">
+      <div class="ch">Monthly balance sheet</div>
+      <div class="scroll"><table class="mono minmax" id="bs-monthly"></table></div>
+    </div>
+    <p class="foot">Cash = the cumulative cash position from the Cash Flow tab. Net fixed assets = cumulative CapEx − accumulated depreciation (each asset over its own useful life). <b>Deferred ticket revenue</b> is cash collected for events not yet held (registrations arrive the "ticket collection lead" months ahead), released to revenue when the event runs. <b>End-of-service provision</b> is the accrued UAE gratuity — expensed in the P&amp;L but held as a cash reserve, not paid until an employee leaves. Retained earnings = cumulative profit after depreciation (EBIT); paid-in capital = opening funding you inject. Assets = liabilities + equity to the dirham every period. Negative equity means cumulative losses exceed capital injected — that gap is the funding still required.</p>
   </section>
 
   <p class="sub" style="margin-top:8px">Related: <a href="redln-cashflow.html" style="color:var(--red)">3-yr cash flow (standalone)</a> · <a href="redln-roi.html" style="color:var(--red)">capital-return model</a> · <a href="redln-white.html" style="color:var(--red)">REDLN site</a></p>
@@ -308,6 +312,7 @@ var GROUPS=[
    {id:'launchYear',label:'Launch year',u:'the year pre-operation begins',v:2026},
    {id:'startMonth',label:'Pre-operation starts',u:'month the timeline begins',v:9,sel:'month'},
    {id:'preop',label:'Pre-operation period',u:'months before first event',v:3},
+   {id:'ticketLead',label:'Ticket collection lead',u:'months before event · cash received early',v:2},
    {id:'openFund',label:'Opening funding injected',u:'AED at month 0',v:0},
  ]},
  {key:'revenue',title:'Revenue Settings (all events)',items:[
@@ -546,8 +551,19 @@ function compute(){
   var depCapex=0; depAssets.forEach(function(a){ if(a.lm>0) depCapex+=a.v; }); // depreciable base
   var wLife=depCapex>0?(function(){var s=0;depAssets.forEach(function(a){if(a.lm>0)s+=a.v*a.life;});return s/depCapex;})():0; // value-weighted avg life
 
+  // cash-timing: ticket cash collected `lead` months before the event (deferred revenue liability
+  // until the event is held); end-of-service accrued monthly as a provision, not paid in cash.
+  var lead=Math.max(0,Math.round(val('ticketLead')));
+  var cashAdj=new Array(horizon+2).fill(0);   // +ticket cash at collection month, −it at event month
+  events.forEach(function(e){
+    var c=Math.min(horizon,Math.max(1,e.m-lead));
+    cashAdj[c]+=e.tRev;
+    if(e.m>=1&&e.m<=horizon) cashAdj[e.m]-=e.tRev;
+  });
+
   // monthly rows
   var rows=[], cum=openFund, cumEx=0, capexPerPre=(preop>0)?capexTotal/preop:0;
+  var accumEos=0, deferred=0;
   for(var m2=1;m2<=horizon;m2++){
     var pre=m2<=preop, evs=evByMonth[m2]||[];
     var rev=0,vc=0,pc=0; evs.forEach(function(x){rev+=x.rev;vc+=x.vc;pc+=x.pc;});
@@ -557,9 +573,12 @@ function compute(){
     addL('dep',yi(m2),dep);
     var ebit=op-dep;
     var cx=(preop>0?(pre?capexPerPre:0):(m2===1?capexTotal:0));
-    var net=op-cx;
+    accumEos+=eosMonthly;                    // EOS provision builds (non-cash)
+    deferred+=cashAdj[m2];                   // outstanding deferred ticket revenue
+    var opCash=op+eosMonthly+cashAdj[m2];    // operating cash: add back EOS, shift ticket cash earlier
+    var net=opCash-cx;
     cum+=net; cumEx+=net;
-    rows.push({m:m2,pre:pre,ev:isEv,rev:rev,vc:vc,pc:pc,oh:oh,op:op,dep:dep,ebit:ebit,cx:cx,net:net,cum:cum,cumEx:cumEx});
+    rows.push({m:m2,pre:pre,ev:isEv,rev:rev,vc:vc,pc:pc,oh:oh,op:op,opCash:opCash,eos:eosMonthly,cashAdj:cashAdj[m2],dep:dep,ebit:ebit,cx:cx,net:net,cum:cum,cumEx:cumEx,accumEos:accumEos,deferred:deferred});
   }
 
   var trough=Infinity,troughM=0,be=0,totRev=0,totOp=0,evCount=0;
@@ -990,45 +1009,61 @@ function renderIncome(A){
 }
 
 /* ===================== balance sheet ===================== */
+function bsSnap(A,r,cumCapex,accumDep,retained){
+  var netFixed=cumCapex-accumDep, cash=r.cum, assets=cash+netFixed;
+  var eosProv=r.accumEos||0, deferred=r.deferred||0, liab=eosProv+deferred;
+  var paidIn=A.openFund, equity=paidIn+retained, chk=assets-(liab+equity);
+  return {cash:cash,cost:cumCapex,dep:accumDep,netFixed:netFixed,assets:assets,
+    eosProv:eosProv,deferred:deferred,liab:liab,paidIn:paidIn,retained:retained,equity:equity,chk:chk};
+}
 function renderBalance(A){
-  var yrs=A.years;
   var lastMByYear={};
   A.rows.forEach(function(r){lastMByYear[A.calYearOf(r.m)]=r.m;});
-  var cumCapex=0,accumDep=0,retained=0,snap=[];
+  var cumCapex=0,accumDep=0,retained=0,snap=[],msnap=[];
   A.rows.forEach(function(r){
     cumCapex+=r.cx; accumDep+=r.dep; retained+=(r.op-r.dep);
-    if(r.m===lastMByYear[A.calYearOf(r.m)]){
-      var netFixed=cumCapex-accumDep, cash=r.cum, assets=cash+netFixed;
-      var paidIn=A.openFund, equity=paidIn+retained, liab=0;
-      snap.push({year:A.calYearOf(r.m),cash:cash,cost:cumCapex,dep:accumDep,netFixed:netFixed,assets:assets,liab:liab,paidIn:paidIn,retained:retained,equity:equity,chk:assets-(liab+equity)});
-    }
+    var s=bsSnap(A,r,cumCapex,accumDep,retained);
+    s.m=r.m; s.pre=r.pre; msnap.push(s);
+    if(r.m===lastMByYear[A.calYearOf(r.m)]){var ys=Object.assign({year:A.calYearOf(r.m)},s);snap.push(ys);}
   });
-  function hd(){var s='<tr><th>Balance sheet (year-end)</th>';snap.forEach(function(p){s+='<th>'+p.year+'</th>';});return s+'</tr>';}
+  var cols=snap.length;
+  function hd(lbl){var s='<tr><th>'+lbl+'</th>';snap.forEach(function(p){s+='<th>'+p.year+'</th>';});return s+'</tr>';}
   function row(label,key,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>';
     snap.forEach(function(p){var v=p[key];s+='<td class="'+(neg?'neg ':'')+(klass==='op'?cls(v):'')+'">'+fmt(neg?-v:v)+'</td>';});return s+'</tr>';}
-  var h='<thead>'+hd()+'</thead><tbody>';
-  h+='<tr class="ph"><td colspan="'+(yrs+1)+'">Assets</td></tr>';
+  var h='<thead>'+hd('Balance sheet (year-end)')+'</thead><tbody>';
+  h+='<tr class="ph"><td colspan="'+(cols+1)+'">Assets</td></tr>';
   h+=row('Cash &amp; equivalents','cash',false,'');
   h+=row('Fixed assets at cost','cost',false,'');
   h+=row('Less: accumulated depreciation','dep',true,'');
   h+=row('Net fixed assets','netFixed',false,'sub');
   h+=row('Total assets','assets',false,'tot');
-  h+='<tr class="ph"><td colspan="'+(yrs+1)+'">Liabilities</td></tr>';
-  h+='<tr><td>Trade &amp; other payables</td>'+snap.map(function(){return '<td>'+fmt(0)+'</td>';}).join('')+'</tr>';
-  h+='<tr><td>Provisions (end-of-service)</td>'+snap.map(function(){return '<td>'+fmt(0)+'</td>';}).join('')+'</tr>';
+  h+='<tr class="ph"><td colspan="'+(cols+1)+'">Liabilities</td></tr>';
+  h+=row('Deferred ticket revenue','deferred',false,'');
+  h+=row('End-of-service provision','eosProv',false,'');
   h+=row('Total liabilities','liab',false,'tot');
-  h+='<tr class="ph"><td colspan="'+(yrs+1)+'">Equity</td></tr>';
+  h+='<tr class="ph"><td colspan="'+(cols+1)+'">Equity</td></tr>';
   h+=row('Paid-in capital','paidIn',false,'');
   h+=row('Retained earnings','retained',false,'');
   h+=row('Total equity','equity',false,'tot');
   h+=row('Check: assets − (liabilities + equity)','chk',false,'op');
   el('bs-annual').innerHTML=h+'</tbody>';
-  var last=snap[snap.length-1]||{assets:0,netFixed:0,equity:0,retained:0};
+
+  // monthly balance sheet (snapshot each month)
+  var mmh='<thead><tr><th>Month</th><th>Cash</th><th>Net fixed</th><th>Total assets</th><th>Deferred rev</th><th>EOS prov.</th><th>Total liab.</th><th>Equity</th></tr></thead><tbody>';
+  msnap.forEach(function(p){var rc=p.pre?'pre':'';
+    mmh+='<tr class="'+rc+'"><td class="mth">'+A.monLabel(p.m)+'</td>'+
+      '<td class="'+cls(p.cash)+'">'+fmt(p.cash)+'</td><td>'+fmt(p.netFixed)+'</td><td class="'+cls(p.assets)+'">'+fmt(p.assets)+'</td>'+
+      '<td>'+fmt(p.deferred)+'</td><td>'+fmt(p.eosProv)+'</td><td>'+fmt(p.liab)+'</td><td class="'+cls(p.equity)+'">'+fmt(p.equity)+'</td></tr>';
+    if(A.calMonthOf(p.m)===12||p.m===A.horizon){mmh+='<tr class="yr"><td>'+A.calYearOf(p.m)+' year-end</td><td class="'+cls(p.cash)+'">'+fmt(p.cash)+'</td><td>'+fmt(p.netFixed)+'</td><td class="'+cls(p.assets)+'">'+fmt(p.assets)+'</td><td>'+fmt(p.deferred)+'</td><td>'+fmt(p.eosProv)+'</td><td>'+fmt(p.liab)+'</td><td class="'+cls(p.equity)+'">'+fmt(p.equity)+'</td></tr>';}
+  });
+  el('bs-monthly').innerHTML=mmh+'</tbody>';
+
+  var last=snap[snap.length-1]||{year:'',assets:0,netFixed:0,equity:0,retained:0,liab:0};
   var maxChk=snap.reduce(function(m,p){return Math.max(m,Math.abs(p.chk));},0);
   el('bs-check').textContent=maxChk<1?'Balanced ✓':'off by '+fmt(maxChk);
   el('bs-mets').innerHTML=metCards([
     {k:'Total assets '+last.year,v:aed(last.assets),c:last.assets>=0?'':'red',n:'cash + net fixed assets'},
-    {k:'Net fixed assets '+last.year,v:aed(last.netFixed),c:'',n:'CapEx cost − accumulated depreciation'},
+    {k:'Total liabilities '+last.year,v:aed(last.liab),c:'',n:'deferred revenue + EOS provision'},
     {k:'Shareholders’ equity '+last.year,v:aed(last.equity),c:last.equity>=0?'green':'red',n:last.equity>=0?'net worth':'funding gap to cover'},
     {k:'Retained earnings '+last.year,v:aed(last.retained),c:last.retained>=0?'green':'red',n:'accumulated profit after depreciation'}
   ]);
@@ -1042,13 +1077,13 @@ function renderCash(A){
     {k:'Cash at '+A.monLabel(A.horizon),v:aed(A.endCash),c:A.endCash>=0?'green':'red',n:A.evCount+' events held'},
     {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'revenue '+aed(A.totRev)}
   ]);
-  var mh='<thead><tr><th>Month</th><th>Phase</th><th>Operating P&L</th><th>CapEx</th><th>Net cash</th><th>Cumulative</th></tr></thead><tbody>';
-  var acc={op:0,cx:0,net:0};
+  var mh='<thead><tr><th>Month</th><th>Phase</th><th>EBITDA</th><th>+ EOS accr.</th><th>Δ Deferred</th><th>CapEx</th><th>Net cash</th><th>Cumulative</th></tr></thead><tbody>';
+  var acc={op:0,eos:0,def:0,cx:0,net:0};
   A.rows.forEach(function(r){var rc=r.pre?'pre':(r.ev?'ev':'');
     mh+='<tr class="'+rc+'"><td class="mth">'+A.monLabel(r.m)+'</td><td class="mut">'+(r.pre?'Pre-op':(r.ev?'Event':'Ops'))+'</td>'+
-      '<td class="'+cls(r.op)+'">'+fmt(r.op)+'</td><td class="neg">'+fmt(-r.cx)+'</td><td class="'+cls(r.net)+'">'+fmt(r.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';
-    acc.op+=r.op;acc.cx+=r.cx;acc.net+=r.net;
-    if(A.calMonthOf(r.m)===12||r.m===A.horizon){mh+='<tr class="yr"><td>'+A.calYearOf(r.m)+'</td><td></td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td><td class="neg">'+fmt(-acc.cx)+'</td><td class="'+cls(acc.net)+'">'+fmt(acc.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';acc={op:0,cx:0,net:0};}
+      '<td class="'+cls(r.op)+'">'+fmt(r.op)+'</td><td>'+fmt(r.eos)+'</td><td class="'+cls(r.cashAdj)+'">'+fmt(r.cashAdj)+'</td><td class="neg">'+fmt(-r.cx)+'</td><td class="'+cls(r.net)+'">'+fmt(r.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';
+    acc.op+=r.op;acc.eos+=r.eos;acc.def+=r.cashAdj;acc.cx+=r.cx;acc.net+=r.net;
+    if(A.calMonthOf(r.m)===12||r.m===A.horizon){mh+='<tr class="yr"><td>'+A.calYearOf(r.m)+'</td><td></td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td><td>'+fmt(acc.eos)+'</td><td class="'+cls(acc.def)+'">'+fmt(acc.def)+'</td><td class="neg">'+fmt(-acc.cx)+'</td><td class="'+cls(acc.net)+'">'+fmt(acc.net)+'</td><td class="'+cls(r.cum)+'">'+fmt(r.cum)+'</td></tr>';acc={op:0,eos:0,def:0,cx:0,net:0};}
   });
   el('cf-monthly').innerHTML=mh+'</tbody>';
   var pts=[{x:0,y:A.openFund}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cum});});
