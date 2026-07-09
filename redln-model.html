@@ -90,6 +90,9 @@
   .org input.s{width:88px;text-align:right}
   .org td.calc{color:var(--muted)}
   tr.orgtot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line);background:#fafbfb}
+  select.evmon{font-family:var(--mono);font-size:12px;padding:5px 6px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink)}
+  .evdel{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:2px;width:24px;height:24px;cursor:pointer;font-size:12px;line-height:1}
+  .evdel:hover{border-color:var(--red);color:var(--red)}
   /* metrics */
   .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
   @media(max-width:820px){.mets{grid-template-columns:repeat(2,1fr)}}
@@ -374,6 +377,24 @@ var PAYITEMS=[
  {id:'empMedical',label:'Medical insurance',u:'AED / employee / yr',v:6000},
  {id:'empTicket',label:'Annual air ticket',u:'AED / employee / yr',v:4000},
 ];
+/* ===== EVENTS: each event is scheduled on a calendar month and overrides its revenue drivers.
+   Costs (production, per-athlete kit, overhead, payroll, CapEx) use the shared template on the Costs tab. ===== */
+var EV_COLS=[
+ {id:'teamSize',label:'Team size',w:64},
+ {id:'pElite',label:'Elite price',w:80},
+ {id:'qElite',label:'Elite teams',w:80},
+ {id:'pEvery',label:'Everyday price',w:80},
+ {id:'qEvery',label:'Everyday teams',w:80},
+ {id:'sponsor',label:'Sponsorship',w:90},
+ {id:'fbGross',label:'F&B gross',w:90},
+ {id:'retGross',label:'Retail gross',w:90},
+];
+var EVENTS=[
+ {name:'Season Opener',month:3,vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,retGross:50000}},
+ {name:'Mid-Season Clash',month:6,vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,retGross:70000}},
+ {name:'Championship Finals',month:11,vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,retGross:130000}},
+];
+var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
 var DEF={};
 
 /* ===================== formatters ===================== */
@@ -389,7 +410,6 @@ function cls(n){return n<0?'neg':(n>0?'pos':'mut');}
 function compute(){
   var horizon=Math.max(1,Math.round(val('horizon')));
   var preop=Math.max(0,Math.round(val('preop')));
-  var evYr=Math.max(0.0001,val('evYr'));
   var openFund=val('openFund');
   var pElite=val('pElite'),pEvery=val('pEvery'),sponsor=val('sponsor');
   var growth=val('volGrowth')/100;
@@ -433,7 +453,7 @@ function compute(){
   var capexTotal=0; capexLines.forEach(function(l){capexTotal+=l.v;});
 
   var first=preop+1;
-  var monthsPerEvent=12/evYr;
+  var monthsPerEvent=12/Math.max(1,EVENTS.length);
   // ---- calendar: month index 1 = September of launchYear (pre-op start) ----
   var START_MONTH=9; // September
   var launchYear=Math.round(val('launchYear'))||2026;
@@ -445,19 +465,28 @@ function compute(){
   var years=yearsList.length;
   var yi=function(m){return yearsList.indexOf(calYearOf(m));};
 
-  // event months: anchor after pre-op, accumulate exact 12/evYr spacing
-  var eventMonths=[],seenM={};
-  for(var k=0;;k++){var em=first+Math.round(k*12/evYr);if(em>horizon)break;if(!seenM[em]){seenM[em]=1;eventMonths.push(em);}}
-
+  // ---- schedule event instances from EVENTS (each recurs annually in its calendar month) ----
+  var fbP=val('fbPct')/100, retP=val('retPct')/100;
   var events=[];
-  for(var ei=0;ei<eventMonths.length;ei++){
-    var m=eventMonths[ei], y=yi(m), gf=Math.pow(1+growth,y);
-    var qE=Math.round(val('qElite')*gf), qV=Math.round(val('qEvery')*gf);
-    var tRev=qE*pElite+qV*pEvery, rev=tRev+sponsor+ancillaryNet, ath=(qE+qV)*teamSize;
-    var vc=ath*perAthlete+tRev*feePct;
-    events.push({m:m,y:y,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc});
-  }
-  var evByMonth={}; events.forEach(function(e){evByMonth[e.m]=e;});
+  EVENTS.forEach(function(E){
+    var cm=Math.min(12,Math.max(1,Math.round(E.month||1)));
+    for(var yIdx=0;yIdx<years;yIdx++){
+      var cy=yearsList[yIdx];
+      var m=(cy-launchYear)*12+(cm-9)+1;           // horizon month index for (calMonth cm, calYear cy)
+      if(m<first||m>horizon)continue;              // before ops start or beyond horizon
+      var y=yi(m), gf=Math.pow(1+growth,y);
+      var gv=function(id){return (E.vals&&E.vals[id]!=null)?E.vals[id]:val(id);};
+      var ts=Math.max(1,gv('teamSize'));
+      var qE=Math.round(gv('qElite')*gf), qV=Math.round(gv('qEvery')*gf);
+      var pE=gv('pElite'),pV=gv('pEvery'),spn=gv('sponsor');
+      var fbn=gv('fbGross')*fbP, rtn=gv('retGross')*retP;
+      var tRev=qE*pE+qV*pV, rev=tRev+spn+fbn+rtn, ath=(qE+qV)*ts;
+      var vc=ath*perAthlete+tRev*feePct;
+      events.push({m:m,y:y,name:E.name,ts:ts,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc,pc:prodTotal,fbn:fbn,rtn:rtn,spn:spn,pE:pE,pV:pV});
+    }
+  });
+  events.sort(function(a,b){return a.m-b.m;});
+  var evByMonth={}; events.forEach(function(e){(evByMonth[e.m]=evByMonth[e.m]||[]).push(e);});
 
   // annual line detail
   var line={};
@@ -468,11 +497,11 @@ function compute(){
     prodLines.forEach(function(l){addL(l.id,e.y,l.v);});
     vGoods.forEach(function(g){addL(g,e.y,e.ath*val(g));});
     addL('vFee',e.y,e.tRev*feePct);
-    addL('rev_elite',e.y,e.qE*pElite);
-    addL('rev_every',e.y,e.qV*pEvery);
-    addL('rev_sponsor',e.y,sponsor);
-    addL('rev_fb',e.y,fbNet);
-    addL('rev_retail',e.y,retNet);
+    addL('rev_elite',e.y,e.qE*e.pE);
+    addL('rev_every',e.y,e.qV*e.pV);
+    addL('rev_sponsor',e.y,e.spn);
+    addL('rev_fb',e.y,e.fbn);
+    addL('rev_retail',e.y,e.rtn);
   });
 
   // depreciation (straight-line over useful life, starts when operations begin)
@@ -482,8 +511,9 @@ function compute(){
   // monthly rows
   var rows=[], cum=openFund, cumEx=0, capexPerPre=(preop>0)?capexTotal/preop:0;
   for(var m2=1;m2<=horizon;m2++){
-    var pre=m2<=preop, e=evByMonth[m2];
-    var rev=e?e.rev:0, vc=e?e.vc:0, pc=e?prodTotal:0, oh=ovhMonthly;
+    var pre=m2<=preop, evs=evByMonth[m2]||[];
+    var rev=0,vc=0,pc=0; evs.forEach(function(x){rev+=x.rev;vc+=x.vc;pc+=x.pc;});
+    var oh=ovhMonthly, isEv=evs.length>0;
     var op=rev-vc-pc-oh;
     var dep=(!pre && (m2-preop)<=depLifeM && monthlyDep>0)?monthlyDep:0;
     addL('dep',yi(m2),dep);
@@ -491,7 +521,7 @@ function compute(){
     var cx=(preop>0?(pre?capexPerPre:0):(m2===1?capexTotal:0));
     var net=op-cx;
     cum+=net; cumEx+=net;
-    rows.push({m:m2,pre:pre,ev:!!e,rev:rev,vc:vc,pc:pc,oh:oh,op:op,dep:dep,ebit:ebit,cx:cx,net:net,cum:cum,cumEx:cumEx});
+    rows.push({m:m2,pre:pre,ev:isEv,rev:rev,vc:vc,pc:pc,oh:oh,op:op,dep:dep,ebit:ebit,cx:cx,net:net,cum:cum,cumEx:cumEx});
   }
 
   var trough=Infinity,troughM=0,be=0,totRev=0,totOp=0,evCount=0;
@@ -501,24 +531,28 @@ function compute(){
     totRev+=r.rev;totOp+=r.op;if(r.ev)evCount++;
   });
   var peakFund=trough<0?-trough:0, endCash=rows[rows.length-1].cum;
+  evCount=events.length;
 
-  // per-event steady state (no growth)
-  var qE0=val('qElite'),qV0=val('qEvery'), teams0=qE0+qV0;
-  var tRev0=qE0*pElite+qV0*pEvery, rev0=tRev0+sponsor+ancillaryNet, ath0=teams0*teamSize;
-  var vc0=ath0*perAthlete+tRev0*feePct;
+  // ---- average event (across all scheduled instances) for KPIs / payback ----
+  var N=events.length||1;
+  var sRev=0,sVc=0,sTRev=0,sAth=0,sTeams=0,sSpn=0;
+  events.forEach(function(e){sRev+=e.rev;sVc+=e.vc;sTRev+=e.tRev;sAth+=e.ath;sTeams+=(e.qE+e.qV);sSpn+=e.spn;});
+  var rev0=sRev/N, vc0=sVc/N, tRev0=sTRev/N, ath0=Math.round(sAth/N), teams0=Math.round(sTeams/N), avgSpn=sSpn/N;
+  var teamSizeAvg=teams0>0?ath0/teams0:1;
   var ohAlloc=ovhMonthly*monthsPerEvent;
   var contrib0=rev0-vc0-prodTotal-ohAlloc;
   var simpleEvents=contrib0>0?capexTotal/contrib0:Infinity;
   var simpleMonths=simpleEvents*monthsPerEvent;
-  var fixedPerEvent=prodTotal+ohAlloc-sponsor;
-  // per-team economics
+  var fixedPerEvent=prodTotal+ohAlloc-avgSpn-(rev0-tRev0-avgSpn); // production + overhead, net of sponsor & ancillary
+  // per-team economics (average event)
   var avgTeamPrice=teams0>0?tRev0/teams0:0;
-  var goodsPerTeam=perAthlete*teamSize;
+  var goodsPerTeam=perAthlete*teamSizeAvg;
   var contribPerTeam=avgTeamPrice*(1-feePct)-goodsPerTeam;
-  var beTeams=contribPerTeam>0?fixedPerEvent/contribPerTeam:Infinity;
-  var beAth=isFinite(beTeams)?beTeams*teamSize:Infinity;
-  var contribPerAth=teamSize>0?contribPerTeam/teamSize:0;
+  var beTeams=contribPerTeam>0?(prodTotal+ohAlloc)/contribPerTeam:Infinity;
+  var beAth=isFinite(beTeams)?beTeams*teamSizeAvg:Infinity;
+  var contribPerAth=teamSizeAvg>0?contribPerTeam/teamSizeAvg:0;
   var revPerTeam=avgTeamPrice, revPerAth=ath0>0?tRev0/ath0:0;
+  var teamSize=Math.round(teamSizeAvg);
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
     monLabel:monLabel,yearsList:yearsList,calMonthOf:calMonthOf,calYearOf:calYearOf,launchYear:launchYear,
@@ -675,6 +709,31 @@ function fixedOhCard(){
     opexGrid()+
     '<div class="recon" id="recon-overhead"></div></div>';
 }
+/* ===================== events table ===================== */
+var MONTHS3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function escq(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function monthOpts(sel){var s='';for(var i=1;i<=12;i++)s+='<option value="'+i+'"'+(i==sel?' selected':'')+'>'+MONTHS3[i-1]+'</option>';return s;}
+function renderEventsTable(){
+  if(!el('ev-wrap'))return;
+  var minw=260+EV_COLS.length*92;
+  var h='<div class="card"><div class="ch">Events <span class="csum">'+EVENTS.length+' events / year</span></div>'+
+    '<div class="scroll"><table class="org" style="min-width:'+minw+'px"><thead><tr><th>Event</th><th>Month</th>';
+  EV_COLS.forEach(function(c){h+='<th>'+c.label+'</th>';});
+  h+='<th></th></tr></thead><tbody>';
+  EVENTS.forEach(function(E,i){
+    h+='<tr><td><input class="t" type="text" value="'+escq(E.name)+'" oninput="setEvName('+i+',this.value)"></td>'+
+       '<td><select class="evmon" onchange="setEvMonth('+i+',this.value)">'+monthOpts(E.month)+'</select></td>';
+    EV_COLS.forEach(function(c){h+='<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(E.vals[c.id]!=null?E.vals[c.id]:0)+'" onchange="setEvVal('+i+',\''+c.id+'\',this.value)"></td>';});
+    h+='<td><button class="evdel" onclick="delEvent('+i+')" title="remove event">✕</button></td></tr>';
+  });
+  h+='</tbody></table></div><button class="reset" style="margin:12px 16px 14px" onclick="addEvent()">+ Add event</button></div>';
+  el('ev-wrap').innerHTML=h;
+}
+function setEvName(i,v){EVENTS[i].name=v;build();}
+function setEvMonth(i,v){EVENTS[i].month=parseInt(v,10)||1;build();}
+function setEvVal(i,id,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].vals[id]=isNaN(n)?0:n;renderEventsTable();build();}
+function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Event '+(EVENTS.length+1),month:6,vals:JSON.parse(JSON.stringify(d.vals))});renderEventsTable();build();}
+function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsTable();build();}}
 var SUBOF={timeline:'setup',revenue:'revenue',ancillary:'revenue',capex:'costs',overhead:'costs',production:'costs',variable:'costs'};
 function renderAssumptions(){
   NUMIDS=[];
@@ -683,10 +742,12 @@ function renderAssumptions(){
     var html = g.special==='capexcard'?capexCard(): g.special==='varcard'?varCard(): g.special==='fixedoh'?fixedOhCard(): kvGroup(g);
     buckets[SUBOF[g.key]||'costs']+=html;
   });
-  buckets.costs+='<div class="card"><div class="ch">Per-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div><table class="mono fit" id="asm-pnl"></table></div>';
+  buckets.setup+='<div id="ev-wrap"></div>';
+  buckets.costs+='<div class="card"><div class="ch">Average-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div><table class="mono fit" id="asm-pnl"></table></div>';
   el('asm-setup').innerHTML=buckets.setup;
   el('asm-revenue').innerHTML=buckets.revenue;
   el('asm-costs').innerHTML=buckets.costs;
+  renderEventsTable();
   // wire numeric inputs
   NUMIDS.forEach(function(id){
     var e=el('in-'+id); if(!e)return;
@@ -717,7 +778,7 @@ function syncMaster(){
 var STORAGE_KEY='redln-model-v1';
 function saveState(){
   try{
-    var s={nums:{},titles:{},lease:{}};
+    var s={nums:{},titles:{},lease:{},events:EVENTS};
     NUMIDS.forEach(function(id){s.nums[id]=val(id);});
     ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
     EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
@@ -737,6 +798,7 @@ function loadState(){
     if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(s.nums[id]);});
     if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
     if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
+    if(s.events&&s.events.length){EVENTS=s.events;renderEventsTable();}
     applyEquipUI();
   }catch(e){}
 }
@@ -745,6 +807,7 @@ function resetAll(){
   NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=commaFmt(DEF[id]);});
   ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=r.title;});
   EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
+  EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));renderEventsTable();
   applyEquipUI();
   syncMaster();build();
 }
@@ -756,7 +819,7 @@ function updateAsmSums(A){
   el('sum-production').textContent=aed(A.prodTotal)+' / event total';
   var athG=val('vTee')+val('vMedal')+val('vBib')+val('vNutrition')+val('vAthInsurance');
   el('sum-variable').textContent=aed(A.vc0)+' / event total';
-  el('sum-revenue').textContent=aed(val('qElite')*val('pElite')+val('qEvery')*val('pEvery')+val('sponsor'))+' / event';
+  el('sum-revenue').textContent=aed(A.rev0)+' avg / event';
   el('sum-timeline').textContent=Math.round(val('horizon'))+' mo · '+Math.round(val('preop'))+' pre-op';
   if(el('sum-ancillary'))el('sum-ancillary').textContent=aed(A.ancillaryNet)+' net / event';
   el('sum-equipment').textContent='Buy '+aed(boughtEq)+' · Lease '+aed(leasedEq)+'/event';
@@ -794,7 +857,7 @@ function renderOrgCalc(A){
 function renderAsmPnl(A){
   var gm=A.rev0-A.vc0-A.prodTotal, margin=A.rev0>0?(A.contrib0/A.rev0*100):0;
   el('asm-pnl').innerHTML='<tbody>'+
-   '<tr class="ph"><td colspan="2">Per event — steady state (no growth)</td></tr>'+
+   '<tr class="ph"><td colspan="2">Average event (across scheduled events)</td></tr>'+
    '<tr><td>Revenue (gross)</td><td>'+fmt(A.rev0)+'</td></tr>'+
    '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
    '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
@@ -898,7 +961,7 @@ function renderPayback(A){
     '<tr><td>Break-even / event</td><td>'+(isFinite(A.beTeams)?Math.ceil(A.beTeams)+' teams':'—')+'</td><td>'+(isFinite(A.beAth)?Math.ceil(A.beAth)+' athletes':'—')+'</td></tr>'+
     '</tbody>';
   el('pay-unit').innerHTML='<tbody>'+
-    '<tr class="ph"><td colspan="2">Per event (steady state)</td></tr>'+
+    '<tr class="ph"><td colspan="2">Average event</td></tr>'+
     '<tr><td>Revenue</td><td>'+fmt(A.rev0)+'</td></tr>'+
     '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
     '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
