@@ -468,15 +468,16 @@ var EV_SECTIONS=[
 var EV_FIELDS=[]; EV_SECTIONS.forEach(function(s){s.fields.forEach(function(f){EV_FIELDS.push(f.id);});});
 // each event is a SEASON with one or more games (each on its own calendar month). Ticket & ancillary
 // assumptions apply per game; sponsorship is counted once per season. Costs use the shared template.
-var PRZ_DEF={p1:20000,p2:10000,p3:5000};
-var PRZ_SEASON_DEF={p1:50000,p2:25000,p3:10000};
+var PRZ_DEF={p1:0,p2:0,p3:0};
+var PRZ_SEASON_DEF={p1:0,p2:0,p3:0};
 function gpz(){return {p1:PRZ_DEF.p1,p2:PRZ_DEF.p2,p3:PRZ_DEF.p3};}
+function spz(){return {p1:PRZ_SEASON_DEF.p1,p2:PRZ_SEASON_DEF.p2,p3:PRZ_SEASON_DEF.p3};}
 var EVENTS=[
- {name:'Season Opener',games:[{month:2}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
- {name:'Round 2',games:[{month:4}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
- {name:'Mid-Season Clash',games:[{month:6}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
- {name:'Round 4',games:[{month:9}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
- {name:'Championship Finals',games:[{month:11}],prizes:{games:[gpz()],season:{p1:100000,p2:50000,p3:25000}},vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
+ {name:'Season Opener',games:[{month:2}],prizes:{games:[gpz()],season:spz()},vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
+ {name:'Round 2',games:[{month:4}],prizes:{games:[gpz()],season:spz()},vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
+ {name:'Mid-Season Clash',games:[{month:6}],prizes:{games:[gpz()],season:spz()},vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
+ {name:'Round 4',games:[{month:9}],prizes:{games:[gpz()],season:spz()},vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
+ {name:'Championship Finals',games:[{month:11}],prizes:{games:[gpz()],season:spz()},vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
 // group-class activity per calendar month (repeats annually): days held × sessions/day × clients/session
@@ -883,9 +884,9 @@ function normEvents(){var d=EVENTS_DEFAULT[0].vals;EVENTS.forEach(function(E){
   E.games=E.games.map(function(g){return {month:Math.min(12,Math.max(1,Math.round((g&&g.month)||6)))};});
   // prizes: one prize set per game + a season grand prize
   E.prizes=E.prizes||{};
-  if(!E.prizes.season)E.prizes.season={p1:50000,p2:25000,p3:10000};
+  if(!E.prizes.season)E.prizes.season={p1:0,p2:0,p3:0};
   if(!E.prizes.games)E.prizes.games=[];
-  while(E.prizes.games.length<E.games.length)E.prizes.games.push({p1:20000,p2:10000,p3:5000});
+  while(E.prizes.games.length<E.games.length)E.prizes.games.push({p1:0,p2:0,p3:0});
   E.prizes.games.length=E.games.length;
   E.prizes.games=E.prizes.games.map(function(p){p=p||{};return {p1:+p.p1||0,p2:+p.p2||0,p3:+p.p3||0};});
   var sp=E.prizes.season;E.prizes.season={p1:+sp.p1||0,p2:+sp.p2||0,p3:+sp.p3||0};
@@ -1073,7 +1074,7 @@ function syncMaster(){
 var STORAGE_KEY='redln-model-v1';
 function saveState(){
   try{
-    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS};
+    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS,prizesZeroed:true};
     NUMIDS.forEach(function(id){s.nums[id]=val(id);});
     ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
     EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
@@ -1093,7 +1094,9 @@ function loadState(){
     if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,s.nums[id]);});
     if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
     if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
-    if(s.events&&s.events.length){EVENTS=s.events;normEvents();renderEventsRevenue();renderPrizes();}
+    if(s.events&&s.events.length){EVENTS=s.events;normEvents();
+      if(!s.prizesZeroed){EVENTS.forEach(function(E){E.prizes.games.forEach(function(g){g.p1=g.p2=g.p3=0;});E.prizes.season.p1=E.prizes.season.p2=E.prizes.season.p3=0;});} // one-time: zero legacy prizes
+      renderEventsRevenue();renderPrizes();}
     if(s.classes&&s.classes.length===12){CLASS_SCHED=s.classes.map(function(c){return {days:+c.days||0,sessions:+c.sessions||0,clients:+c.clients||0};});}
     if(s.trainers&&s.trainers.length){TRAINERS=s.trainers.map(function(t,i){return {id:t.id||('tr'+i),title:t.title||'',fee:+t.fee||0};});}
     renderClasses();
