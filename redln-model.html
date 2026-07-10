@@ -300,6 +300,11 @@
     <p class="sub">Year-end position. Assets (cash + fixed assets net of depreciation) always equal Liabilities + Equity (paid-in capital + retained earnings). All figures AED.</p>
     <div class="mets" id="bs-mets"></div>
     <div class="card">
+      <div class="ch">Pre-opening balance sheet <span class="csum" id="bs-preopen-check">—</span></div>
+      <div class="scroll"><table class="mono" id="bs-preopen"></table></div>
+      <p class="foot" style="padding:0 16px 14px">The financial position at two points before trading begins: <b>at inception</b> (capital injected, nothing spent yet) and at the <b>start of operations</b> (end of the pre-operation period — after buying CapEx and absorbing pre-opening overhead, and collecting any early ticket cash). This is the balance sheet the business carries into its first event.</p>
+    </div>
+    <div class="card">
       <div class="ch">Annual balance sheet — year-end <span class="csum" id="bs-check">—</span></div>
       <div class="scroll"><table class="mono" id="bs-annual"></table></div>
     </div>
@@ -1088,6 +1093,32 @@ function renderBalance(A){
     s.m=r.m; s.pre=r.pre; msnap.push(s);
     if(r.m===lastMByYear[A.calYearOf(r.m)]){var ys=Object.assign({year:A.calYearOf(r.m)},s);snap.push(ys);}
   });
+
+  // ----- pre-opening balance sheet: at inception vs at the start of operations -----
+  var incept={cash:A.openFund,cost:0,dep:0,netFixed:0,assets:A.openFund,deferred:0,eosProv:0,liab:0,paidIn:A.openFund,retained:0,equity:A.openFund,chk:0};
+  var startOps=(A.preop>0&&msnap[A.preop-1])?msnap[A.preop-1]:incept;
+  var pcols=[{label:'At inception',s:incept},{label:'Start of operations'+(A.preop>0?' · '+A.monLabel(A.preop+1):''),s:startOps}];
+  function prow(label,key,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>';
+    pcols.forEach(function(c){var v=c.s[key]||0;s+='<td class="'+(neg?'neg ':'')+(klass==='op'?cls(v):'')+'">'+fmt(neg?-v:v)+'</td>';});return s+'</tr>';}
+  var ph='<thead><tr><th>Balance sheet</th>'+pcols.map(function(c){return '<th>'+c.label+'</th>';}).join('')+'</tr></thead><tbody>';
+  ph+='<tr class="ph"><td colspan="3">Assets</td></tr>';
+  ph+=prow('Cash &amp; equivalents','cash',false,'');
+  ph+=prow('Fixed assets at cost','cost',false,'');
+  ph+=prow('Less: accumulated depreciation','dep',true,'');
+  ph+=prow('Net fixed assets','netFixed',false,'sub');
+  ph+=prow('Total assets','assets',false,'tot');
+  ph+='<tr class="ph"><td colspan="3">Liabilities</td></tr>';
+  ph+=prow('Deferred ticket revenue','deferred',false,'');
+  ph+=prow('End-of-service provision','eosProv',false,'');
+  ph+=prow('Total liabilities','liab',false,'tot');
+  ph+='<tr class="ph"><td colspan="3">Equity</td></tr>';
+  ph+=prow('Paid-in capital','paidIn',false,'');
+  ph+=prow('Retained earnings (pre-opening)','retained',false,'');
+  ph+=prow('Total equity','equity',false,'tot');
+  ph+=prow('Check: assets − (liabilities + equity)','chk',false,'op');
+  el('bs-preopen').innerHTML=ph+'</tbody>';
+  el('bs-preopen-check').textContent=(Math.abs(incept.chk)<1&&Math.abs(startOps.chk)<1)?'Balanced ✓':'off';
+
   var cols=snap.length;
   function hd(lbl){var s='<tr><th>'+lbl+'</th>';snap.forEach(function(p){s+='<th>'+p.year+'</th>';});return s+'</tr>';}
   function row(label,key,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>';
