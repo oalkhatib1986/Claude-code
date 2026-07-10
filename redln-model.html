@@ -908,6 +908,12 @@ function renderEventsRevenue(){
        '<input class="evname" type="text" value="'+escq(E.name)+'" oninput="setEvName('+i+',this.value)" placeholder="Season name">'+
        '<span class="evmeta"><span class="csum">'+aed(seasonTot)+' / season</span>'+
        '<button class="evdel" onclick="delEvent('+i+')" title="remove season">✕</button></span></div>';
+    // revenue total for this event (tickets + ancillary + sponsorship)
+    h+='<div class="recon"><div class="rr"><span>Gross ticket sales'+(G>1?' · '+G+' games':'')+'</span><span>'+aed(tick*G)+'</span></div>'+
+       '<div class="rr"><span>Ancillary revenue'+(G>1?' · '+G+' games':'')+'</span><span>'+aed(anc*G)+'</span></div>'+
+       '<div class="rr"><span>Sponsorship · season</span><span>'+aed(spn)+'</span></div>'+
+       '<div class="rr tot"><span>Total revenue / season</span><span>'+aed(seasonTot)+'</span></div>'+
+       (G>1?'<div class="rr mut"><span>Per game (ex sponsorship)</span><span>'+aed(tick+anc)+'</span></div>':'')+'</div>';
     // schedule of games
     h+='<div class="subh"><span>Season schedule</span><span class="subsum">'+G+' game'+(G===1?'':'s')+'</span></div><div class="games">';
     E.games.forEach(function(g,gi){
