@@ -575,6 +575,17 @@ function compute(){
 
   // ---- schedule game instances: each event is a season; each game runs in its own calendar month,
   //      repeating annually. Ticket & ancillary apply per game; sponsorship is counted once per season. ----
+  // volume growth is indexed from the FIRST operating year (first season = base volume, growth^0)
+  var minY=Infinity;
+  EVENTS.forEach(function(E){
+    var games=(E.games&&E.games.length)?E.games:[{month:E.month||6}];
+    for(var yIdx=0;yIdx<years;yIdx++){var cy=yearsList[yIdx];
+      games.forEach(function(g){var cm=Math.min(12,Math.max(1,Math.round((g&&g.month)||6)));
+        var m=(cy-launchYear)*12+(cm-START_MONTH)+1;
+        if(m>=first&&m<=horizon)minY=Math.min(minY,yi(m));});
+    }
+  });
+  if(!isFinite(minY))minY=0;
   var events=[];
   EVENTS.forEach(function(E){
     var games=(E.games&&E.games.length)?E.games:[{month:E.month||6}];
@@ -584,7 +595,7 @@ function compute(){
       var cm=Math.min(12,Math.max(1,Math.round((g&&g.month)||6)));
       var m=(cy-launchYear)*12+(cm-START_MONTH)+1;  // horizon month index for (calMonth cm, calYear cy)
       if(m<first||m>horizon)return;                // before ops start or beyond horizon
-      var y=yi(m), gf=Math.pow(1+growth,y);
+      var y=yi(m), gf=Math.pow(1+growth,Math.max(0,y-minY));
       var gv=function(id){return (E.vals&&E.vals[id]!=null)?E.vals[id]:val(id);};
       var ts=Math.max(1,gv('teamSize'));
       var qE=Math.round(gv('qElite')*gf), qV=Math.round(gv('qEvery')*gf);
@@ -1431,6 +1442,7 @@ function renderPayback(A){
     '<tr><td>Revenue</td><td>'+fmt(A.rev0)+'</td></tr>'+
     '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
     '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
+    '<tr><td>Prizes</td><td class="neg">'+fmt(-A.avgPrize)+'</td></tr>'+
     '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
     '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr></tbody>';
   el('pay-contrib').textContent=aed(A.contrib0)+' / event';
@@ -1503,8 +1515,8 @@ function renderDash(A){
   var cats=[],rev=[],op=[];
   var prodIds=A.prodLines.map(function(l){return l.id;}), ohIds=A.ohLines.map(function(l){return l.id;});
   for(var y=0;y<A.years;y++){cats.push(String(A.yearsList[y]));var rv=0,ct=0;
-    ['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail'].forEach(function(id){rv+=(A.line[id]||[])[y]||0;});
-    ['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].concat(prodIds).concat(ohIds).forEach(function(id){ct+=(A.line[id]||[])[y]||0;});
+    ['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail','rev_classes'].forEach(function(id){rv+=(A.line[id]||[])[y]||0;});
+    ['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].concat(prodIds).concat(ohIds).concat(['cost_prizes','cost_classes']).forEach(function(id){ct+=(A.line[id]||[])[y]||0;});
     rev.push(rv);op.push(rv-ct);}
   barChart('dash-bars',cats,rev,op);
 }
