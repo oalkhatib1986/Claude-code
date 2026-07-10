@@ -227,11 +227,13 @@
       <button data-sub="revenue">Revenue</button>
       <button data-sub="costs">Costs</button>
       <button data-sub="capex">CapEx</button>
+      <button data-sub="prizes">Prizes</button>
     </nav>
     <div class="asmsub on" id="asm-setup"></div>
     <div class="asmsub" id="asm-revenue"></div>
     <div class="asmsub" id="asm-costs"></div>
     <div class="asmsub" id="asm-capex"></div>
+    <div class="asmsub" id="asm-prizes"></div>
     <button class="reset" onclick="resetAll()">Reset all to defaults (clears saved)</button>
   </section>
 
@@ -378,9 +380,6 @@ var GROUPS=[
    {id:'oMarketing',label:'Always-on marketing',u:'per month',v:25000},
    {id:'oAccounting',label:'Accounting & audit',u:'per month',v:3000},
    {id:'oMisc',label:'Miscellaneous',u:'per month',v:2000},
-   {id:'oSeason1',label:'Season prize — 1st place',u:'per year',v:50000,yearly:true},
-   {id:'oSeason2',label:'Season prize — 2nd place',u:'per year',v:25000,yearly:true},
-   {id:'oSeason3',label:'Season prize — 3rd place',u:'per year',v:10000,yearly:true},
  ]},
  {key:'production',title:'Per-Event Production',items:[
    {id:'pVenue',label:'Venue hire',u:'per event',v:0},
@@ -395,9 +394,11 @@ var GROUPS=[
    {id:'pWaste',label:'Waste · cleaning · sanitation',u:'per event',v:5000},
    {id:'pDJ',label:'DJ / entertainment',u:'per event',v:20000},
    {id:'pMisc',label:'Miscellaneous',u:'per event',v:10000},
-   {id:'pPrize1',label:'Event prize — 1st place',u:'per event',v:20000},
-   {id:'pPrize2',label:'Event prize — 2nd place',u:'per event',v:10000},
-   {id:'pPrize3',label:'Event prize — 3rd place',u:'per event',v:5000},
+ ]},
+ {key:'classes',title:'Group Classes (monthly recurring)',items:[
+   {id:'clPacks',label:'Class packs sold',u:'packs / month',v:200},
+   {id:'clFee',label:'Class pack fee',u:'AED / pack',v:120},
+   {id:'clCostPct',label:'Coaching & delivery cost',u:'% of class revenue',v:40,pct:true},
  ]},
  {key:'variable',title:'Per-Athlete Variable',special:'varcard',items:[
    {id:'vTee',label:'Finishing tee',u:'AED each',v:30},
@@ -464,12 +465,15 @@ var EV_SECTIONS=[
 var EV_FIELDS=[]; EV_SECTIONS.forEach(function(s){s.fields.forEach(function(f){EV_FIELDS.push(f.id);});});
 // each event is a SEASON with one or more games (each on its own calendar month). Ticket & ancillary
 // assumptions apply per game; sponsorship is counted once per season. Costs use the shared template.
+var PRZ_DEF={p1:20000,p2:10000,p3:5000};
+var PRZ_SEASON_DEF={p1:50000,p2:25000,p3:10000};
+function gpz(){return {p1:PRZ_DEF.p1,p2:PRZ_DEF.p2,p3:PRZ_DEF.p3};}
 var EVENTS=[
- {name:'Season Opener',games:[{month:2}],vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
- {name:'Round 2',games:[{month:4}],vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
- {name:'Mid-Season Clash',games:[{month:6}],vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
- {name:'Round 4',games:[{month:9}],vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
- {name:'Championship Finals',games:[{month:11}],vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
+ {name:'Season Opener',games:[{month:2}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1299,qElite:200,pEvery:1099,qEvery:200,sponsor:0,fbGross:100000,fbPct:15,retGross:50000,retPct:40}},
+ {name:'Round 2',games:[{month:4}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1299,qElite:220,pEvery:1099,qEvery:220,sponsor:40000,fbGross:110000,fbPct:15,retGross:60000,retPct:40}},
+ {name:'Mid-Season Clash',games:[{month:6}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1299,qElite:250,pEvery:1099,qEvery:250,sponsor:50000,fbGross:130000,fbPct:15,retGross:70000,retPct:40}},
+ {name:'Round 4',games:[{month:9}],prizes:{games:[gpz()],season:{p1:50000,p2:25000,p3:10000}},vals:{teamSize:4,pElite:1399,qElite:270,pEvery:1149,qEvery:270,sponsor:80000,fbGross:170000,fbPct:15,retGross:100000,retPct:40}},
+ {name:'Championship Finals',games:[{month:11}],prizes:{games:[gpz()],season:{p1:100000,p2:50000,p3:25000}},vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
 var DEF={};
@@ -535,6 +539,9 @@ function compute(){
   var first=preop+1;
   var totalGames=EVENTS.reduce(function(t,E){return t+((E.games&&E.games.length)||1);},0);
   var monthsPerEvent=12/Math.max(1,totalGames);
+  // group classes: recurring monthly revenue during operations (class packs × fee), less delivery cost
+  var clRevM=val('clPacks')*val('clFee');
+  var clCostM=clRevM*(val('clCostPct')/100);
   // ---- calendar: month index 1 = START_MONTH of launchYear (pre-op start, user-selectable) ----
   var START_MONTH=Math.min(12,Math.max(1,Math.round(val('startMonth'))||9));
   var launchYear=Math.round(val('launchYear'))||2026;
@@ -565,8 +572,12 @@ function compute(){
       var fbn=gv('fbGross')*(gv('fbPct')/100), rtn=gv('retGross')*(gv('retPct')/100);
       var tRev=qE*pE+qV*pV, rev=tRev+spn+fbn+rtn, ath=(qE+qV)*ts;
       var vc=ath*perAthlete+tRev*feePct;
+      // prizes: this game's 1/2/3 places + season grand prize on the final game of the season
+      var przG=(E.prizes&&E.prizes.games&&E.prizes.games[gi])||{p1:0,p2:0,p3:0};
+      var przS=(E.prizes&&E.prizes.season)||{p1:0,p2:0,p3:0};
+      var prize=((+przG.p1||0)+(+przG.p2||0)+(+przG.p3||0))+((gi===games.length-1)?((+przS.p1||0)+(+przS.p2||0)+(+przS.p3||0)):0);
       var gname=E.name+(games.length>1?' · Game '+(gi+1):'');
-      events.push({m:m,y:y,name:gname,ts:ts,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc,pc:prodTotal,fbn:fbn,rtn:rtn,spn:spn,pE:pE,pV:pV});
+      events.push({m:m,y:y,name:gname,ts:ts,qE:qE,qV:qV,ath:ath,tRev:tRev,rev:rev,vc:vc,pc:prodTotal,prize:prize,fbn:fbn,rtn:rtn,spn:spn,pE:pE,pV:pV});
       });
     }
   });
@@ -582,12 +593,15 @@ function compute(){
     prodLines.forEach(function(l){addL(l.id,e.y,l.v);});
     vGoods.forEach(function(g){addL(g,e.y,e.ath*val(g));});
     addL('vFee',e.y,e.tRev*feePct);
+    addL('cost_prizes',e.y,e.prize);
     addL('rev_elite',e.y,e.qE*e.pE);
     addL('rev_every',e.y,e.qV*e.pV);
     addL('rev_sponsor',e.y,e.spn);
     addL('rev_fb',e.y,e.fbn);
     addL('rev_retail',e.y,e.rtn);
   });
+  // group classes: recognised every operating month (after pre-op)
+  for(var mc=first;mc<=horizon;mc++){addL('rev_classes',yi(mc),clRevM);addL('cost_classes',yi(mc),clCostM);}
 
   // depreciation (straight-line, each asset over ITS OWN useful life, starting when operations begin)
   var depAssets=capexLines.map(function(l){var lm=Math.round((l.life||0)*12);return {lm:lm,per:lm>0?l.v/lm:0,v:l.v,life:l.life||0};});
@@ -613,7 +627,9 @@ function compute(){
   var accumEos=0, deferred=0;
   for(var m2=1;m2<=horizon;m2++){
     var pre=m2<=preop, evs=evByMonth[m2]||[];
-    var rev=0,vc=0,pc=0; evs.forEach(function(x){rev+=x.rev;vc+=x.vc;pc+=x.pc;});
+    var rev=0,vc=0,pc=0,prize=0; evs.forEach(function(x){rev+=x.rev;vc+=x.vc;pc+=x.pc;prize+=(x.prize||0);});
+    var clRev=pre?0:clRevM, clCost=pre?0:clCostM;   // group classes run in operating months
+    rev+=clRev; pc+=prize; vc+=clCost;              // fold into revenue / production / variable columns
     var oh=ovhMonthly, isEv=evs.length>0;
     var op=rev-vc-pc-oh;
     var dep=pre?0:monthlyDepAt(m2-preop);
@@ -639,13 +655,13 @@ function compute(){
 
   // ---- average event (across all scheduled instances) for KPIs / payback ----
   var N=events.length||1;
-  var sRev=0,sVc=0,sTRev=0,sAth=0,sTeams=0,sSpn=0,sFb=0,sRt=0;
-  events.forEach(function(e){sRev+=e.rev;sVc+=e.vc;sTRev+=e.tRev;sAth+=e.ath;sTeams+=(e.qE+e.qV);sSpn+=e.spn;sFb+=e.fbn;sRt+=e.rtn;});
-  var rev0=sRev/N, vc0=sVc/N, tRev0=sTRev/N, ath0=Math.round(sAth/N), teams0=Math.round(sTeams/N), avgSpn=sSpn/N;
+  var sRev=0,sVc=0,sTRev=0,sAth=0,sTeams=0,sSpn=0,sFb=0,sRt=0,sPrz=0;
+  events.forEach(function(e){sRev+=e.rev;sVc+=e.vc;sTRev+=e.tRev;sAth+=e.ath;sTeams+=(e.qE+e.qV);sSpn+=e.spn;sFb+=e.fbn;sRt+=e.rtn;sPrz+=(e.prize||0);});
+  var rev0=sRev/N, vc0=sVc/N, tRev0=sTRev/N, ath0=Math.round(sAth/N), teams0=Math.round(sTeams/N), avgSpn=sSpn/N, avgPrize=sPrz/N;
   fbNet=sFb/N; retNet=sRt/N; ancillaryNet=fbNet+retNet;
   var teamSizeAvg=teams0>0?ath0/teams0:1;
   var ohAlloc=ovhMonthly*monthsPerEvent;
-  var contrib0=rev0-vc0-prodTotal-ohAlloc;
+  var contrib0=rev0-vc0-prodTotal-avgPrize-ohAlloc;
   var simpleEvents=contrib0>0?capexTotal/contrib0:Infinity;
   var simpleMonths=simpleEvents*monthsPerEvent;
   var fixedPerEvent=prodTotal+ohAlloc-avgSpn-(rev0-tRev0-avgSpn); // production + overhead, net of sponsor & ancillary
@@ -653,7 +669,7 @@ function compute(){
   var avgTeamPrice=teams0>0?tRev0/teams0:0;
   var goodsPerTeam=perAthlete*teamSizeAvg;
   var contribPerTeam=avgTeamPrice*(1-feePct)-goodsPerTeam;
-  var beTeams=contribPerTeam>0?(prodTotal+ohAlloc)/contribPerTeam:Infinity;
+  var beTeams=contribPerTeam>0?(prodTotal+avgPrize+ohAlloc)/contribPerTeam:Infinity;
   var beAth=isFinite(beTeams)?beTeams*teamSizeAvg:Infinity;
   var contribPerAth=teamSizeAvg>0?contribPerTeam/teamSizeAvg:0;
   var revPerTeam=avgTeamPrice, revPerAth=ath0>0?tRev0/ath0:0;
@@ -664,6 +680,7 @@ function compute(){
     monthlyDep:monthlyDep,depAvgLife:wLife,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
+    avgPrize:avgPrize,clRevM:clRevM,clCostM:clCostM,totalGames:totalGames,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
     simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,beTeams:beTeams,
@@ -828,11 +845,19 @@ function fixedOhCard(){
 var MONTHS3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function escq(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function monthOpts(sel){var s='';for(var i=1;i<=12;i++)s+='<option value="'+i+'"'+(i==sel?' selected':'')+'>'+MONTHS3[i-1]+'</option>';return s;}
-// ensure every event carries every field + a valid games list (back-fills older saved state)
+// ensure every event carries every field + valid games & prizes lists (back-fills older saved state)
 function normEvents(){var d=EVENTS_DEFAULT[0].vals;EVENTS.forEach(function(E){
   E.vals=E.vals||{};EV_FIELDS.forEach(function(k){if(E.vals[k]==null)E.vals[k]=(d[k]!=null?d[k]:0);});
   if(!E.games||!E.games.length){E.games=(E.month!=null)?[{month:E.month}]:[{month:6}];}
   E.games=E.games.map(function(g){return {month:Math.min(12,Math.max(1,Math.round((g&&g.month)||6)))};});
+  // prizes: one prize set per game + a season grand prize
+  E.prizes=E.prizes||{};
+  if(!E.prizes.season)E.prizes.season={p1:50000,p2:25000,p3:10000};
+  if(!E.prizes.games)E.prizes.games=[];
+  while(E.prizes.games.length<E.games.length)E.prizes.games.push({p1:20000,p2:10000,p3:5000});
+  E.prizes.games.length=E.games.length;
+  E.prizes.games=E.prizes.games.map(function(p){p=p||{};return {p1:+p.p1||0,p2:+p.p2||0,p3:+p.p3||0};});
+  var sp=E.prizes.season;E.prizes.season={p1:+sp.p1||0,p2:+sp.p2||0,p3:+sp.p3||0};
 });}
 function evg(E,id){var v=E.vals[id];return v==null?0:v;}
 function renderEventsRevenue(){
@@ -879,14 +904,50 @@ function renderEventsRevenue(){
   h+='<button class="reset" style="margin:2px 0 14px" onclick="addEvent()">+ Add season</button>';
   el('ev-wrap').innerHTML=h;
 }
-function setEvName(i,v){EVENTS[i].name=v;saveState();build();}
+function setEvName(i,v){EVENTS[i].name=v;renderPrizes();saveState();build();}
 function setEvVal(i,id,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].vals[id]=isNaN(n)?0:n;renderEventsRevenue();build();}
-function setGameMonth(i,gi,v){EVENTS[i].games[gi].month=parseInt(v,10)||1;renderEventsRevenue();build();}
-function addGame(i){EVENTS[i].games.push({month:6});renderEventsRevenue();build();}
-function delGame(i,gi){if(EVENTS[i].games.length>1){EVENTS[i].games.splice(gi,1);renderEventsRevenue();build();}}
-function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Season '+(EVENTS.length+1),games:[{month:6}],vals:JSON.parse(JSON.stringify(d.vals))});renderEventsRevenue();build();}
-function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsRevenue();build();}}
-var SUBOF={timeline:'setup',revenue:'revenue',capex:'capex',overhead:'costs',production:'costs',variable:'costs'};
+function setGameMonth(i,gi,v){EVENTS[i].games[gi].month=parseInt(v,10)||1;renderEventsRevenue();renderPrizes();build();}
+function addGame(i){EVENTS[i].games.push({month:6});renderEventsRevenue();renderPrizes();build();}
+function delGame(i,gi){if(EVENTS[i].games.length>1){EVENTS[i].games.splice(gi,1);renderEventsRevenue();renderPrizes();build();}}
+function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Season '+(EVENTS.length+1),games:[{month:6}],vals:JSON.parse(JSON.stringify(d.vals))});renderEventsRevenue();renderPrizes();build();}
+function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsRevenue();renderPrizes();build();}}
+/* ===================== prizes ===================== */
+function przTot(p){return (p.p1||0)+(p.p2||0)+(p.p3||0);}
+function renderPrizes(){
+  if(!el('asm-prizes'))return;
+  normEvents();
+  var h='<div class="card intro-ev"><div class="ch">Prizes by season &amp; game <span class="csum">from Revenue tab</span></div>'+
+    '<p class="sub" style="padding:0 16px 4px">Each game awards 1st / 2nd / 3rd place prizes; each season also awards a grand prize (1st / 2nd / 3rd). Season names and game counts come from the Revenue tab. Prizes are a cost — game prizes are paid at each game, the grand prize once per season.</p></div>';
+  EVENTS.forEach(function(E,i){
+    var gTot=E.prizes.games.reduce(function(t,p){return t+przTot(p);},0);
+    var sTot=przTot(E.prizes.season);
+    h+='<div class="card evcard"><div class="ch evhead"><span class="evname" style="border:none;background:transparent;padding-left:0">'+escq(E.name)+'</span>'+
+       '<span class="evmeta"><span class="csum">'+aed(gTot+sTot)+' / season</span></span></div>';
+    h+='<div class="subh"><span>Game prizes</span><span class="subsum">'+aed(gTot)+'</span></div>';
+    h+='<div class="scroll"><table class="org"><thead><tr><th>Game</th><th>1st place</th><th>2nd place</th><th>3rd place</th><th>Total</th></tr></thead><tbody>';
+    E.prizes.games.forEach(function(p,gi){
+      h+='<tr><td>Game '+(gi+1)+' <span class="mut">'+MONTHS3[E.games[gi].month-1]+'</span></td>'+
+         '<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(p.p1)+'" onchange="setPrize('+i+','+gi+',\'p1\',this.value)"></td>'+
+         '<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(p.p2)+'" onchange="setPrize('+i+','+gi+',\'p2\',this.value)"></td>'+
+         '<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(p.p3)+'" onchange="setPrize('+i+','+gi+',\'p3\',this.value)"></td>'+
+         '<td class="calc">'+fmt(przTot(p))+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    var sp=E.prizes.season;
+    h+='<div class="subh"><span>Season grand prize</span><span class="subsum">'+aed(sTot)+'</span></div>';
+    h+='<div class="scroll"><table class="org"><thead><tr><th>Award</th><th>1st place</th><th>2nd place</th><th>3rd place</th><th>Total</th></tr></thead><tbody>';
+    h+='<tr><td>Grand prize</td>'+
+       '<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(sp.p1)+'" onchange="setSeasonPrize('+i+',\'p1\',this.value)"></td>'+
+       '<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(sp.p2)+'" onchange="setSeasonPrize('+i+',\'p2\',this.value)"></td>'+
+       '<td><input class="s" type="text" inputmode="decimal" value="'+commaFmt(sp.p3)+'" onchange="setSeasonPrize('+i+',\'p3\',this.value)"></td>'+
+       '<td class="calc">'+fmt(sTot)+'</td></tr>';
+    h+='</tbody></table></div></div>';
+  });
+  el('asm-prizes').innerHTML=h;
+}
+function setPrize(i,gi,k,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].prizes.games[gi][k]=isNaN(n)?0:n;renderPrizes();build();}
+function setSeasonPrize(i,k,v){var n=parseFloat(String(v).replace(/,/g,''));EVENTS[i].prizes.season[k]=isNaN(n)?0:n;renderPrizes();build();}
+var SUBOF={timeline:'setup',revenue:'revenue',classes:'revenue',capex:'capex',overhead:'costs',production:'costs',variable:'costs'};
 function renderAssumptions(){
   NUMIDS=[];
   var buckets={setup:'',revenue:'',costs:'',capex:''};
@@ -901,6 +962,7 @@ function renderAssumptions(){
   el('asm-costs').innerHTML=buckets.costs;
   el('asm-capex').innerHTML=buckets.capex;
   renderEventsRevenue();
+  renderPrizes();
   // wire numeric inputs
   NUMIDS.forEach(function(id){
     var e=el('in-'+id); if(!e)return;
@@ -1009,12 +1071,13 @@ function renderOrgCalc(A){
 
 /* ===================== per-event P&L (assumptions) ===================== */
 function renderAsmPnl(A){
-  var gm=A.rev0-A.vc0-A.prodTotal, margin=A.rev0>0?(A.contrib0/A.rev0*100):0;
+  var gm=A.rev0-A.vc0-A.prodTotal-A.avgPrize, margin=A.rev0>0?(A.contrib0/A.rev0*100):0;
   el('asm-pnl').innerHTML='<tbody>'+
-   '<tr class="ph"><td colspan="2">Average event (across scheduled events)</td></tr>'+
+   '<tr class="ph"><td colspan="2">Average event (across scheduled games)</td></tr>'+
    '<tr><td>Revenue (gross)</td><td>'+fmt(A.rev0)+'</td></tr>'+
    '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
    '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
+   '<tr><td>Prizes (avg / game)</td><td class="neg">'+fmt(-A.avgPrize)+'</td></tr>'+
    '<tr class="tot"><td>Contribution before overhead</td><td class="'+cls(gm)+'">'+fmt(gm)+'</td></tr>'+
    '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
    '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event &mdash; '+margin.toFixed(1)+'% margin</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
@@ -1032,24 +1095,27 @@ function renderIncome(A){
   function sectionTotal(label,ids,neg){var s='<tr class="tot"><td>'+label+'</td>',gt=0;
     for(var y=0;y<yrs;y++){var v=0;ids.forEach(function(id){v+=(A.line[id]||[])[y]||0;});gt+=v;s+='<td class="'+(neg?'neg':'')+'">'+fmt(neg?-v:v)+'</td>';}
     return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-gt:gt)+'</td></tr>';}
-  var revIds=['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail'];
+  var revIds=['rev_elite','rev_every','rev_sponsor','rev_fb','rev_retail','rev_classes'];
   var varIds=['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'];
   var prodIds=A.prodLines.map(function(l){return l.id;});
   var ohIds=A.ohLines.map(function(l){return l.id;});
+  var otherIds=['cost_prizes','cost_classes'];
   var h='<thead>'+yhead('Line item')+'</thead><tbody>';
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Revenue</td></tr>';
-  h+=lineRow('Elite tickets','rev_elite',false)+lineRow('Everyday tickets','rev_every',false)+lineRow('Sponsorship / other','rev_sponsor',false)+lineRow('F&B commission','rev_fb',false)+lineRow('Retail / merch margin','rev_retail',false)+sectionTotal('Gross revenue',revIds,false);
+  h+=lineRow('Elite tickets','rev_elite',false)+lineRow('Everyday tickets','rev_every',false)+lineRow('Sponsorship / other','rev_sponsor',false)+lineRow('F&B commission','rev_fb',false)+lineRow('Retail / merch margin','rev_retail',false)+lineRow('Group classes','rev_classes',false)+sectionTotal('Gross revenue',revIds,false);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Variable costs</td></tr>';
   h+=lineRow('Finishing tee','vTee',true)+lineRow('Finisher tag / medal','vMedal',true)+lineRow('Bib & timing chip','vBib',true)+lineRow('Nutrition & hydration','vNutrition',true)+lineRow('Athlete insurance','vAthInsurance',true)+lineRow('Payment & booking fees','vFee',true)+sectionTotal('Total variable',varIds,true);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Per-event production</td></tr>';
   A.prodLines.forEach(function(l){h+=lineRow(l.label,l.id,true);});
   h+=sectionTotal('Total production',prodIds,true);
+  h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Prizes &amp; group classes</td></tr>';
+  h+=lineRow('Event &amp; season prizes','cost_prizes',true)+lineRow('Group class delivery cost','cost_classes',true)+sectionTotal('Total prizes &amp; class cost',otherIds,true);
   h+='<tr class="ph"><td colspan="'+(yrs+2)+'">Fixed overhead</td></tr>';
   A.ohLines.forEach(function(l){h+=lineRow(l.label,l.id,true);});
   h+=sectionTotal('Total overhead',ohIds,true);
   var opArr=[],gtOp=0;
   for(var y=0;y<yrs;y++){var rev=0;revIds.forEach(function(id){rev+=(A.line[id]||[])[y]||0;});
-    var cost=0;varIds.concat(prodIds).concat(ohIds).forEach(function(id){cost+=(A.line[id]||[])[y]||0;});
+    var cost=0;varIds.concat(prodIds).concat(ohIds).concat(otherIds).forEach(function(id){cost+=(A.line[id]||[])[y]||0;});
     var op=rev-cost;opArr.push(op);gtOp+=op;}
   var s='<tr class="op"><td>Operating profit (EBITDA)</td>';
   opArr.forEach(function(op){s+='<td class="'+cls(op)+'">'+fmt(op)+'</td>';});
@@ -1375,7 +1441,7 @@ document.getElementById('asm-subtabs').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
   Array.prototype.forEach.call(this.children,function(x){x.classList.remove('on');});
   b.classList.add('on');var t=b.getAttribute('data-sub');
-  ['setup','revenue','costs','capex'].forEach(function(s){el('asm-'+s).classList.toggle('on',s===t);});
+  ['setup','revenue','costs','capex','prizes'].forEach(function(s){el('asm-'+s).classList.toggle('on',s===t);});
 });
 window.addEventListener('DOMContentLoaded',function(){renderAssumptions();loadState();syncMaster();build();});
 </script>
