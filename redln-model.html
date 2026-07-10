@@ -263,6 +263,10 @@
       <div class="lg"><span><span class="sw" style="background:var(--red)"></span>Cumulative cash</span><span><b>Trough</b> = peak funding requirement</span><span><span class="sw" style="background:var(--good)"></span>Breakeven</span></div>
     </div>
     <div class="card">
+      <div class="ch">Annual cash flow statement <span class="csum" id="cf-annual-sum">—</span></div>
+      <div class="scroll"><table class="mono" id="cf-annual"></table></div>
+    </div>
+    <div class="card">
       <div class="ch">Monthly cash flow statement</div>
       <div class="scroll"><table class="mono minmax" id="cf-monthly"></table></div>
     </div>
@@ -1328,6 +1332,33 @@ function renderCash(A){
     {k:'Cash at '+A.monLabel(A.horizon),v:aed(A.endCash),c:A.endCash>=0?'green':'red',n:A.evCount+' events held'},
     {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'revenue '+aed(A.totRev)}
   ]);
+  // ----- annual cash flow statement -----
+  var YL=A.yearsList, yrs=A.years, yiOf=function(m){return YL.indexOf(A.calYearOf(m));};
+  var aOp=new Array(yrs).fill(0),aEos=new Array(yrs).fill(0),aDef=new Array(yrs).fill(0),aCx=new Array(yrs).fill(0),aNet=new Array(yrs).fill(0);
+  A.rows.forEach(function(r){var y=yiOf(r.m);aOp[y]+=r.op;aEos[y]+=r.eos;aDef[y]+=r.cashAdj;aCx[y]+=r.cx;aNet[y]+=r.net;});
+  var opening=[],closing=[],prevC=A.openFund;
+  for(var y=0;y<yrs;y++){opening[y]=prevC;closing[y]=prevC+aNet[y];prevC=closing[y];}
+  function yheadC(){var s='<tr><th>Cash flow</th>';for(var y=0;y<yrs;y++)s+='<th>'+YL[y]+'</th>';return s+'<th>Total</th></tr>';}
+  function crow(label,arr,neg,klass,total){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;
+    for(var y=0;y<yrs;y++){var v=arr[y];t+=v;s+='<td class="'+(neg?'neg ':'')+(klass==='op'?cls(neg?-v:v):'')+'">'+fmt(neg?-v:v)+'</td>';}
+    var tv=(total===undefined)?(neg?-t:t):total;
+    return s+'<td class="'+(neg?'neg ':'')+(klass==='op'?cls(tv):'')+'">'+fmt(tv)+'</td></tr>';}
+  var opCF=aOp.map(function(v,y){return v+aEos[y]+aDef[y];});
+  var ch='<thead>'+yheadC()+'</thead><tbody>';
+  ch+='<tr class="ph"><td colspan="'+(yrs+2)+'">Operating activities</td></tr>';
+  ch+=crow('Operating profit (EBITDA)',aOp,false,'');
+  ch+=crow('Add back: end-of-service accrual',aEos,false,'');
+  ch+=crow('Deferred-revenue movement',aDef,false,'');
+  ch+=crow('Operating cash flow',opCF,false,'tot');
+  ch+='<tr class="ph"><td colspan="'+(yrs+2)+'">Investing activities</td></tr>';
+  ch+=crow('Capital expenditure',aCx,true,'');
+  ch+=crow('Net cash flow',aNet,false,'op');
+  ch+='<tr class="ph"><td colspan="'+(yrs+2)+'">Cash position</td></tr>';
+  ch+=crow('Opening cash',opening,false,'',opening[0]);
+  ch+=crow('Closing cash',closing,false,'tot',closing[yrs-1]);
+  el('cf-annual').innerHTML=ch+'</tbody>';
+  el('cf-annual-sum').textContent='closing '+aed(closing[yrs-1])+' · '+YL[0]+'–'+YL[yrs-1];
+
   var mh='<thead><tr><th>Month</th><th>Phase</th><th>EBITDA</th><th>+ EOS accr.</th><th>Δ Deferred</th><th>CapEx</th><th>Net cash</th><th>Cumulative</th></tr></thead><tbody>';
   var acc={op:0,eos:0,def:0,cx:0,net:0};
   A.rows.forEach(function(r){var rc=r.pre?'pre':(r.ev?'ev':'');
