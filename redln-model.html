@@ -395,9 +395,8 @@ var GROUPS=[
    {id:'pDJ',label:'DJ / entertainment',u:'per event',v:20000},
    {id:'pMisc',label:'Miscellaneous',u:'per event',v:10000},
  ]},
- {key:'classes',title:'Group Classes (monthly recurring)',items:[
-   {id:'clPacks',label:'Class packs sold',u:'packs / month',v:200},
-   {id:'clFee',label:'Class pack fee',u:'AED / pack',v:120},
+ {key:'classes',title:'Group Classes — pricing',items:[
+   {id:'clFee',label:'Price per class',u:'AED / client / session',v:120},
    {id:'clCostPct',label:'Coaching & delivery cost',u:'% of class revenue',v:40,pct:true},
  ]},
  {key:'variable',title:'Per-Athlete Variable',special:'varcard',items:[
@@ -476,6 +475,9 @@ var EVENTS=[
  {name:'Championship Finals',games:[{month:11}],prizes:{games:[gpz()],season:{p1:100000,p2:50000,p3:25000}},vals:{teamSize:4,pElite:1499,qElite:300,pEvery:1199,qEvery:300,sponsor:150000,fbGross:220000,fbPct:15,retGross:130000,retPct:40}},
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
+// group-class activity per calendar month (repeats annually): days held × sessions/day × clients/session
+var CLASS_SCHED=[]; for(var _cm=0;_cm<12;_cm++)CLASS_SCHED.push({days:10,sessions:2,clients:10});
+var CLASS_SCHED_DEFAULT=JSON.parse(JSON.stringify(CLASS_SCHED));
 var DEF={};
 
 /* ===================== formatters ===================== */
@@ -539,9 +541,9 @@ function compute(){
   var first=preop+1;
   var totalGames=EVENTS.reduce(function(t,E){return t+((E.games&&E.games.length)||1);},0);
   var monthsPerEvent=12/Math.max(1,totalGames);
-  // group classes: recurring monthly revenue during operations (class packs × fee), less delivery cost
-  var clRevM=val('clPacks')*val('clFee');
-  var clCostM=clRevM*(val('clCostPct')/100);
+  // group classes: recurring monthly revenue during operations, driven per calendar month by
+  // days × sessions/day × clients/session × price per class, less a coaching/delivery cost %.
+  var clPrice=val('clFee'), clCostP=val('clCostPct')/100;
   // ---- calendar: month index 1 = START_MONTH of launchYear (pre-op start, user-selectable) ----
   var START_MONTH=Math.min(12,Math.max(1,Math.round(val('startMonth'))||9));
   var launchYear=Math.round(val('launchYear'))||2026;
@@ -552,6 +554,7 @@ function compute(){
   var yearsList=[]; for(var mm0=1;mm0<=horizon;mm0++){var cy=calYearOf(mm0);if(yearsList.indexOf(cy)<0)yearsList.push(cy);}
   var years=yearsList.length;
   var yi=function(m){return yearsList.indexOf(calYearOf(m));};
+  var clRevAt=function(m){var c=CLASS_SCHED[calMonthOf(m)-1]||{days:0,sessions:0,clients:0};return (c.days||0)*(c.sessions||0)*(c.clients||0)*clPrice;};
 
   // ---- schedule game instances: each event is a season; each game runs in its own calendar month,
   //      repeating annually. Ticket & ancillary apply per game; sponsorship is counted once per season. ----
@@ -601,7 +604,7 @@ function compute(){
     addL('rev_retail',e.y,e.rtn);
   });
   // group classes: recognised every operating month (after pre-op)
-  for(var mc=first;mc<=horizon;mc++){addL('rev_classes',yi(mc),clRevM);addL('cost_classes',yi(mc),clCostM);}
+  for(var mc=first;mc<=horizon;mc++){var cr=clRevAt(mc);addL('rev_classes',yi(mc),cr);addL('cost_classes',yi(mc),cr*clCostP);}
 
   // depreciation (straight-line, each asset over ITS OWN useful life, starting when operations begin)
   var depAssets=capexLines.map(function(l){var lm=Math.round((l.life||0)*12);return {lm:lm,per:lm>0?l.v/lm:0,v:l.v,life:l.life||0};});
@@ -628,7 +631,7 @@ function compute(){
   for(var m2=1;m2<=horizon;m2++){
     var pre=m2<=preop, evs=evByMonth[m2]||[];
     var rev=0,vc=0,pc=0,prize=0; evs.forEach(function(x){rev+=x.rev;vc+=x.vc;pc+=x.pc;prize+=(x.prize||0);});
-    var clRev=pre?0:clRevM, clCost=pre?0:clCostM;   // group classes run in operating months
+    var clRev=pre?0:clRevAt(m2), clCost=clRev*clCostP;   // group classes run in operating months
     rev+=clRev; pc+=prize; vc+=clCost;              // fold into revenue / production / variable columns
     var oh=ovhMonthly, isEv=evs.length>0;
     var op=rev-vc-pc-oh;
@@ -680,7 +683,7 @@ function compute(){
     monthlyDep:monthlyDep,depAvgLife:wLife,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
-    avgPrize:avgPrize,clRevM:clRevM,clCostM:clCostM,totalGames:totalGames,
+    avgPrize:avgPrize,clRevYr:(function(){var s=0;for(var i=1;i<=12;i++)s+=clRevAt(i);return s;})(),clCostP:clCostP,clPrice:clPrice,totalGames:totalGames,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
     simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,beTeams:beTeams,
@@ -911,6 +914,27 @@ function addGame(i){EVENTS[i].games.push({month:6});renderEventsRevenue();render
 function delGame(i,gi){if(EVENTS[i].games.length>1){EVENTS[i].games.splice(gi,1);renderEventsRevenue();renderPrizes();build();}}
 function addEvent(){var d=EVENTS_DEFAULT[0];EVENTS.push({name:'Season '+(EVENTS.length+1),games:[{month:6}],vals:JSON.parse(JSON.stringify(d.vals))});renderEventsRevenue();renderPrizes();build();}
 function delEvent(i){if(EVENTS.length>1){EVENTS.splice(i,1);renderEventsRevenue();renderPrizes();build();}}
+/* ===================== group class schedule ===================== */
+function renderClasses(){
+  if(!el('cl-wrap'))return;
+  var price=val('clFee'), costPct=val('clCostPct')/100;
+  var h='<div class="card"><div class="ch">Group class schedule — by month <span class="csum" id="cl-sum">—</span></div>'+
+    '<p class="sub" style="padding:0 16px 4px">Set the activity for each calendar month; it repeats every year. Monthly revenue = days × sessions/day × clients/session × price per class ('+aed(price)+'). Runs in operating months only.</p>'+
+    '<div class="scroll"><table class="org"><thead><tr><th>Month</th><th>Class days</th><th>Sessions / day</th><th>Clients / session</th><th>Revenue / mo</th></tr></thead><tbody>';
+  var totalYr=0;
+  CLASS_SCHED.forEach(function(c,mi){
+    var rev=(c.days||0)*(c.sessions||0)*(c.clients||0)*price; totalYr+=rev;
+    h+='<tr><td>'+MONTHS3[mi]+'</td>'+
+       '<td><input class="s" type="text" inputmode="numeric" value="'+commaFmt(c.days)+'" onchange="setClass('+mi+',\'days\',this.value)"></td>'+
+       '<td><input class="s" type="text" inputmode="numeric" value="'+commaFmt(c.sessions)+'" onchange="setClass('+mi+',\'sessions\',this.value)"></td>'+
+       '<td><input class="s" type="text" inputmode="numeric" value="'+commaFmt(c.clients)+'" onchange="setClass('+mi+',\'clients\',this.value)"></td>'+
+       '<td class="calc">'+fmt(rev)+'</td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+  el('cl-wrap').innerHTML=h;
+  var elS=el('cl-sum'); if(elS)elS.textContent=aed(totalYr)+' / yr · '+aed(totalYr*(1-costPct))+' net';
+}
+function setClass(mi,k,v){var n=parseFloat(String(v).replace(/,/g,''));CLASS_SCHED[mi][k]=isNaN(n)?0:Math.max(0,n);renderClasses();build();}
 /* ===================== prizes ===================== */
 function przTot(p){return (p.p1||0)+(p.p2||0)+(p.p3||0);}
 function renderPrizes(){
@@ -955,7 +979,7 @@ function renderAssumptions(){
     var html = g.special==='capexcard'?capexCard(): g.special==='varcard'?varCard(): g.special==='fixedoh'?fixedOhCard(): kvGroup(g);
     buckets[SUBOF[g.key]||'costs']+=html;
   });
-  buckets.revenue='<div id="ev-wrap"></div>'+buckets.revenue;
+  buckets.revenue='<div id="ev-wrap"></div>'+buckets.revenue+'<div id="cl-wrap"></div>';
   buckets.costs+='<div class="card"><div class="ch">Average-event P&amp;L summary <span class="csum" id="asm-pnl-sum">—</span></div><table class="mono fit" id="asm-pnl"></table></div>';
   el('asm-setup').innerHTML=buckets.setup;
   el('asm-revenue').innerHTML=buckets.revenue;
@@ -963,6 +987,7 @@ function renderAssumptions(){
   el('asm-capex').innerHTML=buckets.capex;
   renderEventsRevenue();
   renderPrizes();
+  renderClasses();
   // wire numeric inputs
   NUMIDS.forEach(function(id){
     var e=el('in-'+id); if(!e)return;
@@ -994,7 +1019,7 @@ function syncMaster(){
 var STORAGE_KEY='redln-model-v1';
 function saveState(){
   try{
-    var s={nums:{},titles:{},lease:{},events:EVENTS};
+    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED};
     NUMIDS.forEach(function(id){s.nums[id]=val(id);});
     ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
     EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
@@ -1014,7 +1039,8 @@ function loadState(){
     if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,s.nums[id]);});
     if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
     if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
-    if(s.events&&s.events.length){EVENTS=s.events;normEvents();renderEventsRevenue();}
+    if(s.events&&s.events.length){EVENTS=s.events;normEvents();renderEventsRevenue();renderPrizes();}
+    if(s.classes&&s.classes.length===12){CLASS_SCHED=s.classes.map(function(c){return {days:+c.days||0,sessions:+c.sessions||0,clients:+c.clients||0};});renderClasses();}
     applyEquipUI();
   }catch(e){}
 }
@@ -1023,7 +1049,8 @@ function resetAll(){
   NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,DEF[id]);});
   ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=r.title;});
   EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
-  EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));renderEventsRevenue();
+  EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));renderEventsRevenue();renderPrizes();
+  CLASS_SCHED=JSON.parse(JSON.stringify(CLASS_SCHED_DEFAULT));renderClasses();
   applyEquipUI();
   syncMaster();build();
 }
@@ -1429,6 +1456,7 @@ function build(){
   renderBalance(A);
   renderDep(A);
   renderPayback(A);
+  renderClasses();
   saveState();
 }
 document.getElementById('tabs').addEventListener('click',function(e){
