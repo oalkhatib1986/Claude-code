@@ -684,6 +684,8 @@ function compute(){
     totRev+=r.rev;totOp+=r.op;if(r.ev)evCount++;
   });
   var peakFund=trough<0?-trough:0, endCash=rows[rows.length-1].cum;
+  var netCashGen=rows[rows.length-1].cumEx;                 // net cash the business itself generated (excl. injected funding), after CapEx & pre-op
+  var retMult=peakFund>0?(netCashGen/peakFund):0;           // times over it covers the peak capital
   evCount=events.length;
 
   // ---- average event (across all scheduled instances) for KPIs / payback ----
@@ -714,7 +716,7 @@ function compute(){
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
     avgPrize:avgPrize,clRevYr:(function(){var s=0;for(var i=1;i<=12;i++)s+=clRevAt(i);return s;})(),clCostP:clCostP,clPrice:clPrice,trainerFee:trainerFee,trainerCount:trainerCount,totalGames:totalGames,
-    trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,totRev:totRev,totOp:totOp,evCount:evCount,
+    trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,netCashGen:netCashGen,retMult:retMult,totRev:totRev,totOp:totOp,evCount:evCount,
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
     simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,beTeams:beTeams,
     teamSize:teamSize,teams0:teams0,contribPerTeam:contribPerTeam,contribPerAth:contribPerAth,revPerTeam:revPerTeam,revPerAth:revPerAth,goodsPerTeam:goodsPerTeam,
@@ -1521,7 +1523,7 @@ function renderDash(A){
   el('dash-mets').innerHTML=metCards([
     {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'total capital to inject · deepest dip, month '+A.troughM},
     {k:'Cash breakeven (real)',v:A.be?A.monLabel(A.be):'beyond',c:A.be?'green':'red',n:A.be?'bank balance back to zero · '+(A.be-A.preop)+' mo after launch':'not reached in horizon'},
-    {k:'CapEx payback (rule of thumb)',v:A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞',c:A.contrib0>0?'':'red',n:A.contrib0>0?'CapEx ÷ one event’s profit · excl. pre-op & classes':'events don’t cover overhead'},
+    {k:'Net cash generated',v:aed(A.netCashGen),c:A.netCashGen>=0?'green':'red',n:(A.peakFund>0&&A.netCashGen>0?A.retMult.toFixed(1)+'× the capital · ':'')+'after CapEx & pre-op, by '+A.monLabel(A.horizon)},
     {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'net margin '+(A.totRev>0?(A.totOp/A.totRev*100).toFixed(0):0)+'%'}
   ]);
   var pts=[{x:0,y:A.openFund}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cum});});
