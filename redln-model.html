@@ -570,6 +570,7 @@ function compute(){
   var yearsList=[]; for(var mm0=1;mm0<=horizon;mm0++){var cy=calYearOf(mm0);if(yearsList.indexOf(cy)<0)yearsList.push(cy);}
   var years=yearsList.length;
   var yi=function(m){return yearsList.indexOf(calYearOf(m));};
+  var yrMonths=new Array(years).fill(0); for(var mmY=1;mmY<=horizon;mmY++)yrMonths[yi(mmY)]++; // calendar months of each year within the horizon
   var clRevAt=function(m){var c=CLASS_SCHED[calMonthOf(m)-1]||{days:0,sessions:0,clients:0};return (c.days||0)*(c.sessions||0)*(c.clients||0)*clPrice;};
   var clSessAt=function(m){var c=CLASS_SCHED[calMonthOf(m)-1]||{days:0,sessions:0};return (c.days||0)*(c.sessions||0);}; // sessions in month
   var clCostAt=function(m){return clSessAt(m)*trainerFee + clRevAt(m)*clCostP;}; // trainer fees + consumables %
@@ -708,7 +709,7 @@ function compute(){
   var teamSize=Math.round(teamSizeAvg);
 
   return {horizon:horizon,preop:preop,years:years,first:first,monthsPerEvent:monthsPerEvent,
-    monLabel:monLabel,yearsList:yearsList,calMonthOf:calMonthOf,calYearOf:calYearOf,launchYear:launchYear,
+    monLabel:monLabel,yearsList:yearsList,yrMonths:yrMonths,calMonthOf:calMonthOf,calYearOf:calYearOf,launchYear:launchYear,
     monthlyDep:monthlyDep,depAvgLife:wLife,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
@@ -1177,7 +1178,8 @@ function renderAsmPnl(A){
 /* ===================== income statement ===================== */
 function renderIncome(A){
   var yrs=A.years;
-  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=0;y<yrs;y++)s+='<th>'+A.yearsList[y]+'</th>';s+='<th>Total</th></tr>';return s;}
+  function yhd(y){return A.yearsList[y]+((A.yrMonths&&A.yrMonths[y]<12)?'<br><span class="mut" style="font-size:9px">'+A.yrMonths[y]+' mo</span>':'');}
+  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=0;y<yrs;y++)s+='<th>'+yhd(y)+'</th>';s+='<th>Total</th></tr>';return s;}
   function lineRow(label,id,neg){var arr=A.line[id]||new Array(yrs).fill(0),tot=0,s='<tr><td>'+label+'</td>';
     for(var y=0;y<yrs;y++){var v=neg?-arr[y]:arr[y];tot+=arr[y];s+='<td class="'+(neg?'neg':'')+'">'+fmt(v)+'</td>';}
     return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-tot:tot)+'</td></tr>';}
@@ -1343,7 +1345,7 @@ function renderDep(A){
   el('dep-asum').textContent=assets.length+' owned asset'+(assets.length===1?'':'s');
 
   // per-asset charge by year
-  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=0;y<yrs;y++)s+='<th>'+YL[y]+'</th>';return s+'<th>Total</th></tr>';}
+  function yhead(pre){var s='<tr><th>'+pre+'</th>';for(var y=0;y<yrs;y++)s+='<th>'+YL[y]+((A.yrMonths&&A.yrMonths[y]<12)?'<br><span class="mut" style="font-size:9px">'+A.yrMonths[y]+' mo</span>':'')+'</th>';return s+'<th>Total</th></tr>';}
   var sh='<thead>'+yhead('Asset')+'</thead><tbody>';
   assets.forEach(function(a){var t=0;sh+='<tr><td>'+a.label+'</td>';for(var y=0;y<yrs;y++){t+=a.annual[y];sh+='<td class="neg">'+fmt(-a.annual[y])+'</td>';}sh+='<td class="neg">'+fmt(-t)+'</td></tr>';});
   sh+='<tr class="tot"><td>Total depreciation</td>';for(var y=0;y<yrs;y++)sh+='<td class="neg">'+fmt(-depY[y])+'</td>';sh+='<td class="neg">'+fmt(-totalDep)+'</td></tr>';
@@ -1396,7 +1398,8 @@ function renderCash(A){
   A.rows.forEach(function(r){var y=yiOf(r.m);aOp[y]+=r.op;aEos[y]+=r.eos;aDef[y]+=r.cashAdj;aCx[y]+=r.cx;aNet[y]+=r.net;});
   var opening=[],closing=[],prevC=A.openFund;
   for(var y=0;y<yrs;y++){opening[y]=prevC;closing[y]=prevC+aNet[y];prevC=closing[y];}
-  function yheadC(){var s='<tr><th>Cash flow</th>';for(var y=0;y<yrs;y++)s+='<th>'+YL[y]+'</th>';return s+'<th>Total</th></tr>';}
+  function yhdC(y){return YL[y]+((A.yrMonths&&A.yrMonths[y]<12)?'<br><span class="mut" style="font-size:9px">'+A.yrMonths[y]+' mo</span>':'');}
+  function yheadC(){var s='<tr><th>Cash flow</th>';for(var y=0;y<yrs;y++)s+='<th>'+yhdC(y)+'</th>';return s+'<th>Total</th></tr>';}
   function crow(label,arr,neg,klass,total){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;
     for(var y=0;y<yrs;y++){var v=arr[y];t+=v;s+='<td class="'+(neg?'neg ':'')+(klass==='op'?cls(neg?-v:v):'')+'">'+fmt(neg?-v:v)+'</td>';}
     var tv=(total===undefined)?(neg?-t:t):total;
