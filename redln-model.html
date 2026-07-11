@@ -372,7 +372,7 @@ var GROUPS=[
    {id:'cContingency',label:'Contingency',u:'capital buffer',v:100000,life:5},
  ]},
  {key:'overhead',title:'Fixed Overhead',special:'fixedoh',items:[
-   {id:'oRent',label:'Warehouse rent',u:'per month',v:50000},
+   {id:'oRent',label:'Warehouse rent',u:'per year',v:600000,yearly:true},
    {id:'oLicence',label:'Trade licence & govt renewals',u:'per year',v:40000,yearly:true},
    {id:'oUtilities',label:'Utilities (DEWA)',u:'per month',v:5000},
    {id:'oTelecom',label:'Telecom & internet',u:'per month',v:3000},
@@ -1074,7 +1074,7 @@ function syncMaster(){
 var STORAGE_KEY='redln-model-v1';
 function saveState(){
   try{
-    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS,prizesZeroed:true};
+    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS,prizesZeroed:true,rentAnnualized:true};
     NUMIDS.forEach(function(id){s.nums[id]=val(id);});
     ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
     EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
@@ -1091,6 +1091,8 @@ function loadState(){
   try{
     var raw=localStorage.getItem(STORAGE_KEY); if(!raw)return;
     var s=JSON.parse(raw);
+    // one-time: warehouse rent moved from monthly to annual — convert the saved monthly figure to annual
+    if(s.nums&&!s.rentAnnualized&&s.nums.oRent!=null){s.nums.oRent=s.nums.oRent*12;}
     if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,s.nums[id]);});
     if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
     if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
