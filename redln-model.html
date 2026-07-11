@@ -270,7 +270,7 @@
       <div class="ch">Monthly cash flow statement</div>
       <div class="scroll"><table class="mono minmax" id="cf-monthly"></table></div>
     </div>
-    <p class="foot">Cash basis. <b>EBITDA</b> is the accrual operating profit. <b>+ EOS accr.</b> adds back end-of-service, which is expensed but not paid in cash (it builds as a provision, released only on termination). <b>Δ Deferred</b> shifts ticket cash earlier: registrations are collected the "ticket collection lead" number of months before each event, so cash arrives ahead of the event (a deferred-revenue liability until the event is held). CapEx spent during pre-op. Net cash = EBITDA + EOS accrual + deferred-revenue movement − CapEx. Peak funding requirement is the deepest cumulative trough (excludes any opening funding you inject).</p>
+    <p class="foot">Cash basis. <b>EBITDA</b> is the accrual operating profit. <b>+ EOS accr.</b> adds back end-of-service, which is expensed but not paid in cash (it builds as a provision, released only on termination). <b>Δ Deferred</b> shifts ticket cash earlier: registrations are collected the "ticket collection lead" number of months before each event, so cash arrives ahead of the event (a deferred-revenue liability until the event is held). Treated as a going concern: the pre-sold float carried at the model's end does not artificially unwind, so the final year isn't distorted. CapEx spent during pre-op. Net cash = EBITDA + EOS accrual + deferred-revenue movement − CapEx. Peak funding requirement is the deepest cumulative trough (excludes any opening funding you inject).</p>
   </section>
 
   <!-- PAYBACK -->
@@ -653,6 +653,26 @@ function compute(){
     var c=Math.min(horizon,Math.max(1,e.m-lead));
     cashAdj[c]+=e.tRev;
     if(e.m>=1&&e.m<=horizon) cashAdj[e.m]-=e.tRev;
+  });
+  // going concern: events occurring within `lead` months AFTER the horizon still have their tickets
+  // collected inside the horizon — that cash sits as deferred revenue at the end and does not unwind.
+  EVENTS.forEach(function(E){
+    var gms=(E.games&&E.games.length)?E.games:[{month:E.month||6}];
+    var gv=function(id){return (E.vals&&E.vals[id]!=null)?E.vals[id]:val(id);};
+    gms.forEach(function(g){
+      var cm=Math.min(12,Math.max(1,Math.round((g&&g.month)||6)));
+      for(var yIdx=0;yIdx<years+2;yIdx++){
+        var cy=yearsList[0]+yIdx;
+        var m=(cy-launchYear)*12+(cm-START_MONTH)+1;
+        if(m<=horizon) continue;              // handled by normal scheduling
+        if(m-lead>horizon) break;             // collection also beyond horizon — nothing to add
+        var c=m-lead;
+        if(c<first) continue;                 // collection before operations start
+        var gfy=Math.pow(1+growth,Math.max(0,yIdx-minY));
+        var qE=Math.round(gv('qElite')*gfy), qV=Math.round(gv('qEvery')*gfy);
+        cashAdj[c]+=qE*gv('pElite')+qV*gv('pEvery');  // pre-sale inflow only (event itself is beyond horizon)
+      }
+    });
   });
 
   // monthly rows
@@ -1389,7 +1409,7 @@ function renderDep(A){
 /* ===================== cash flow ===================== */
 function renderCash(A){
   el('cf-mets').innerHTML=metCards([
-    {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'deepest trough · month '+A.troughM},
+    {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'deepest trough · '+A.monLabel(A.troughM)},
     {k:'Cash-flow breakeven',v:A.be?A.monLabel(A.be):'beyond horizon',c:A.be?'green':'red',n:A.be?((A.be-A.preop)+' mo after launch'):'not reached in horizon'},
     {k:'Cash at '+A.monLabel(A.horizon),v:aed(A.endCash),c:A.endCash>=0?'green':'red',n:A.evCount+' events held'},
     {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'revenue '+aed(A.totRev)}
@@ -1471,7 +1491,7 @@ function renderPayback(A){
     '<tr class="tot"><td>Simple payback</td><td>'+(A.contrib0>0?(A.simpleMonths/12).toFixed(2)+' yrs':'∞')+'</td></tr>'+
     '<tr><td>Pre-op burn added</td><td class="neg">'+fmt(-(A.ovhMonthly*A.preop))+'</td></tr>'+
     '<tr><td>Peak funding requirement</td><td class="neg">'+fmt(-A.peakFund)+'</td></tr>'+
-    '<tr class="tot"><td>Cash payback incl. pre-op</td><td>'+(A.be?('month '+A.be):'>'+A.horizon+' mo')+'</td></tr></tbody>';
+    '<tr class="tot"><td>Cash payback incl. pre-op</td><td>'+(A.be?A.monLabel(A.be):'beyond '+A.monLabel(A.horizon))+'</td></tr></tbody>';
   var pts=[{x:0,y:0}];A.rows.forEach(function(r){pts.push({x:r.m,y:r.cumEx});});
   lineChart('pay-chart',pts,A.horizon,A.troughM,A.be);
 }
@@ -1521,7 +1541,7 @@ function barChart(id,cats,a,b){
 function metCards(list){return list.map(function(mt){return '<div class="met"><div class="band"></div><div class="k">'+mt.k+'</div><div class="v '+(mt.c||'')+'">'+mt.v+'</div><div class="n">'+mt.n+'</div></div>';}).join('');}
 function renderDash(A){
   el('dash-mets').innerHTML=metCards([
-    {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'total capital to inject · deepest dip, month '+A.troughM},
+    {k:'Peak funding requirement',v:aed(A.peakFund),c:'red',n:'total capital to inject · deepest dip '+A.monLabel(A.troughM)},
     {k:'Cash breakeven (real)',v:A.be?A.monLabel(A.be):'beyond',c:A.be?'green':'red',n:A.be?'bank balance back to zero · '+(A.be-A.preop)+' mo after launch':'not reached in horizon'},
     {k:'Net cash generated',v:aed(A.netCashGen),c:A.netCashGen>=0?'green':'red',n:(A.peakFund>0&&A.netCashGen>0?A.retMult.toFixed(1)+'× the capital · ':'')+'after CapEx & pre-op, by '+A.monLabel(A.horizon)},
     {k:'Operating profit '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1],v:aed(A.totOp),c:A.totOp>=0?'green':'red',n:'net margin '+(A.totRev>0?(A.totOp/A.totRev*100).toFixed(0):0)+'%'}
