@@ -192,6 +192,7 @@
     <button data-tab="dash" class="on">Dashboard</button>
     <button data-tab="asm">Assumptions</button>
     <button data-tab="inc">Income Statement</button>
+    <button data-tab="units">By Business Unit</button>
     <button data-tab="cf">Cash Flow</button>
     <button data-tab="bs">Balance Sheet</button>
     <button data-tab="dep">Depreciation</button>
@@ -250,6 +251,22 @@
       <div class="scroll"><table class="mono minmax" id="inc-monthly"></table></div>
     </div>
     <p class="foot">EBITDA = revenue − variable − per-event production − fixed overhead (incl. payroll, end-of-service, staff insurance &amp; air tickets). Depreciation is CapEx straight-lined over its useful life (set on the Setup tab), starting when operations begin — a non-cash charge, so EBITDA − depreciation = EBIT. The Cash Flow tab is unaffected: it shows the actual CapEx outlay when spent, not depreciation (including both would double-count). Calendar years 2026 and the final year are partial.</p>
+  </section>
+
+  <!-- BUSINESS UNITS -->
+  <section class="tab" id="tab-units">
+    <h1>P&amp;L by Business Unit</h1>
+    <p class="sub">The whole model split into business units — Events, Group Classes, Retail and F&amp;B. Each carries its direct costs plus a share of overhead and depreciation allocated by revenue. The Total column reconciles to the Income Statement, to the dirham. Figures are cumulative over the model horizon; all figures AED.</p>
+    <div class="mets" id="units-mets"></div>
+    <div class="card">
+      <div class="ch">Segment P&amp;L — full horizon <span class="csum" id="units-tie">—</span></div>
+      <div class="scroll"><table class="mono" id="units-pnl"></table></div>
+    </div>
+    <div class="card">
+      <div class="ch">Unit payback &amp; capital</div>
+      <div class="scroll"><table class="mono" id="units-payback"></table></div>
+    </div>
+    <p class="foot">Direct costs: Events carry per-athlete variable, per-event production and prizes; Group Classes carry trainers and consumables; F&amp;B and Retail are net commission/margin (no direct cost). Overhead (rent, payroll, utilities, marketing, …) and depreciation are shared costs allocated to each unit by its share of revenue. Unit operating profit sums to the company EBIT. Simple payback = each unit's revenue-share of CapEx ÷ its annual operating profit — a rule-of-thumb; the real, whole-company recovery date is the cash breakeven on the Dashboard and Payback tabs.</p>
   </section>
 
   <!-- CASH FLOW -->
@@ -715,7 +732,11 @@ function compute(){
   var rev0=sRev/N, vc0=sVc/N, tRev0=sTRev/N, ath0=Math.round(sAth/N), teams0=Math.round(sTeams/N), avgSpn=sSpn/N, avgPrize=sPrz/N;
   fbNet=sFb/N; retNet=sRt/N; ancillaryNet=fbNet+retNet;
   var teamSizeAvg=teams0>0?ath0/teams0:1;
-  var ohAlloc=ovhMonthly*monthsPerEvent;
+  // overhead allocated pro-rata by revenue between events and group classes (not events alone)
+  var clRevYr=0; for(var _q=1;_q<=12;_q++)clRevYr+=clRevAt(_q);
+  var eventRevAnnual=rev0*totalGames;
+  var ohEventFrac=(eventRevAnnual+clRevYr)>0?eventRevAnnual/(eventRevAnnual+clRevYr):1;
+  var ohAlloc=ovhMonthly*monthsPerEvent*ohEventFrac;   // event's revenue share of overhead, per event
   var contrib0=rev0-vc0-prodTotal-avgPrize-ohAlloc;
   var simpleEvents=contrib0>0?capexTotal/contrib0:Infinity;
   var simpleMonths=simpleEvents*monthsPerEvent;
@@ -735,7 +756,7 @@ function compute(){
     monthlyDep:monthlyDep,depAvgLife:wLife,
     rows:rows,events:events,line:line,openFund:openFund,ohLines:ohLines,prodLines:prodLines,capexLines:capexLines,
     prodTotal:prodTotal,ovhMonthly:ovhMonthly,capexTotal:capexTotal,perAthlete:perAthlete,feePct:feePct,
-    avgPrize:avgPrize,clRevYr:(function(){var s=0;for(var i=1;i<=12;i++)s+=clRevAt(i);return s;})(),clCostP:clCostP,clPrice:clPrice,trainerFee:trainerFee,trainerCount:trainerCount,totalGames:totalGames,
+    avgPrize:avgPrize,clRevYr:clRevYr,clCostP:clCostP,clPrice:clPrice,trainerFee:trainerFee,trainerCount:trainerCount,totalGames:totalGames,
     trough:trough,troughM:troughM,be:be,peakFund:peakFund,endCash:endCash,netCashGen:netCashGen,retMult:retMult,totRev:totRev,totOp:totOp,evCount:evCount,
     rev0:rev0,vc0:vc0,tRev0:tRev0,ath0:ath0,ohAlloc:ohAlloc,contrib0:contrib0,
     simpleEvents:simpleEvents,simpleMonths:simpleMonths,beAth:beAth,beTeams:beTeams,
@@ -1192,7 +1213,7 @@ function renderAsmPnl(A){
    '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
    '<tr><td>Prizes (avg / game)</td><td class="neg">'+fmt(-A.avgPrize)+'</td></tr>'+
    '<tr class="tot"><td>Contribution before overhead</td><td class="'+cls(gm)+'">'+fmt(gm)+'</td></tr>'+
-   '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
+   '<tr><td>Overhead (revenue-share / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
    '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event &mdash; '+margin.toFixed(1)+'% margin</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr>'+
    '</tbody>';
   el('asm-pnl-sum').textContent=aed(A.contrib0)+' / event';
@@ -1253,6 +1274,70 @@ function renderIncome(A){
     if(A.calMonthOf(r.m)===12||r.m===A.horizon){mh+='<tr class="yr"><td>'+A.calYearOf(r.m)+'</td><td></td><td>'+fmt(acc.rev)+'</td><td class="neg">'+fmt(-acc.vc)+'</td><td class="neg">'+fmt(-acc.pc)+'</td><td class="neg">'+fmt(-acc.oh)+'</td><td class="'+cls(acc.op)+'">'+fmt(acc.op)+'</td></tr>';acc={rev:0,vc:0,pc:0,oh:0,op:0};}
   });
   el('inc-monthly').innerHTML=mh+'</tbody>';
+}
+
+/* ===================== P&L by business unit ===================== */
+function renderUnits(A){
+  function lsum(id){return (A.line[id]||[]).reduce(function(a,c){return a+c;},0);}
+  var revEvents=lsum('rev_elite')+lsum('rev_every')+lsum('rev_sponsor');
+  var revClasses=lsum('rev_classes'), revRetail=lsum('rev_retail'), revFb=lsum('rev_fb');
+  var directEvents=['vTee','vMedal','vBib','vNutrition','vAthInsurance','vFee'].reduce(function(s,id){return s+lsum(id);},0)
+      + A.prodLines.reduce(function(s,l){return s+lsum(l.id);},0) + lsum('cost_prizes');
+  var directClasses=lsum('cost_classes');
+  var totalOverhead=A.ohLines.reduce(function(s,l){return s+lsum(l.id);},0);
+  var totalDep=lsum('dep');
+  var units=[
+    {name:'Events',rev:revEvents,direct:directEvents,note:'tickets + sponsorship'},
+    {name:'Group Classes',rev:revClasses,direct:directClasses,note:'class packs'},
+    {name:'Retail / merch',rev:revRetail,direct:0,note:'REDLN margin'},
+    {name:'F&amp;B',rev:revFb,direct:0,note:'REDLN commission'}
+  ];
+  var totalRev=units.reduce(function(s,u){return s+u.rev;},0);
+  units.forEach(function(u){
+    u.frac=totalRev>0?u.rev/totalRev:0;
+    u.oh=totalOverhead*u.frac; u.dp=totalDep*u.frac;
+    u.contrib=u.rev-u.direct; u.op=u.contrib-u.oh-u.dp;
+    u.margin=u.rev>0?u.op/u.rev*100:0;
+  });
+  var T={rev:totalRev,direct:units.reduce(function(s,u){return s+u.direct;},0),contrib:units.reduce(function(s,u){return s+u.contrib;},0),
+    oh:totalOverhead,dp:totalDep,op:units.reduce(function(s,u){return s+u.op;},0)};
+  T.margin=T.rev>0?T.op/T.rev*100:0;
+  // company EBIT from the income statement, for the tie-out
+  var companyEBIT=totalRev-T.direct-totalOverhead-totalDep;
+
+  var h='<thead><tr><th>Business unit</th><th>Revenue</th><th>Direct costs</th><th>Contribution</th><th>Overhead</th><th>Depreciation</th><th>Operating profit</th><th>Margin</th></tr></thead><tbody>';
+  units.forEach(function(u){
+    h+='<tr><td>'+u.name+' <span class="mut" style="font-size:9px">'+u.note+'</span></td>'+
+       '<td>'+fmt(u.rev)+'</td><td class="neg">'+fmt(-u.direct)+'</td><td class="'+cls(u.contrib)+'">'+fmt(u.contrib)+'</td>'+
+       '<td class="neg">'+fmt(-u.oh)+'</td><td class="neg">'+fmt(-u.dp)+'</td>'+
+       '<td class="'+cls(u.op)+'">'+fmt(u.op)+'</td><td class="'+cls(u.op)+'">'+(u.rev>0?u.margin.toFixed(0)+'%':'—')+'</td></tr>';
+  });
+  h+='<tr class="tot"><td>Company total</td><td>'+fmt(T.rev)+'</td><td class="neg">'+fmt(-T.direct)+'</td><td class="'+cls(T.contrib)+'">'+fmt(T.contrib)+'</td>'+
+     '<td class="neg">'+fmt(-T.oh)+'</td><td class="neg">'+fmt(-T.dp)+'</td><td class="'+cls(T.op)+'">'+fmt(T.op)+'</td><td class="'+cls(T.op)+'">'+(T.rev>0?T.margin.toFixed(0)+'%':'—')+'</td></tr>';
+  el('units-pnl').innerHTML=h+'</tbody>';
+  var tie=Math.abs(T.op-companyEBIT)<1;
+  el('units-tie').textContent=tie?'ties to income statement ✓':'off by '+fmt(T.op-companyEBIT);
+
+  // payback & capital by unit (revenue-share of CapEx ÷ annual operating profit)
+  var yrsH=A.horizon/12;
+  var ph='<thead><tr><th>Business unit</th><th>Revenue share</th><th>CapEx (allocated)</th><th>Operating profit / yr</th><th>Simple payback</th></tr></thead><tbody>';
+  units.forEach(function(u){
+    var capex=A.capexTotal*u.frac, opYr=u.op/yrsH, pb=(opYr>0)?(capex/opYr):null;
+    ph+='<tr><td>'+u.name+'</td><td>'+(u.frac*100).toFixed(0)+'%</td><td>'+fmt(capex)+'</td>'+
+        '<td class="'+cls(opYr)+'">'+fmt(opYr)+'</td><td>'+(pb!=null?pb.toFixed(1)+' yrs':'∞')+'</td></tr>';
+  });
+  var opYrT=T.op/yrsH, pbT=(opYrT>0)?(A.capexTotal/opYrT):null;
+  ph+='<tr class="tot"><td>Company</td><td>100%</td><td>'+fmt(A.capexTotal)+'</td><td class="'+cls(opYrT)+'">'+fmt(opYrT)+'</td><td>'+(pbT!=null?pbT.toFixed(1)+' yrs':'∞')+'</td></tr>';
+  ph+='<tr class="mut"><td>Cash breakeven (real, whole company)</td><td colspan="4">'+(A.be?A.monLabel(A.be):'beyond horizon')+'</td></tr>';
+  el('units-payback').innerHTML=ph+'</tbody>';
+
+  var top=units.slice().filter(function(u){return u.rev>0;}).sort(function(a,b){return b.op-a.op;})[0];
+  el('units-mets').innerHTML=metCards([
+    {k:'Company revenue',v:aed(T.rev),c:'',n:'over '+A.yearsList[0]+'–'+A.yearsList[A.yearsList.length-1]},
+    {k:'Company operating profit',v:aed(T.op),c:T.op>=0?'green':'red',n:'margin '+T.margin.toFixed(0)+'% · ties to income statement'},
+    {k:'Top unit by profit',v:top?top.name.replace('&amp;','&'):'—',c:'',n:top?aed(top.op)+' · '+top.margin.toFixed(0)+'% margin':''},
+    {k:'Events share of revenue',v:(units[0].frac*100).toFixed(0)+'%',c:'',n:'classes '+(units[1].frac*100).toFixed(0)+'% · retail '+(units[2].frac*100).toFixed(0)+'% · F&B '+(units[3].frac*100).toFixed(0)+'%'}
+  ]);
 }
 
 /* ===================== balance sheet ===================== */
@@ -1480,7 +1565,7 @@ function renderPayback(A){
     '<tr><td>Variable costs</td><td class="neg">'+fmt(-A.vc0)+'</td></tr>'+
     '<tr><td>Per-event production</td><td class="neg">'+fmt(-A.prodTotal)+'</td></tr>'+
     '<tr><td>Prizes</td><td class="neg">'+fmt(-A.avgPrize)+'</td></tr>'+
-    '<tr><td>Overhead ('+A.monthsPerEvent.toFixed(1)+' mo allocated)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
+    '<tr><td>Overhead (revenue-share / event)</td><td class="neg">'+fmt(-A.ohAlloc)+'</td></tr>'+
     '<tr class="op'+(A.contrib0<0?' neg2':'')+'"><td>Net contribution / event</td><td class="'+cls(A.contrib0)+'">'+fmt(A.contrib0)+'</td></tr></tbody>';
   el('pay-contrib').textContent=aed(A.contrib0)+' / event';
   var profitYr=A.contrib0*(12/A.monthsPerEvent);
@@ -1568,6 +1653,7 @@ function build(){
   renderAsmPnl(A);
   renderDash(A);
   renderIncome(A);
+  renderUnits(A);
   renderCash(A);
   renderBalance(A);
   renderDep(A);
