@@ -481,7 +481,7 @@ var EVENTS=[
 ];
 var EVENTS_DEFAULT=JSON.parse(JSON.stringify(EVENTS));
 // group-class activity per calendar month (repeats annually): days held × sessions/day × clients/session
-var CLASS_SCHED=[]; for(var _cm=0;_cm<12;_cm++)CLASS_SCHED.push({days:10,sessions:2,clients:10});
+var CLASS_SCHED=[]; for(var _cm=0;_cm<12;_cm++)CLASS_SCHED.push({days:10,sessions:2,clients:50});
 var CLASS_SCHED_DEFAULT=JSON.parse(JSON.stringify(CLASS_SCHED));
 // trainers assigned to every class session (title + fee per session). Coaching cost = sessions × Σ fees
 var TRAINERS=[
@@ -1097,7 +1097,7 @@ function syncMaster(){
 var STORAGE_KEY='redln-model-v1';
 function saveState(){
   try{
-    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS,prizesZeroed:true,rentAnnualized:true};
+    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS,prizesZeroed:true,rentAnnualized:true,classClients50:true};
     NUMIDS.forEach(function(id){s.nums[id]=val(id);});
     ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
     EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
@@ -1123,6 +1123,7 @@ function loadState(){
       if(!s.prizesZeroed){EVENTS.forEach(function(E){E.prizes.games.forEach(function(g){g.p1=g.p2=g.p3=0;});E.prizes.season.p1=E.prizes.season.p2=E.prizes.season.p3=0;});} // one-time: zero legacy prizes
       renderEventsRevenue();renderPrizes();}
     if(s.classes&&s.classes.length===12){CLASS_SCHED=s.classes.map(function(c){return {days:+c.days||0,sessions:+c.sessions||0,clients:+c.clients||0};});}
+    if(!s.classClients50){CLASS_SCHED.forEach(function(c){c.clients=50;});} // one-time: set every month's clients/session to 50
     if(s.trainers&&s.trainers.length){TRAINERS=s.trainers.map(function(t,i){return {id:t.id||('tr'+i),title:t.title||'',fee:+t.fee||0};});}
     renderClasses();
     applyEquipUI();
