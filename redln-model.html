@@ -42,6 +42,13 @@
   nav.subtabs button:last-child{border-right:none}
   nav.subtabs button:hover{color:var(--red);background:#fff}
   nav.subtabs button.on{background:#fff;color:var(--red);border-top-color:var(--red)}
+  .scenariobar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;background:#fff;border:1px solid rgba(13,16,19,0.2);border-radius:2px}
+  .scenariobar .sc-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)}
+  .scenariobar #sc-select{font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:6px 10px;background:#fff;cursor:pointer;min-width:150px}
+  .scenariobar #sc-select:focus{outline:none;border-color:var(--red)}
+  .scenariobar .sc-btn{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);background:#f6f7f8;border:1px solid var(--line);border-radius:2px;padding:6px 10px;cursor:pointer}
+  .scenariobar .sc-btn:hover{border-color:var(--red);color:var(--red);background:#fff}
+  .scenariobar .sc-del:hover{border-color:var(--red);color:#fff;background:var(--red)}
   .asmsub{display:none}.asmsub.on{display:block}
   h1{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:26px;margin:26px 0 4px}
   .sub{font-family:var(--mono);font-size:12px;letter-spacing:0.04em;color:var(--muted);margin-bottom:22px;max-width:760px;line-height:1.7}
@@ -198,6 +205,7 @@
     <button data-tab="dep">Depreciation</button>
     <button data-tab="pay">Payback Analysis</button>
   </nav>
+  <div class="scenariobar" id="scenariobar"></div>
 </div></header>
 
 <div class="wrap tabwrap">
@@ -1115,51 +1123,108 @@ function syncMaster(){
   var allOn=EQUIP.every(function(e){return leaseState[e.id];});
   el('masterLease').classList.toggle('on',allOn);
 }
-var STORAGE_KEY='redln-model-v1';
-function saveState(){
-  try{
-    var s={nums:{},titles:{},lease:{},events:EVENTS,classes:CLASS_SCHED,trainers:TRAINERS,prizesZeroed:true,rentAnnualized:true,classClients50:true};
-    NUMIDS.forEach(function(id){s.nums[id]=val(id);});
-    ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
-    EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
-  }catch(e){}
-}
+var STORAGE_KEY='redln-model-v1';       // legacy single-state key (migrated into scenarios)
+var SCEN_KEY='redln-scenarios-v1';
+var scenarios={}, activeScenario='';
 function applyEquipUI(){
   EQUIP.forEach(function(e){var box=el('eq-'+e.id);if(!box)return;
     box.classList.toggle('leasing',leaseState[e.id]);
     box.querySelector('.eq-head .toggle').classList.toggle('on',leaseState[e.id]);
     el('eqst-'+e.id).textContent=leaseState[e.id]?'Lease':'Buy';});
 }
-function loadState(){
+// serialize the current inputs into a plain state object (deep-copied so scenarios never share references)
+function serialize(){
+  var s={nums:{},titles:{},lease:{},events:JSON.parse(JSON.stringify(EVENTS)),classes:JSON.parse(JSON.stringify(CLASS_SCHED)),trainers:JSON.parse(JSON.stringify(TRAINERS)),prizesZeroed:true,rentAnnualized:true,classClients50:true};
+  NUMIDS.forEach(function(id){s.nums[id]=val(id);});
+  ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)s.titles[r.id]=t.value;});
+  EQUIP.forEach(function(e){s.lease[e.id]=leaseState[e.id];});
+  return s;
+}
+// apply a saved state object to the inputs (with defaults as fallback + one-time migrations)
+function applyState(s){
+  s=s||{};
+  if(s.nums&&!s.rentAnnualized&&s.nums.oRent!=null){s.nums.oRent=s.nums.oRent*12;}
+  NUMIDS.forEach(function(id){var e=el('in-'+id);if(e){var v=(s.nums&&s.nums[id]!=null)?s.nums[id]:DEF[id];e.value=fmtIn(id,v);}});
+  ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=(s.titles&&s.titles[r.id]!=null)?s.titles[r.id]:r.title;});
+  EQUIP.forEach(function(e){leaseState[e.id]=(s.lease&&typeof s.lease[e.id]==='boolean')?s.lease[e.id]:e.on;});
+  if(s.events&&s.events.length){EVENTS=JSON.parse(JSON.stringify(s.events));normEvents();
+    if(!s.prizesZeroed){EVENTS.forEach(function(E){E.prizes.games.forEach(function(g){g.p1=g.p2=g.p3=0;});E.prizes.season.p1=E.prizes.season.p2=E.prizes.season.p3=0;});}
+  } else {EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));normEvents();}
+  if(s.classes&&s.classes.length===12){CLASS_SCHED=s.classes.map(function(c){return {days:+c.days||0,sessions:+c.sessions||0,clients:+c.clients||0};});} else {CLASS_SCHED=JSON.parse(JSON.stringify(CLASS_SCHED_DEFAULT));}
+  if(!s.classClients50){CLASS_SCHED.forEach(function(c){c.clients=50;});}
+  if(s.trainers&&s.trainers.length){TRAINERS=s.trainers.map(function(t,i){return {id:t.id||('tr'+i),title:t.title||'',fee:+t.fee||0};});} else {TRAINERS=JSON.parse(JSON.stringify(TRAINERS_DEFAULT));}
+  renderEventsRevenue();renderPrizes();renderClasses();applyEquipUI();
+}
+function loadDefaults(){applyState({});}
+function persistScenarios(){try{localStorage.setItem(SCEN_KEY,JSON.stringify({active:activeScenario,scenarios:scenarios}));}catch(e){}}
+// auto-save (called from build): snapshot current inputs into the active scenario
+function saveState(){ if(!activeScenario)return; scenarios[activeScenario]=serialize(); persistScenarios(); }
+function loadScenarios(){
   try{
-    var raw=localStorage.getItem(STORAGE_KEY); if(!raw)return;
-    var s=JSON.parse(raw);
-    // one-time: warehouse rent moved from monthly to annual — convert the saved monthly figure to annual
-    if(s.nums&&!s.rentAnnualized&&s.nums.oRent!=null){s.nums.oRent=s.nums.oRent*12;}
-    if(s.nums)Object.keys(s.nums).forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,s.nums[id]);});
-    if(s.titles)Object.keys(s.titles).forEach(function(id){var t=el('in-roletitle_'+id);if(t)t.value=s.titles[id];});
-    if(s.lease)EQUIP.forEach(function(e){if(typeof s.lease[e.id]==='boolean')leaseState[e.id]=s.lease[e.id];});
-    if(s.events&&s.events.length){EVENTS=s.events;normEvents();
-      if(!s.prizesZeroed){EVENTS.forEach(function(E){E.prizes.games.forEach(function(g){g.p1=g.p2=g.p3=0;});E.prizes.season.p1=E.prizes.season.p2=E.prizes.season.p3=0;});} // one-time: zero legacy prizes
-      renderEventsRevenue();renderPrizes();}
-    if(s.classes&&s.classes.length===12){CLASS_SCHED=s.classes.map(function(c){return {days:+c.days||0,sessions:+c.sessions||0,clients:+c.clients||0};});}
-    if(!s.classClients50){CLASS_SCHED.forEach(function(c){c.clients=50;});} // one-time: set every month's clients/session to 50
-    if(s.trainers&&s.trainers.length){TRAINERS=s.trainers.map(function(t,i){return {id:t.id||('tr'+i),title:t.title||'',fee:+t.fee||0};});}
-    renderClasses();
-    applyEquipUI();
+    var raw=localStorage.getItem(SCEN_KEY);
+    if(raw){var d=JSON.parse(raw);scenarios=d.scenarios||{};activeScenario=d.active||Object.keys(scenarios)[0]||'';}
+    if(!activeScenario||!Object.keys(scenarios).length){
+      var old=localStorage.getItem(STORAGE_KEY);            // migrate legacy single-state
+      if(old){applyState(JSON.parse(old));}
+      scenarios={};
+      scenarios['Traditional BP']=serialize();
+      scenarios['Micro-Hyrox BP']=JSON.parse(JSON.stringify(scenarios['Traditional BP']));
+      activeScenario='Traditional BP';
+      persistScenarios();
+    } else { applyState(scenarios[activeScenario]); }
   }catch(e){}
+  renderScenarioBar();
+}
+function renderScenarioBar(){
+  var bar=el('scenariobar'); if(!bar)return;
+  var names=Object.keys(scenarios);
+  var opts=names.map(function(n){return '<option value="'+escq(n)+'"'+(n===activeScenario?' selected':'')+'>'+escq(n)+'</option>';}).join('');
+  bar.innerHTML='<span class="sc-label">Scenario</span>'+
+    '<select id="sc-select" onchange="switchScenario(this.value)">'+opts+'</select>'+
+    '<button class="sc-btn" onclick="dupScenario()">Duplicate</button>'+
+    '<button class="sc-btn" onclick="newScenario()">New</button>'+
+    '<button class="sc-btn" onclick="renameScenario()">Rename</button>'+
+    '<button class="sc-btn sc-del" onclick="delScenario()">Delete</button>';
+}
+function switchScenario(name){
+  if(!scenarios[name]||name===activeScenario){renderScenarioBar();return;}
+  scenarios[activeScenario]=serialize();
+  activeScenario=name;
+  applyState(scenarios[name]);
+  persistScenarios(); syncMaster(); build(); renderScenarioBar();
+}
+function newScenario(){
+  var name=(prompt('New scenario name (starts from defaults):','Scenario '+(Object.keys(scenarios).length+1))||'').trim();
+  if(!name)return; if(scenarios[name]){alert('A scenario named "'+name+'" already exists.');return;}
+  scenarios[activeScenario]=serialize();
+  loadDefaults(); activeScenario=name; scenarios[name]=serialize();
+  persistScenarios(); syncMaster(); build(); renderScenarioBar();
+}
+function dupScenario(){
+  var name=(prompt('Duplicate "'+activeScenario+'" as:',activeScenario+' copy')||'').trim();
+  if(!name)return; if(scenarios[name]){alert('A scenario named "'+name+'" already exists.');return;}
+  scenarios[activeScenario]=serialize();
+  scenarios[name]=JSON.parse(JSON.stringify(scenarios[activeScenario]));
+  activeScenario=name; applyState(scenarios[name]);
+  persistScenarios(); syncMaster(); build(); renderScenarioBar();
+}
+function renameScenario(){
+  var name=(prompt('Rename scenario:',activeScenario)||'').trim();
+  if(!name||name===activeScenario)return; if(scenarios[name]){alert('A scenario named "'+name+'" already exists.');return;}
+  scenarios[name]=serialize(); delete scenarios[activeScenario]; activeScenario=name;
+  persistScenarios(); renderScenarioBar();
+}
+function delScenario(){
+  if(Object.keys(scenarios).length<=1){alert('Keep at least one scenario.');return;}
+  if(!confirm('Delete scenario "'+activeScenario+'"? This cannot be undone.'))return;
+  delete scenarios[activeScenario];
+  activeScenario=Object.keys(scenarios)[0];
+  applyState(scenarios[activeScenario]);
+  persistScenarios(); syncMaster(); build(); renderScenarioBar();
 }
 function resetAll(){
-  try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
-  NUMIDS.forEach(function(id){var e=el('in-'+id);if(e)e.value=fmtIn(id,DEF[id]);});
-  ROLES.forEach(function(r){var t=el('in-roletitle_'+r.id);if(t)t.value=r.title;});
-  EQUIP.forEach(function(e){leaseState[e.id]=e.on;});
-  EVENTS=JSON.parse(JSON.stringify(EVENTS_DEFAULT));renderEventsRevenue();renderPrizes();
-  CLASS_SCHED=JSON.parse(JSON.stringify(CLASS_SCHED_DEFAULT));
-  TRAINERS=JSON.parse(JSON.stringify(TRAINERS_DEFAULT));renderClasses();
-  applyEquipUI();
-  syncMaster();build();
+  if(!confirm('Reset scenario "'+activeScenario+'" to defaults?'))return;
+  loadDefaults(); saveState(); syncMaster(); build();
 }
 function updateAsmSums(A){
   var boughtEq=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;}).reduce(function(t,l){return t+l.v;},0);
@@ -1673,7 +1738,7 @@ document.getElementById('asm-subtabs').addEventListener('click',function(e){
   b.classList.add('on');var t=b.getAttribute('data-sub');
   ['setup','revenue','costs','capex','prizes'].forEach(function(s){el('asm-'+s).classList.toggle('on',s===t);});
 });
-window.addEventListener('DOMContentLoaded',function(){renderAssumptions();loadState();syncMaster();build();});
+window.addEventListener('DOMContentLoaded',function(){renderAssumptions();loadScenarios();syncMaster();build();});
 </script>
 </body>
 </html>
