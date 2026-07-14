@@ -218,6 +218,40 @@
   .subnav button{flex:1 0 auto;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);background:#f6f7f8;padding:10px 14px;border:none;border-right:1px solid rgba(13,16,19,0.14);cursor:pointer}
   .subnav button:last-child{border-right:none}
   .subnav button.on{background:#fff;color:var(--red)}
+  .abbr{display:none}
+  @media(max-width:600px){
+    .wrap{padding:0 10px}
+    h1{font-size:19px;margin:16px 0 3px}
+    .sub{font-size:10.5px;margin-bottom:14px;line-height:1.55}
+    .htitle{font-size:8.5px}
+    nav.tabs button{font-size:9.5px;letter-spacing:0.05em;padding:10px 9px}
+    .ch{font-size:9.5px;padding:9px 11px;letter-spacing:0.08em}
+    .ch .csum{font-size:10px}
+    table.mono{font-size:10px}
+    table.mono th,table.mono td{padding:5px 5px}
+    table.mono th{font-size:8px;letter-spacing:0.02em}
+    table.mono input.cin{width:62px;font-size:11px;padding:4px 5px}
+    table.mono input.cin.small{width:40px}
+    td.inp{padding:2px 4px}
+    .kpis{gap:8px}
+    .kpi{padding:10px 10px 11px}
+    .kpi .v{font-size:16px}
+    .kpi .k{font-size:8px}
+    .kpi .n{font-size:8.5px}
+    tr.sec td{font-size:8px}
+    .subnav button{font-size:9px;padding:9px 8px}
+    .flag{font-size:9px;padding:7px 11px}
+    table.mono .full{display:none}
+    table.mono .abbr{display:inline}
+    table.mono td:first-child,table.mono th:first-child{white-space:normal;line-height:1.25}
+    .minmax{min-width:0}
+  }
+  @media(max-width:380px){
+    table.mono{font-size:9px}
+    table.mono th,table.mono td{padding:4px 4px}
+    table.mono input.cin{width:54px}
+    table.mono input.cin.small{width:34px}
+  }
 </style>
 <body class="imodel">
 <header><div class="wrap">
@@ -307,6 +341,9 @@ var OVR=[['Warehouse rent','oRent','/yr'],['License &amp; registration','oLicens
 function el(id){return document.getElementById(id);}
 function num(id){var e=el(id);if(!e)return 0;var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
+function kf(n){var a=Math.abs(n);if(a<0.5)return '—';var s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=String(Math.round(a));return n<0?'('+s+')':s;}
+// responsive number: full figure on desktop, abbreviated (840k) on phones — so statement tables never overflow
+function nn(n){return '<span class="full">'+fmt(n)+'</span><span class="abbr">'+kf(n)+'</span>';}
 function aed(n){var neg=n<0;var s=Math.round(Math.abs(n)).toLocaleString('en-US');return (neg?'−':'')+'AED '+s;}
 function kfmt(n){var neg=n<0,a=Math.abs(n);var s=a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?Math.round(a/1e3)+'k':Math.round(a);return (neg?'−':'')+'AED '+s;}
 function cls(n){return n<0?'neg':(n>0?'pos':'calc');}
@@ -444,8 +481,8 @@ function set(id,t){var e=el(id);if(e)e.textContent=t;}
 function kpi(k,v,c,n){return '<div class="kpi"><div class="band"></div><div class="k">'+k+'</div><div class="v'+(c?' '+c:'')+'">'+v+'</div><div class="n">'+n+'</div></div>';}
 function y3head(lbl){return '<thead><tr><th>'+lbl+'</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Total</th></tr></thead>';}
 function row3(label,vals,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;
- vals.forEach(function(x){t+=x;s+='<td class="'+(neg?'neg':(klass==='grand'?'':cls(x)))+'">'+fmt(neg?-x:x)+'</td>';});
- return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-t:t)+'</td></tr>';}
+ vals.forEach(function(x){t+=x;s+='<td class="'+(neg?'neg':(klass==='grand'?'':cls(x)))+'">'+nn(neg?-x:x)+'</td>';});
+ return s+'<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td></tr>';}
 
 /* ---------- charts ---------- */
 function barChart(id,cats,seriesA,seriesB){
@@ -519,14 +556,14 @@ function update(){
  set('is-sum','EBITDA Y1 '+aed(Y[0].ebitda));set('dash-sum','EBITDA Y1 '+aed(Y[0].ebitda));
  // cash flow
  var ch=y3head('Cash flow')+'<tbody>';
- ch+='<tr><td>Pre-opening: CapEx</td><td class="neg">'+fmt(-A.capexTotal)+'</td><td></td><td></td><td class="neg">'+fmt(-A.capexTotal)+'</td></tr>';
- ch+='<tr><td>Pre-opening: operating burn</td><td class="neg">'+fmt(-A.preopBurn)+'</td><td></td><td></td><td class="neg">'+fmt(-A.preopBurn)+'</td></tr>';
- ch+=row3('Operating cash (EBITDA + EOS add-back)',Y.map(function(y){return y.opcash;}),false,'');
+ ch+='<tr><td>Pre-opening: CapEx</td><td class="neg">'+nn(-A.capexTotal)+'</td><td></td><td></td><td class="neg">'+nn(-A.capexTotal)+'</td></tr>';
+ ch+='<tr><td>Pre-opening: operating burn</td><td class="neg">'+nn(-A.preopBurn)+'</td><td></td><td></td><td class="neg">'+nn(-A.preopBurn)+'</td></tr>';
+ ch+=row3('Operating cash',Y.map(function(y){return y.opcash;}),false,'');
  var netcf=[-(A.capexTotal+A.preopBurn)+Y[0].opcash, Y[1].opcash, Y[2].opcash];
  ch+=row3('Net cash flow',netcf,false,'subtot');
- ch+='<tr><td>Capital injected</td><td>'+fmt(A.funding)+'</td><td></td><td></td><td>'+fmt(A.funding)+'</td></tr>';
+ ch+='<tr><td>Capital injected</td><td>'+nn(A.funding)+'</td><td></td><td></td><td>'+nn(A.funding)+'</td></tr>';
  var cumline=[A.funding+netcf[0], A.funding+netcf[0]+netcf[1], A.funding+netcf[0]+netcf[1]+netcf[2]];
- ch+='<tr class="grand"><td>Cumulative cash</td><td>'+fmt(cumline[0])+'</td><td>'+fmt(cumline[1])+'</td><td>'+fmt(cumline[2])+'</td><td>'+fmt(cumline[2])+'</td></tr>';
+ ch+='<tr class="grand"><td>Cumulative cash</td><td>'+nn(cumline[0])+'</td><td>'+nn(cumline[1])+'</td><td>'+nn(cumline[2])+'</td><td>'+nn(cumline[2])+'</td></tr>';
  el('cf-table').innerHTML=ch+'</tbody>';set('cf-sum','ends '+aed(cumline[2]));
  el('cf-kpis').innerHTML=kpi('Capital requirement',kfmt(A.capitalReq),'red','CapEx + pre-opening burn')+
    kpi('Capital injected',kfmt(A.funding),A.funding>=A.capitalReq?'green':'red',A.funding>=A.capitalReq?'covers requirement':'short of requirement')+
@@ -534,29 +571,29 @@ function update(){
  // balance sheet
  var bh=y3head('Balance sheet')+'<tbody>';
  bh+='<tr class="sec"><td colspan="5">Assets</td></tr>';
- bh+='<tr><td>Cash</td>'+A.cash.map(function(c){return '<td class="'+cls(c.end)+'">'+fmt(c.end)+'</td>';}).join('')+'<td>'+fmt(A.cash[2].end)+'</td></tr>';
- bh+='<tr><td>Fixed assets (net)</td>'+A.cash.map(function(c){return '<td>'+fmt(c.fixed)+'</td>';}).join('')+'<td>'+fmt(A.cash[2].fixed)+'</td></tr>';
+ bh+='<tr><td>Cash</td>'+A.cash.map(function(c){return '<td class="'+cls(c.end)+'">'+nn(c.end)+'</td>';}).join('')+'<td>'+nn(A.cash[2].end)+'</td></tr>';
+ bh+='<tr><td>Fixed assets (net)</td>'+A.cash.map(function(c){return '<td>'+nn(c.fixed)+'</td>';}).join('')+'<td>'+nn(A.cash[2].fixed)+'</td></tr>';
  var assets=A.cash.map(function(c){return c.end+c.fixed;});
- bh+='<tr class="subtot"><td>Total assets</td>'+assets.map(function(a){return '<td>'+fmt(a)+'</td>';}).join('')+'<td>'+fmt(assets[2])+'</td></tr>';
+ bh+='<tr class="subtot"><td>Total assets</td>'+assets.map(function(a){return '<td>'+nn(a)+'</td>';}).join('')+'<td>'+nn(assets[2])+'</td></tr>';
  bh+='<tr class="sec"><td colspan="5">Liabilities &amp; equity</td></tr>';
- bh+='<tr><td>End-of-service provision</td>'+A.cash.map(function(c){return '<td>'+fmt(c.eos)+'</td>';}).join('')+'<td>'+fmt(A.cash[2].eos)+'</td></tr>';
- bh+='<tr><td>Paid-in capital</td>'+A.cash.map(function(c){return '<td>'+fmt(c.funding)+'</td>';}).join('')+'<td>'+fmt(A.funding)+'</td></tr>';
- bh+='<tr><td>Retained earnings</td>'+A.cash.map(function(c){return '<td class="'+cls(c.retained)+'">'+fmt(c.retained)+'</td>';}).join('')+'<td class="'+cls(A.cash[2].retained)+'">'+fmt(A.cash[2].retained)+'</td></tr>';
+ bh+='<tr><td>End-of-service provision</td>'+A.cash.map(function(c){return '<td>'+nn(c.eos)+'</td>';}).join('')+'<td>'+nn(A.cash[2].eos)+'</td></tr>';
+ bh+='<tr><td>Paid-in capital</td>'+A.cash.map(function(c){return '<td>'+nn(c.funding)+'</td>';}).join('')+'<td>'+nn(A.funding)+'</td></tr>';
+ bh+='<tr><td>Retained earnings</td>'+A.cash.map(function(c){return '<td class="'+cls(c.retained)+'">'+nn(c.retained)+'</td>';}).join('')+'<td class="'+cls(A.cash[2].retained)+'">'+nn(A.cash[2].retained)+'</td></tr>';
  var le=A.cash.map(function(c){return c.eos+c.funding+c.retained;});
- bh+='<tr class="grand"><td>Total liabilities &amp; equity</td>'+le.map(function(x){return '<td>'+fmt(x)+'</td>';}).join('')+'<td>'+fmt(le[2])+'</td></tr>';
+ bh+='<tr class="grand"><td>Total liabilities &amp; equity</td>'+le.map(function(x){return '<td>'+nn(x)+'</td>';}).join('')+'<td>'+nn(le[2])+'</td></tr>';
  el('bs-table').innerHTML=bh+'</tbody>';
  var off=Math.max.apply(null,assets.map(function(a,i){return Math.abs(a-le[i]);}));
- set('bs-tie',off<1?'balances ✓':'off '+fmt(off));
+ set('bs-tie',off<1?'balances ✓':'off '+nn(off));
  // capital & depreciation tabs
- var cr='<tbody><tr><td>Total CapEx</td><td>'+fmt(A.capexTotal)+'</td></tr>'+
-   '<tr><td>Pre-opening burn ('+A.preopMonths+' mo)</td><td>'+fmt(A.preopBurn)+'</td></tr>'+
-   '<tr class="grand"><td>Capital requirement</td><td>'+fmt(A.capitalReq)+'</td></tr>'+
-   '<tr><td>Capital injected</td><td>'+fmt(A.funding)+'</td></tr>'+
-   '<tr class="'+(A.funding>=A.capitalReq?'subtot':'')+'"><td>Headroom / (shortfall)</td><td class="'+cls(A.funding-A.capitalReq)+'">'+fmt(A.funding-A.capitalReq)+'</td></tr></tbody>';
+ var cr='<tbody><tr><td>Total CapEx</td><td>'+nn(A.capexTotal)+'</td></tr>'+
+   '<tr><td>Pre-opening burn ('+A.preopMonths+' mo)</td><td>'+nn(A.preopBurn)+'</td></tr>'+
+   '<tr class="grand"><td>Capital requirement</td><td>'+nn(A.capitalReq)+'</td></tr>'+
+   '<tr><td>Capital injected</td><td>'+nn(A.funding)+'</td></tr>'+
+   '<tr class="'+(A.funding>=A.capitalReq?'subtot':'')+'"><td>Headroom / (shortfall)</td><td class="'+cls(A.funding-A.capitalReq)+'">'+nn(A.funding-A.capitalReq)+'</td></tr></tbody>';
  el('capreq-table').innerHTML=cr;
  var dh='<thead><tr><th>Depreciation</th><th>Y1</th><th>Y2</th><th>Y3</th></tr></thead><tbody>'+
-   '<tr><td>Charge (life '+A.depLife+' yr)</td>'+Y.map(function(y){return '<td class="neg">'+fmt(-y.dep)+'</td>';}).join('')+'</tr>'+
-   '<tr class="grand"><td>Net book value</td>'+A.cash.map(function(c){return '<td>'+fmt(c.fixed)+'</td>';}).join('')+'</tr></tbody>';
+   '<tr><td>Charge (life '+A.depLife+' yr)</td>'+Y.map(function(y){return '<td class="neg">'+nn(-y.dep)+'</td>';}).join('')+'</tr>'+
+   '<tr class="grand"><td>Net book value</td>'+A.cash.map(function(c){return '<td>'+nn(c.fixed)+'</td>';}).join('')+'</tr></tbody>';
  el('dep-table').innerHTML=dh;
  el('cap-kpis').innerHTML=kpi('Total CapEx',kfmt(A.capexTotal),'','day-one assets')+kpi('Capital requirement',kfmt(A.capitalReq),'red','incl. pre-opening burn')+kpi('Payback',A.payback?A.payback+' yr':'>3 yr',A.payback?'green':'red','operating cash vs capital');
  // dashboard kpis + charts
