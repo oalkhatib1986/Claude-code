@@ -1170,8 +1170,14 @@ function loadScenarios(){
       scenarios['Traditional BP']=serialize();
       scenarios['Micro-Hyrox BP']=JSON.parse(JSON.stringify(scenarios['Traditional BP']));
       activeScenario='Traditional BP';
-      persistScenarios();
-    } else { applyState(scenarios[activeScenario]); }
+    }
+    // one-time: seed the boutique Micro-Hyrox preset (only if it hasn't been seeded/edited yet)
+    if(scenarios['Micro-Hyrox BP'] && !scenarios['Micro-Hyrox BP'].microSeeded){
+      scenarios['Micro-Hyrox BP']=microHyroxState();
+      scenarios['Micro-Hyrox BP'].microSeeded=true;
+    }
+    applyState(scenarios[activeScenario]);
+    persistScenarios();
   }catch(e){}
   renderScenarioBar();
 }
@@ -1225,6 +1231,47 @@ function delScenario(){
 function resetAll(){
   if(!confirm('Reset scenario "'+activeScenario+'" to defaults?'))return;
   loadDefaults(); saveState(); syncMaster(); build();
+}
+// Micro-Hyrox boutique preset: builds a full state object (starts from defaults, applies the new model).
+// NOTE: leaves the DOM in the preset state; caller re-applies the active scenario afterwards.
+function microHyroxState(){
+  loadDefaults();
+  var setN=function(id,v){var e=el('in-'+id);if(e)e.value=v;};
+  var setT=function(id,v){var e=el('in-roletitle_'+id);if(e)e.value=v;};
+  // timeline & warehouse (rent smaller, buy equipment day 1)
+  setN('oRent',200000); setN('oUtilities',8000); setN('oMisc',8000); setN('oMarketing',20000);
+  // payroll: no founder salary, no sales & PR; AV/creative/social lead + reception team
+  setN('rolehead_md',1); setN('rolesal_md',0);
+  setT('ops','AV / Creative / Social'); setN('rolehead_ops',1); setN('rolesal_ops',18000);
+  setT('mkt',''); setN('rolehead_mkt',0); setN('rolesal_mkt',0);
+  setT('com','Reception'); setN('rolehead_com',4); setN('rolesal_com',5000);
+  // equipment: all bought; smaller LED + staging
+  EQUIP.forEach(function(e){leaseState[e.id]=false;});
+  setN('eqbuy_led',150000); setN('eqbuy_staging',60000);
+  // other capex: bigger fit-out (cafe, reception, showers, mezzanine, DJ booth), leaner launch
+  setN('cFitout',400000); setN('cLaunch',100000);
+  // per-event production: permanent fitted venue — no venue hire / rigging / media / DJ hire
+  setN('pVenue',0); setN('pPermits',5000); setN('pMedical',8000); setN('pSecurity',5000);
+  setN('pCrew',10000); setN('pPower',0); setN('pLogistics',0); setN('pRigging',0);
+  setN('pMedia',0); setN('pWaste',2000); setN('pDJ',0); setN('pMisc',5000);
+  // group classes: daily, 2 sessions/day, 50 cap; single DJ-coach
+  CLASS_SCHED.forEach(function(c){c.days=26;c.sessions=2;c.clients=50;});
+  setN('clFee',120); setN('clCostPct',10);
+  TRAINERS=[{id:'tr1',title:'Coach / DJ',fee:400},{id:'tr2',title:'',fee:0}];
+  // events: teams + solo, one of each per month, split into two 6-month seasons
+  var teamVals={teamSize:4,pElite:1000,qElite:40,pEvery:800,qEvery:40,sponsor:0,fbGross:15000,fbPct:60,retGross:10000,retPct:40};
+  var soloVals={teamSize:1,pElite:300,qElite:40,pEvery:200,qEvery:40,sponsor:0,fbGross:15000,fbPct:60,retGross:10000,retPct:40};
+  var GP={p1:25000,p2:15000,p3:10000};
+  function gm(a){return a.map(function(m){return {month:m};});}
+  function pz(n){var r=[];for(var i=0;i<n;i++)r.push({p1:0,p2:0,p3:0});return r;}
+  function ev(name,months,vals){return {name:name,games:gm(months),prizes:{games:pz(months.length),season:{p1:GP.p1,p2:GP.p2,p3:GP.p3}},vals:JSON.parse(JSON.stringify(vals))};}
+  EVENTS=[
+    ev('Teams — Season 1',[1,2,3,4,5,6],teamVals),
+    ev('Teams — Season 2',[7,8,9,10,11,12],teamVals),
+    ev('Solo — Season 1',[1,2,3,4,5,6],soloVals),
+    ev('Solo — Season 2',[7,8,9,10,11,12],soloVals)
+  ];
+  return serialize();
 }
 function updateAsmSums(A){
   var boughtEq=A.capexLines.filter(function(l){return l.id.indexOf('eqb_')===0;}).reduce(function(t,l){return t+l.v;},0);
