@@ -328,7 +328,7 @@
     </div>
   </section>
 
-  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. Revenue is recognised net of VAT (your ticket, F&amp;B, retail and class prices are VAT-inclusive); end-of-service and depreciation are then charged to reach EBIT.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="hint">Tap any number to see how it’s calculated.</div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
+  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. Revenue is recognised net of VAT (your ticket, F&amp;B, retail and class prices are VAT-inclusive); end-of-service and depreciation are charged to reach EBIT, then UAE corporate tax (9% on profit above AED 375,000) gives net profit.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="hint">Tap any number to see how it’s calculated.</div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
 
   <section class="tab" id="tab-cf"><h1>Cash Flow</h1><p class="sub">Pre-opening capital outflow, then operating cash by year, less dividends swept out above the minimum bank balance. The year-end cash balance is what stays in the company after distributions.</p><div class="kpis" id="cf-kpis"></div><div class="card"><div class="ch">Cash flow — pre-op + 3 years <span class="csum" id="cf-sum">—</span></div><div class="scroll"><table class="mono" id="cf-table"></table></div></div></section>
 
@@ -361,7 +361,7 @@ var DEFAULTS={
  oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
  cErgs:350000, cLed:150000, cAudioLight:120000, cTiming:100000, cFitout:500000, cBrand:100000, cTech:50000, cLaunch:100000, cLegal:20000, cContingency:100000,
  depLife:5, revGrowth:10, costInfl:4, basicPct:50, preopMonths:3, fundBuffer:0,
- sweatPct:30, minBank:100000, vatPct:5
+ sweatPct:30, minBank:100000, vatPct:5, ctRate:9, ctThreshold:375000
 };
 var KEY='redln-micro-v2';
 var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
@@ -407,6 +407,7 @@ function compute(){
  var depYr=capexTotal/depLife;
  // growth
  var g=v('revGrowth')/100, infl=v('costInfl')/100;
+ var ctRate=v('ctRate')/100, ctThreshold=v('ctThreshold'); // UAE corporate tax: 9% above AED 375,000
  function yc(i){
    var vg=Math.pow(1+g,i), inf=Math.pow(1+infl,i);
    var grossEvent=ticket*eventsYr*vg;                 // ticket sales only
@@ -424,8 +425,10 @@ function compute(){
    var ebitda=ebitdaPre-eos;
    var dep=(i*depYr<capexTotal)?depYr:Math.max(0,capexTotal-i*depYr);
    var ebit=ebitda-dep;
+   var tax=Math.max(0,ebit-ctThreshold)*ctRate;      // 9% on taxable profit above the threshold
+   var netProfit=ebit-tax;
    return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossClass:grossClass,netClass:netClass,grossFb:grossFb,netFb:netFb,grossRet:grossRet,netRet:netRet,prizes:prizes,ppFees:ppFees,netRev:netRev,
-     payroll:payroll,overhead:overhead,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,opcash:ebitdaPre};
+     payroll:payroll,overhead:overhead,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,tax:tax,netProfit:netProfit,opcash:ebitdaPre-tax};
  }
  var NPB=10;
  var Yall=[]; for(var iy=0;iy<NPB;iy++)Yall.push(yc(iy));
@@ -463,7 +466,7 @@ function compute(){
  });
  // balance-sheet / cash-flow roll-forward for the 3 statement years, net of dividends
  var cash=[], accDep=0, accEos=0, retained=-preopBurn;
- Y.forEach(function(y,i){ accDep+=y.dep; accEos+=y.eos; retained+=y.ebit; var d=divs[i];
+ Y.forEach(function(y,i){ accDep+=y.dep; accEos+=y.eos; retained+=y.netProfit; var d=divs[i];
    cash.push({end:d.end, opcash:y.opcash, dividend:d.dividend, cumDiv:d.cumDiv, fixed:capexTotal-accDep, eos:accEos, retained:retained-d.cumDiv, funding:funding}); });
  var trough=Math.min(cash0, Math.min.apply(null,cash.map(function(c){return c.end;})));
  var peakFund=trough<0?-trough:0;
@@ -540,6 +543,8 @@ function renderStatic(){
   '<tr><td>Revenue volume growth (%/yr)</td><td class="inp">'+I('revGrowth','small')+'</td></tr>'+
   '<tr><td>Cost inflation (%/yr)</td><td class="inp">'+I('costInfl','small')+'</td></tr>'+
   '<tr><td>Basic salary (% of gross, for EOS)</td><td class="inp">'+I('basicPct','small')+'</td></tr>'+
+  '<tr><td>Corporate tax rate (%)</td><td class="inp">'+I('ctRate','small')+'</td></tr>'+
+  '<tr><td>Corporate tax 0% threshold (AED)</td><td class="inp">'+I('ctThreshold')+'</td></tr>'+
   '<tr><td>Depreciation life (years)</td><td class="inp">'+I('depLife','small')+'</td></tr>'+
   '<tr><td>Pre-opening period (months)</td><td class="inp">'+I('preopMonths','small')+'</td></tr>'+
   '<tr><td>Funding buffer (% over requirement)</td><td class="inp">'+I('fundBuffer','small')+'</td></tr>'+
@@ -561,8 +566,8 @@ function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"'
  s+=line?('<td class="'+(neg?'neg ':'')+'dc" onclick="openDrill(\''+line+'\',\'T\')">'+nn(neg?-t:t)+'</td>')
         :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
  return s+'</tr>';}
-var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT'};
-function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit}[line];}
+var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
+function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
 function breakdown(line,i){
  var A=compute();
  if(i==='T'){var vs=A.Y.map(function(y){return LVAL(y,line);});return {title:LBL[line]+' · 3-year total',rows:[{l:'Year 1',x:vs[0]},{l:'Year 2',x:vs[1]},{l:'Year 3',x:vs[2]},{l:'Total',x:vs[0]+vs[1]+vs[2],tot:1}]};}
@@ -594,6 +599,8 @@ function breakdown(line,i){
   case 'ebitda':return R([{l:'EBITDA (pre end-of-service)',x:Yi.ebitdaPre},{l:'Less: end-of-service',x:-Yi.eos}],Yi.ebitda);
   case 'dep':return R([{l:'Total CapEx',x:A.capexTotal},{l:'Useful life (years)',x:A.depLife,mult:1,op:'÷'}],Yi.dep);
   case 'ebit':return R([{l:'EBITDA',x:Yi.ebitda},{l:'Less: depreciation',x:-Yi.dep}],Yi.ebit);
+  case 'tax':{var thr=v('ctThreshold'),taxable=Math.max(0,Yi.ebit-thr);return R([{l:'EBIT (taxable profit)',x:Yi.ebit},{l:'0% band (first '+thr.toLocaleString()+')',x:-Math.min(Yi.ebit>0?Yi.ebit:0,thr)},{l:'Taxed at '+v('ctRate')+'%',x:taxable,sub:1},{l:'Tax rate',x:v('ctRate')/100,mult:1}],Yi.tax);}
+  case 'netProfit':return R([{l:'EBIT',x:Yi.ebit},{l:'Less: corporate tax',x:-Yi.tax}],Yi.netProfit);
  }
  return null;
 }
@@ -687,7 +694,9 @@ function update(){
  ih+=row3('End-of-service provision',Y.map(function(y){return y.eos;}),true,'','eos');
  ih+=row3('EBITDA',Y.map(function(y){return y.ebitda;}),false,'subtot','ebitda');
  ih+=row3('Depreciation',Y.map(function(y){return y.dep;}),true,'','dep');
- ih+=row3('EBIT',Y.map(function(y){return y.ebit;}),false,'grand','ebit');
+ ih+=row3('EBIT',Y.map(function(y){return y.ebit;}),false,'subtot','ebit');
+ ih+=row3('Corporate tax',Y.map(function(y){return y.tax;}),true,'','tax');
+ ih+=row3('Net profit (after tax)',Y.map(function(y){return y.netProfit;}),false,'grand','netProfit');
  el('is-table').innerHTML=ih+'</tbody>';el('dash-is').innerHTML=ih+'</tbody>';
  set('is-sum','EBITDA Y1 '+aed(Y[0].ebitda));set('dash-sum','EBITDA Y1 '+aed(Y[0].ebitda));
  // cash flow
