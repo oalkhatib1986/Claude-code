@@ -495,9 +495,15 @@ function update(){
  el('misc-flag').innerHTML='<b>Note:</b> Excel’s overhead total excluded the Miscellaneous line. Matched to your total (959,500).';
  // income statement
  var ih=y3head('Line item')+'<tbody>';
- ih+='<tr class="sec"><td colspan="5">Revenue</td></tr>';
- ih+=row3('Net event revenue',Y.map(function(y){return y.netEvent;}),false,'');
- ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'');
+ ih+='<tr class="sec"><td colspan="5">Event revenue</td></tr>';
+ ih+=row3('Gross event revenue',Y.map(function(y){return y.grossEvent;}),false,'');
+ ih+=row3('Less: event direct costs',Y.map(function(y){return y.grossEvent-y.netEvent;}),true,'');
+ ih+=row3('Net event revenue',Y.map(function(y){return y.netEvent;}),false,'subtot');
+ ih+='<tr class="sec"><td colspan="5">Class revenue</td></tr>';
+ ih+=row3('Gross class revenue',Y.map(function(y){return y.grossClass;}),false,'');
+ ih+=row3('Less: trainer fees',Y.map(function(y){return y.grossClass-y.netClass;}),true,'');
+ ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'subtot');
+ ih+='<tr class="sec"><td colspan="5">Other</td></tr>';
  ih+=row3('Prizes',Y.map(function(y){return y.prizes;}),true,'');
  ih+=row3('Payment-processing fees',Y.map(function(y){return y.ppFees;}),true,'');
  ih+=row3('Net revenue',Y.map(function(y){return y.netRev;}),false,'subtot');
