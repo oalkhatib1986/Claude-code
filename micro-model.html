@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>REDLN — Micro Model</title>
+<title>REDLN — Micro Model · 3-Year Plan</title>
 <style>
   :root{
     --red:#FF1717;--ink:#0d1013;--muted:#6a7075;--line:rgba(13,16,19,0.14);
@@ -189,93 +189,103 @@
   @media(max-width:820px){.grid2{grid-template-columns:1fr}}
 </style>
 <style>
-  .imodel .card{max-width:none}
-  .flag{font-family:var(--mono);font-size:10px;color:var(--warn);padding:8px 16px;border-top:1px dashed var(--line);background:#fffdf5}
-  .flag b{color:var(--ink)}
-  table.mono td.inp{padding:3px 8px}
-  table.mono input.cin{font-family:var(--mono);font-size:12px;text-align:right;padding:5px 7px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);width:96px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:12px 13px 13px;position:relative;overflow:hidden}
+  .kpi .band{position:absolute;top:0;left:0;right:0;height:4px;background:repeating-linear-gradient(-26deg,var(--red) 0 7px,transparent 7px 17px)}
+  .kpi .k{font-family:var(--mono);font-size:8.5px;letter-spacing:0.11em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  .kpi .v{font-family:var(--disp);font-weight:700;font-size:20px;line-height:1.05;margin-top:6px;color:var(--ink)}
+  .kpi .v.red{color:var(--red)}.kpi .v.green{color:var(--good)}
+  .kpi .n{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;line-height:1.45}
+  table.mono input.cin{font-family:var(--mono);font-size:12px;text-align:right;padding:5px 7px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);width:92px}
+  table.mono input.cin.small{width:58px}
   table.mono input.cin:focus{outline:none;border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
-  table.mono input.cin.small{width:64px}
-  tr.sec td{background:#fbfcfd;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;font-size:9px}
+  td.inp{padding:3px 8px}
+  tr.sec td{background:#fbfcfd;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;font-size:8.5px}
   tr.subtot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line);background:#fafbfb}
   tr.grand td{font-weight:700;color:#fff;background:var(--ink)}
-  tr.grand td .neg{color:#ff9a9a}
-  .calc{color:var(--muted)}
-  .pos{color:var(--good)}.neg{color:var(--red)}
+  tr.grand td .mut{color:#c8ccce}
+  .neg{color:var(--red)}.pos{color:var(--good)}.calc{color:var(--muted)}
+  .flag{font-family:var(--mono);font-size:10px;color:var(--warn);padding:8px 16px;border-top:1px dashed var(--line);background:#fffdf5;line-height:1.5}
+  .flag b{color:var(--ink)}
+  .chartcard{padding:14px 16px 8px}
+  .chartcard .ct{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .asmsub2{display:none}.asmsub2.on{display:block}
+  .subnav{display:flex;gap:0;border:1px solid rgba(13,16,19,0.2);border-radius:2px;overflow:hidden;background:#fff;margin:0 0 18px;flex-wrap:wrap}
+  .subnav button{flex:1 0 auto;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);background:#f6f7f8;padding:10px 14px;border:none;border-right:1px solid rgba(13,16,19,0.14);cursor:pointer}
+  .subnav button:last-child{border-right:none}
+  .subnav button.on{background:#fff;color:var(--red)}
 </style>
 <body class="imodel">
 <header><div class="wrap">
   <div class="hrow">
     <img class="brand-logo" src="redln-badge-final.png" alt="REDLN">
-    <span class="htitle"><b>Micro Model</b>Boutique · internal · AED</span>
+    <span class="htitle"><b>Micro Model · 3-Year Plan</b>Boutique · internal · AED</span>
   </div>
   <nav class="tabs" id="tabs">
     <button data-tab="dash" class="on">Dashboard</button>
-    <button data-tab="rev">Revenue</button>
-    <button data-tab="exp">Expenses</button>
+    <button data-tab="asm">Assumptions</button>
     <button data-tab="is">Income Statement</button>
+    <button data-tab="cf">Cash Flow</button>
+    <button data-tab="bs">Balance Sheet</button>
+    <button data-tab="cap">Capital</button>
   </nav>
 </div></header>
 
 <div class="wrap tabwrap">
 
-  <!-- DASHBOARD -->
   <section class="tab on" id="tab-dash">
-    <h1>Micro Model</h1>
-    <p class="sub">A single-warehouse, boutique competition + daily-class model. Every number below is editable on the Revenue and Expenses tabs — the annual income statement and EBITDA recompute instantly. Ported 1:1 from your Excel; all figures AED per year unless noted.</p>
-    <div class="mets" id="dash-mets"></div>
-    <div class="card">
-      <div class="ch">Annual income statement <span class="csum" id="dash-ebitda">—</span></div>
-      <div class="scroll"><table class="mono" id="is-table-2"></table></div>
+    <h1>3-Year Financial Plan</h1>
+    <p class="sub">Boutique competition + daily-class venue, fully costed over three years — capital requirement, P&amp;L, cash flow and balance sheet. Edit anything on the Assumptions tab and every view recomputes.</p>
+    <div class="kpis" id="dash-kpis"></div>
+    <div class="grid2">
+      <div class="card"><div class="ch">Revenue &amp; EBITDA by year</div><div class="chartcard"><svg id="ch-bars" viewBox="0 0 480 240" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+      <div class="card"><div class="ch">Cumulative cash position</div><div class="chartcard"><svg id="ch-cash" viewBox="0 0 480 240" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+    </div>
+    <div class="card"><div class="ch">Summary income statement <span class="csum" id="dash-sum">—</span></div><div class="scroll"><table class="mono" id="dash-is"></table></div></div>
+  </section>
+
+  <section class="tab" id="tab-asm">
+    <h1>Assumptions</h1>
+    <p class="sub">Grouped so each view stays short. Revenue drivers, costs, capital and the growth/timeline levers.</p>
+    <nav class="subnav" id="asm-sub">
+      <button data-s="rev" class="on">Revenue</button>
+      <button data-s="cost">Costs</button>
+      <button data-s="capital">Capital</button>
+      <button data-s="growth">Growth &amp; Timeline</button>
+    </nav>
+    <div class="asmsub2 on" id="s-rev">
+      <div class="card"><div class="ch">Event build-up <span class="csum" id="rev-netevent">—</span></div><div class="scroll"><table class="mono" id="event-table"></table></div></div>
+      <div class="grid2">
+        <div class="card"><div class="ch">Annualisation, prizes &amp; fees</div><div class="scroll"><table class="mono" id="annual-table"></table></div></div>
+        <div class="card"><div class="ch">Group classes <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
+      </div>
+    </div>
+    <div class="asmsub2" id="s-cost">
+      <div class="grid2">
+        <div class="card"><div class="ch">Payroll <span class="csum" id="exp-payroll">—</span></div><div class="scroll"><table class="mono" id="payroll-table"></table></div><div class="flag" id="rec-flag"></div></div>
+        <div class="card"><div class="ch">Overheads <span class="csum" id="exp-overhead">—</span></div><div class="scroll"><table class="mono" id="overhead-table"></table></div><div class="flag" id="misc-flag"></div></div>
+      </div>
+    </div>
+    <div class="asmsub2" id="s-capital">
+      <div class="card"><div class="ch">Capital expenditure (day one) <span class="csum" id="cap-total">—</span></div><div class="scroll"><table class="mono" id="capex-table"></table></div></div>
+    </div>
+    <div class="asmsub2" id="s-growth">
+      <div class="card"><div class="ch">Growth, timeline &amp; funding</div><div class="scroll"><table class="mono" id="growth-table"></table></div></div>
     </div>
   </section>
 
-  <!-- REVENUE -->
-  <section class="tab" id="tab-rev">
-    <h1>Revenue</h1>
-    <p class="sub">Per-event ticket build-up (teams &amp; solo), event ancillary &amp; direct costs, annualisation, and the daily group-class engine. Editable — everything downstream recomputes.</p>
-    <div class="card">
-      <div class="ch">Event build-up <span class="csum" id="rev-netevent">—</span></div>
-      <div class="scroll"><table class="mono" id="event-table"></table></div>
-    </div>
-    <div class="card">
-      <div class="ch">Annualisation, prizes &amp; fees <span class="csum" id="rev-eventyr">—</span></div>
-      <div class="scroll"><table class="mono" id="annual-table"></table></div>
-    </div>
-    <div class="card">
-      <div class="ch">Group classes <span class="csum" id="rev-classyr">—</span></div>
-      <div class="scroll"><table class="mono" id="class-table"></table></div>
-    </div>
-  </section>
+  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. EBITDA (pre end-of-service) ties to your Excel in Year 1; end-of-service and depreciation are then charged to reach EBIT.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
 
-  <!-- EXPENSES -->
-  <section class="tab" id="tab-exp">
-    <h1>Expenses</h1>
-    <p class="sub">Payroll (salaries + employee benefits) and fixed overheads. Monthly figures annualise ×12; annual figures pass through. Editable.</p>
-    <div class="card">
-      <div class="ch">Payroll <span class="csum" id="exp-payroll">—</span></div>
-      <div class="scroll"><table class="mono" id="payroll-table"></table></div>
-      <div class="flag" id="rec-flag"></div>
-    </div>
-    <div class="card">
-      <div class="ch">Overheads <span class="csum" id="exp-overhead">—</span></div>
-      <div class="scroll"><table class="mono" id="overhead-table"></table></div>
-      <div class="flag" id="misc-flag"></div>
-    </div>
-  </section>
+  <section class="tab" id="tab-cf"><h1>Cash Flow</h1><p class="sub">Pre-opening capital outflow, then operating cash by year. The trough is the capital you must inject before the business self-funds.</p><div class="kpis" id="cf-kpis"></div><div class="card"><div class="ch">Cash flow — pre-op + 3 years <span class="csum" id="cf-sum">—</span></div><div class="scroll"><table class="mono" id="cf-table"></table></div></div></section>
 
-  <!-- INCOME STATEMENT -->
-  <section class="tab" id="tab-is">
-    <h1>Income Statement</h1>
-    <p class="sub">The full-year P&amp;L to EBITDA. Reconciles to your Excel to the dirham.</p>
-    <div class="mets" id="is-mets"></div>
-    <div class="card">
-      <div class="ch">Annual income statement <span class="csum" id="is-ebitda">—</span></div>
-      <div class="scroll"><table class="mono" id="is-table"></table></div>
-    </div>
-    <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.7;max-width:760px">EBITDA = Net Revenue − Payroll − Overheads. Net Revenue = Net Class Revenue + Net Event Revenue − Prizes − Payment-processing fees. Payment-processing fees are charged on gross event revenue + gross class revenue. This model is EBITDA-only (no depreciation, capital, or cash-flow timing) — matching your Excel.</p>
-    <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer;margin-bottom:24px">Reset all to defaults</button>
-  </section>
+  <section class="tab" id="tab-bs"><h1>Balance Sheet</h1><p class="sub">Year-end position. Assets = liabilities + equity every year; end-of-service accrues as a provision.</p><div class="card"><div class="ch">Balance sheet — year-end <span class="csum" id="bs-tie">—</span></div><div class="scroll"><table class="mono" id="bs-table"></table></div></div></section>
+
+  <section class="tab" id="tab-cap"><h1>Capital &amp; Depreciation</h1><p class="sub">What it costs to open, how it is funded, and how the assets depreciate.</p><div class="kpis" id="cap-kpis"></div><div class="grid2"><div class="card"><div class="ch">Capital requirement</div><div class="scroll"><table class="mono" id="capreq-table"></table></div></div><div class="card"><div class="ch">Depreciation schedule</div><div class="scroll"><table class="mono" id="dep-table"></table></div></div></div>
+  <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer;margin-bottom:24px">Reset all to defaults</button></section>
 
 </div>
 <script>
@@ -287,165 +297,280 @@ var DEFAULTS={
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
  benMedical:25000, benResidency:25000, benTickets:25000,
  oRent:600000, oLicense:40000, oAudit:7500,
- oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000
+ oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
+ cErgs:350000, cLed:150000, cAudioLight:120000, cTiming:100000, cFitout:500000, cBrand:100000, cTech:50000, cLaunch:100000, cLegal:20000, cContingency:100000,
+ depLife:5, revGrowth:10, costInfl:4, basicPct:50, preopMonths:3, openFund:1800000
 };
-var KEY='redln-micro-v1';
+var KEY='redln-micro-v2';
+var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
+var OVR=[['Warehouse rent','oRent','/yr'],['License &amp; registration','oLicense','/yr'],['Annual audit','oAudit','/yr'],['Accounting &amp; bookkeeping','oAccounting','/mo'],['Cleaning fees','oCleaning','/mo'],['DEWA','oDewa','/mo'],['Etisalat','oEtisalat','/mo'],['Maintenance','oMaintenance','/mo'],['Supplies &amp; stationery','oSupplies','/mo'],['Filtered drinking water','oWater','/mo']];
 function el(id){return document.getElementById(id);}
 function num(id){var e=el(id);if(!e)return 0;var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function aed(n){var neg=n<0;var s=Math.round(Math.abs(n)).toLocaleString('en-US');return (neg?'−':'')+'AED '+s;}
-function I(id,cls){return '<input class="cin'+(cls?' '+cls:'')+'" id="'+id+'" value="'+DEFAULTS[id]+'" inputmode="decimal">';}
+function kfmt(n){var neg=n<0,a=Math.abs(n);var s=a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?Math.round(a/1e3)+'k':Math.round(a);return (neg?'−':'')+'AED '+s;}
+function cls(n){return n<0?'neg':(n>0?'pos':'calc');}
+function I(id,c){return '<input class="cin'+(c?' '+c:'')+'" id="'+id+'" value="'+DEFAULTS[id]+'" inputmode="decimal">';}
 
 function compute(){
  var v=num;
- var revEvT=v('pEvT')*v('qEvT'),revElT=v('pElT')*v('qElT'),revEvS=v('pEvS')*v('qEvS'),revElS=v('pElS')*v('qElS');
- var teamsRev=revEvT+revElT, soloRev=revEvS+revElS, ticket=teamsRev+soloRev;
- var gross=ticket+v('fbRev')+v('retRev');
- var netEvent=gross-v('fbCogs')-v('retCogs')-v('djExp')-v('volunteers')-v('permits');
+ // ---- Year-1 base (annual) ----
+ var ticket=v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS');
+ var fbret=v('fbRev')+v('retRev');
+ var gross=ticket+fbret;
+ var evVar=v('fbCogs')+v('retCogs');        // scales with volume
+ var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event fixed
  var eventsYr=v('eventsYr');
- var grossYr=gross*eventsYr, netEventYr=netEvent*eventsYr;
  var clientMonth=v('classesMonth')*v('capacity');
- var classRevMonth=clientMonth*v('pricePerClass'), classRevYr=classRevMonth*12;
- var trainerFeesMonth=v('classesMonth')*v('trainerFee'), trainerFeesYr=trainerFeesMonth*12;
- var netClassMonth=classRevMonth-trainerFeesMonth, netClassYr=netClassMonth*12;
+ var classRevMo=clientMonth*v('pricePerClass');
+ var classRevYr=classRevMo*12;
+ var trainerYr=v('classesMonth')*v('trainerFee')*12;
  var prizesYr=v('prizePerEvent')*eventsYr;
- var ppFeesYr=(v('ppPct')/100)*(grossYr+classRevYr);
- var netRevenue=netClassYr+netEventYr-prizesYr-ppFeesYr;
+ var pp=v('ppPct')/100;
  var salaries=v('salBM')+v('salPhoto')+v('salRec');
  var benMo=(v('benMedical')+v('benResidency')+v('benTickets'))/12;
- var payrollMonth=salaries+benMo, payrollYr=payrollMonth*12;
+ var payrollMo=salaries+benMo, payrollYr=payrollMo*12;
  var ovYr=v('oRent')+v('oLicense')+v('oAudit')+(v('oAccounting')+v('oCleaning')+v('oDewa')+v('oEtisalat')+v('oMaintenance')+v('oSupplies')+v('oWater'))*12;
- var miscYr=v('oMisc')*12;
- var totalExp=payrollYr+ovYr, ebitda=netRevenue-payrollYr-ovYr;
- return {revEvT:revEvT,revElT:revElT,revEvS:revEvS,revElS:revElS,teamsRev:teamsRev,soloRev:soloRev,ticket:ticket,gross:gross,netEvent:netEvent,
-  eventsYr:eventsYr,grossYr:grossYr,netEventYr:netEventYr,clientMonth:clientMonth,classRevMonth:classRevMonth,classRevYr:classRevYr,
-  trainerFeesMonth:trainerFeesMonth,trainerFeesYr:trainerFeesYr,netClassMonth:netClassMonth,netClassYr:netClassYr,prizesYr:prizesYr,ppFeesYr:ppFeesYr,
-  netRevenue:netRevenue,salaries:salaries,benMo:benMo,payrollMonth:payrollMonth,payrollYr:payrollYr,ovYr:ovYr,miscYr:miscYr,totalExp:totalExp,ebitda:ebitda};
+ var basicMonthly=salaries*(v('basicPct')/100);
+ var eosYrBase=basicMonthly*(21/30);   // 21 days of basic salary accrued per year of service
+ // capex
+ var capexLines=CAPEX.map(function(r){return {id:r[0],label:r[1],v:v(r[0])};});
+ var capexTotal=capexLines.reduce(function(t,l){return t+l.v;},0);
+ var depLife=Math.max(1,v('depLife'));
+ var depYr=capexTotal/depLife;
+ // growth
+ var g=v('revGrowth')/100, infl=v('costInfl')/100;
+ var Y=[0,1,2].map(function(i){
+   var vg=Math.pow(1+g,i), inf=Math.pow(1+infl,i);
+   var grossEvent=(ticket+fbret)*eventsYr*vg;
+   var eventVar=evVar*eventsYr*vg, eventFix=evFix*eventsYr*inf;
+   var netEvent=grossEvent-eventVar-eventFix;
+   var grossClass=classRevYr*vg, trainer=trainerYr*vg, netClass=grossClass-trainer;
+   var prizes=prizesYr*inf;
+   var ppFees=pp*(grossEvent+grossClass);
+   var netRev=netEvent+netClass-prizes-ppFees;
+   var payroll=payrollYr*inf, overhead=ovYr*inf;
+   var ebitdaPre=netRev-payroll-overhead;
+   var eos=eosYrBase*inf;
+   var ebitda=ebitdaPre-eos;
+   var dep=(i*depYr<capexTotal)?depYr:Math.max(0,capexTotal-i*depYr);
+   var ebit=ebitda-dep;
+   return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossClass:grossClass,netClass:netClass,prizes:prizes,ppFees:ppFees,netRev:netRev,
+     payroll:payroll,overhead:overhead,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,opcash:ebitdaPre-eos+eos};
+ });
+ // pre-opening burn (fit-out period: overhead + payroll, no revenue)
+ var preopMonths=Math.max(0,v('preopMonths'));
+ var preopBurn=(payrollMo+ovYr/12)*preopMonths;
+ var capitalReq=capexTotal+preopBurn;
+ var funding=v('openFund');
+ // cash roll-forward: start after pre-op = funding - capex - preopBurn
+ var cash0=funding-capexTotal-preopBurn;
+ var cash=[], cum=cash0, accDep=0, accEos=0, retained=-preopBurn;
+ Y.forEach(function(y){ cum+=y.opcash; accDep+=y.dep; accEos+=y.eos; retained+=y.ebit;
+   cash.push({end:cum, fixed:capexTotal-accDep, eos:accEos, retained:retained, funding:funding}); });
+ var trough=Math.min(cash0, Math.min.apply(null,cash.map(function(c){return c.end;})));
+ var peakFund=trough<0?-trough:0;
+ // payback: years until cumulative operating cash covers capitalReq
+ var cumOp=0, payback=null;
+ Y.forEach(function(y,i){ if(payback===null){cumOp+=y.opcash; if(cumOp>=capitalReq)payback=i+1;} });
+ var ebitda3=Y.reduce(function(t,y){return t+y.ebitda;},0);
+ return {Y:Y,cash:cash,cash0:cash0,capexLines:capexLines,capexTotal:capexTotal,depLife:depLife,depYr:depYr,
+   preopMonths:preopMonths,preopBurn:preopBurn,capitalReq:capitalReq,funding:funding,peakFund:peakFund,payback:payback,ebitda3:ebitda3,
+   ticket:ticket,gross:gross,netEventY1:Y[0].netEvent,clientMonth:clientMonth,classRevYr:classRevYr,payrollYr:payrollYr,ovYr:ovYr,eosYrBase:eosYrBase,
+   salaries:salaries,benMo:benMo,payrollMo:payrollMo};
 }
 
+/* ---------- static assumption tables ---------- */
 function renderStatic(){
- // event build-up
  el('event-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Tickets</th><th>Amount</th></tr></thead><tbody>'+
   '<tr class="sec"><td colspan="4">Teams</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvT')+'</td><td class="inp">'+I('qEvT','small')+'</td><td class="calc" id="c_revEvT">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElT')+'</td><td class="inp">'+I('qElT','small')+'</td><td class="calc" id="c_revElT">—</td></tr>'+
-  '<tr class="subtot"><td>Teams total</td><td></td><td id="c_qTeams">—</td><td id="c_teamsRev">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Solo</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvS')+'</td><td class="inp">'+I('qEvS','small')+'</td><td class="calc" id="c_revEvS">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElS')+'</td><td class="inp">'+I('qElS','small')+'</td><td class="calc" id="c_revElS">—</td></tr>'+
-  '<tr class="subtot"><td>Solo total</td><td></td><td id="c_qSolo">—</td><td id="c_soloRev">—</td></tr>'+
   '<tr class="subtot"><td>Ticket revenue</td><td></td><td id="c_qTotal">—</td><td id="c_ticket">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Ancillary &amp; costs (per event)</td></tr>'+
+  '<tr class="sec"><td colspan="4">Ancillary &amp; per-event costs</td></tr>'+
   '<tr><td>F&amp;B revenue</td><td></td><td></td><td class="inp">'+I('fbRev')+'</td></tr>'+
   '<tr><td>Retail revenue</td><td></td><td></td><td class="inp">'+I('retRev')+'</td></tr>'+
-  '<tr class="subtot"><td>Gross event revenue</td><td></td><td></td><td id="c_gross">—</td></tr>'+
   '<tr><td>F&amp;B COGS</td><td></td><td></td><td class="inp">'+I('fbCogs')+'</td></tr>'+
   '<tr><td>Retail COGS</td><td></td><td></td><td class="inp">'+I('retCogs')+'</td></tr>'+
   '<tr><td>DJ expense</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
   '<tr><td>Volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
   '<tr><td>Permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
-  '<tr class="grand"><td>Net event revenue / event</td><td></td><td></td><td id="c_netEvent">—</td></tr>'+
-  '</tbody>';
- // annualisation
- el('annual-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Annual</th></tr></thead><tbody>'+
+  '<tr class="grand"><td>Net event revenue / event</td><td></td><td></td><td id="c_netEvent">—</td></tr></tbody>';
+ el('annual-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
   '<tr><td>Events / year</td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
   '<tr><td>Seasons / year</td><td class="inp">'+I('seasons','small')+'</td><td class="calc">info</td></tr>'+
-  '<tr class="subtot"><td>Gross event revenue</td><td></td><td id="c_grossYr">—</td></tr>'+
   '<tr class="subtot"><td>Net event revenue</td><td></td><td id="c_netEventYr">—</td></tr>'+
   '<tr><td>Prizes / event</td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_prizesYr">—</td></tr>'+
-  '<tr><td>Payment-processing fees (%)</td><td class="inp">'+I('ppPct','small')+'</td><td class="calc" id="c_ppFeesYr">—</td></tr>'+
-  '</tbody>';
- // classes
- el('class-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>'+
-  '<tr><td>Classes / month</td><td class="inp">'+I('classesMonth','small')+'</td><td></td><td></td></tr>'+
-  '<tr><td>Capacity / class</td><td class="inp">'+I('capacity','small')+'</td><td></td><td></td></tr>'+
-  '<tr class="subtot"><td>Clients / month</td><td></td><td id="c_clientMonth">—</td><td></td></tr>'+
-  '<tr><td>Price / class</td><td class="inp">'+I('pricePerClass','small')+'</td><td></td><td></td></tr>'+
-  '<tr class="subtot"><td>Class revenue</td><td></td><td id="c_classRevMonth">—</td><td id="c_classRevYr">—</td></tr>'+
-  '<tr><td>Trainer fee / class</td><td class="inp">'+I('trainerFee','small')+'</td><td class="calc" id="c_trainerFeesMonth">—</td><td class="calc" id="c_trainerFeesYr">—</td></tr>'+
-  '<tr class="grand"><td>Net class revenue</td><td></td><td id="c_netClassMonth">—</td><td id="c_netClassYr">—</td></tr>'+
-  '</tbody>';
- // payroll
+  '<tr><td>Payment fees (%)</td><td class="inp">'+I('ppPct','small')+'</td><td class="calc" id="c_ppFeesYr">—</td></tr></tbody>';
+ el('class-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
+  '<tr><td>Classes / month</td><td class="inp">'+I('classesMonth','small')+'</td><td></td></tr>'+
+  '<tr><td>Capacity / class</td><td class="inp">'+I('capacity','small')+'</td><td></td></tr>'+
+  '<tr><td>Price / class</td><td class="inp">'+I('pricePerClass','small')+'</td><td></td></tr>'+
+  '<tr class="subtot"><td>Gross class revenue</td><td></td><td id="c_classRevYr">—</td></tr>'+
+  '<tr><td>Trainer fee / class</td><td class="inp">'+I('trainerFee','small')+'</td><td class="calc" id="c_trainerYr">—</td></tr>'+
+  '<tr class="grand"><td>Net class revenue</td><td></td><td id="c_netClassYr">—</td></tr></tbody>';
  el('payroll-table').innerHTML='<thead><tr><th>Item</th><th>Heads</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>'+
   '<tr><td>Business Manager</td><td>1</td><td class="inp">'+I('salBM')+'</td><td class="calc" id="c_yBM">—</td></tr>'+
   '<tr><td>Photographer / Video / Social</td><td>1</td><td class="inp">'+I('salPhoto')+'</td><td class="calc" id="c_yPhoto">—</td></tr>'+
   '<tr><td>Reception</td><td class="inp">'+I('recHeads','small')+'</td><td class="inp">'+I('salRec')+'</td><td class="calc" id="c_yRec">—</td></tr>'+
   '<tr class="subtot"><td>Monthly salaries</td><td></td><td id="c_salaries">—</td><td id="c_salariesYr">—</td></tr>'+
-  '<tr><td>Medical insurance</td><td></td><td class="calc" id="c_bMedMo">—</td><td class="inp">'+I('benMedical')+'</td></tr>'+
-  '<tr><td>Residencies</td><td></td><td class="calc" id="c_bResMo">—</td><td class="inp">'+I('benResidency')+'</td></tr>'+
-  '<tr><td>Annual tickets</td><td></td><td class="calc" id="c_bTktMo">—</td><td class="inp">'+I('benTickets')+'</td></tr>'+
-  '<tr class="subtot"><td>Employee benefits</td><td></td><td id="c_benMo">—</td><td id="c_benYr">—</td></tr>'+
-  '<tr class="grand"><td>Total payroll</td><td></td><td id="c_payrollMonth">—</td><td id="c_payrollYr">—</td></tr>'+
-  '</tbody>';
- // overheads
- var ov=[['Warehouse rent','oRent','/yr'],['License &amp; registration','oLicense','/yr'],['Annual audit','oAudit','/yr'],
-  ['Accounting &amp; bookkeeping','oAccounting','/mo'],['Cleaning fees','oCleaning','/mo'],['DEWA','oDewa','/mo'],['Etisalat','oEtisalat','/mo'],
-  ['Maintenance','oMaintenance','/mo'],['Supplies &amp; stationery','oSupplies','/mo'],['Filtered drinking water','oWater','/mo']];
+  '<tr><td>Medical insurance (annual)</td><td></td><td></td><td class="inp">'+I('benMedical')+'</td></tr>'+
+  '<tr><td>Residencies (annual)</td><td></td><td></td><td class="inp">'+I('benResidency')+'</td></tr>'+
+  '<tr><td>Annual tickets</td><td></td><td></td><td class="inp">'+I('benTickets')+'</td></tr>'+
+  '<tr class="grand"><td>Total payroll</td><td></td><td id="c_payrollMo">—</td><td id="c_payrollYr">—</td></tr></tbody>';
  var oh='<thead><tr><th>Item</th><th>Basis</th><th>Input</th><th>Annual</th></tr></thead><tbody>';
- ov.forEach(function(r){oh+='<tr><td>'+r[0]+'</td><td class="mut">'+r[2]+'</td><td class="inp">'+I(r[1])+'</td><td class="calc" id="c_'+r[1]+'y">—</td></tr>';});
+ OVR.forEach(function(r){oh+='<tr><td>'+r[0]+'</td><td class="calc">'+r[2]+'</td><td class="inp">'+I(r[1])+'</td><td class="calc" id="c_'+r[1]+'y">—</td></tr>';});
  oh+='<tr class="grand"><td>Total overheads / year</td><td></td><td></td><td id="c_ovYr">—</td></tr>';
- oh+='<tr><td>Miscellaneous <span class="mut">(excl. from total)</span></td><td class="mut">/mo</td><td class="inp">'+I('oMisc')+'</td><td class="calc" id="c_oMiscy">—</td></tr>';
+ oh+='<tr><td>Miscellaneous <span class="calc">(excl.)</span></td><td class="calc">/mo</td><td class="inp">'+I('oMisc')+'</td><td class="calc" id="c_oMiscy">—</td></tr>';
  el('overhead-table').innerHTML=oh+'</tbody>';
- // income statement (x2: dashboard + IS tab)
- var isHTML=function(){return '<tbody>'+
-  '<tr class="sec"><td colspan="2">Revenue</td></tr>'+
-  '<tr><td>Net event revenue</td><td id="__isNetEvent">—</td></tr>'+
-  '<tr><td>Net class revenue</td><td id="__isNetClass">—</td></tr>'+
-  '<tr><td>Prizes</td><td class="neg" id="__isPrizes">—</td></tr>'+
-  '<tr><td>Payment-processing fees</td><td class="neg" id="__isPP">—</td></tr>'+
-  '<tr class="subtot"><td>Net revenue</td><td id="__isNetRev">—</td></tr>'+
-  '<tr class="sec"><td colspan="2">Expenses</td></tr>'+
-  '<tr><td>Total payroll</td><td class="neg" id="__isPayroll">—</td></tr>'+
-  '<tr><td>Overheads</td><td class="neg" id="__isOverhead">—</td></tr>'+
-  '<tr class="subtot"><td>Total expenses</td><td class="neg" id="__isExp">—</td></tr>'+
-  '<tr class="grand"><td>EBITDA</td><td id="__isEbitda">—</td></tr>'+
-  '</tbody>';};
- el('is-table').innerHTML=isHTML().replace(/__is/g,'a_is');
- el('is-table-2').innerHTML=isHTML().replace(/__is/g,'b_is');
+ var cap='<thead><tr><th>Asset</th><th>Cost</th></tr></thead><tbody>';
+ CAPEX.forEach(function(r){cap+='<tr><td>'+r[1]+'</td><td class="inp">'+I(r[0])+'</td></tr>';});
+ cap+='<tr class="grand"><td>Total capital expenditure</td><td id="c_capexTotal">—</td></tr></tbody>';
+ el('capex-table').innerHTML=cap;
+ el('growth-table').innerHTML='<thead><tr><th>Lever</th><th>Value</th></tr></thead><tbody>'+
+  '<tr><td>Revenue volume growth (%/yr)</td><td class="inp">'+I('revGrowth','small')+'</td></tr>'+
+  '<tr><td>Cost inflation (%/yr)</td><td class="inp">'+I('costInfl','small')+'</td></tr>'+
+  '<tr><td>Basic salary (% of gross, for EOS)</td><td class="inp">'+I('basicPct','small')+'</td></tr>'+
+  '<tr><td>Depreciation life (years)</td><td class="inp">'+I('depLife','small')+'</td></tr>'+
+  '<tr><td>Pre-opening period (months)</td><td class="inp">'+I('preopMonths','small')+'</td></tr>'+
+  '<tr><td>Capital injected (funding)</td><td class="inp">'+I('openFund')+'</td></tr></tbody>';
 }
 
-function set(id,txt){var e=el(id);if(e)e.textContent=txt;}
-function met(k,v,cls,n){return '<div class="met"><div class="band"></div><div class="k">'+k+'</div><div class="v'+(cls?' '+cls:'')+'">'+v+'</div><div class="n">'+n+'</div></div>';}
+/* ---------- helpers ---------- */
+function set(id,t){var e=el(id);if(e)e.textContent=t;}
+function kpi(k,v,c,n){return '<div class="kpi"><div class="band"></div><div class="k">'+k+'</div><div class="v'+(c?' '+c:'')+'">'+v+'</div><div class="n">'+n+'</div></div>';}
+function y3head(lbl){return '<thead><tr><th>'+lbl+'</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Total</th></tr></thead>';}
+function row3(label,vals,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;
+ vals.forEach(function(x){t+=x;s+='<td class="'+(neg?'neg':(klass==='grand'?'':cls(x)))+'">'+fmt(neg?-x:x)+'</td>';});
+ return s+'<td class="'+(neg?'neg':'')+'">'+fmt(neg?-t:t)+'</td></tr>';}
 
-function update(){
- var A=compute();
- set('c_revEvT',fmt(A.revEvT));set('c_revElT',fmt(A.revElT));set('c_qTeams',fmt(num('qEvT')+num('qElT')));set('c_teamsRev',fmt(A.teamsRev));
- set('c_revEvS',fmt(A.revEvS));set('c_revElS',fmt(A.revElS));set('c_qSolo',fmt(num('qEvS')+num('qElS')));set('c_soloRev',fmt(A.soloRev));
- set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticket',fmt(A.ticket));
- set('c_gross',fmt(A.gross));set('c_netEvent',fmt(A.netEvent));
- set('c_grossYr',fmt(A.grossYr));set('c_netEventYr',fmt(A.netEventYr));set('c_prizesYr',fmt(-A.prizesYr));set('c_ppFeesYr',fmt(-A.ppFeesYr));
- set('c_clientMonth',fmt(A.clientMonth));set('c_classRevMonth',fmt(A.classRevMonth));set('c_classRevYr',fmt(A.classRevYr));
- set('c_trainerFeesMonth',fmt(-A.trainerFeesMonth));set('c_trainerFeesYr',fmt(-A.trainerFeesYr));set('c_netClassMonth',fmt(A.netClassMonth));set('c_netClassYr',fmt(A.netClassYr));
- set('c_yBM',fmt(num('salBM')*12));set('c_yPhoto',fmt(num('salPhoto')*12));set('c_yRec',fmt(num('salRec')*12));
- set('c_salaries',fmt(A.salaries));set('c_salariesYr',fmt(A.salaries*12));
- set('c_bMedMo',fmt(num('benMedical')/12));set('c_bResMo',fmt(num('benResidency')/12));set('c_bTktMo',fmt(num('benTickets')/12));
- set('c_benMo',fmt(A.benMo));set('c_benYr',fmt(A.benMo*12));set('c_payrollMonth',fmt(A.payrollMonth));set('c_payrollYr',fmt(A.payrollYr));
- [['oRent',1],['oLicense',1],['oAudit',1],['oAccounting',12],['oCleaning',12],['oDewa',12],['oEtisalat',12],['oMaintenance',12],['oSupplies',12],['oWater',12]].forEach(function(r){set('c_'+r[0]+'y',fmt(num(r[0])*r[1]));});
- set('c_ovYr',fmt(A.ovYr));set('c_oMiscy',fmt(A.miscYr));
- ['a_is','b_is'].forEach(function(pfx){
-   set(pfx+'NetEvent',fmt(A.netEventYr));set(pfx+'NetClass',fmt(A.netClassYr));set(pfx+'Prizes',fmt(-A.prizesYr));set(pfx+'PP',fmt(-A.ppFeesYr));
-   set(pfx+'NetRev',fmt(A.netRevenue));set(pfx+'Payroll',fmt(-A.payrollYr));set(pfx+'Overhead',fmt(-A.ovYr));set(pfx+'Exp',fmt(-A.totalExp));set(pfx+'Ebitda',fmt(A.ebitda));
+/* ---------- charts ---------- */
+function barChart(id,cats,seriesA,seriesB){
+ var W=480,H=240,pl=54,pr=12,pt=14,pb=28;var all=seriesA.concat(seriesB);
+ var mx=Math.max.apply(null,all.concat([1])),mn=Math.min.apply(null,all.concat([0]));if(mn>0)mn=0;
+ var X=function(i){return pl+(i+0.5)/cats.length*(W-pl-pr);};
+ var Y=function(v){return pt+(1-(v-mn)/(mx-mn||1))*(H-pt-pb);};
+ var s='<line x1="'+pl+'" y1="'+Y(0)+'" x2="'+(W-pr)+'" y2="'+Y(0)+'" stroke="rgba(13,16,19,0.3)" stroke-dasharray="3 3"/>';
+ var bw=(W-pl-pr)/cats.length*0.28;
+ cats.forEach(function(c,i){var cx=X(i);
+   s+='<rect x="'+(cx-bw-2)+'" y="'+Y(Math.max(0,seriesA[i]))+'" width="'+bw+'" height="'+Math.abs(Y(seriesA[i])-Y(0))+'" fill="#0d1013"/>';
+   s+='<rect x="'+(cx+2)+'" y="'+Y(Math.max(0,seriesB[i]))+'" width="'+bw+'" height="'+Math.abs(Y(seriesB[i])-Y(0))+'" style="fill:'+(seriesB[i]<0?'#FF1717':'#0a8f4c')+'"/>';
+   s+='<text x="'+cx+'" y="'+(H-9)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="#6a7075">'+c+'</text>';
  });
- var margin=A.netRevenue>0?(A.ebitda/A.netRevenue*100):0;
- var mets=met('EBITDA',aed(A.ebitda),A.ebitda>=0?'green':'red','margin '+margin.toFixed(0)+'% · full year')+
-   met('Net revenue',aed(A.netRevenue),'','events + classes − prizes − fees')+
-   met('Total expenses',aed(A.totalExp),'red','payroll + overheads')+
-   met('Events / year',fmt(A.eventsYr),'',fmt(A.clientMonth*12)+' class clients / yr');
- set('dash-mets',''); el('dash-mets').innerHTML=mets; el('is-mets').innerHTML=mets;
- set('dash-ebitda','EBITDA '+aed(A.ebitda)); set('is-ebitda','EBITDA '+aed(A.ebitda));
- set('rev-netevent',aed(A.netEvent)+' / event'); set('rev-eventyr',aed(A.netEventYr)+' net / yr'); set('rev-classyr',aed(A.netClassYr)+' net / yr');
- set('exp-payroll',aed(A.payrollYr)+' / yr'); set('exp-overhead',aed(A.ovYr)+' / yr');
- el('rec-flag').innerHTML='<b>Note:</b> your Excel lists Reception as 3 heads but the salary total used AED 8,000 (not 3 × 8,000). Matched to your total. Change to 24,000 if it should be three people.';
- el('misc-flag').innerHTML='<b>Note:</b> your Excel’s overhead total excluded the Miscellaneous line (AED 36,000/yr). Matched to your total (959,500). Include it and overheads become 995,500 / EBITDA 203,804.';
+ s+='<text x="'+pl+'" y="'+(pt+8)+'" font-family="monospace" font-size="8" fill="#6a7075">'+kfmt(mx)+'</text>';
+ el(id).innerHTML=s;
+}
+function lineChart(id,pts){
+ var W=480,H=240,pl=54,pr=12,pt=14,pb=28;var vals=pts.map(function(p){return p.y;});
+ var mx=Math.max.apply(null,vals.concat([0])),mn=Math.min.apply(null,vals.concat([0]));var pad=(mx-mn)*0.1||1;mx+=pad;mn-=pad;
+ var X=function(i){return pl+i/(pts.length-1)*(W-pl-pr);};
+ var Y=function(v){return pt+(1-(v-mn)/(mx-mn||1))*(H-pt-pb);};
+ var s='<line x1="'+pl+'" y1="'+Y(0)+'" x2="'+(W-pr)+'" y2="'+Y(0)+'" stroke="rgba(13,16,19,0.3)" stroke-dasharray="3 3"/>';
+ var d=pts.map(function(p,i){return (i?'L':'M')+X(i)+' '+Y(p.y);}).join(' ');
+ s+='<path d="'+d+'" fill="none" stroke="#FF1717" stroke-width="2"/>';
+ pts.forEach(function(p,i){s+='<circle cx="'+X(i)+'" cy="'+Y(p.y)+'" r="3" fill="#FF1717"/>'+'<text x="'+X(i)+'" y="'+(H-9)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="#6a7075">'+p.x+'</text>';});
+ s+='<text x="'+pl+'" y="'+(pt+8)+'" font-family="monospace" font-size="8" fill="#6a7075">'+kfmt(mx)+'</text>';
+ el(id).innerHTML=s;
+}
+
+/* ---------- update ---------- */
+function update(){
+ var A=compute(),Y=A.Y;
+ // assumptions calc cells
+ set('c_revEvT',fmt(num('pEvT')*num('qEvT')));set('c_revElT',fmt(num('pElT')*num('qElT')));set('c_revEvS',fmt(num('pEvS')*num('qEvS')));set('c_revElS',fmt(num('pElS')*num('qElS')));
+ set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticket',fmt(A.ticket));
+ var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
+ set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
+ set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
+ set('c_yBM',fmt(num('salBM')*12));set('c_yPhoto',fmt(num('salPhoto')*12));set('c_yRec',fmt(num('salRec')*12));
+ set('c_salaries',fmt(A.salaries));set('c_salariesYr',fmt(A.salaries*12));set('c_payrollMo',fmt(A.payrollMo));set('c_payrollYr',fmt(A.payrollYr));
+ OVR.forEach(function(r){var mult=r[2]==='/mo'?12:1;set('c_'+r[1]+'y',fmt(num(r[1])*mult));});
+ set('c_ovYr',fmt(A.ovYr));set('c_oMiscy',fmt(num('oMisc')*12));set('c_capexTotal',fmt(A.capexTotal));
+ set('rev-netevent',aed(netEvent1)+' / event');set('rev-classyr',aed(Y[0].netClass)+' net / yr');
+ set('exp-payroll',aed(A.payrollYr)+' / yr');set('exp-overhead',aed(A.ovYr)+' / yr');set('cap-total',aed(A.capexTotal));
+ el('rec-flag').innerHTML='<b>Note:</b> Excel listed Reception as 3 heads but the salary total used 8,000 (not 3×8,000). Matched to your total; change to 24,000 for three people.';
+ el('misc-flag').innerHTML='<b>Note:</b> Excel’s overhead total excluded the Miscellaneous line. Matched to your total (959,500).';
+ // income statement
+ var ih=y3head('Line item')+'<tbody>';
+ ih+='<tr class="sec"><td colspan="5">Revenue</td></tr>';
+ ih+=row3('Net event revenue',Y.map(function(y){return y.netEvent;}),false,'');
+ ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'');
+ ih+=row3('Prizes',Y.map(function(y){return y.prizes;}),true,'');
+ ih+=row3('Payment-processing fees',Y.map(function(y){return y.ppFees;}),true,'');
+ ih+=row3('Net revenue',Y.map(function(y){return y.netRev;}),false,'subtot');
+ ih+='<tr class="sec"><td colspan="5">Operating costs</td></tr>';
+ ih+=row3('Payroll',Y.map(function(y){return y.payroll;}),true,'');
+ ih+=row3('Overheads',Y.map(function(y){return y.overhead;}),true,'');
+ ih+=row3('EBITDA (pre end-of-service)',Y.map(function(y){return y.ebitdaPre;}),false,'subtot');
+ ih+=row3('End-of-service provision',Y.map(function(y){return y.eos;}),true,'');
+ ih+=row3('EBITDA',Y.map(function(y){return y.ebitda;}),false,'subtot');
+ ih+=row3('Depreciation',Y.map(function(y){return y.dep;}),true,'');
+ ih+=row3('EBIT',Y.map(function(y){return y.ebit;}),false,'grand');
+ el('is-table').innerHTML=ih+'</tbody>';el('dash-is').innerHTML=ih+'</tbody>';
+ set('is-sum','EBITDA Y1 '+aed(Y[0].ebitda));set('dash-sum','EBITDA Y1 '+aed(Y[0].ebitda));
+ // cash flow
+ var ch=y3head('Cash flow')+'<tbody>';
+ ch+='<tr><td>Pre-opening: CapEx</td><td class="neg">'+fmt(-A.capexTotal)+'</td><td></td><td></td><td class="neg">'+fmt(-A.capexTotal)+'</td></tr>';
+ ch+='<tr><td>Pre-opening: operating burn</td><td class="neg">'+fmt(-A.preopBurn)+'</td><td></td><td></td><td class="neg">'+fmt(-A.preopBurn)+'</td></tr>';
+ ch+=row3('Operating cash (EBITDA + EOS add-back)',Y.map(function(y){return y.opcash;}),false,'');
+ var netcf=[-(A.capexTotal+A.preopBurn)+Y[0].opcash, Y[1].opcash, Y[2].opcash];
+ ch+=row3('Net cash flow',netcf,false,'subtot');
+ ch+='<tr><td>Capital injected</td><td>'+fmt(A.funding)+'</td><td></td><td></td><td>'+fmt(A.funding)+'</td></tr>';
+ var cumline=[A.funding+netcf[0], A.funding+netcf[0]+netcf[1], A.funding+netcf[0]+netcf[1]+netcf[2]];
+ ch+='<tr class="grand"><td>Cumulative cash</td><td>'+fmt(cumline[0])+'</td><td>'+fmt(cumline[1])+'</td><td>'+fmt(cumline[2])+'</td><td>'+fmt(cumline[2])+'</td></tr>';
+ el('cf-table').innerHTML=ch+'</tbody>';set('cf-sum','ends '+aed(cumline[2]));
+ el('cf-kpis').innerHTML=kpi('Capital requirement',kfmt(A.capitalReq),'red','CapEx + pre-opening burn')+
+   kpi('Capital injected',kfmt(A.funding),A.funding>=A.capitalReq?'green':'red',A.funding>=A.capitalReq?'covers requirement':'short of requirement')+
+   kpi('Cash end of Year 3',kfmt(cumline[2]),cumline[2]>=0?'green':'red','after funding');
+ // balance sheet
+ var bh=y3head('Balance sheet')+'<tbody>';
+ bh+='<tr class="sec"><td colspan="5">Assets</td></tr>';
+ bh+='<tr><td>Cash</td>'+A.cash.map(function(c){return '<td class="'+cls(c.end)+'">'+fmt(c.end)+'</td>';}).join('')+'<td>'+fmt(A.cash[2].end)+'</td></tr>';
+ bh+='<tr><td>Fixed assets (net)</td>'+A.cash.map(function(c){return '<td>'+fmt(c.fixed)+'</td>';}).join('')+'<td>'+fmt(A.cash[2].fixed)+'</td></tr>';
+ var assets=A.cash.map(function(c){return c.end+c.fixed;});
+ bh+='<tr class="subtot"><td>Total assets</td>'+assets.map(function(a){return '<td>'+fmt(a)+'</td>';}).join('')+'<td>'+fmt(assets[2])+'</td></tr>';
+ bh+='<tr class="sec"><td colspan="5">Liabilities &amp; equity</td></tr>';
+ bh+='<tr><td>End-of-service provision</td>'+A.cash.map(function(c){return '<td>'+fmt(c.eos)+'</td>';}).join('')+'<td>'+fmt(A.cash[2].eos)+'</td></tr>';
+ bh+='<tr><td>Paid-in capital</td>'+A.cash.map(function(c){return '<td>'+fmt(c.funding)+'</td>';}).join('')+'<td>'+fmt(A.funding)+'</td></tr>';
+ bh+='<tr><td>Retained earnings</td>'+A.cash.map(function(c){return '<td class="'+cls(c.retained)+'">'+fmt(c.retained)+'</td>';}).join('')+'<td class="'+cls(A.cash[2].retained)+'">'+fmt(A.cash[2].retained)+'</td></tr>';
+ var le=A.cash.map(function(c){return c.eos+c.funding+c.retained;});
+ bh+='<tr class="grand"><td>Total liabilities &amp; equity</td>'+le.map(function(x){return '<td>'+fmt(x)+'</td>';}).join('')+'<td>'+fmt(le[2])+'</td></tr>';
+ el('bs-table').innerHTML=bh+'</tbody>';
+ var off=Math.max.apply(null,assets.map(function(a,i){return Math.abs(a-le[i]);}));
+ set('bs-tie',off<1?'balances ✓':'off '+fmt(off));
+ // capital & depreciation tabs
+ var cr='<tbody><tr><td>Total CapEx</td><td>'+fmt(A.capexTotal)+'</td></tr>'+
+   '<tr><td>Pre-opening burn ('+A.preopMonths+' mo)</td><td>'+fmt(A.preopBurn)+'</td></tr>'+
+   '<tr class="grand"><td>Capital requirement</td><td>'+fmt(A.capitalReq)+'</td></tr>'+
+   '<tr><td>Capital injected</td><td>'+fmt(A.funding)+'</td></tr>'+
+   '<tr class="'+(A.funding>=A.capitalReq?'subtot':'')+'"><td>Headroom / (shortfall)</td><td class="'+cls(A.funding-A.capitalReq)+'">'+fmt(A.funding-A.capitalReq)+'</td></tr></tbody>';
+ el('capreq-table').innerHTML=cr;
+ var dh='<thead><tr><th>Depreciation</th><th>Y1</th><th>Y2</th><th>Y3</th></tr></thead><tbody>'+
+   '<tr><td>Charge (life '+A.depLife+' yr)</td>'+Y.map(function(y){return '<td class="neg">'+fmt(-y.dep)+'</td>';}).join('')+'</tr>'+
+   '<tr class="grand"><td>Net book value</td>'+A.cash.map(function(c){return '<td>'+fmt(c.fixed)+'</td>';}).join('')+'</tr></tbody>';
+ el('dep-table').innerHTML=dh;
+ el('cap-kpis').innerHTML=kpi('Total CapEx',kfmt(A.capexTotal),'','day-one assets')+kpi('Capital requirement',kfmt(A.capitalReq),'red','incl. pre-opening burn')+kpi('Payback',A.payback?A.payback+' yr':'>3 yr',A.payback?'green':'red','operating cash vs capital');
+ // dashboard kpis + charts
+ var margin1=Y[0].netRev>0?Y[0].ebitda/Y[0].netRev*100:0;
+ el('dash-kpis').innerHTML=
+   kpi('Capital requirement',kfmt(A.capitalReq),'red','to open the doors')+
+   kpi('Year-1 EBITDA',kfmt(Y[0].ebitda),Y[0].ebitda>=0?'green':'red','margin '+margin1.toFixed(0)+'%')+
+   kpi('Year-3 EBITDA',kfmt(Y[2].ebitda),Y[2].ebitda>=0?'green':'red','after growth')+
+   kpi('3-yr cumulative EBITDA',kfmt(A.ebitda3),A.ebitda3>=0?'green':'red','Years 1–3')+
+   kpi('Payback',A.payback?A.payback+' yr':'>3 yr',A.payback?'green':'red','capital recovered')+
+   kpi('Cash end Y3',kfmt(cumline[2]),cumline[2]>=0?'green':'red','after funding '+kfmt(A.funding));
+ barChart('ch-bars',['Y1','Y2','Y3'],Y.map(function(y){return y.netRev;}),Y.map(function(y){return y.ebitda;}));
+ lineChart('ch-cash',[{x:'Open',y:A.funding-A.capexTotal-A.preopBurn}].concat(Y.map(function(y,i){return {x:'Y'+(i+1),y:cumline[i]};})));
  save();
 }
 function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(e&&s[id]!=null)e.value=s[id];});}catch(e){}}
 function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});update();}
-
-document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
- [].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-tab');
- [].forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});});
+document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-tab');[].forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});});
+document.getElementById('asm-sub').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-s');['rev','cost','capital','growth'].forEach(function(s){el('s-'+s).classList.toggle('on',s===t);});});
 document.addEventListener('input',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('cin'))update();});
 window.addEventListener('DOMContentLoaded',function(){renderStatic();load();update();});
 </script>
