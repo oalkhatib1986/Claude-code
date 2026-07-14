@@ -219,6 +219,21 @@
   .subnav button:last-child{border-right:none}
   .subnav button.on{background:#fff;color:var(--red)}
   .abbr{display:none}
+  .dc{cursor:pointer}
+  .dc:hover{background:rgba(255,23,23,0.07);box-shadow:inset 0 0 0 1px rgba(255,23,23,0.35)}
+  .hint{font-family:var(--mono);font-size:10px;color:var(--red);padding:8px 16px;border-bottom:1px solid var(--line);background:#fffafa;letter-spacing:0.04em}
+  .drill-ov{display:none;position:fixed;inset:0;background:rgba(13,16,19,0.5);z-index:100;align-items:center;justify-content:center;padding:16px}
+  .drill-ov.on{display:flex}
+  .drill-card{background:#fff;border:1px solid var(--line);border-radius:4px;max-width:440px;width:100%;max-height:82vh;overflow:auto;box-shadow:0 14px 44px rgba(0,0,0,0.28)}
+  .drill-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+  .drill-head .dt{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--red)}
+  .drill-x{border:none;background:transparent;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px}
+  .drill-card table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+  .drill-card td{padding:8px 16px;border-bottom:1px solid rgba(13,16,19,0.05)}
+  .drill-card td:last-child{text-align:right;white-space:nowrap}
+  .drill-card tr.mult td{color:var(--muted)}
+  .drill-card tr.sub td{background:#fafbfb;font-weight:700}
+  .drill-card tr.tot td{background:var(--ink);color:#fff;font-weight:700}
   @media(max-width:600px){
     .wrap{padding:0 10px}
     h1{font-size:19px;margin:16px 0 3px}
@@ -312,7 +327,7 @@
     </div>
   </section>
 
-  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. EBITDA (pre end-of-service) ties to your Excel in Year 1; end-of-service and depreciation are then charged to reach EBIT.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
+  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. EBITDA (pre end-of-service) ties to your Excel in Year 1; end-of-service and depreciation are then charged to reach EBIT.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="hint">Tap any number to see how it’s calculated.</div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
 
   <section class="tab" id="tab-cf"><h1>Cash Flow</h1><p class="sub">Pre-opening capital outflow, then operating cash by year. The trough is the capital you must inject before the business self-funds.</p><div class="kpis" id="cf-kpis"></div><div class="card"><div class="ch">Cash flow — pre-op + 3 years <span class="csum" id="cf-sum">—</span></div><div class="scroll"><table class="mono" id="cf-table"></table></div></div></section>
 
@@ -327,6 +342,9 @@
     <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;padding:0 16px 12px">Payback = when cumulative operating cash (EBITDA before end-of-service, which is not paid in cash) recovers the capital injected. Projected on the same growth/inflation assumptions beyond Year 3 until recovery.</p></div>
   <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer;margin-bottom:24px">Reset all to defaults</button></section>
 
+</div>
+<div class="drill-ov" id="drill" onclick="if(event.target===this)closeDrill()">
+  <div class="drill-card"><div class="drill-head"><span class="dt" id="drill-title">—</span><button class="drill-x" onclick="closeDrill()">×</button></div><div id="drill-body"></div></div>
 </div>
 <script>
 var DEFAULTS={
@@ -499,9 +517,51 @@ function renderStatic(){
 function set(id,t){var e=el(id);if(e)e.textContent=t;}
 function kpi(k,v,c,n){return '<div class="kpi"><div class="band"></div><div class="k">'+k+'</div><div class="v'+(c?' '+c:'')+'">'+v+'</div><div class="n">'+n+'</div></div>';}
 function y3head(lbl){return '<thead><tr><th>'+lbl+'</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Total</th></tr></thead>';}
-function row3(label,vals,neg,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;
- vals.forEach(function(x){t+=x;s+='<td class="'+(neg?'neg':(klass==='grand'?'':cls(x)))+'">'+nn(neg?-x:x)+'</td>';});
- return s+'<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td></tr>';}
+function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>',t=0;
+ vals.forEach(function(x,i){t+=x;var cl=(neg?'neg':(klass==='grand'?'':cls(x)));
+   s+=line?('<td class="'+cl+' dc" onclick="openDrill(\''+line+'\','+i+')">'+nn(neg?-x:x)+'</td>')
+          :('<td class="'+cl+'">'+nn(neg?-x:x)+'</td>');});
+ s+=line?('<td class="'+(neg?'neg ':'')+'dc" onclick="openDrill(\''+line+'\',\'T\')">'+nn(neg?-t:t)+'</td>')
+        :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
+ return s+'</tr>';}
+var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT'};
+function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit}[line];}
+function breakdown(line,i){
+ var A=compute();
+ if(i==='T'){var vs=A.Y.map(function(y){return LVAL(y,line);});return {title:LBL[line]+' · 3-year total',rows:[{l:'Year 1',x:vs[0]},{l:'Year 2',x:vs[1]},{l:'Year 3',x:vs[2]},{l:'Total',x:vs[0]+vs[1]+vs[2],tot:1}]};}
+ var v=num,g=v('revGrowth')/100,infl=v('costInfl')/100,vg=Math.pow(1+g,i),inf=Math.pow(1+infl,i),ev=v('eventsYr'),Yi=A.Y[i];
+ var tc=[['Elite teams',v('qElT'),v('pElT')],['Everyday teams',v('qEvT'),v('pEvT')],['Elite solo',v('qElS'),v('pElS')],['Everyday solo',v('qEvS'),v('pEvS')]];
+ var ticket=tc.reduce(function(t,c){return t+c[1]*c[2];},0),fb=v('fbRev'),ret=v('retRev');
+ var fbCogs=fb*(1-v('fbMargin')/100),retCogs=ret*(1-v('retMargin')/100);
+ function R(rows,total){return {title:LBL[line]+' · Year '+(i+1),rows:rows.concat([{l:LBL[line],x:total,tot:1}])};}
+ switch(line){
+  case 'grossEvent':{var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'F&B revenue',x:fb},{l:'Retail revenue',x:ret},{l:'Per-event gross',x:ticket+fb+ret,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1});return R(rows,(ticket+fb+ret)*ev*vg);}
+  case 'eventDirect':{var varc=(fbCogs+retCogs)*ev*vg,fixc=(v('djExp')+v('volunteers')+v('permits'))*ev*inf;return R([{l:'F&B COGS / event',x:fbCogs},{l:'Retail COGS / event',x:retCogs},{l:'Variable × '+ev+' events × growth',x:varc,sub:1},{l:'DJ / event',x:v('djExp')},{l:'Volunteers / event',x:v('volunteers')},{l:'Permits / event',x:v('permits')},{l:'Fixed × '+ev+' events × inflation',x:fixc,sub:1}],varc+fixc);}
+  case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
+  case 'grossClass':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class',x:v('pricePerClass'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('capacity')*v('pricePerClass')*12*vg);
+  case 'trainer':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('trainerFee')*12*vg);
+  case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
+  case 'prizes':return R([{l:'Prize / event',x:v('prizePerEvent')},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],v('prizePerEvent')*ev*inf);
+  case 'ppFees':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Gross class revenue',x:Yi.grossClass},{l:'Base',x:Yi.grossEvent+Yi.grossClass,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*(Yi.grossEvent+Yi.grossClass));
+  case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Net class revenue',x:Yi.netClass},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
+  case 'payroll':{var sal=v('salBM')+v('salPhoto')+v('salRec'),ben=(v('benMedical')+v('benResidency')+v('benTickets'))/12;return R([{l:'Business Manager',x:v('salBM')},{l:'Photographer / Social',x:v('salPhoto')},{l:'Reception',x:v('salRec')},{l:'Monthly salaries',x:sal,sub:1},{l:'Employee benefits / mo',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1}],(sal+ben)*12*inf);}
+  case 'overhead':{var L=[['Warehouse rent',v('oRent')],['License & registration',v('oLicense')],['Annual audit',v('oAudit')],['Accounting',v('oAccounting')*12],['Cleaning',v('oCleaning')*12],['DEWA',v('oDewa')*12],['Etisalat',v('oEtisalat')*12],['Maintenance',v('oMaintenance')*12],['Supplies',v('oSupplies')*12],['Water',v('oWater')*12]];var tot=L.reduce(function(t,l){return t+l[1];},0);var rows=L.map(function(l){return {l:l[0],x:l[1]};});rows.push({l:'Total overheads / yr',x:tot,sub:1},{l:'Inflation',x:inf,mult:1});return R(rows,tot*inf);}
+  case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead}],Yi.ebitdaPre);
+  case 'eos':{var sal=v('salBM')+v('salPhoto')+v('salRec'),bm=sal*(v('basicPct')/100);return R([{l:'Monthly salaries',x:sal},{l:'Basic %',x:v('basicPct')/100,mult:1},{l:'Monthly basic',x:bm,sub:1},{l:'21 / 30 (21 days per year)',x:21/30,mult:1},{l:'Inflation',x:inf,mult:1}],bm*(21/30)*inf);}
+  case 'ebitda':return R([{l:'EBITDA (pre end-of-service)',x:Yi.ebitdaPre},{l:'Less: end-of-service',x:-Yi.eos}],Yi.ebitda);
+  case 'dep':return R([{l:'Total CapEx',x:A.capexTotal},{l:'Useful life (years)',x:A.depLife,mult:1,op:'÷'}],Yi.dep);
+  case 'ebit':return R([{l:'EBITDA',x:Yi.ebitda},{l:'Less: depreciation',x:-Yi.dep}],Yi.ebit);
+ }
+ return null;
+}
+function mfmt(x){return (x%1===0)?String(x):(''+Math.round(x*10000)/10000);}
+function openDrill(line,i){var b=breakdown(line,i);if(!b)return;el('drill-title').textContent=b.title;
+ var h='<table><tbody>';
+ b.rows.forEach(function(r){var c=r.tot?'tot':(r.sub?'sub':(r.mult?'mult':''));
+   var val=r.mult?((r.op||'×')+' '+mfmt(r.x)):fmt(r.x);
+   h+='<tr'+(c?' class="'+c+'"':'')+'><td>'+r.l+'</td><td>'+val+'</td></tr>';});
+ el('drill-body').innerHTML=h+'</tbody></table>';el('drill').classList.add('on');}
+function closeDrill(){el('drill').classList.remove('on');}
 
 /* ---------- charts ---------- */
 function barChart(id,cats,seriesA,seriesB){
@@ -553,25 +613,25 @@ function update(){
  // income statement
  var ih=y3head('Line item')+'<tbody>';
  ih+='<tr class="sec"><td colspan="5">Event revenue</td></tr>';
- ih+=row3('Gross event revenue',Y.map(function(y){return y.grossEvent;}),false,'');
- ih+=row3('Less: event direct costs',Y.map(function(y){return y.grossEvent-y.netEvent;}),true,'');
- ih+=row3('Net event revenue',Y.map(function(y){return y.netEvent;}),false,'subtot');
+ ih+=row3('Gross event revenue',Y.map(function(y){return y.grossEvent;}),false,'','grossEvent');
+ ih+=row3('Less: event direct costs',Y.map(function(y){return y.grossEvent-y.netEvent;}),true,'','eventDirect');
+ ih+=row3('Net event revenue',Y.map(function(y){return y.netEvent;}),false,'subtot','netEvent');
  ih+='<tr class="sec"><td colspan="5">Class revenue</td></tr>';
- ih+=row3('Gross class revenue',Y.map(function(y){return y.grossClass;}),false,'');
- ih+=row3('Less: trainer fees',Y.map(function(y){return y.grossClass-y.netClass;}),true,'');
- ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'subtot');
+ ih+=row3('Gross class revenue',Y.map(function(y){return y.grossClass;}),false,'','grossClass');
+ ih+=row3('Less: trainer fees',Y.map(function(y){return y.grossClass-y.netClass;}),true,'','trainer');
+ ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'subtot','netClass');
  ih+='<tr class="sec"><td colspan="5">Other</td></tr>';
- ih+=row3('Prizes',Y.map(function(y){return y.prizes;}),true,'');
- ih+=row3('Payment-processing fees',Y.map(function(y){return y.ppFees;}),true,'');
- ih+=row3('Net revenue',Y.map(function(y){return y.netRev;}),false,'subtot');
+ ih+=row3('Prizes',Y.map(function(y){return y.prizes;}),true,'','prizes');
+ ih+=row3('Payment-processing fees',Y.map(function(y){return y.ppFees;}),true,'','ppFees');
+ ih+=row3('Net revenue',Y.map(function(y){return y.netRev;}),false,'subtot','netRev');
  ih+='<tr class="sec"><td colspan="5">Operating costs</td></tr>';
- ih+=row3('Payroll',Y.map(function(y){return y.payroll;}),true,'');
- ih+=row3('Overheads',Y.map(function(y){return y.overhead;}),true,'');
- ih+=row3('EBITDA (pre end-of-service)',Y.map(function(y){return y.ebitdaPre;}),false,'subtot');
- ih+=row3('End-of-service provision',Y.map(function(y){return y.eos;}),true,'');
- ih+=row3('EBITDA',Y.map(function(y){return y.ebitda;}),false,'subtot');
- ih+=row3('Depreciation',Y.map(function(y){return y.dep;}),true,'');
- ih+=row3('EBIT',Y.map(function(y){return y.ebit;}),false,'grand');
+ ih+=row3('Payroll',Y.map(function(y){return y.payroll;}),true,'','payroll');
+ ih+=row3('Overheads',Y.map(function(y){return y.overhead;}),true,'','overhead');
+ ih+=row3('EBITDA (pre end-of-service)',Y.map(function(y){return y.ebitdaPre;}),false,'subtot','ebitdaPre');
+ ih+=row3('End-of-service provision',Y.map(function(y){return y.eos;}),true,'','eos');
+ ih+=row3('EBITDA',Y.map(function(y){return y.ebitda;}),false,'subtot','ebitda');
+ ih+=row3('Depreciation',Y.map(function(y){return y.dep;}),true,'','dep');
+ ih+=row3('EBIT',Y.map(function(y){return y.ebit;}),false,'grand','ebit');
  el('is-table').innerHTML=ih+'</tbody>';el('dash-is').innerHTML=ih+'</tbody>';
  set('is-sum','EBITDA Y1 '+aed(Y[0].ebitda));set('dash-sum','EBITDA Y1 '+aed(Y[0].ebitda));
  // cash flow
