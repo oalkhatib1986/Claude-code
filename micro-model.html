@@ -331,7 +331,7 @@
 <script>
 var DEFAULTS={
  pEvT:1099,qEvT:30, pElT:1299,qElT:30, pEvS:275,qEvS:40, pElS:300,qElS:40,
- fbRev:5000, retRev:5000, fbCogs:3000, retCogs:3000, djExp:10000, volunteers:3000, permits:7500,
+ fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:10000, volunteers:3000, permits:7500,
  eventsYr:8, prizePerEvent:11250, ppPct:3,
  classesMonth:30, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
@@ -361,7 +361,8 @@ function compute(){
  var ticket=v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS');
  var fbret=v('fbRev')+v('retRev');
  var gross=ticket+fbret;
- var evVar=v('fbCogs')+v('retCogs');        // scales with volume
+ var fbCogs=v('fbRev')*(1-v('fbMargin')/100), retCogs=v('retRev')*(1-v('retMargin')/100); // COGS from margin %
+ var evVar=fbCogs+retCogs;                  // scales with volume
  var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event fixed
  var eventsYr=v('eventsYr');
  var clientMonth=v('classesMonth')*v('capacity');
@@ -445,8 +446,10 @@ function renderStatic(){
   '<tr class="sec"><td colspan="4">Ancillary &amp; per-event costs</td></tr>'+
   '<tr><td>F&amp;B revenue</td><td></td><td></td><td class="inp">'+I('fbRev')+'</td></tr>'+
   '<tr><td>Retail revenue</td><td></td><td></td><td class="inp">'+I('retRev')+'</td></tr>'+
-  '<tr><td>F&amp;B COGS</td><td></td><td></td><td class="inp">'+I('fbCogs')+'</td></tr>'+
-  '<tr><td>Retail COGS</td><td></td><td></td><td class="inp">'+I('retCogs')+'</td></tr>'+
+  '<tr><td>F&amp;B margin (%)</td><td></td><td></td><td class="inp">'+I('fbMargin','small')+'</td></tr>'+
+  '<tr><td>F&amp;B COGS</td><td></td><td></td><td class="calc" id="c_fbCogs">—</td></tr>'+
+  '<tr><td>Retail margin (%)</td><td></td><td></td><td class="inp">'+I('retMargin','small')+'</td></tr>'+
+  '<tr><td>Retail COGS</td><td></td><td></td><td class="calc" id="c_retCogs">—</td></tr>'+
   '<tr><td>DJ expense</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
   '<tr><td>Volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
   '<tr><td>Permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
@@ -535,6 +538,7 @@ function update(){
  // assumptions calc cells
  set('c_revEvT',fmt(num('pEvT')*num('qEvT')));set('c_revElT',fmt(num('pElT')*num('qElT')));set('c_revEvS',fmt(num('pEvS')*num('qEvS')));set('c_revElS',fmt(num('pElS')*num('qElS')));
  set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticket',fmt(A.ticket));
+ set('c_fbCogs',fmt(-num('fbRev')*(1-num('fbMargin')/100)));set('c_retCogs',fmt(-num('retRev')*(1-num('retMargin')/100)));
  var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
  set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
  set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
