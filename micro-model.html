@@ -312,6 +312,7 @@
         <div class="card"><div class="ch">Annualisation, prizes &amp; fees</div><div class="scroll"><table class="mono" id="annual-table"></table></div></div>
         <div class="card"><div class="ch">Group classes <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
       </div>
+      <div class="card"><div class="ch">F&amp;B &amp; Retail business units <span class="csum" id="rev-fbret">—</span></div><div class="scroll"><table class="mono" id="fbret-table"></table></div></div>
     </div>
     <div class="asmsub2" id="s-cost">
       <div class="grid2">
@@ -381,13 +382,11 @@ function compute(){
  // ---- Year-1 base (annual) ----
  // Revenue inputs (ticket, F&B, retail, class prices) are VAT-inclusive; recognise revenue net of VAT.
  var vat=Math.max(0,v('vatPct'))/100, vd=1+vat;
- var ticket=(v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/vd;
- var fbRevNet=v('fbRev')/vd, retRevNet=v('retRev')/vd;
- var fbret=fbRevNet+retRevNet;
- var gross=ticket+fbret;
- var fbCogs=fbRevNet*(1-v('fbMargin')/100), retCogs=retRevNet*(1-v('retMargin')/100); // COGS from margin % on net revenue
- var evVar=fbCogs+retCogs;                  // scales with volume
- var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event fixed
+ var ticket=(v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/vd; // tickets only, per event, net of VAT
+ var gross=ticket;
+ var fbRevYr=v('fbRev')*12/vd, retRevYr=v('retRev')*12/vd;   // F&B and Retail = standalone monthly businesses, net of VAT
+ var fbCogsYr=fbRevYr*(1-v('fbMargin')/100), retCogsYr=retRevYr*(1-v('retMargin')/100); // COGS from margin % on net revenue
+ var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event direct costs
  var eventsYr=v('eventsYr');
  var clientMonth=v('classesMonth')*v('capacity');
  var classRevMo=clientMonth*v('pricePerClass')/vd;
@@ -410,20 +409,22 @@ function compute(){
  var g=v('revGrowth')/100, infl=v('costInfl')/100;
  function yc(i){
    var vg=Math.pow(1+g,i), inf=Math.pow(1+infl,i);
-   var grossEvent=(ticket+fbret)*eventsYr*vg;
-   var eventVar=evVar*eventsYr*vg, eventFix=evFix*eventsYr*inf;
-   var netEvent=grossEvent-eventVar-eventFix;
+   var grossEvent=ticket*eventsYr*vg;                 // ticket sales only
+   var eventDirect=evFix*eventsYr*inf;                // DJ / volunteers / permits
+   var netEvent=grossEvent-eventDirect;
    var grossClass=classRevYr*vg, trainer=trainerYr*vg, netClass=grossClass-trainer;
+   var grossFb=fbRevYr*vg, fbCogs=fbCogsYr*vg, netFb=grossFb-fbCogs;
+   var grossRet=retRevYr*vg, retCogs=retCogsYr*vg, netRet=grossRet-retCogs;
    var prizes=prizesYr*inf;
-   var ppFees=pp*(grossEvent+grossClass);
-   var netRev=netEvent+netClass-prizes-ppFees;
+   var ppFees=pp*(grossEvent+grossClass+grossFb+grossRet);
+   var netRev=netEvent+netClass+netFb+netRet-prizes-ppFees;
    var payroll=payrollYr*inf, overhead=ovYr*inf;
    var ebitdaPre=netRev-payroll-overhead;
    var eos=eosYrBase*inf;
    var ebitda=ebitdaPre-eos;
    var dep=(i*depYr<capexTotal)?depYr:Math.max(0,capexTotal-i*depYr);
    var ebit=ebitda-dep;
-   return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossClass:grossClass,netClass:netClass,prizes:prizes,ppFees:ppFees,netRev:netRev,
+   return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossClass:grossClass,netClass:netClass,grossFb:grossFb,netFb:netFb,grossRet:grossRet,netRet:netRet,prizes:prizes,ppFees:ppFees,netRev:netRev,
      payroll:payroll,overhead:overhead,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,opcash:ebitdaPre};
  }
  var NPB=10;
@@ -483,21 +484,25 @@ function renderStatic(){
   '<tr class="sec"><td colspan="4">Solo</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvS')+'</td><td class="inp">'+I('qEvS','small')+'</td><td class="calc" id="c_revEvS">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElS')+'</td><td class="inp">'+I('qElS','small')+'</td><td class="calc" id="c_revElS">—</td></tr>'+
-  '<tr class="subtot"><td>Ticket revenue (VAT incl.)</td><td></td><td id="c_qTotal">—</td><td id="c_ticket">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Ancillary &amp; per-event costs</td></tr>'+
-  '<tr><td>F&amp;B revenue (VAT incl.)</td><td></td><td></td><td class="inp">'+I('fbRev')+'</td></tr>'+
-  '<tr><td>Retail revenue (VAT incl.)</td><td></td><td></td><td class="inp">'+I('retRev')+'</td></tr>'+
-  '<tr class="calc"><td>Gross revenue / event (VAT incl.)</td><td></td><td></td><td class="calc" id="c_grossInc">—</td></tr>'+
+  '<tr class="calc"><td>Ticket revenue (VAT incl.)</td><td></td><td id="c_qTotal">—</td><td class="calc" id="c_ticketInc">—</td></tr>'+
   '<tr><td>Less: VAT</td><td></td><td></td><td class="calc" id="c_eventVat">—</td></tr>'+
-  '<tr class="subtot"><td>Net revenue / event</td><td></td><td></td><td id="c_grossNet">—</td></tr>'+
-  '<tr><td>F&amp;B margin (%)</td><td></td><td></td><td class="inp">'+I('fbMargin','small')+'</td></tr>'+
-  '<tr><td>F&amp;B COGS</td><td></td><td></td><td class="calc" id="c_fbCogs">—</td></tr>'+
-  '<tr><td>Retail margin (%)</td><td></td><td></td><td class="inp">'+I('retMargin','small')+'</td></tr>'+
-  '<tr><td>Retail COGS</td><td></td><td></td><td class="calc" id="c_retCogs">—</td></tr>'+
+  '<tr class="subtot"><td>Net ticket revenue / event</td><td></td><td></td><td id="c_ticket">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Per-event direct costs</td></tr>'+
   '<tr><td>DJ expense</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
   '<tr><td>Volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
   '<tr><td>Permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
   '<tr class="grand"><td>Net event revenue / event</td><td></td><td></td><td id="c_netEvent">—</td></tr></tbody>';
+ el('fbret-table').innerHTML='<thead><tr><th>Business unit</th><th>Monthly</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
+  '<tr class="sec"><td colspan="3">F&amp;B (standalone)</td></tr>'+
+  '<tr><td>F&amp;B sales / month (VAT incl.)</td><td class="inp">'+I('fbRev')+'</td><td class="calc" id="c_fbRevYr">—</td></tr>'+
+  '<tr><td>F&amp;B margin (%)</td><td class="inp">'+I('fbMargin','small')+'</td><td></td></tr>'+
+  '<tr><td>F&amp;B COGS</td><td></td><td class="calc" id="c_fbCogs">—</td></tr>'+
+  '<tr class="subtot"><td>Net F&amp;B / year</td><td></td><td id="c_netFbYr">—</td></tr>'+
+  '<tr class="sec"><td colspan="3">Retail (standalone)</td></tr>'+
+  '<tr><td>Retail sales / month (VAT incl.)</td><td class="inp">'+I('retRev')+'</td><td class="calc" id="c_retRevYr">—</td></tr>'+
+  '<tr><td>Retail margin (%)</td><td class="inp">'+I('retMargin','small')+'</td><td></td></tr>'+
+  '<tr><td>Retail COGS</td><td></td><td class="calc" id="c_retCogs">—</td></tr>'+
+  '<tr class="subtot"><td>Net retail / year</td><td></td><td id="c_netRetYr">—</td></tr></tbody>';
  el('annual-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
   '<tr><td>Events / year</td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
   '<tr><td>Seasons / year</td><td class="inp">'+I('seasons','small')+'</td><td class="calc">info</td></tr>'+
@@ -557,27 +562,32 @@ function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"'
  s+=line?('<td class="'+(neg?'neg ':'')+'dc" onclick="openDrill(\''+line+'\',\'T\')">'+nn(neg?-t:t)+'</td>')
         :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
  return s+'</tr>';}
-var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT'};
-function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit}[line];}
+var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT'};
+function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit}[line];}
 function breakdown(line,i){
  var A=compute();
  if(i==='T'){var vs=A.Y.map(function(y){return LVAL(y,line);});return {title:LBL[line]+' · 3-year total',rows:[{l:'Year 1',x:vs[0]},{l:'Year 2',x:vs[1]},{l:'Year 3',x:vs[2]},{l:'Total',x:vs[0]+vs[1]+vs[2],tot:1}]};}
  var v=num,g=v('revGrowth')/100,infl=v('costInfl')/100,vg=Math.pow(1+g,i),inf=Math.pow(1+infl,i),ev=v('eventsYr'),Yi=A.Y[i];
  var tc=[['Elite teams',v('qElT'),v('pElT')],['Everyday teams',v('qEvT'),v('pEvT')],['Elite solo',v('qElS'),v('pElS')],['Everyday solo',v('qEvS'),v('pEvS')]];
- var ticket=tc.reduce(function(t,c){return t+c[1]*c[2];},0),fb=v('fbRev'),ret=v('retRev');
+ var ticket=tc.reduce(function(t,c){return t+c[1]*c[2];},0),fbMo=v('fbRev'),retMo=v('retRev');
  var vat=v('vatPct')/100,vd=1+vat;
- var fbCogs=fb/vd*(1-v('fbMargin')/100),retCogs=ret/vd*(1-v('retMargin')/100);
  function R(rows,total){return {title:LBL[line]+' · Year '+(i+1),rows:rows.concat([{l:LBL[line],x:total,tot:1}])};}
  switch(line){
-  case 'grossEvent':{var perInc=ticket+fb+ret,perNet=perInc/vd;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'F&B revenue',x:fb},{l:'Retail revenue',x:ret},{l:'Per-event (VAT incl.)',x:perInc,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per-event net',x:perNet,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1});return R(rows,perNet*ev*vg);}
-  case 'eventDirect':{var varc=(fbCogs+retCogs)*ev*vg,fixc=(v('djExp')+v('volunteers')+v('permits'))*ev*inf;return R([{l:'F&B COGS / event',x:fbCogs},{l:'Retail COGS / event',x:retCogs},{l:'Variable × '+ev+' events × growth',x:varc,sub:1},{l:'DJ / event',x:v('djExp')},{l:'Volunteers / event',x:v('volunteers')},{l:'Permits / event',x:v('permits')},{l:'Fixed × '+ev+' events × inflation',x:fixc,sub:1}],varc+fixc);}
+  case 'grossEvent':{var perNet=ticket/vd;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket revenue / event (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Ticket revenue / event (net)',x:perNet,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1});return R(rows,perNet*ev*vg);}
+  case 'eventDirect':{var fixc=(v('djExp')+v('volunteers')+v('permits'))*ev*inf;return R([{l:'DJ / event',x:v('djExp')},{l:'Volunteers / event',x:v('volunteers')},{l:'Permits / event',x:v('permits')},{l:'Per-event direct cost',x:v('djExp')+v('volunteers')+v('permits'),sub:1},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],fixc);}
+  case 'grossFb':return R([{l:'F&B sales / month (VAT incl.)',x:fbMo},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],fbMo/vd*12*vg);
+  case 'fbCogs':return R([{l:'F&B revenue (net)',x:Yi.grossFb},{l:'Cost ratio (1 − '+v('fbMargin')+'% margin)',x:1-v('fbMargin')/100,mult:1}],Yi.grossFb-Yi.netFb);
+  case 'netFb':return R([{l:'F&B revenue',x:Yi.grossFb},{l:'Less: F&B COGS',x:-(Yi.grossFb-Yi.netFb)}],Yi.netFb);
+  case 'grossRet':return R([{l:'Retail sales / month (VAT incl.)',x:retMo},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],retMo/vd*12*vg);
+  case 'retCogs':return R([{l:'Retail revenue (net)',x:Yi.grossRet},{l:'Cost ratio (1 − '+v('retMargin')+'% margin)',x:1-v('retMargin')/100,mult:1}],Yi.grossRet-Yi.netRet);
+  case 'netRet':return R([{l:'Retail revenue',x:Yi.grossRet},{l:'Less: retail COGS',x:-(Yi.grossRet-Yi.netRet)}],Yi.netRet);
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
   case 'grossClass':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class (VAT incl.)',x:v('pricePerClass'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('capacity')*(v('pricePerClass')/vd)*12*vg);
   case 'trainer':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('trainerFee')*12*vg);
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
   case 'prizes':return R([{l:'Prize / event',x:v('prizePerEvent')},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],v('prizePerEvent')*ev*inf);
-  case 'ppFees':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Gross class revenue',x:Yi.grossClass},{l:'Base',x:Yi.grossEvent+Yi.grossClass,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*(Yi.grossEvent+Yi.grossClass));
-  case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Net class revenue',x:Yi.netClass},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
+  case 'ppFees':{var base=Yi.grossEvent+Yi.grossClass+Yi.grossFb+Yi.grossRet;return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Gross class revenue',x:Yi.grossClass},{l:'F&B revenue',x:Yi.grossFb},{l:'Retail revenue',x:Yi.grossRet},{l:'Base',x:base,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*base);}
+  case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Net class revenue',x:Yi.netClass},{l:'Net F&B',x:Yi.netFb},{l:'Net retail',x:Yi.netRet},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
   case 'payroll':{var sal=v('salBM')+v('salPhoto')+v('salRec'),ben=(v('benMedical')+v('benResidency')+v('benTickets'))/12;return R([{l:'Business Manager',x:v('salBM')},{l:'Photographer / Social',x:v('salPhoto')},{l:'Reception',x:v('salRec')},{l:'Monthly salaries',x:sal,sub:1},{l:'Employee benefits / mo',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1}],(sal+ben)*12*inf);}
   case 'overhead':{var L=[['Warehouse rent',v('oRent')],['License & registration',v('oLicense')],['Annual audit',v('oAudit')],['Accounting',v('oAccounting')*12],['Cleaning',v('oCleaning')*12],['DEWA',v('oDewa')*12],['Etisalat',v('oEtisalat')*12],['Maintenance',v('oMaintenance')*12],['Supplies',v('oSupplies')*12],['Water',v('oWater')*12]];var tot=L.reduce(function(t,l){return t+l[1];},0);var rows=L.map(function(l){return {l:l[0],x:l[1]};});rows.push({l:'Total overheads / yr',x:tot,sub:1},{l:'Inflation',x:inf,mult:1});return R(rows,tot*inf);}
   case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead}],Yi.ebitdaPre);
@@ -633,12 +643,13 @@ function update(){
  var vd=1+num('vatPct')/100;
  set('c_revEvT',fmt(num('pEvT')*num('qEvT')));set('c_revElT',fmt(num('pElT')*num('qElT')));set('c_revEvS',fmt(num('pEvS')*num('qEvS')));set('c_revElS',fmt(num('pElS')*num('qElS')));
  var ticketInc=num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS');
- set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticket',fmt(ticketInc));
- var grossInc=ticketInc+num('fbRev')+num('retRev');
- set('c_grossInc',fmt(grossInc));set('c_eventVat',fmt(-(grossInc-grossInc/vd)));set('c_grossNet',fmt(A.gross));
- set('c_fbCogs',fmt(-num('fbRev')/vd*(1-num('fbMargin')/100)));set('c_retCogs',fmt(-num('retRev')/vd*(1-num('retMargin')/100)));
+ set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticketInc',fmt(ticketInc));
+ set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));set('c_ticket',fmt(A.ticket));
  var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
  set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
+ // F&B and retail standalone business units (net annual)
+ set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));
+ set('c_retRevYr',fmt(Y[0].grossRet));set('c_retCogs',fmt(-(Y[0].grossRet-Y[0].netRet)));set('c_netRetYr',fmt(Y[0].netRet));
  var classInc=num('classesMonth')*num('capacity')*num('pricePerClass')*12;
  set('c_classInc',fmt(classInc));set('c_classVat',fmt(-(classInc-A.classRevYr)));
  set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
@@ -646,7 +657,7 @@ function update(){
  set('c_salaries',fmt(A.salaries));set('c_salariesYr',fmt(A.salaries*12));set('c_payrollMo',fmt(A.payrollMo));set('c_payrollYr',fmt(A.payrollYr));
  OVR.forEach(function(r){var mult=r[2]==='/mo'?12:1;set('c_'+r[1]+'y',fmt(num(r[1])*mult));});
  set('c_ovYr',fmt(A.ovYr));set('c_oMiscy',fmt(num('oMisc')*12));set('c_capexTotal',fmt(A.capexTotal));
- set('rev-netevent',aed(netEvent1)+' / event');set('rev-classyr',aed(Y[0].netClass)+' net / yr');
+ set('rev-netevent',aed(netEvent1)+' / event');set('rev-classyr',aed(Y[0].netClass)+' net / yr');set('rev-fbret',aed(Y[0].netFb+Y[0].netRet)+' net / yr');
  set('exp-payroll',aed(A.payrollYr)+' / yr');set('exp-overhead',aed(A.ovYr)+' / yr');set('cap-total',aed(A.capexTotal));
  el('rec-flag').innerHTML='<b>Note:</b> Excel listed Reception as 3 heads but the salary total used 8,000 (not 3×8,000). Matched to your total; change to 24,000 for three people.';
  el('misc-flag').innerHTML='<b>Note:</b> Excel’s overhead total excluded the Miscellaneous line. Matched to your total (959,500).';
@@ -660,6 +671,14 @@ function update(){
  ih+=row3('Gross class revenue',Y.map(function(y){return y.grossClass;}),false,'','grossClass');
  ih+=row3('Less: trainer fees',Y.map(function(y){return y.grossClass-y.netClass;}),true,'','trainer');
  ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'subtot','netClass');
+ ih+='<tr class="sec"><td colspan="5">F&amp;B</td></tr>';
+ ih+=row3('F&B revenue',Y.map(function(y){return y.grossFb;}),false,'','grossFb');
+ ih+=row3('Less: F&B COGS',Y.map(function(y){return y.grossFb-y.netFb;}),true,'','fbCogs');
+ ih+=row3('Net F&B',Y.map(function(y){return y.netFb;}),false,'subtot','netFb');
+ ih+='<tr class="sec"><td colspan="5">Retail</td></tr>';
+ ih+=row3('Retail revenue',Y.map(function(y){return y.grossRet;}),false,'','grossRet');
+ ih+=row3('Less: retail COGS',Y.map(function(y){return y.grossRet-y.netRet;}),true,'','retCogs');
+ ih+=row3('Net retail',Y.map(function(y){return y.netRet;}),false,'subtot','netRet');
  ih+='<tr class="sec"><td colspan="5">Other</td></tr>';
  ih+=row3('Prizes',Y.map(function(y){return y.prizes;}),true,'','prizes');
  ih+=row3('Payment-processing fees',Y.map(function(y){return y.ppFees;}),true,'','ppFees');
