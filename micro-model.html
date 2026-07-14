@@ -327,7 +327,7 @@
     </div>
   </section>
 
-  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. EBITDA (pre end-of-service) ties to your Excel in Year 1; end-of-service and depreciation are then charged to reach EBIT.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="hint">Tap any number to see how it’s calculated.</div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
+  <section class="tab" id="tab-is"><h1>Income Statement</h1><p class="sub">Three-year P&amp;L. Revenue is recognised net of VAT (your ticket, F&amp;B, retail and class prices are VAT-inclusive); end-of-service and depreciation are then charged to reach EBIT.</p><div class="card"><div class="ch">Income statement — 3 years <span class="csum" id="is-sum">—</span></div><div class="hint">Tap any number to see how it’s calculated.</div><div class="scroll"><table class="mono" id="is-table"></table></div></div></section>
 
   <section class="tab" id="tab-cf"><h1>Cash Flow</h1><p class="sub">Pre-opening capital outflow, then operating cash by year. The trough is the capital you must inject before the business self-funds.</p><div class="kpis" id="cf-kpis"></div><div class="card"><div class="ch">Cash flow — pre-op + 3 years <span class="csum" id="cf-sum">—</span></div><div class="scroll"><table class="mono" id="cf-table"></table></div></div></section>
 
@@ -360,7 +360,7 @@ var DEFAULTS={
  oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
  cErgs:350000, cLed:150000, cAudioLight:120000, cTiming:100000, cFitout:500000, cBrand:100000, cTech:50000, cLaunch:100000, cLegal:20000, cContingency:100000,
  depLife:5, revGrowth:10, costInfl:4, basicPct:50, preopMonths:3, fundBuffer:0,
- sweatPct:30, minBank:100000
+ sweatPct:30, minBank:100000, vatPct:5
 };
 var KEY='redln-micro-v2';
 var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
@@ -379,15 +379,18 @@ function I(id,c){return '<input class="cin'+(c?' '+c:'')+'" id="'+id+'" value="'
 function compute(){
  var v=num;
  // ---- Year-1 base (annual) ----
- var ticket=v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS');
- var fbret=v('fbRev')+v('retRev');
+ // Revenue inputs (ticket, F&B, retail, class prices) are VAT-inclusive; recognise revenue net of VAT.
+ var vat=Math.max(0,v('vatPct'))/100, vd=1+vat;
+ var ticket=(v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/vd;
+ var fbRevNet=v('fbRev')/vd, retRevNet=v('retRev')/vd;
+ var fbret=fbRevNet+retRevNet;
  var gross=ticket+fbret;
- var fbCogs=v('fbRev')*(1-v('fbMargin')/100), retCogs=v('retRev')*(1-v('retMargin')/100); // COGS from margin %
+ var fbCogs=fbRevNet*(1-v('fbMargin')/100), retCogs=retRevNet*(1-v('retMargin')/100); // COGS from margin % on net revenue
  var evVar=fbCogs+retCogs;                  // scales with volume
  var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event fixed
  var eventsYr=v('eventsYr');
  var clientMonth=v('classesMonth')*v('capacity');
- var classRevMo=clientMonth*v('pricePerClass');
+ var classRevMo=clientMonth*v('pricePerClass')/vd;
  var classRevYr=classRevMo*12;
  var trainerYr=v('classesMonth')*v('trainerFee')*12;
  var prizesYr=v('prizePerEvent')*eventsYr;
@@ -479,10 +482,13 @@ function renderStatic(){
   '<tr class="sec"><td colspan="4">Solo</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvS')+'</td><td class="inp">'+I('qEvS','small')+'</td><td class="calc" id="c_revEvS">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElS')+'</td><td class="inp">'+I('qElS','small')+'</td><td class="calc" id="c_revElS">—</td></tr>'+
-  '<tr class="subtot"><td>Ticket revenue</td><td></td><td id="c_qTotal">—</td><td id="c_ticket">—</td></tr>'+
+  '<tr class="subtot"><td>Ticket revenue (VAT incl.)</td><td></td><td id="c_qTotal">—</td><td id="c_ticket">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Ancillary &amp; per-event costs</td></tr>'+
-  '<tr><td>F&amp;B revenue</td><td></td><td></td><td class="inp">'+I('fbRev')+'</td></tr>'+
-  '<tr><td>Retail revenue</td><td></td><td></td><td class="inp">'+I('retRev')+'</td></tr>'+
+  '<tr><td>F&amp;B revenue (VAT incl.)</td><td></td><td></td><td class="inp">'+I('fbRev')+'</td></tr>'+
+  '<tr><td>Retail revenue (VAT incl.)</td><td></td><td></td><td class="inp">'+I('retRev')+'</td></tr>'+
+  '<tr class="calc"><td>Gross revenue / event (VAT incl.)</td><td></td><td></td><td class="calc" id="c_grossInc">—</td></tr>'+
+  '<tr><td>Less: VAT</td><td></td><td></td><td class="calc" id="c_eventVat">—</td></tr>'+
+  '<tr class="subtot"><td>Net revenue / event</td><td></td><td></td><td id="c_grossNet">—</td></tr>'+
   '<tr><td>F&amp;B margin (%)</td><td></td><td></td><td class="inp">'+I('fbMargin','small')+'</td></tr>'+
   '<tr><td>F&amp;B COGS</td><td></td><td></td><td class="calc" id="c_fbCogs">—</td></tr>'+
   '<tr><td>Retail margin (%)</td><td></td><td></td><td class="inp">'+I('retMargin','small')+'</td></tr>'+
@@ -500,8 +506,10 @@ function renderStatic(){
  el('class-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
   '<tr><td>Classes / month</td><td class="inp">'+I('classesMonth','small')+'</td><td></td></tr>'+
   '<tr><td>Capacity / class</td><td class="inp">'+I('capacity','small')+'</td><td></td></tr>'+
-  '<tr><td>Price / class</td><td class="inp">'+I('pricePerClass','small')+'</td><td></td></tr>'+
-  '<tr class="subtot"><td>Gross class revenue</td><td></td><td id="c_classRevYr">—</td></tr>'+
+  '<tr><td>Price / class (VAT incl.)</td><td class="inp">'+I('pricePerClass','small')+'</td><td></td></tr>'+
+  '<tr class="calc"><td>Gross class revenue (VAT incl.)</td><td></td><td class="calc" id="c_classInc">—</td></tr>'+
+  '<tr><td>Less: VAT</td><td></td><td class="calc" id="c_classVat">—</td></tr>'+
+  '<tr class="subtot"><td>Gross class revenue (net)</td><td></td><td id="c_classRevYr">—</td></tr>'+
   '<tr><td>Trainer fee / class</td><td class="inp">'+I('trainerFee','small')+'</td><td class="calc" id="c_trainerYr">—</td></tr>'+
   '<tr class="grand"><td>Net class revenue</td><td></td><td id="c_netClassYr">—</td></tr></tbody>';
  el('payroll-table').innerHTML='<thead><tr><th>Item</th><th>Heads</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>'+
@@ -523,6 +531,7 @@ function renderStatic(){
  cap+='<tr class="grand"><td>Total capital expenditure</td><td id="c_capexTotal">—</td></tr></tbody>';
  el('capex-table').innerHTML=cap;
  el('growth-table').innerHTML='<thead><tr><th>Lever</th><th>Value</th></tr></thead><tbody>'+
+  '<tr><td>VAT rate — revenue inputs are VAT-inclusive (%)</td><td class="inp">'+I('vatPct','small')+'</td></tr>'+
   '<tr><td>Revenue volume growth (%/yr)</td><td class="inp">'+I('revGrowth','small')+'</td></tr>'+
   '<tr><td>Cost inflation (%/yr)</td><td class="inp">'+I('costInfl','small')+'</td></tr>'+
   '<tr><td>Basic salary (% of gross, for EOS)</td><td class="inp">'+I('basicPct','small')+'</td></tr>'+
@@ -555,13 +564,14 @@ function breakdown(line,i){
  var v=num,g=v('revGrowth')/100,infl=v('costInfl')/100,vg=Math.pow(1+g,i),inf=Math.pow(1+infl,i),ev=v('eventsYr'),Yi=A.Y[i];
  var tc=[['Elite teams',v('qElT'),v('pElT')],['Everyday teams',v('qEvT'),v('pEvT')],['Elite solo',v('qElS'),v('pElS')],['Everyday solo',v('qEvS'),v('pEvS')]];
  var ticket=tc.reduce(function(t,c){return t+c[1]*c[2];},0),fb=v('fbRev'),ret=v('retRev');
- var fbCogs=fb*(1-v('fbMargin')/100),retCogs=ret*(1-v('retMargin')/100);
+ var vat=v('vatPct')/100,vd=1+vat;
+ var fbCogs=fb/vd*(1-v('fbMargin')/100),retCogs=ret/vd*(1-v('retMargin')/100);
  function R(rows,total){return {title:LBL[line]+' · Year '+(i+1),rows:rows.concat([{l:LBL[line],x:total,tot:1}])};}
  switch(line){
-  case 'grossEvent':{var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'F&B revenue',x:fb},{l:'Retail revenue',x:ret},{l:'Per-event gross',x:ticket+fb+ret,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1});return R(rows,(ticket+fb+ret)*ev*vg);}
+  case 'grossEvent':{var perInc=ticket+fb+ret,perNet=perInc/vd;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'F&B revenue',x:fb},{l:'Retail revenue',x:ret},{l:'Per-event (VAT incl.)',x:perInc,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per-event net',x:perNet,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1});return R(rows,perNet*ev*vg);}
   case 'eventDirect':{var varc=(fbCogs+retCogs)*ev*vg,fixc=(v('djExp')+v('volunteers')+v('permits'))*ev*inf;return R([{l:'F&B COGS / event',x:fbCogs},{l:'Retail COGS / event',x:retCogs},{l:'Variable × '+ev+' events × growth',x:varc,sub:1},{l:'DJ / event',x:v('djExp')},{l:'Volunteers / event',x:v('volunteers')},{l:'Permits / event',x:v('permits')},{l:'Fixed × '+ev+' events × inflation',x:fixc,sub:1}],varc+fixc);}
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
-  case 'grossClass':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class',x:v('pricePerClass'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('capacity')*v('pricePerClass')*12*vg);
+  case 'grossClass':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class (VAT incl.)',x:v('pricePerClass'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('capacity')*(v('pricePerClass')/vd)*12*vg);
   case 'trainer':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('trainerFee')*12*vg);
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
   case 'prizes':return R([{l:'Prize / event',x:v('prizePerEvent')},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],v('prizePerEvent')*ev*inf);
@@ -619,11 +629,17 @@ function lineChart(id,pts){
 function update(){
  var A=compute(),Y=A.Y;
  // assumptions calc cells
+ var vd=1+num('vatPct')/100;
  set('c_revEvT',fmt(num('pEvT')*num('qEvT')));set('c_revElT',fmt(num('pElT')*num('qElT')));set('c_revEvS',fmt(num('pEvS')*num('qEvS')));set('c_revElS',fmt(num('pElS')*num('qElS')));
- set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticket',fmt(A.ticket));
- set('c_fbCogs',fmt(-num('fbRev')*(1-num('fbMargin')/100)));set('c_retCogs',fmt(-num('retRev')*(1-num('retMargin')/100)));
+ var ticketInc=num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS');
+ set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticket',fmt(ticketInc));
+ var grossInc=ticketInc+num('fbRev')+num('retRev');
+ set('c_grossInc',fmt(grossInc));set('c_eventVat',fmt(-(grossInc-grossInc/vd)));set('c_grossNet',fmt(A.gross));
+ set('c_fbCogs',fmt(-num('fbRev')/vd*(1-num('fbMargin')/100)));set('c_retCogs',fmt(-num('retRev')/vd*(1-num('retMargin')/100)));
  var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
  set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
+ var classInc=num('classesMonth')*num('capacity')*num('pricePerClass')*12;
+ set('c_classInc',fmt(classInc));set('c_classVat',fmt(-(classInc-A.classRevYr)));
  set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
  set('c_yBM',fmt(num('salBM')*12));set('c_yPhoto',fmt(num('salPhoto')*12));set('c_yRec',fmt(num('salRec')*12));
  set('c_salaries',fmt(A.salaries));set('c_salariesYr',fmt(A.salaries*12));set('c_payrollMo',fmt(A.payrollMo));set('c_payrollYr',fmt(A.payrollYr));
