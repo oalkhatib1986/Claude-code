@@ -340,6 +340,8 @@
   </div>
   <div class="card"><div class="ch">Payback analysis <span class="csum" id="payback-sum">—</span></div><div class="scroll"><table class="mono" id="payback-table"></table></div>
     <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;padding:0 16px 12px">Payback = when cumulative operating cash (EBITDA before end-of-service, which is not paid in cash) recovers the capital injected. Projected on the same growth/inflation assumptions beyond Year 3 until recovery.</p></div>
+  <div class="card"><div class="ch">Dividends &amp; your payback <span class="csum" id="divpb-sum">—</span></div><div class="scroll"><table class="mono" id="divpb-table"></table></div>
+    <p class="foot" id="divpb-foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;padding:0 16px 12px"></p></div>
   <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer;margin-bottom:24px">Reset all to defaults</button></section>
 
 </div>
@@ -357,7 +359,8 @@ var DEFAULTS={
  oRent:600000, oLicense:40000, oAudit:7500,
  oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
  cErgs:350000, cLed:150000, cAudioLight:120000, cTiming:100000, cFitout:500000, cBrand:100000, cTech:50000, cLaunch:100000, cLegal:20000, cContingency:100000,
- depLife:5, revGrowth:10, costInfl:4, basicPct:50, preopMonths:3, fundBuffer:0
+ depLife:5, revGrowth:10, costInfl:4, basicPct:50, preopMonths:3, fundBuffer:0,
+ sweatPct:30, minBank:100000
 };
 var KEY='redln-micro-v2';
 var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
@@ -445,7 +448,23 @@ function compute(){
  var trough=Math.min(cash0, Math.min.apply(null,cash.map(function(c){return c.end;})));
  var peakFund=trough<0?-trough:0;
  var ebitda3=Y.reduce(function(t,y){return t+y.ebitda;},0);
+ // ---- dividend distribution & payback to founder ----
+ // You inject 100% of the cash but give away sweatPct% of equity to partners (sweat, no cash).
+ // Each year, any bank balance above the minimum threshold is swept out as a dividend, split by ownership %.
+ var sweatPct=Math.max(0,Math.min(100,v('sweatPct'))), founderPct=100-sweatPct;
+ var minBank=Math.max(0,v('minBank'));
+ var divs=[], bank=cash0, cumFounder=0, cumPartner=0, foundPayback=null;
+ Yall.forEach(function(y,i){
+   var beg=bank, preDiv=beg+y.opcash;
+   var dividend=preDiv>minBank?preDiv-minBank:0;
+   bank=preDiv-dividend;
+   var toFounder=dividend*founderPct/100, toPartner=dividend*sweatPct/100;
+   var prevCum=cumFounder; cumFounder+=toFounder; cumPartner+=toPartner;
+   divs.push({yr:i+1,beg:beg,opcash:y.opcash,dividend:dividend,founder:toFounder,partner:toPartner,end:bank,cumFounder:cumFounder,pct:funding>0?cumFounder/funding*100:0});
+   if(foundPayback===null && cumFounder>=funding && toFounder>0) foundPayback=i+(funding-prevCum)/toFounder;
+ });
  return {Y:Y,Yall:Yall,cash:cash,cash0:cash0,capexLines:capexLines,capexTotal:capexTotal,depLife:depLife,depYr:depYr,
+   divs:divs,sweatPct:sweatPct,founderPct:founderPct,minBank:minBank,foundPayback:foundPayback,
    preopMonths:preopMonths,preopBurn:preopBurn,y1def:y1def,capitalReq:capitalReq,funding:funding,fundBuffer:v('fundBuffer'),peakFund:peakFund,payback:payback,pb:pb,coc3:coc3,ebitda3:ebitda3,
    ticket:ticket,gross:gross,netEventY1:Y[0].netEvent,clientMonth:clientMonth,classRevYr:classRevYr,payrollYr:payrollYr,ovYr:ovYr,eosYrBase:eosYrBase,
    salaries:salaries,benMo:benMo,payrollMo:payrollMo};
@@ -510,7 +529,11 @@ function renderStatic(){
   '<tr><td>Depreciation life (years)</td><td class="inp">'+I('depLife','small')+'</td></tr>'+
   '<tr><td>Pre-opening period (months)</td><td class="inp">'+I('preopMonths','small')+'</td></tr>'+
   '<tr><td>Funding buffer (% over requirement)</td><td class="inp">'+I('fundBuffer','small')+'</td></tr>'+
-  '<tr class="calc"><td>Capital injected = requirement + buffer</td><td class="calc" id="c_funding">—</td></tr></tbody>';
+  '<tr class="calc"><td>Capital injected = requirement + buffer</td><td class="calc" id="c_funding">—</td></tr>'+
+  '<tr class="sec"><td colspan="2">Ownership &amp; dividends (you inject 100% of the cash)</td></tr>'+
+  '<tr><td>Sweat equity to partners (%)</td><td class="inp">'+I('sweatPct','small')+'</td></tr>'+
+  '<tr class="calc"><td>Your ownership</td><td class="calc" id="c_founderPct">—</td></tr>'+
+  '<tr><td>Minimum bank balance (dividend threshold)</td><td class="inp">'+I('minBank')+'</td></tr></tbody>';
 }
 
 /* ---------- helpers ---------- */
@@ -689,7 +712,19 @@ function update(){
  el('payback-table').innerHTML=ph;
  var pbTxt=A.payback?A.payback.toFixed(1)+' years':'> '+A.pb.length+' years';
  set('payback-sum','payback '+pbTxt);
- el('cap-kpis').innerHTML=kpi('Capital requirement',kfmt(A.capitalReq),'red','to open the doors')+kpi('Capital injected',kfmt(A.funding),'','= requirement'+(A.fundBuffer>0?' + '+A.fundBuffer+'%':''))+kpi('Payback period',pbTxt,A.payback?'green':'red','cumulative op cash recovers capital')+kpi('3-yr cash-on-cash',Math.round(A.coc3)+'%',A.coc3>=100?'green':'','op cash Y1–3 ÷ capital');
+ set('c_founderPct',(100-A.sweatPct)+'% (you fund 100% of the cash)');
+ // ---- dividends & payback to you ----
+ var fpbTxt=A.foundPayback?A.foundPayback.toFixed(1)+' years':'> '+A.divs.length+' years';
+ var dvShow=A.foundPayback?Math.min(A.divs.length,Math.ceil(A.foundPayback)+1):Math.min(A.divs.length,7);
+ var dvh='<thead><tr><th>Year</th><th>Bank start</th><th>Op cash</th><th>Dividend</th><th>To you '+A.founderPct+'%</th><th>Partners '+A.sweatPct+'%</th><th>Bank end</th><th>You: recovered</th></tr></thead><tbody>';
+ dvh+='<tr><td>Open</td><td></td><td></td><td></td><td class="neg">'+nn(-A.funding)+'</td><td></td><td>'+nn(A.cash0)+'</td><td>0%</td></tr>';
+ for(var di=0;di<dvShow;di++){var d=A.divs[di];
+   dvh+='<tr><td>Year '+d.yr+'</td><td>'+nn(d.beg)+'</td><td class="pos">'+nn(d.opcash)+'</td><td>'+nn(d.dividend)+'</td><td class="pos">'+nn(d.founder)+'</td><td>'+nn(d.partner)+'</td><td>'+nn(d.end)+'</td><td class="'+cls(d.cumFounder-A.funding)+'">'+Math.round(d.pct)+'%</td></tr>';}
+ dvh+='</tbody>';
+ el('divpb-table').innerHTML=dvh;
+ set('divpb-sum','your payback '+fpbTxt);
+ set('divpb-foot','You inject 100% of the AED '+Math.round(A.funding).toLocaleString()+' capital but own '+A.founderPct+'% after granting '+A.sweatPct+'% sweat equity. Each year the bank is swept down to the AED '+Math.round(A.minBank).toLocaleString()+' minimum and the excess is paid as a dividend, split '+A.founderPct+'/'+A.sweatPct+'. Your payback is when your '+A.founderPct+'% share of dividends returns your full injection — '+fpbTxt+' vs '+(A.payback?A.payback.toFixed(1)+' yr':'—')+' if you owned 100%.');
+ el('cap-kpis').innerHTML=kpi('Capital requirement',kfmt(A.capitalReq),'red','to open the doors')+kpi('Capital injected',kfmt(A.funding),'','you fund 100%')+kpi('Payback if 100%-owned',pbTxt,A.payback?'green':'red','cumulative op cash')+kpi('Your payback ('+A.founderPct+'%)',fpbTxt,A.foundPayback?'green':'red','via '+A.founderPct+'% of dividends');
  // dashboard kpis + charts
  var margin1=Y[0].netRev>0?Y[0].ebitda/Y[0].netRev*100:0;
  el('dash-kpis').innerHTML=
