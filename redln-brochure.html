@@ -5,191 +5,186 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REDLN. — Business Plan · Competition-Driven Fitness</title>
 <meta name="description" content="REDLN. — the world's first Competition-Driven Fitness Center. Business plan, concept, and financial projections. Dubai, EST. 2026.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --red:#FF1717; --red-ink:#D40000;
-  --ink:#0B0D0E; --paper:#ffffff; --paper-2:#f6f7f8;
-  --muted:#6b7176; --line:#e6e8ea; --line-2:#eff1f2;
-  --disp:'Chakra Petch',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --mono:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
-  --maxw:1120px;
+  --ink:#0a0a0a; --ink2:#0e1112; --paper:#ffffff;
+  --redline:#c4283a; --redline-dim:#8c1f2b;
+  --redline-glass:rgba(196,40,58,.16); --redline-edge:rgba(196,40,58,.55); --redline-strong:rgba(196,40,58,.3);
+  --muted:#8c8c8c; --muted2:#a9adb0;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.07);
+  --glass:rgba(255,255,255,.04); --glass-strong:rgba(255,255,255,.07); --glass-edge:rgba(255,255,255,.14);
+  --disp:'Arial Narrow','Helvetica Neue',Arial,sans-serif;
+  --sans:'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  --maxw:1200px;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
-  margin:0; background:var(--paper); color:var(--ink);
-  font-family:var(--mono); font-size:15px; line-height:1.65;
-  -webkit-font-smoothing:antialiased;
-  background-image:
-    linear-gradient(rgba(11,13,14,.028) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(11,13,14,.028) 1px,transparent 1px);
-  background-size:26px 26px;
+  margin:0; background:var(--ink); color:var(--paper);
+  font-family:var(--sans); font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
 }
+::selection{background:var(--redline);color:#fff}
 img{max-width:100%;display:block}
 a{color:inherit}
-h1,h2,h3{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;line-height:1.02;margin:0}
+h1,h2,h3{font-family:var(--disp);font-stretch:condensed;font-weight:700;line-height:.98;margin:0;letter-spacing:.005em}
 p{margin:0 0 16px}
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
-.mono-label{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.mono-label{font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.28em;text-transform:uppercase}
 
 /* ---- brand mark ---- */
-.logo{display:inline-flex;align-items:stretch;gap:0;border:2px solid var(--ink);background:#fff}
-.logo .wm{display:flex;align-items:center;padding:7px 12px;font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.01em;line-height:1}
-.logo .wm b{color:var(--ink)}
-.logo .wm i{color:var(--red);font-style:normal}
-.logo .mk{width:38px;border-left:2px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0}
-.logo .mk .hz{width:20px;height:20px;background:repeating-linear-gradient(48deg,var(--red) 0 3px,#fff 3px 6px);border:1px solid var(--ink)}
-.logo .mk .est{font-family:var(--mono);font-weight:700;font-size:6px;letter-spacing:.06em;color:var(--ink);text-align:center;line-height:1}
-.logo.lg .wm{font-size:34px;padding:12px 20px}
-.logo.lg .mk{width:60px}
-.logo.lg .mk .hz{width:34px;height:34px}
-.logo.lg .mk .est{font-size:8px}
+.logo{display:inline-flex;align-items:baseline;font-family:var(--disp);font-stretch:condensed;font-weight:700;letter-spacing:.01em;line-height:1;color:#fff;font-size:26px}
+.logo .dot{color:var(--redline)}
+.logo.lg{font-size:56px}
 
 /* ---- top bar ---- */
-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:saturate(1.4) blur(8px);border-bottom:1px solid var(--line)}
-.bar{max-width:var(--maxw);margin:0 auto;padding:9px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.bar .lhs{display:flex;align-items:center;gap:14px}
-.bar .doc{font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px}
-.bar .cta{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:9px 14px;border-radius:2px;white-space:nowrap}
-.bar .cta:hover{background:var(--red-ink)}
+header{position:sticky;top:0;z-index:60;background:rgba(10,10,10,.82);backdrop-filter:saturate(1.3) blur(10px);border-bottom:1px solid var(--line)}
+.bar{max-width:var(--maxw);margin:0 auto;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bar .lhs{display:flex;align-items:center;gap:16px}
+.bar .doc{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:16px}
+.bar .cta{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;background:var(--redline);color:#fff;padding:10px 15px;white-space:nowrap;transition:background .15s}
+.bar .cta:hover{background:var(--redline-dim)}
 @media(max-width:640px){.bar .doc{display:none}}
 
 /* ---- section scaffolding ---- */
-section{padding:78px 0;border-bottom:1px solid var(--line-2)}
-.kicker{display:inline-flex;align-items:center;gap:10px;margin-bottom:20px}
-.kicker .num{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.06em;color:#fff;background:var(--red);padding:6px 10px;border-radius:2px}
-.kicker .txt{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-h2.big{font-size:clamp(30px,5.4vw,52px)}
-.lead{font-size:clamp(16px,2.2vw,20px);line-height:1.55;max-width:760px;color:var(--ink)}
-.sub{color:var(--muted);max-width:720px}
+section{padding:92px 0;border-bottom:1px solid var(--line-2);position:relative}
+.kicker{display:inline-flex;align-items:center;gap:12px;margin-bottom:22px}
+.kicker .num{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.06em;color:#fff;background:var(--redline);padding:6px 10px}
+.kicker .txt{font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+h2.big{font-size:clamp(38px,8vw,92px);text-transform:uppercase;letter-spacing:0}
+h2.big .rl{color:var(--redline)}
+.redbar{display:block;width:64px;height:4px;background:var(--redline);margin:22px 0 0}
+.lead{font-family:var(--sans);font-size:clamp(16px,2.1vw,21px);line-height:1.5;max-width:820px;color:#eaeaea;font-weight:300}
+.sub{color:var(--muted2);max-width:780px;font-weight:300}
+b{font-weight:700;color:#fff}
 
 /* ---- hero ---- */
-.hero{position:relative;border-bottom:1px solid var(--line);overflow:hidden;background:#0b0d0e}
-.hero .img{position:absolute;inset:0;background-size:cover;background-position:center;filter:grayscale(.15) contrast(1.02)}
-.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,13,.42),rgba(10,12,13,.30) 40%,rgba(10,12,13,.82))}
-.hero .inner{position:relative;max-width:var(--maxw);margin:0 auto;padding:66px 22px 54px;color:#fff;min-height:min(84vh,760px);display:flex;flex-direction:column;justify-content:flex-end}
-.hero .eyebrow{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#fff;opacity:.9;margin-bottom:22px}
-.hero h1{font-size:clamp(38px,8.4vw,92px);color:#fff;letter-spacing:-.02em;text-wrap:balance}
-.hero h1 .rl{color:var(--red)}
-.hero .tag{margin-top:22px;font-family:var(--mono);font-weight:700;font-size:clamp(12px,2.4vw,15px);letter-spacing:.22em;text-transform:uppercase;color:#fff}
-.hero .tag span{color:var(--red)}
-.hero .metastrip{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px}
-.hero .metastrip .chip{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff;border:1px solid rgba(255,255,255,.34);padding:8px 12px;border-radius:2px;background:rgba(255,255,255,.06)}
-.hero .logo{position:absolute;top:26px;left:22px}
+.hero{position:relative;border-bottom:1px solid var(--line);overflow:hidden;background:#000}
+.hero .img{position:absolute;inset:0;background-size:cover;background-position:center;filter:grayscale(.2) contrast(1.05) brightness(.92)}
+.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,7,8,.62),rgba(6,7,8,.52) 42%,rgba(6,7,8,.93))}
+.hero .inner{position:relative;max-width:var(--maxw);margin:0 auto;padding:120px 28px 60px;min-height:min(92vh,880px);display:flex;flex-direction:column;justify-content:flex-end}
+.hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--redline);margin-bottom:24px}
+.hero h1{font-size:clamp(46px,12vw,150px);color:#fff;text-transform:uppercase;letter-spacing:0;line-height:.92}
+.hero h1 .rl{color:var(--redline)}
+.hero h1 .cut{position:relative;display:inline-block}
+.hero h1 .cut::after{content:"";position:absolute;left:-4px;right:-4px;top:52%;height:.07em;background:var(--redline)}
+.hero .tag{margin-top:26px;font-family:var(--mono);font-weight:700;font-size:clamp(12px,2.3vw,16px);letter-spacing:.24em;text-transform:uppercase;color:#fff}
+.hero .tag span{color:var(--redline)}
+.hero .metastrip{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .metastrip .chip{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#fff;border:1px solid var(--glass-edge);padding:9px 13px;background:var(--glass)}
+.hero .logo{position:absolute;top:24px;left:28px}
 
 /* ---- stat band ---- */
-.band{background:var(--ink);color:#fff;border:0}
-.band .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.12)}
-.band .cell{background:var(--ink);padding:26px 20px}
-.band .v{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.4vw,34px);line-height:1}
-.band .v i{font-style:normal;color:var(--red)}
-.band .k{margin-top:9px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#aab0b4}
-@media(max-width:760px){.band .grid{grid-template-columns:repeat(2,1fr)}}
+.band{background:#000;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.band .grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.band .cell{padding:34px 24px;border-right:1px solid var(--line)}
+.band .cell:last-child{border-right:0}
+.band .v{font-family:var(--disp);font-stretch:condensed;font-weight:700;font-size:clamp(30px,4.6vw,52px);line-height:.9;text-transform:uppercase}
+.band .v i{font-style:normal;color:var(--redline)}
+.band .k{margin-top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+@media(max-width:760px){.band .grid{grid-template-columns:repeat(2,1fr)}.band .cell:nth-child(2n){border-right:0}.band .cell:nth-child(-n+2){border-bottom:1px solid var(--line)}}
 
 /* ---- generic cards ---- */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.card{border:1px solid var(--line);background:#fff;padding:24px;border-radius:3px}
-.card h3{font-size:20px;margin-bottom:8px}
-.card .n{display:inline-block;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);padding:6px 9px;border-radius:2px;margin-bottom:14px}
-.card p{margin:0;color:var(--muted);font-size:14px}
-.card .tag{color:var(--ink)}
 .grid2>*,.grid3>*{min-width:0}
+.card{border:1px solid var(--glass-edge);background:var(--glass);padding:26px;position:relative}
+.card h3{font-size:23px;margin-bottom:9px;text-transform:uppercase}
+.card .n{display:inline-block;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--redline);padding:6px 9px;margin-bottom:16px}
+.card p{margin:0;color:var(--muted2);font-size:14px;font-weight:300}
+.card .tag{color:#e6e6e6}
 @media(max-width:820px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
 
-/* ---- the gap / comparison ---- */
-.compare{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px}
-.compare .col{border:1px solid var(--line);border-radius:3px;overflow:hidden}
-.compare .col .hd{padding:14px 16px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--paper-2)}
-.compare .col.us .hd{background:var(--red);color:#fff;border-color:var(--red)}
+/* ---- comparison ---- */
+.compare{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:12px}
+.compare .col{border:1px solid var(--line);overflow:hidden;background:var(--glass)}
+.compare .col .hd{padding:15px 17px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid var(--line);color:var(--muted2)}
+.compare .col.us{border-color:var(--redline-edge)}
+.compare .col.us .hd{background:var(--redline);color:#fff;border-color:var(--redline)}
 .compare .col ul{margin:0;padding:16px 16px 16px 32px}
-.compare .col li{margin-bottom:9px;font-size:13.5px;color:var(--muted)}
-.compare .col.us li{color:var(--ink)}
+.compare .col li{margin-bottom:10px;font-size:13.5px;color:var(--muted2);font-weight:300}
+.compare .col.us li{color:#fff}
 @media(max-width:820px){.compare{grid-template-columns:1fr}}
 
 /* ---- values ---- */
-.values{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
-.values .v{padding:22px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.values{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--line)}
+.values .v{padding:24px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .values .v:nth-child(2n){border-right:0}
-.values .v .h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.values .v .h .dot{width:9px;height:9px;background:var(--red);border-radius:1px}
-.values .v h3{font-size:16px}
-.values .v p{margin:0;color:var(--muted);font-size:13.5px}
-@media(max-width:640px){.values{grid-template-columns:1fr}.values .v{border-right:0}}
+.values .v:nth-last-child(-n+2){border-bottom:0}
+.values .v .h{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.values .v .h .dot{width:9px;height:9px;background:var(--redline)}
+.values .v h3{font-size:19px;text-transform:uppercase}
+.values .v p{margin:0;color:var(--muted2);font-size:13.5px;font-weight:300}
+@media(max-width:640px){.values{grid-template-columns:1fr}.values .v{border-right:0}.values .v:nth-last-child(2){border-bottom:1px solid var(--line)}}
 
 /* ---- gallery ---- */
 .gallery{display:grid;grid-template-columns:2fr 1fr;gap:14px}
-.gallery .g{position:relative;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#0b0d0e}
-.gallery .g img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/10}
-.gallery .g.tall img{aspect-ratio:auto;height:100%}
-.gallery .cap{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:rgba(11,13,14,.66);padding:6px 9px;border-radius:2px}
+.gallery .g{position:relative;border:1px solid var(--line);overflow:hidden;background:#000}
+.gallery .g img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/10;filter:contrast(1.03)}
+.gallery .cap{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.6);padding:6px 9px}
 .gallery .col{display:grid;gap:14px}
 @media(max-width:820px){.gallery{grid-template-columns:1fr}}
 
 /* ---- revenue streams ---- */
 .streams{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.stream{border:1px solid var(--line);border-radius:3px;padding:18px;background:#fff}
-.stream .ic{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--red);line-height:1}
-.stream h3{font-size:15px;margin:12px 0 6px}
-.stream p{margin:0;font-size:12.5px;color:var(--muted)}
+.stream{border:1px solid var(--line);padding:20px;background:var(--glass)}
+.stream .ic{font-family:var(--disp);font-stretch:condensed;font-weight:700;font-size:26px;color:var(--redline);line-height:1}
+.stream h3{font-size:17px;margin:14px 0 7px;text-transform:uppercase}
+.stream p{margin:0;font-size:12.5px;color:var(--muted2);font-weight:300}
 @media(max-width:900px){.streams{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.streams{grid-template-columns:1fr}}
 
 /* ---- financial tables ---- */
 .fin{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
-.fin th,.fin td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:right}
+.fin th,.fin td{padding:12px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 .fin th:first-child,.fin td:first-child{text-align:left}
-.fin thead th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--ink)}
-.fin tr.tot td{font-weight:700;border-top:1px solid var(--ink)}
-.fin .pos{color:var(--red-ink)}
+.fin thead th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.28)}
+.fin tr.tot td{font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,.28)}
+.fin .pos{color:#ff5a6a}
 .fin .neg{color:var(--muted)}
-.scrollx{overflow-x:auto;border:1px solid var(--line);border-radius:3px}
+.fin td{color:#dcdcdc}
+.scrollx{overflow-x:auto;border:1px solid var(--line)}
 .scrollx .fin th,.scrollx .fin td{white-space:nowrap}
 
-/* ---- bar chart (pure css) ---- */
-.chart{margin-top:26px}
-.chart .row{display:grid;grid-template-columns:64px 1fr 96px;align-items:center;gap:12px;margin-bottom:10px}
+/* ---- bar chart ---- */
+.chart .row{display:grid;grid-template-columns:56px 1fr 92px;align-items:center;gap:12px;margin-bottom:10px}
 .chart .yr{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--muted)}
-.chart .track{position:relative;height:26px;background:var(--paper-2);border:1px solid var(--line);border-radius:2px;overflow:hidden}
-.chart .fill{position:absolute;top:0;bottom:0;left:50%;background:var(--red);opacity:.9}
-.chart .fill.neg{background:#c7ccd0}
-.chart .val{font-family:var(--mono);font-weight:700;font-size:12px;text-align:right}
-.chart .axis{display:grid;grid-template-columns:64px 1fr 96px;gap:12px;margin-top:6px}
-.chart .axis .mid{position:relative;height:1px}
+.chart .track{position:relative;height:26px;background:var(--glass);border:1px solid var(--line);overflow:hidden}
+.chart .fill{position:absolute;top:0;bottom:0;left:50%;background:var(--redline)}
+.chart .fill.neg{background:#4a4f54}
+.chart .val{font-family:var(--mono);font-weight:700;font-size:12px;text-align:right;color:#dcdcdc}
 .zero{position:absolute;top:-6px;bottom:-160px;left:50%;width:1px;background:var(--line)}
-.legend{display:flex;gap:18px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
-.legend .sw{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:6px}
+.legend{display:flex;gap:20px;margin-top:16px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
+.legend .sw{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:7px}
 
 /* ---- callout ---- */
-.callout{border:1px solid var(--line);border-left:3px solid var(--red);background:var(--paper-2);padding:18px 20px;border-radius:3px;font-size:14px}
-.callout b{font-family:var(--disp)}
-.note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6}
+.callout{border:1px solid var(--line);border-left:3px solid var(--redline);background:var(--glass);padding:20px 22px;font-size:14.5px;color:#e6e6e6;font-weight:300}
+.callout b{color:#fff}
+.note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.65;font-weight:300}
+.btn{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;background:var(--redline);color:#fff;padding:13px 20px;display:inline-block;transition:background .15s}
+.btn:hover{background:var(--redline-dim)}
 
 /* ---- roadmap ---- */
-.road{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
-.road .p{padding:22px;border-right:1px solid var(--line)}
+.road{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line)}
+.road .p{padding:24px;border-right:1px solid var(--line)}
 .road .p:last-child{border-right:0}
-.road .p .yr{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--red)}
-.road .p h3{font-size:15px;margin:8px 0 8px}
+.road .p .yr{font-family:var(--disp);font-stretch:condensed;font-weight:700;font-size:26px;color:var(--redline)}
+.road .p h3{font-size:17px;margin:10px 0 10px;text-transform:uppercase}
 .road .p ul{margin:0;padding-left:16px}
-.road .p li{font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.road .p li{font-size:12.5px;color:var(--muted2);margin-bottom:7px;font-weight:300}
 @media(max-width:820px){.road{grid-template-columns:1fr 1fr}.road .p:nth-child(2n){border-right:0}}
-@media(max-width:480px){.road{grid-template-columns:1fr}.road .p{border-right:0}}
+@media(max-width:480px){.road{grid-template-columns:1fr}.road .p{border-right:0;border-bottom:1px solid var(--line)}.road .p:last-child{border-bottom:0}}
 
 /* ---- footer ---- */
-footer{background:var(--ink);color:#fff;border:0;padding:56px 0}
+footer{background:#000;padding:64px 0;border-top:1px solid var(--line)}
 footer .row{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end}
-footer .tag{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#fff;margin-top:20px}
-footer .tag span{color:var(--red)}
-footer .fine{font-family:var(--mono);font-size:11px;color:#9aa0a4;letter-spacing:.04em;margin-top:26px;line-height:1.7;max-width:720px}
-footer a.cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:12px 18px;border-radius:2px}
-footer .logo{filter:invert(1)}
+footer .tag{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#fff;margin-top:22px}
+footer .tag span{color:var(--redline)}
+footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;margin-top:28px;line-height:1.8;max-width:760px;font-weight:400}
 
-.section-tail{margin-top:26px}
-.hr-strong{height:2px;background:var(--ink);border:0;margin:0}
+.section-tail{margin-top:28px}
+.tint{background:var(--ink2)}
 </style>
 </head>
 <body>
@@ -197,10 +192,10 @@ footer .logo{filter:invert(1)}
 <header>
   <div class="bar">
     <div class="lhs">
-      <span class="logo"><span class="wm"><b>REDLN</b><i>.</i></span><span class="mk"><span class="hz"></span><span class="est">EST.<br>2026</span></span></span>
+      <span class="logo">REDLN<span class="dot">.</span></span>
       <span class="doc">Business Plan · v1</span>
     </div>
-    <a class="cta" href="micro-model.html">Live Financial Model →</a>
+    <a class="cta" href="micro-model.html">Live Model →</a>
   </div>
 </header>
 
@@ -210,7 +205,7 @@ footer .logo{filter:invert(1)}
   <div class="scrim"></div>
   <div class="inner">
     <div class="eyebrow">Dubai · EST. 2026 · Internal Business Plan</div>
-    <h1>The world's first<br><span class="rl">Competition-Driven</span><br>Fitness Center.</h1>
+    <h1>The world's first<br><span class="rl cut">Competition-Driven</span><br>Fitness Center.</h1>
     <div class="tag">TRAIN<span>.</span> COMPETE<span>.</span> BELONG<span>.</span></div>
     <div class="metastrip">
       <span class="chip">New Category</span>
@@ -222,12 +217,12 @@ footer .logo{filter:invert(1)}
 </section>
 
 <!-- STAT BAND -->
-<section class="band">
-  <div class="wrap" style="padding:0 22px">
-    <div class="grid" style="margin:0 -22px">
+<section class="band" style="padding:0">
+  <div style="max-width:var(--maxw);margin:0 auto">
+    <div class="grid">
       <div class="cell"><div class="v"><i>AED</i> <span id="st-capital">2.15M</span></div><div class="k">Capital to launch</div></div>
       <div class="cell"><div class="v">4</div><div class="k">Revenue streams</div></div>
-      <div class="cell"><div class="v">Year <i id="st-ebitda-year">3</i></div><div class="k">EBITDA-positive</div></div>
+      <div class="cell"><div class="v">Year <i id="st-ebitda-year">2</i></div><div class="k">EBITDA-positive</div></div>
       <div class="cell"><div class="v">1<sup style="font-size:.5em">st</sup></div><div class="k">In its category</div></div>
     </div>
   </div>
@@ -237,48 +232,35 @@ footer .logo{filter:invert(1)}
 <section id="overview">
   <div class="wrap">
     <div class="kicker"><span class="num">01</span><span class="txt">Executive Overview</span></div>
-    <h2 class="big">A gym you don't just join.<br>One you compete in.</h2>
-    <p class="lead section-tail">REDLN is a purpose-built venue for competitive fitness — a permanent home for the Hyrox-style team race format that has turned amateur athletes into a global movement. Under one roof we combine a <b>competition arena</b>, <b>coached boutique training</b>, a calendar of <b>live ticketed events</b>, a <b>performance retail store</b> and a <b>fuel café</b>.</p>
+    <h2 class="big">A gym you don't<br>just join. One you<br><span class="rl">compete in.</span></h2>
+    <span class="redbar"></span>
+    <p class="lead section-tail">REDLN is a purpose-built venue for competitive fitness — a permanent home for the Hyrox-style team-race format that has turned amateur athletes into a global movement. Under one roof we combine a <b>competition arena</b>, <b>coached boutique training</b>, a calendar of <b>live ticketed events</b>, a <b>performance retail store</b> and a <b>fuel café</b>.</p>
     <p class="sub">Boutique studios sell the workout. Commercial gyms sell access. Neither sells the thing people actually want to be part of — <b>the competition, the leaderboard, the team, the belonging.</b> REDLN makes competition the product, and makes it available every single day. This document sets out the concept, the category we intend to create, our values, and the financial plan for the first venue.</p>
-    <div class="callout section-tail">To launch Season 01 in Dubai, REDLN requires <b id="ov-capital">AED&nbsp;2.15M</b> in capital — <span id="ov-capex">AED&nbsp;1.59M</span> of fit-out and equipment plus <span id="ov-preop">AED&nbsp;0.47M</span> of pre-opening runway. The venue is EBITDA-positive by <span id="ov-ebitda-year">Year&nbsp;3</span> and net-profit positive by <span id="ov-np-year">Year&nbsp;5</span> on this base case, built on four diversified, largely recurring revenue streams.</div>
+    <div class="callout section-tail">To launch Season 01 in Dubai, REDLN requires <b id="ov-capital">AED&nbsp;2.15M</b> in capital — <span id="ov-capex">AED&nbsp;1.59M</span> of fit-out and equipment plus <span id="ov-preop">AED&nbsp;0.47M</span> of pre-opening runway. The venue is EBITDA-positive by <span id="ov-ebitda-year">Year&nbsp;2</span> and net-profit positive by <span id="ov-np-year">Year&nbsp;5</span> on this base case, built on four diversified, largely recurring revenue streams.</div>
   </div>
 </section>
 
 <!-- THE CATEGORY -->
-<section id="category">
+<section id="category" class="tint">
   <div class="wrap">
     <div class="kicker"><span class="num">02</span><span class="txt">The New Category</span></div>
-    <h2 class="big">Competition-Driven Fitness.</h2>
+    <h2 class="big"><span class="rl">Competition-</span>Driven Fitness.</h2>
+    <span class="redbar"></span>
     <p class="lead section-tail">Hyrox proved there is enormous, unmet demand for <b>amateur competition</b> — hundreds of thousands of everyday athletes paying to race, train for a result, and belong to a scene. But that demand is served by <b>events</b>: itinerant, a few times a year, in rented convention halls. Between races, competitors go back to ordinary gyms that were never built for them.</p>
     <p class="sub">REDLN closes that gap. We take the competition format and give it a permanent home — a venue engineered around the race, with live scoring, seasons, leaderboards, coached preparation and a spectator floor. We are not opening another boutique studio or another commercial gym. <b>We are defining a new category: the Competition-Driven Fitness Center</b> — train, compete, spectate and belong, year-round, in one place. First-mover advantage in a category nobody else occupies yet.</p>
 
     <div class="compare section-tail">
       <div class="col">
         <div class="hd">Boutique Studio</div>
-        <ul>
-          <li>Sells a class experience</li>
-          <li>Instructor-led, no result</li>
-          <li>Recurring, but interchangeable</li>
-          <li>No competition, no season</li>
-        </ul>
+        <ul><li>Sells a class experience</li><li>Instructor-led, no result</li><li>Recurring, but interchangeable</li><li>No competition, no season</li></ul>
       </div>
       <div class="col">
         <div class="hd">Commercial Gym</div>
-        <ul>
-          <li>Sells access to equipment</li>
-          <li>Solo, unstructured</li>
-          <li>Low engagement, high churn</li>
-          <li>No community, no stakes</li>
-        </ul>
+        <ul><li>Sells access to equipment</li><li>Solo, unstructured</li><li>Low engagement, high churn</li><li>No community, no stakes</li></ul>
       </div>
       <div class="col us">
         <div class="hd">REDLN — Competition-Driven</div>
-        <ul>
-          <li>Sells the competition itself</li>
-          <li>Measured, ranked, seasonal</li>
-          <li>Team-based — sticky by design</li>
-          <li>Train, compete, spectate, belong</li>
-        </ul>
+        <ul><li>Sells the competition itself</li><li>Measured, ranked, seasonal</li><li>Team-based — sticky by design</li><li>Train, compete, spectate, belong</li></ul>
       </div>
     </div>
   </div>
@@ -288,7 +270,8 @@ footer .logo{filter:invert(1)}
 <section id="concept">
   <div class="wrap">
     <div class="kicker"><span class="num">03</span><span class="txt">The Concept</span></div>
-    <h2 class="big">Five businesses, one venue.</h2>
+    <h2 class="big">Five businesses,<br>one venue.</h2>
+    <span class="redbar"></span>
     <p class="sub section-tail">Each element reinforces the others: the arena and events build the brand and bring people in; the coached studio converts them into recurring members; retail and café monetise the time they already spend on site and deepen the identity.</p>
     <div class="grid3 section-tail">
       <div class="card"><span class="n">The Arena</span><h3>Compete</h3><p>A full competition floor — rows of rowers, skis, bikes and functional stations, live scoring and leaderboards. The stage for our race format, RUN·BIKE·ROW·SKI, and the reason the category exists.</p></div>
@@ -296,17 +279,18 @@ footer .logo{filter:invert(1)}
       <div class="card"><span class="n">The Events</span><h3>Belong</h3><p>A recurring calendar of ticketed team-race competitions with spectators and sponsors. The brand engine — acquisition, content, and community, all in one night.</p></div>
       <div class="card"><span class="n">The Store</span><h3>Fuel the identity</h3><p>A performance retail store — apparel and gear that lets members wear the badge outside the venue. A revenue stream and a brand billboard.</p></div>
       <div class="card"><span class="n">The Café</span><h3>Fuel the body</h3><p>Coffee, shakes and recovery — a reason to arrive early and stay late, and a high-margin, everyday revenue stream that turns dwell time into income.</p></div>
-      <div class="card" style="background:var(--ink);color:#fff;border-color:var(--ink)"><span class="n">The System</span><h3 style="color:#fff">Membership · Teams · Seasons</h3><p style="color:#aab0b4">Members join teams; teams compete across seasons; every result feeds a live leaderboard. Competition is what makes membership sticky — you don't quit mid-season, and you don't quit on your team.</p></div>
+      <div class="card" style="background:var(--redline-glass);border-color:var(--redline-edge)"><span class="n">The System</span><h3>Membership · Teams · Seasons</h3><p style="color:#e6e6e6">Members join teams; teams compete across seasons; every result feeds a live leaderboard. Competition is what makes membership sticky — you don't quit mid-season, and you don't quit on your team.</p></div>
     </div>
   </div>
 </section>
 
 <!-- EXPERIENCE / GALLERY -->
-<section id="experience" style="background:var(--paper-2)">
+<section id="experience" class="tint">
   <div class="wrap">
     <div class="kicker"><span class="num">04</span><span class="txt">The Experience</span></div>
     <h2 class="big">Built like a stadium.<br>Run like a studio.</h2>
-    <p class="sub section-tail">Design intent renders for the first REDLN venue — a warehouse-scale competition floor framed by a retail store and a café, wrapped in the brand's clean white-lab aesthetic and single red line.</p>
+    <span class="redbar"></span>
+    <p class="sub section-tail">Design-intent renders for the first REDLN venue — a warehouse-scale competition floor framed by a retail store and a café, wrapped in the brand's clean aesthetic and single red line.</p>
     <div class="gallery section-tail">
       <div class="g"><img src="brochure-assets/arena-rows.jpg" alt="REDLN competition arena"><span class="cap">The Arena · Competition Floor</span></div>
       <div class="col">
@@ -322,6 +306,7 @@ footer .logo{filter:invert(1)}
   <div class="wrap">
     <div class="kicker"><span class="num">05</span><span class="txt">Values &amp; Ethics</span></div>
     <h2 class="big">What we stand for.</h2>
+    <span class="redbar"></span>
     <div class="values section-tail">
       <div class="v"><div class="h"><span class="dot"></span><h3>Competition with integrity</h3></div><p>Every result is earned, measured and transparent. Fair heats, honest scoring, clean sport. The leaderboard is sacred.</p></div>
       <div class="v"><div class="h"><span class="dot"></span><h3>Everyone on the start line</h3></div><p>From first-timer to elite — everyday and elite divisions side by side. The category is inclusive by design; the arena welcomes all levels.</p></div>
@@ -334,46 +319,46 @@ footer .logo{filter:invert(1)}
 </section>
 
 <!-- REVENUE MODEL -->
-<section id="model">
+<section id="model" class="tint">
   <div class="wrap">
     <div class="kicker"><span class="num">06</span><span class="txt">Business Model</span></div>
-    <h2 class="big">Four streams. One roof.</h2>
+    <h2 class="big">Four streams.<br>One roof.</h2>
+    <span class="redbar"></span>
     <p class="sub section-tail">Diversification is the point. The recurring studio and café smooth the cash line; events and retail drive the brand and the margin. No single stream carries the venue.</p>
     <div class="streams section-tail">
       <div class="stream"><div class="ic">01</div><h3>Group Training</h3><p>Coached boutique classes — the recurring revenue engine and largest single stream.</p></div>
       <div class="stream"><div class="ic">02</div><h3>Events &amp; Tickets</h3><p>Ticketed team-race competitions — the acquisition and brand engine, plus sponsorship upside.</p></div>
       <div class="stream"><div class="ic">03</div><h3>Café / F&amp;B</h3><p>Everyday, high-margin fuel that monetises dwell time. A standalone unit.</p></div>
       <div class="stream"><div class="ic">04</div><h3>Retail</h3><p>Performance apparel and gear — a margin stream and a walking brand billboard.</p></div>
-      <div class="stream" style="background:var(--paper-2);border-style:dashed"><div class="ic">+</div><h3>Sponsorship</h3><p>Future upside — brand partners on the event floor, screens and kit as the audience scales.</p></div>
+      <div class="stream" style="border-style:dashed"><div class="ic">+</div><h3>Sponsorship</h3><p>Future upside — brand partners on the event floor, screens and kit as the audience scales.</p></div>
     </div>
     <div class="note">Revenue is recognised net of 5% VAT. The café and retail are modelled as standalone monthly business units, independent of the event calendar.</div>
   </div>
 </section>
 
 <!-- FINANCIALS -->
-<section id="financials" style="background:var(--paper-2)">
+<section id="financials">
   <div class="wrap">
     <div class="kicker"><span class="num">07</span><span class="txt">Financial Projections</span></div>
     <h2 class="big">The numbers.</h2>
-    <p class="sub section-tail">Figures below come straight from the REDLN financial model — a full 3-year plan with income statement, cash flow, balance sheet, depreciation, UAE corporate tax and payback. Every assumption is live and adjustable in the interactive model.</p>
-    <div id="sync-note" class="mono-label" style="margin-top:14px;color:var(--muted);display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#c7ccd0;display:inline-block"></span>Base-case defaults — open the model once to sync your saved inputs.</div>
+    <span class="redbar"></span>
+    <p class="sub section-tail">Figures below come straight from the REDLN Micro-Hyrox financial model — a full 3-year plan with income statement, cash flow, balance sheet, depreciation, UAE corporate tax and payback. Every assumption is live and adjustable in the interactive model.</p>
+    <div id="sync-note" class="mono-label" style="margin-top:16px;color:var(--muted);display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#4a4f54;display:inline-block"></span>Base-case defaults — open the model once to sync your saved inputs.</div>
 
     <div class="grid2 section-tail" style="align-items:start">
       <div>
-        <div class="mono-label" style="color:var(--muted);margin-bottom:12px">Capital Requirement</div>
+        <div class="mono-label" style="color:var(--muted);margin-bottom:14px">Capital Requirement</div>
         <div class="scrollx">
-          <table class="fin">
-            <tbody>
-              <tr><td>Fit-out &amp; equipment (CapEx, day one)</td><td id="cap-capex">1,590,000</td></tr>
-              <tr><td>Pre-opening runway (fit-out period)</td><td id="cap-preop">474,625</td></tr>
-              <tr class="tot"><td>Total capital to launch</td><td id="cap-total">2,153,787</td></tr>
-            </tbody>
-          </table>
+          <table class="fin"><tbody>
+            <tr><td>Fit-out &amp; equipment (CapEx, day one)</td><td id="cap-capex">1,590,000</td></tr>
+            <tr><td>Pre-opening runway (fit-out period)</td><td id="cap-preop">474,625</td></tr>
+            <tr class="tot"><td>Total capital to launch</td><td id="cap-total">2,153,787</td></tr>
+          </tbody></table>
         </div>
-        <div class="callout" style="margin-top:18px">Capital is injected 100% by the founder. Payback is measured against cumulative operating cash and against the founder's dividend share after a 30% sweat-equity grant to operating partners.</div>
+        <div class="callout" style="margin-top:20px">Capital is injected 100% by the founder. Payback is measured against cumulative operating cash and against the founder's dividend share after a 30% sweat-equity grant to operating partners.</div>
       </div>
       <div>
-        <div class="mono-label" style="color:var(--muted);margin-bottom:12px">Revenue Mix — Year 1 (gross by stream)</div>
+        <div class="mono-label" style="color:var(--muted);margin-bottom:14px">Revenue Mix — Year 1 (gross by stream)</div>
         <div class="scrollx">
           <table class="fin">
             <thead><tr><th>Stream</th><th>AED / yr</th><th>Share</th></tr></thead>
@@ -389,9 +374,7 @@ footer .logo{filter:invert(1)}
       </div>
     </div>
 
-    <hr class="hr-strong" style="margin:44px 0 30px">
-
-    <div class="mono-label" style="color:var(--muted);margin-bottom:12px">3-Year Income Summary (AED)</div>
+    <div class="mono-label" style="color:var(--muted);margin:44px 0 14px">3-Year Income Summary (AED)</div>
     <div class="scrollx">
       <table class="fin">
         <thead><tr><th>Line</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Year 5</th></tr></thead>
@@ -406,7 +389,7 @@ footer .logo{filter:invert(1)}
     </div>
 
     <div class="chart">
-      <div class="mono-label" style="color:var(--muted);margin:26px 0 16px">EBITDA trajectory (AED)</div>
+      <div class="mono-label" style="color:var(--muted);margin:30px 0 18px">EBITDA trajectory (AED)</div>
       <div style="position:relative" id="ebitda-bars">
         <div class="zero"></div>
         <div class="row"><span class="yr">Y1</span><div class="track"><span class="fill neg" style="right:50%;width:6.0%"></span></div><span class="val">(113k)</span></div>
@@ -415,10 +398,10 @@ footer .logo{filter:invert(1)}
         <div class="row"><span class="yr">Y4</span><div class="track"><span class="fill" style="left:50%;width:16%"></span></div><span class="val">298k</span></div>
         <div class="row"><span class="yr">Y5</span><div class="track"><span class="fill" style="left:50%;width:25.5%"></span></div><span class="val">475k</span></div>
       </div>
-      <div class="legend"><span><span class="sw" style="background:var(--red)"></span>Positive EBITDA</span><span><span class="sw" style="background:#c7ccd0"></span>Ramp / negative</span></div>
+      <div class="legend"><span><span class="sw" style="background:var(--redline)"></span>Positive EBITDA</span><span><span class="sw" style="background:#4a4f54"></span>Ramp / negative</span></div>
     </div>
 
-    <div class="note">Early-year losses are driven by <b>depreciation</b> (~AED 318k/yr on a AED 1.59M fit-out) — a non-cash charge. At operating level the venue is cash-generative from Year 2. Corporate tax (UAE, 9% above AED 375,000) applies only once profits clear the threshold, from the profitable years onward.</div>
+    <div class="note">Early-year losses are driven by <b>depreciation</b> (~AED 318k/yr on a AED 1.59M fit-out) — a non-cash charge. At operating level the venue is cash-generative early. Corporate tax (UAE, 9% above AED 375,000) applies only once profits clear the threshold.</div>
   </div>
 </section>
 
@@ -426,7 +409,8 @@ footer .logo{filter:invert(1)}
 <section id="payback">
   <div class="wrap">
     <div class="kicker"><span class="num">08</span><span class="txt">Payback &amp; Returns</span></div>
-    <h2 class="big">A venue, not an app.</h2>
+    <h2 class="big">A venue,<br>not an app.</h2>
+    <span class="redbar"></span>
     <p class="sub section-tail">REDLN is a capital-intensive, physical, brand-owning business — closer to a hospitality venue than a software play. The reward for that capital is a durable location, a real community, and ownership of an entire category. Payback reflects that profile.</p>
 
     <div class="grid3 section-tail">
@@ -436,15 +420,16 @@ footer .logo{filter:invert(1)}
     </div>
 
     <div class="callout section-tail">The base case is deliberately conservative and holds every price flat in real terms. The levers that most improve payback — class price, class volume, event frequency, sponsorship and café throughput — are all live in the model. <b>Tune them and the picture moves quickly.</b></div>
-    <div style="margin-top:22px"><a class="bar-cta" style="font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:12px 18px;border-radius:2px;display:inline-block" href="micro-model.html">Open the interactive model →</a></div>
+    <div style="margin-top:24px"><a class="btn" href="micro-model.html">Open the interactive model →</a></div>
   </div>
 </section>
 
 <!-- ROADMAP -->
-<section id="roadmap" style="background:var(--paper-2)">
+<section id="roadmap" class="tint">
   <div class="wrap">
     <div class="kicker"><span class="num">09</span><span class="txt">Roadmap</span></div>
-    <h2 class="big">From one arena to a category.</h2>
+    <h2 class="big">From one arena<br>to a category.</h2>
+    <span class="redbar"></span>
     <div class="road section-tail">
       <div class="p"><div class="yr">2026</div><h3>Launch — Dubai</h3><ul><li>Fit-out &amp; equip venue</li><li>Season 01 events</li><li>Found the community</li><li>Prove the format</li></ul></div>
       <div class="p"><div class="yr">2027</div><h3>Scale the flywheel</h3><ul><li>Full events calendar</li><li>Sponsorship on-floor</li><li>Retail &amp; café ramp</li><li>Reach EBITDA strength</li></ul></div>
@@ -455,11 +440,11 @@ footer .logo{filter:invert(1)}
 </section>
 
 <!-- CLOSE -->
-<section id="close" style="border-bottom:0">
-  <div class="wrap" style="text-align:center">
-    <div class="logo lg" style="margin:0 auto 26px"><span class="wm"><b>REDLN</b><i>.</i></span><span class="mk"><span class="hz"></span><span class="est">EST.<br>2026</span></span></div>
-    <h2 class="big" style="max-width:820px;margin:0 auto">We're not opening a gym.<br>We're opening a category.</h2>
-    <p class="sub" style="margin:20px auto 0;text-align:center">Competition-Driven Fitness. Train. Compete. Belong.</p>
+<section id="close" style="border-bottom:0;text-align:center">
+  <div class="wrap">
+    <span class="logo lg">REDLN<span class="dot">.</span></span>
+    <h2 class="big" style="max-width:900px;margin:26px auto 0">We're not opening a gym.<br>We're opening <span class="rl">a category.</span></h2>
+    <p class="sub" style="margin:22px auto 0">Competition-Driven Fitness. Train. Compete. Belong.</p>
   </div>
 </section>
 
@@ -467,19 +452,19 @@ footer .logo{filter:invert(1)}
   <div class="wrap">
     <div class="row">
       <div>
-        <div class="logo lg"><span class="wm"><b>REDLN</b><i>.</i></span><span class="mk"><span class="hz"></span><span class="est">EST.<br>2026</span></span></div>
+        <span class="logo lg">REDLN<span class="dot">.</span></span>
         <div class="tag">FUEL<span>.</span> FOCUS<span>.</span> FINISH<span>.</span></div>
       </div>
-      <a class="cta" href="micro-model.html">Live Financial Model →</a>
+      <a class="cta" style="font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;background:var(--redline);color:#fff;padding:13px 20px" href="micro-model.html">Live Model →</a>
     </div>
     <div class="fine">
-      REDLN. — Competition-Driven Fitness Center · Dubai · EST. 2026. This document is an internal business plan and design-intent concept. Financial figures are the base-case output of the REDLN financial model and are illustrative projections, not a forecast or an offer; all assumptions are adjustable in the live model. Interior images are AI-generated design-intent renders. Confidential.
+      REDLN. — Competition-Driven Fitness Center · Dubai · EST. 2026. This document is an internal business plan and design-intent concept. Financial figures are the base-case output of the REDLN Micro-Hyrox financial model and are illustrative projections, not a forecast or an offer; all assumptions are adjustable in the live model. Interior images are AI-generated design-intent renders. Confidential.
     </div>
   </div>
 </footer>
 
 <script>
-/* Mirror the live financial model: read the computed summary the model writes to
+/* Mirror the live Micro-Hyrox model: read the computed summary the model writes to
    localStorage (same origin) and repopulate every figure. Falls back to base-case
    defaults if the model hasn't been opened on this browser yet. */
 (function(){
@@ -502,11 +487,11 @@ footer .logo{filter:invert(1)}
   function rnd(n){return Math.round(n);}
   function comma(n){var neg=n<-0.5;n=Math.abs(rnd(n));var s=n.toLocaleString('en-US');return neg?'('+s+')':s;}
   function m2(n){var neg=n<0,a=Math.abs(n),s;if(a>=1e6)s=(a/1e6).toFixed(2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=''+Math.round(a);return (neg?'−':'')+s;}
-  function mM(n){return (n<0?'−':'')+'AED '+(Math.abs(n)/1e6).toFixed(2)+'M';}
+  function mM(n){return (n<0?'−':'')+'AED '+(Math.abs(n)/1e6).toFixed(2)+'M';}
   function setT(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   function setH(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
   function firstYr(p){for(var i=0;i<y.length;i++){if(p(y[i]))return y[i].yr;}return null;}
-  function yrTxt(n){return n?('Year '+n):('beyond Year '+y[y.length-1].yr);}
+  function yrTxt(n){return n?('Year '+n):('beyond Year '+y[y.length-1].yr);}
   var ebY=firstYr(function(x){return x.ebitda>0;}), npY=firstYr(function(x){return x.netProfit>0;});
 
   setT('st-capital', m2(D.funding));
@@ -554,14 +539,14 @@ footer .logo{filter:invert(1)}
   setT('pb-cap-amt', mM(D.funding));
   setT('pb-own', Math.round(D.founderPct));
   setT('pb-sweat', Math.round(D.sweatPct));
-  setT('pb-floor', 'AED '+comma(D.minBank));
+  setT('pb-floor', 'AED '+comma(D.minBank));
   setT('pb-floor-h3', m2(D.minBank)+' floor sweep');
   setT('pb-split', Math.round(D.founderPct)+' / '+Math.round(D.sweatPct));
 
   var note=document.getElementById('sync-note');
   if(note&&S){
     var dt=''; try{dt=new Date(S.t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){}
-    note.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block"></span>Synced live from your model'+(dt?(' · '+dt):'');
+    note.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:var(--redline);display:inline-block"></span>Synced live from your model'+(dt?(' · '+dt):'');
   }
 })();
 </script>
