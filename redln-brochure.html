@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REDLN. — Business Plan · Competition-Driven Fitness</title>
+<meta name="description" content="REDLN. — the world's first Competition-Driven Fitness Center. Business plan, concept, and financial projections. Dubai, EST. 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#FF1717; --red-ink:#D40000;
+  --ink:#0B0D0E; --paper:#ffffff; --paper-2:#f6f7f8;
+  --muted:#6b7176; --line:#e6e8ea; --line-2:#eff1f2;
+  --disp:'Chakra Petch',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --maxw:1120px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--mono); font-size:15px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    linear-gradient(rgba(11,13,14,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(11,13,14,.028) 1px,transparent 1px);
+  background-size:26px 26px;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+h1,h2,h3{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;line-height:1.02;margin:0}
+p{margin:0 0 16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.mono-label{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+
+/* ---- brand mark ---- */
+.logo{display:inline-flex;align-items:stretch;gap:0;border:2px solid var(--ink);background:#fff}
+.logo .wm{display:flex;align-items:center;padding:7px 12px;font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.01em;line-height:1}
+.logo .wm b{color:var(--ink)}
+.logo .wm i{color:var(--red);font-style:normal}
+.logo .mk{width:38px;border-left:2px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0}
+.logo .mk .hz{width:20px;height:20px;background:repeating-linear-gradient(48deg,var(--red) 0 3px,#fff 3px 6px);border:1px solid var(--ink)}
+.logo .mk .est{font-family:var(--mono);font-weight:700;font-size:6px;letter-spacing:.06em;color:var(--ink);text-align:center;line-height:1}
+.logo.lg .wm{font-size:34px;padding:12px 20px}
+.logo.lg .mk{width:60px}
+.logo.lg .mk .hz{width:34px;height:34px}
+.logo.lg .mk .est{font-size:8px}
+
+/* ---- top bar ---- */
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:saturate(1.4) blur(8px);border-bottom:1px solid var(--line)}
+.bar{max-width:var(--maxw);margin:0 auto;padding:9px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bar .lhs{display:flex;align-items:center;gap:14px}
+.bar .doc{font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px}
+.bar .cta{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:9px 14px;border-radius:2px;white-space:nowrap}
+.bar .cta:hover{background:var(--red-ink)}
+@media(max-width:640px){.bar .doc{display:none}}
+
+/* ---- section scaffolding ---- */
+section{padding:78px 0;border-bottom:1px solid var(--line-2)}
+.kicker{display:inline-flex;align-items:center;gap:10px;margin-bottom:20px}
+.kicker .num{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.06em;color:#fff;background:var(--red);padding:6px 10px;border-radius:2px}
+.kicker .txt{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+h2.big{font-size:clamp(30px,5.4vw,52px)}
+.lead{font-size:clamp(16px,2.2vw,20px);line-height:1.55;max-width:760px;color:var(--ink)}
+.sub{color:var(--muted);max-width:720px}
+
+/* ---- hero ---- */
+.hero{position:relative;border-bottom:1px solid var(--line);overflow:hidden;background:#0b0d0e}
+.hero .img{position:absolute;inset:0;background-size:cover;background-position:center;filter:grayscale(.15) contrast(1.02)}
+.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,13,.42),rgba(10,12,13,.30) 40%,rgba(10,12,13,.82))}
+.hero .inner{position:relative;max-width:var(--maxw);margin:0 auto;padding:66px 22px 54px;color:#fff;min-height:min(84vh,760px);display:flex;flex-direction:column;justify-content:flex-end}
+.hero .eyebrow{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#fff;opacity:.9;margin-bottom:22px}
+.hero h1{font-size:clamp(38px,8.4vw,92px);color:#fff;letter-spacing:-.02em;text-wrap:balance}
+.hero h1 .rl{color:var(--red)}
+.hero .tag{margin-top:22px;font-family:var(--mono);font-weight:700;font-size:clamp(12px,2.4vw,15px);letter-spacing:.22em;text-transform:uppercase;color:#fff}
+.hero .tag span{color:var(--red)}
+.hero .metastrip{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .metastrip .chip{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff;border:1px solid rgba(255,255,255,.34);padding:8px 12px;border-radius:2px;background:rgba(255,255,255,.06)}
+.hero .logo{position:absolute;top:26px;left:22px}
+
+/* ---- stat band ---- */
+.band{background:var(--ink);color:#fff;border:0}
+.band .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.12)}
+.band .cell{background:var(--ink);padding:26px 20px}
+.band .v{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.4vw,34px);line-height:1}
+.band .v i{font-style:normal;color:var(--red)}
+.band .k{margin-top:9px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#aab0b4}
+@media(max-width:760px){.band .grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ---- generic cards ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{border:1px solid var(--line);background:#fff;padding:24px;border-radius:3px}
+.card h3{font-size:20px;margin-bottom:8px}
+.card .n{display:inline-block;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);padding:6px 9px;border-radius:2px;margin-bottom:14px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.card .tag{color:var(--ink)}
+.grid2>*,.grid3>*{min-width:0}
+@media(max-width:820px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+
+/* ---- the gap / comparison ---- */
+.compare{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px}
+.compare .col{border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.compare .col .hd{padding:14px 16px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.compare .col.us .hd{background:var(--red);color:#fff;border-color:var(--red)}
+.compare .col ul{margin:0;padding:16px 16px 16px 32px}
+.compare .col li{margin-bottom:9px;font-size:13.5px;color:var(--muted)}
+.compare .col.us li{color:var(--ink)}
+@media(max-width:820px){.compare{grid-template-columns:1fr}}
+
+/* ---- values ---- */
+.values{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.values .v{padding:22px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.values .v:nth-child(2n){border-right:0}
+.values .v .h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.values .v .h .dot{width:9px;height:9px;background:var(--red);border-radius:1px}
+.values .v h3{font-size:16px}
+.values .v p{margin:0;color:var(--muted);font-size:13.5px}
+@media(max-width:640px){.values{grid-template-columns:1fr}.values .v{border-right:0}}
+
+/* ---- gallery ---- */
+.gallery{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.gallery .g{position:relative;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#0b0d0e}
+.gallery .g img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/10}
+.gallery .g.tall img{aspect-ratio:auto;height:100%}
+.gallery .cap{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:rgba(11,13,14,.66);padding:6px 9px;border-radius:2px}
+.gallery .col{display:grid;gap:14px}
+@media(max-width:820px){.gallery{grid-template-columns:1fr}}
+
+/* ---- revenue streams ---- */
+.streams{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.stream{border:1px solid var(--line);border-radius:3px;padding:18px;background:#fff}
+.stream .ic{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--red);line-height:1}
+.stream h3{font-size:15px;margin:12px 0 6px}
+.stream p{margin:0;font-size:12.5px;color:var(--muted)}
+@media(max-width:900px){.streams{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.streams{grid-template-columns:1fr}}
+
+/* ---- financial tables ---- */
+.fin{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+.fin th,.fin td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:right}
+.fin th:first-child,.fin td:first-child{text-align:left}
+.fin thead th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--ink)}
+.fin tr.tot td{font-weight:700;border-top:1px solid var(--ink)}
+.fin .pos{color:var(--red-ink)}
+.fin .neg{color:var(--muted)}
+.scrollx{overflow-x:auto;border:1px solid var(--line);border-radius:3px}
+.scrollx .fin th,.scrollx .fin td{white-space:nowrap}
+
+/* ---- bar chart (pure css) ---- */
+.chart{margin-top:26px}
+.chart .row{display:grid;grid-template-columns:64px 1fr 96px;align-items:center;gap:12px;margin-bottom:10px}
+.chart .yr{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--muted)}
+.chart .track{position:relative;height:26px;background:var(--paper-2);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.chart .fill{position:absolute;top:0;bottom:0;left:50%;background:var(--red);opacity:.9}
+.chart .fill.neg{background:#c7ccd0}
+.chart .val{font-family:var(--mono);font-weight:700;font-size:12px;text-align:right}
+.chart .axis{display:grid;grid-template-columns:64px 1fr 96px;gap:12px;margin-top:6px}
+.chart .axis .mid{position:relative;height:1px}
+.zero{position:absolute;top:-6px;bottom:-160px;left:50%;width:1px;background:var(--line)}
+.legend{display:flex;gap:18px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
+.legend .sw{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:6px}
+
+/* ---- callout ---- */
+.callout{border:1px solid var(--line);border-left:3px solid var(--red);background:var(--paper-2);padding:18px 20px;border-radius:3px;font-size:14px}
+.callout b{font-family:var(--disp)}
+.note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6}
+
+/* ---- roadmap ---- */
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.road .p{padding:22px;border-right:1px solid var(--line)}
+.road .p:last-child{border-right:0}
+.road .p .yr{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--red)}
+.road .p h3{font-size:15px;margin:8px 0 8px}
+.road .p ul{margin:0;padding-left:16px}
+.road .p li{font-size:12.5px;color:var(--muted);margin-bottom:6px}
+@media(max-width:820px){.road{grid-template-columns:1fr 1fr}.road .p:nth-child(2n){border-right:0}}
+@media(max-width:480px){.road{grid-template-columns:1fr}.road .p{border-right:0}}
+
+/* ---- footer ---- */
+footer{background:var(--ink);color:#fff;border:0;padding:56px 0}
+footer .row{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end}
+footer .tag{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#fff;margin-top:20px}
+footer .tag span{color:var(--red)}
+footer .fine{font-family:var(--mono);font-size:11px;color:#9aa0a4;letter-spacing:.04em;margin-top:26px;line-height:1.7;max-width:720px}
+footer a.cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:12px 18px;border-radius:2px}
+footer .logo{filter:invert(1)}
+
+.section-tail{margin-top:26px}
+.hr-strong{height:2px;background:var(--ink);border:0;margin:0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="lhs">
+      <span class="logo"><span class="wm"><b>REDLN</b><i>.</i></span><span class="mk"><span class="hz"></span><span class="est">EST.<br>2026</span></span></span>
+      <span class="doc">Business Plan · v1</span>
+    </div>
+    <a class="cta" href="micro-model.html">Live Financial Model →</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" style="padding:0">
+  <div class="img" style="background-image:url('brochure-assets/arena-runway.jpg')"></div>
+  <div class="scrim"></div>
+  <div class="inner">
+    <div class="eyebrow">Dubai · EST. 2026 · Internal Business Plan</div>
+    <h1>The world's first<br><span class="rl">Competition-Driven</span><br>Fitness Center.</h1>
+    <div class="tag">TRAIN<span>.</span> COMPETE<span>.</span> BELONG<span>.</span></div>
+    <div class="metastrip">
+      <span class="chip">New Category</span>
+      <span class="chip">Arena + Studio + Events</span>
+      <span class="chip">Retail &amp; Café</span>
+      <span class="chip">4 Revenue Streams</span>
+    </div>
+  </div>
+</section>
+
+<!-- STAT BAND -->
+<section class="band">
+  <div class="wrap" style="padding:0 22px">
+    <div class="grid" style="margin:0 -22px">
+      <div class="cell"><div class="v"><i>AED</i> 2.15M</div><div class="k">Capital to launch</div></div>
+      <div class="cell"><div class="v">4</div><div class="k">Revenue streams</div></div>
+      <div class="cell"><div class="v">Year <i>3</i></div><div class="k">EBITDA-positive</div></div>
+      <div class="cell"><div class="v">1<sup style="font-size:.5em">st</sup></div><div class="k">In its category</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="kicker"><span class="num">01</span><span class="txt">Executive Overview</span></div>
+    <h2 class="big">A gym you don't just join.<br>One you compete in.</h2>
+    <p class="lead section-tail">REDLN is a purpose-built venue for competitive fitness — a permanent home for the Hyrox-style team race format that has turned amateur athletes into a global movement. Under one roof we combine a <b>competition arena</b>, <b>coached boutique training</b>, a calendar of <b>live ticketed events</b>, a <b>performance retail store</b> and a <b>fuel café</b>.</p>
+    <p class="sub">Boutique studios sell the workout. Commercial gyms sell access. Neither sells the thing people actually want to be part of — <b>the competition, the leaderboard, the team, the belonging.</b> REDLN makes competition the product, and makes it available every single day. This document sets out the concept, the category we intend to create, our values, and the financial plan for the first venue.</p>
+    <div class="callout section-tail">To launch Season 01 in Dubai, REDLN requires <b>AED&nbsp;2.15M</b> in capital — AED&nbsp;1.59M of fit-out and equipment plus AED&nbsp;0.47M of pre-opening runway. The venue is EBITDA-positive by Year&nbsp;3 and net-profit positive by Year&nbsp;5 on a conservative base case, built on four diversified, largely recurring revenue streams.</div>
+  </div>
+</section>
+
+<!-- THE CATEGORY -->
+<section id="category">
+  <div class="wrap">
+    <div class="kicker"><span class="num">02</span><span class="txt">The New Category</span></div>
+    <h2 class="big">Competition-Driven Fitness.</h2>
+    <p class="lead section-tail">Hyrox proved there is enormous, unmet demand for <b>amateur competition</b> — hundreds of thousands of everyday athletes paying to race, train for a result, and belong to a scene. But that demand is served by <b>events</b>: itinerant, a few times a year, in rented convention halls. Between races, competitors go back to ordinary gyms that were never built for them.</p>
+    <p class="sub">REDLN closes that gap. We take the competition format and give it a permanent home — a venue engineered around the race, with live scoring, seasons, leaderboards, coached preparation and a spectator floor. We are not opening another boutique studio or another commercial gym. <b>We are defining a new category: the Competition-Driven Fitness Center</b> — train, compete, spectate and belong, year-round, in one place. First-mover advantage in a category nobody else occupies yet.</p>
+
+    <div class="compare section-tail">
+      <div class="col">
+        <div class="hd">Boutique Studio</div>
+        <ul>
+          <li>Sells a class experience</li>
+          <li>Instructor-led, no result</li>
+          <li>Recurring, but interchangeable</li>
+          <li>No competition, no season</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="hd">Commercial Gym</div>
+        <ul>
+          <li>Sells access to equipment</li>
+          <li>Solo, unstructured</li>
+          <li>Low engagement, high churn</li>
+          <li>No community, no stakes</li>
+        </ul>
+      </div>
+      <div class="col us">
+        <div class="hd">REDLN — Competition-Driven</div>
+        <ul>
+          <li>Sells the competition itself</li>
+          <li>Measured, ranked, seasonal</li>
+          <li>Team-based — sticky by design</li>
+          <li>Train, compete, spectate, belong</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPT -->
+<section id="concept">
+  <div class="wrap">
+    <div class="kicker"><span class="num">03</span><span class="txt">The Concept</span></div>
+    <h2 class="big">Five businesses, one venue.</h2>
+    <p class="sub section-tail">Each element reinforces the others: the arena and events build the brand and bring people in; the coached studio converts them into recurring members; retail and café monetise the time they already spend on site and deepen the identity.</p>
+    <div class="grid3 section-tail">
+      <div class="card"><span class="n">The Arena</span><h3>Compete</h3><p>A full competition floor — rows of rowers, skis, bikes and functional stations, live scoring and leaderboards. The stage for our race format, RUN·BIKE·ROW·SKI, and the reason the category exists.</p></div>
+      <div class="card"><span class="n">The Studio</span><h3>Train</h3><p>Coached boutique group classes that prepare members for the race format — programmed in seasons, ranked on the leaderboard, led by a roster of head and assistant coaches.</p></div>
+      <div class="card"><span class="n">The Events</span><h3>Belong</h3><p>A recurring calendar of ticketed team-race competitions with spectators and sponsors. The brand engine — acquisition, content, and community, all in one night.</p></div>
+      <div class="card"><span class="n">The Store</span><h3>Fuel the identity</h3><p>A performance retail store — apparel and gear that lets members wear the badge outside the venue. A revenue stream and a brand billboard.</p></div>
+      <div class="card"><span class="n">The Café</span><h3>Fuel the body</h3><p>Coffee, shakes and recovery — a reason to arrive early and stay late, and a high-margin, everyday revenue stream that turns dwell time into income.</p></div>
+      <div class="card" style="background:var(--ink);color:#fff;border-color:var(--ink)"><span class="n">The System</span><h3 style="color:#fff">Membership · Teams · Seasons</h3><p style="color:#aab0b4">Members join teams; teams compete across seasons; every result feeds a live leaderboard. Competition is what makes membership sticky — you don't quit mid-season, and you don't quit on your team.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE / GALLERY -->
+<section id="experience" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="kicker"><span class="num">04</span><span class="txt">The Experience</span></div>
+    <h2 class="big">Built like a stadium.<br>Run like a studio.</h2>
+    <p class="sub section-tail">Design intent renders for the first REDLN venue — a warehouse-scale competition floor framed by a retail store and a café, wrapped in the brand's clean white-lab aesthetic and single red line.</p>
+    <div class="gallery section-tail">
+      <div class="g"><img src="brochure-assets/arena-rows.jpg" alt="REDLN competition arena"><span class="cap">The Arena · Competition Floor</span></div>
+      <div class="col">
+        <div class="g"><img src="brochure-assets/entrance.jpg" alt="REDLN entrance, retail and café"><span class="cap">Entry · Retail · Café</span></div>
+        <div class="g"><img src="brochure-assets/arena-wide.jpg" alt="REDLN venue wide"><span class="cap">Event Mode · Spectator Runway</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section id="values">
+  <div class="wrap">
+    <div class="kicker"><span class="num">05</span><span class="txt">Values &amp; Ethics</span></div>
+    <h2 class="big">What we stand for.</h2>
+    <div class="values section-tail">
+      <div class="v"><div class="h"><span class="dot"></span><h3>Competition with integrity</h3></div><p>Every result is earned, measured and transparent. Fair heats, honest scoring, clean sport. The leaderboard is sacred.</p></div>
+      <div class="v"><div class="h"><span class="dot"></span><h3>Everyone on the start line</h3></div><p>From first-timer to elite — everyday and elite divisions side by side. The category is inclusive by design; the arena welcomes all levels.</p></div>
+      <div class="v"><div class="h"><span class="dot"></span><h3>Team before ego</h3></div><p>We are built around teams, not individuals. You show up because people are counting on you. Belonging is the product.</p></div>
+      <div class="v"><div class="h"><span class="dot"></span><h3>Measured progress</h3></div><p>What gets measured gets better. Seasons, splits and personal bests give members a reason to return and a story to tell.</p></div>
+      <div class="v"><div class="h"><span class="dot"></span><h3>Clean fuel</h3></div><p>Real food and honest nutrition. The café serves performance, not marketing — quality coffee, transparent shakes, proper recovery.</p></div>
+      <div class="v"><div class="h"><span class="dot"></span><h3>Responsible operations</h3></div><p>Efficient, durable fit-out; long-life equipment; sensible energy use. We build a venue meant to last a decade, not a season.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE MODEL -->
+<section id="model">
+  <div class="wrap">
+    <div class="kicker"><span class="num">06</span><span class="txt">Business Model</span></div>
+    <h2 class="big">Four streams. One roof.</h2>
+    <p class="sub section-tail">Diversification is the point. The recurring studio and café smooth the cash line; events and retail drive the brand and the margin. No single stream carries the venue.</p>
+    <div class="streams section-tail">
+      <div class="stream"><div class="ic">01</div><h3>Group Training</h3><p>Coached boutique classes — the recurring revenue engine and largest single stream.</p></div>
+      <div class="stream"><div class="ic">02</div><h3>Events &amp; Tickets</h3><p>Ticketed team-race competitions — the acquisition and brand engine, plus sponsorship upside.</p></div>
+      <div class="stream"><div class="ic">03</div><h3>Café / F&amp;B</h3><p>Everyday, high-margin fuel that monetises dwell time. A standalone unit.</p></div>
+      <div class="stream"><div class="ic">04</div><h3>Retail</h3><p>Performance apparel and gear — a margin stream and a walking brand billboard.</p></div>
+      <div class="stream" style="background:var(--paper-2);border-style:dashed"><div class="ic">+</div><h3>Sponsorship</h3><p>Future upside — brand partners on the event floor, screens and kit as the audience scales.</p></div>
+    </div>
+    <div class="note">Revenue is recognised net of 5% VAT. The café and retail are modelled as standalone monthly business units, independent of the event calendar.</div>
+  </div>
+</section>
+
+<!-- FINANCIALS -->
+<section id="financials" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="kicker"><span class="num">07</span><span class="txt">Financial Projections</span></div>
+    <h2 class="big">The base case.</h2>
+    <p class="sub section-tail">Figures below are the base-case output of the REDLN financial model — a full 3-year plan with income statement, cash flow, balance sheet, depreciation, UAE corporate tax and payback. Every assumption is live and adjustable in the interactive model.</p>
+
+    <div class="grid2 section-tail" style="align-items:start">
+      <div>
+        <div class="mono-label" style="color:var(--muted);margin-bottom:12px">Capital Requirement</div>
+        <div class="scrollx">
+          <table class="fin">
+            <tbody>
+              <tr><td>Fit-out &amp; equipment (CapEx, day one)</td><td>1,590,000</td></tr>
+              <tr><td>Pre-opening runway (fit-out period)</td><td>474,625</td></tr>
+              <tr class="tot"><td>Total capital to launch</td><td>2,153,787</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout" style="margin-top:18px">Capital is injected 100% by the founder. Payback is measured against cumulative operating cash and against the founder's dividend share after a 30% sweat-equity grant to operating partners.</div>
+      </div>
+      <div>
+        <div class="mono-label" style="color:var(--muted);margin-bottom:12px">Revenue Mix — Year 1 (gross by stream)</div>
+        <div class="scrollx">
+          <table class="fin">
+            <thead><tr><th>Stream</th><th>AED / yr</th><th>Share</th></tr></thead>
+            <tbody>
+              <tr><td>Group training</td><td>1,620,000</td><td>66%</td></tr>
+              <tr><td>Events &amp; tickets</td><td>723,000</td><td>29%</td></tr>
+              <tr><td>Café / F&amp;B</td><td>57,000</td><td>2%</td></tr>
+              <tr><td>Retail</td><td>57,000</td><td>2%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">Group training is the recurring engine; events are the brand and acquisition engine that make the whole venue possible. Café and retail scale with footfall.</div>
+      </div>
+    </div>
+
+    <hr class="hr-strong" style="margin:44px 0 30px">
+
+    <div class="mono-label" style="color:var(--muted);margin-bottom:12px">3-Year Income Summary (AED)</div>
+    <div class="scrollx">
+      <table class="fin">
+        <thead><tr><th>Line</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Year 5</th></tr></thead>
+        <tbody>
+          <tr><td>Net revenue</td><td>1,809,000</td><td>2,006,000</td><td>2,222,000</td><td>2,724,000</td></tr>
+          <tr><td>EBITDA</td><td class="neg">(113,000)</td><td>6,000</td><td class="pos">142,000</td><td class="pos">475,000</td></tr>
+          <tr><td>Depreciation</td><td class="neg">(318,000)</td><td class="neg">(318,000)</td><td class="neg">(318,000)</td><td class="neg">(318,000)</td></tr>
+          <tr><td>Corporate tax (9% &gt; 375k)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr class="tot"><td>Net profit (after tax)</td><td class="neg">(431,000)</td><td class="neg">(312,000)</td><td class="neg">(176,000)</td><td class="pos">157,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chart">
+      <div class="mono-label" style="color:var(--muted);margin:26px 0 16px">EBITDA trajectory (AED, base case)</div>
+      <div style="position:relative">
+        <div class="zero"></div>
+        <div class="row"><span class="yr">Y1</span><div class="track"><span class="fill neg" style="right:50%;width:6.0%"></span></div><span class="val">(113k)</span></div>
+        <div class="row"><span class="yr">Y2</span><div class="track"><span class="fill" style="left:50%;width:0.4%"></span></div><span class="val">6k</span></div>
+        <div class="row"><span class="yr">Y3</span><div class="track"><span class="fill" style="left:50%;width:7.6%"></span></div><span class="val">142k</span></div>
+        <div class="row"><span class="yr">Y4</span><div class="track"><span class="fill" style="left:50%;width:16%"></span></div><span class="val">298k</span></div>
+        <div class="row"><span class="yr">Y5</span><div class="track"><span class="fill" style="left:50%;width:25.5%"></span></div><span class="val">475k</span></div>
+      </div>
+      <div class="legend"><span><span class="sw" style="background:var(--red)"></span>Positive EBITDA</span><span><span class="sw" style="background:#c7ccd0"></span>Ramp / negative</span></div>
+    </div>
+
+    <div class="note">Early-year losses are driven by <b>depreciation</b> (~AED 318k/yr on a AED 1.59M fit-out) — a non-cash charge. At operating level the venue is cash-generative from Year 2. Corporate tax (UAE, 9% above AED 375,000) applies only once profits clear the threshold, from the profitable years onward.</div>
+  </div>
+</section>
+
+<!-- PAYBACK -->
+<section id="payback">
+  <div class="wrap">
+    <div class="kicker"><span class="num">08</span><span class="txt">Payback &amp; Returns</span></div>
+    <h2 class="big">A venue, not an app.</h2>
+    <p class="sub section-tail">REDLN is a capital-intensive, physical, brand-owning business — closer to a hospitality venue than a software play. The reward for that capital is a durable location, a real community, and ownership of an entire category. Payback reflects that profile.</p>
+
+    <div class="grid3 section-tail">
+      <div class="card"><span class="n">Capital Payback</span><h3>~6.6 years</h3><p class="tag">Cumulative operating cash recovers the full AED 2.15M injection (base case, projected on the same growth assumptions).</p></div>
+      <div class="card"><span class="n">Founder Payback</span><h3>~7.5 years</h3><p class="tag">The founder funds 100% of the capital but owns 70% after a 30% sweat-equity grant, so dividends return the injection a little later.</p></div>
+      <div class="card"><span class="n">Distribution Policy</span><h3>100k floor sweep</h3><p class="tag">The business keeps AED 100,000 in the bank at each period-end; all excess cash is distributed to shareholders by ownership (70 / 30).</p></div>
+    </div>
+
+    <div class="callout section-tail">The base case is deliberately conservative and holds every price flat in real terms. The levers that most improve payback — class price, class volume, event frequency, sponsorship and café throughput — are all live in the model. <b>Tune them and the picture moves quickly.</b></div>
+    <div style="margin-top:22px"><a class="bar-cta" style="font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:12px 18px;border-radius:2px;display:inline-block" href="micro-model.html">Open the interactive model →</a></div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="kicker"><span class="num">09</span><span class="txt">Roadmap</span></div>
+    <h2 class="big">From one arena to a category.</h2>
+    <div class="road section-tail">
+      <div class="p"><div class="yr">2026</div><h3>Launch — Dubai</h3><ul><li>Fit-out &amp; equip venue</li><li>Season 01 events</li><li>Found the community</li><li>Prove the format</li></ul></div>
+      <div class="p"><div class="yr">2027</div><h3>Scale the flywheel</h3><ul><li>Full events calendar</li><li>Sponsorship on-floor</li><li>Retail &amp; café ramp</li><li>Reach EBITDA strength</li></ul></div>
+      <div class="p"><div class="yr">2028</div><h3>Systemise</h3><ul><li>Repeatable playbook</li><li>Second-site scouting</li><li>Brand &amp; media assets</li><li>Category leadership</li></ul></div>
+      <div class="p"><div class="yr">2029+</div><h3>Expand</h3><ul><li>Multi-site / franchise</li><li>Regional event series</li><li>Own the category name</li><li>License the format</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSE -->
+<section id="close" style="border-bottom:0">
+  <div class="wrap" style="text-align:center">
+    <div class="logo lg" style="margin:0 auto 26px"><span class="wm"><b>REDLN</b><i>.</i></span><span class="mk"><span class="hz"></span><span class="est">EST.<br>2026</span></span></div>
+    <h2 class="big" style="max-width:820px;margin:0 auto">We're not opening a gym.<br>We're opening a category.</h2>
+    <p class="sub" style="margin:20px auto 0;text-align:center">Competition-Driven Fitness. Train. Compete. Belong.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <div class="logo lg"><span class="wm"><b>REDLN</b><i>.</i></span><span class="mk"><span class="hz"></span><span class="est">EST.<br>2026</span></span></div>
+        <div class="tag">FUEL<span>.</span> FOCUS<span>.</span> FINISH<span>.</span></div>
+      </div>
+      <a class="cta" href="micro-model.html">Live Financial Model →</a>
+    </div>
+    <div class="fine">
+      REDLN. — Competition-Driven Fitness Center · Dubai · EST. 2026. This document is an internal business plan and design-intent concept. Financial figures are the base-case output of the REDLN financial model and are illustrative projections, not a forecast or an offer; all assumptions are adjustable in the live model. Interior images are AI-generated design-intent renders. Confidential.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
