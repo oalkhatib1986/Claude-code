@@ -113,6 +113,10 @@ b{font-weight:700;color:var(--ink)}
 .card .tag{color:var(--ink-soft)}
 .grid3 .glue{grid-column:span 2;background:var(--red-tint);border-color:var(--red)}
 @media(max-width:820px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.grid3 .glue{grid-column:auto}}
+.feat{list-style:none;margin:16px 0 0;padding:0}
+.feat li{position:relative;padding:11px 0 11px 20px;border-top:1px solid var(--line-2);font-size:13.5px;color:var(--muted)}
+.feat li::before{content:"";position:absolute;left:0;top:17px;width:8px;height:8px;background:var(--red)}
+.feat li b{color:var(--ink)}
 
 /* ---- comparison ---- */
 .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:12px}
@@ -238,6 +242,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
       <span class="chip">New Category</span>
       <span class="chip">Arena + Training + Events</span>
       <span class="chip">Retail &amp; Café</span>
+      <span class="chip">Owned Platform</span>
       <span class="chip">4 Revenue Streams</span>
     </div>
   </div>
@@ -300,10 +305,48 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   </div>
 </section>
 
+<!-- PLATFORM -->
+<section id="platform">
+  <div class="wrap">
+    <div class="kicker"><span class="num">04</span><span class="txt">Platform &amp; Technology</span></div>
+    <h2 class="big">Software,<br>not just a space.</h2>
+    <span class="redbar"></span>
+    <p class="sub section-tail">REDLN isn't only a venue — it's a platform. A member-facing app runs the whole competitive journey; an operations console runs the floor. The experience, the data and the community live in software we own — the real moat under the business, and both are already built.</p>
+    <div class="grid2 section-tail" style="align-items:start">
+      <div class="card">
+        <span class="n">Member App · Customer side</span>
+        <h3>The athlete journey</h3>
+        <ul class="feat">
+          <li><b>Tickets</b> — date-first flow: pick your race, choose Everyday or Elite, check out.</li>
+          <li><b>Teams</b> — create a team or join one; the creator becomes captain.</li>
+          <li><b>Invites</b> — captains invite by email or RDLN number, add or remove members, and hand over the captaincy.</li>
+          <li><b>Shareable passes</b> — every team and athlete gets an Instagram-ready race pass and team badge — free, viral marketing.</li>
+          <li><b>Seasons &amp; leaderboards</b> — live results ranked by season, searchable by team name or number.</li>
+          <li><b>Account</b> — profile, entries and race history in one place.</li>
+        </ul>
+        <div style="margin-top:20px"><a class="btn" href="redln-customer-site.html" style="font-size:11px;padding:11px 16px">See the live experience →</a></div>
+      </div>
+      <div class="card">
+        <span class="n">Operations Console · Back end</span>
+        <h3>Run the floor</h3>
+        <ul class="feat">
+          <li><b>Events</b> — create events with dates, categories and capacity.</li>
+          <li><b>Workout builder</b> — define the RUN·BIKE·ROW·SKI stations for each event.</li>
+          <li><b>Heats</b> — organise athletes into heats and schedules.</li>
+          <li><b>Check-in</b> — manage rosters and check athletes in on race day.</li>
+          <li><b>Live scoring</b> — enter scores per station and publish straight to the leaderboard.</li>
+          <li><b>Volunteers &amp; exports</b> — manage the volunteer roster; export teams and scores to CSV.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout section-tail"><b>Why it's a moat:</b> the platform keeps members engaged between events, captures first-party data on every athlete, turns every team into a marketing channel through shareable passes, and gives us a repeatable operating system to run the next venue — and the one after that.</div>
+  </div>
+</section>
+
 <!-- EXPERIENCE / GALLERY -->
 <section id="experience" class="tint">
   <div class="wrap">
-    <div class="kicker"><span class="num">04</span><span class="txt">The Experience</span></div>
+    <div class="kicker"><span class="num">05</span><span class="txt">The Experience</span></div>
     <h2 class="big">Built like a stadium.<br>Run like a studio.</h2>
     <span class="redbar"></span>
     <p class="sub section-tail">Design-intent renders for the first REDLN venue — a warehouse-scale competition floor framed by a retail store and a café, wrapped in the brand's clean lab aesthetic and single red line.</p>
@@ -320,7 +363,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <!-- VALUES -->
 <section id="values">
   <div class="wrap">
-    <div class="kicker"><span class="num">05</span><span class="txt">Values &amp; Ethics</span></div>
+    <div class="kicker"><span class="num">06</span><span class="txt">Values &amp; Ethics</span></div>
     <h2 class="big">What we stand for.</h2>
     <span class="redbar"></span>
     <div class="values section-tail">
@@ -337,7 +380,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <!-- REVENUE MODEL -->
 <section id="model" class="tint">
   <div class="wrap">
-    <div class="kicker"><span class="num">06</span><span class="txt">Business Model</span></div>
+    <div class="kicker"><span class="num">07</span><span class="txt">Business Model</span></div>
     <h2 class="big">Four streams.<br>One roof.</h2>
     <span class="redbar"></span>
     <p class="sub section-tail">Diversification is the point. The recurring studio and café smooth the cash line; events and retail drive the brand and the margin. No single stream carries the venue.</p>
@@ -355,7 +398,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <!-- FINANCIALS -->
 <section id="financials">
   <div class="wrap">
-    <div class="kicker"><span class="num">07</span><span class="txt">Financial Projections</span></div>
+    <div class="kicker"><span class="num">08</span><span class="txt">Financial Projections</span></div>
     <h2 class="big">The numbers.</h2>
     <span class="redbar"></span>
     <p class="sub section-tail">Figures below come straight from the REDLN Micro-Hyrox financial model — a full 3-year plan with income statement, cash flow, balance sheet, depreciation, UAE corporate tax and payback. Every assumption is live and adjustable in the interactive model.</p>
@@ -426,10 +469,10 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <!-- PAYBACK -->
 <section id="payback">
   <div class="wrap">
-    <div class="kicker"><span class="num">08</span><span class="txt">Payback &amp; Returns</span></div>
-    <h2 class="big">A venue,<br>not an app.</h2>
+    <div class="kicker"><span class="num">09</span><span class="txt">Payback &amp; Returns</span></div>
+    <h2 class="big">A hard asset<br>with a moat.</h2>
     <span class="redbar"></span>
-    <p class="sub section-tail">REDLN is a capital-intensive, physical, brand-owning business — closer to a hospitality venue than a software play. The reward for that capital is a durable location, a real community, and ownership of an entire category. Payback reflects that profile.</p>
+    <p class="sub section-tail">REDLN is a capital-intensive, physical, brand-owning business — a real venue, a real community, and the software platform that runs both. The reward for that capital is a durable asset and ownership of an entire category. Payback reflects that profile.</p>
     <div class="grid3 section-tail">
       <div class="card"><span class="n">Capital Payback</span><h3 id="pb-capital">~2.1 years</h3><p class="tag">Cumulative operating cash recovers the full <span id="pb-cap-amt">AED 1.73M</span> injection (projected on the same growth assumptions).</p></div>
       <div class="card"><span class="n">Founder Payback</span><h3 id="pb-founder">~3.1 years</h3><p class="tag">The founder funds 100% of the capital but owns <span id="pb-own">70</span>% after a <span id="pb-sweat">30</span>% sweat-equity grant, so dividends return the injection a little later.</p></div>
@@ -443,7 +486,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <!-- ROADMAP -->
 <section id="roadmap" class="tint">
   <div class="wrap">
-    <div class="kicker"><span class="num">09</span><span class="txt">Roadmap</span></div>
+    <div class="kicker"><span class="num">10</span><span class="txt">Roadmap</span></div>
     <h2 class="big">From one arena<br>to a category.</h2>
     <span class="redbar"></span>
     <div class="road section-tail">
