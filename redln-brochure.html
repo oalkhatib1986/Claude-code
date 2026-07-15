@@ -401,7 +401,7 @@ footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-sp
       <div class="legend"><span><span class="sw" style="background:var(--redline)"></span>Positive EBITDA</span><span><span class="sw" style="background:#4a4f54"></span>Ramp / negative</span></div>
     </div>
 
-    <div class="note">Early-year losses are driven by <b>depreciation</b> (~AED 318k/yr on a AED 1.59M fit-out) — a non-cash charge. At operating level the venue is cash-generative early. Corporate tax (UAE, 9% above AED 375,000) applies only once profits clear the threshold.</div>
+    <div class="note" id="fin-note">Depreciation (~AED 318k/yr on a AED 1.59M fit-out) is a non-cash charge. Corporate tax (UAE, 9% above AED 375,000) applies only once profits clear the threshold.</div>
   </div>
 </section>
 
@@ -468,18 +468,14 @@ footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-sp
    localStorage (same origin) and repopulate every figure. Falls back to base-case
    defaults if the model hasn't been opened on this browser yet. */
 (function(){
+  var Y0={netRev:2880171,ebitdaPre:850000,eos:28329,ebitda:821671,dep:159000,tax:25890,netProfit:636780};
+  function yr(n){var o={yr:n};for(var k in Y0)o[k]=Y0[k];return o;}
   var BASE={
-    funding:2153787, capexTotal:1590000, preopBurn:474625, capitalReq:2153787,
-    payback:6.61, foundPayback:7.53, founderPct:70, sweatPct:30, minBank:100000,
-    ctRate:9, ctThreshold:375000, depYr:318000,
-    yall:[
-      {yr:1,netRev:1809338,ebitda:-113312,dep:318000,tax:0,netProfit:-431312},
-      {yr:2,netRev:2005511,ebitda:5955,dep:318000,tax:0,netProfit:-312045},
-      {yr:3,netRev:2221912,ebitda:142374,dep:318000,tax:0,netProfit:-175626},
-      {yr:4,netRev:2460587,ebitda:297867,dep:318000,tax:0,netProfit:-20133},
-      {yr:5,netRev:2723788,ebitda:474560,dep:318000,tax:0,netProfit:156560}
-    ],
-    mix:{event:723352,cls:1620000,fb:57143,ret:57143}
+    funding:1730631, capexTotal:795000, preopBurn:935631, capitalReq:1730631,
+    payback:2.1, foundPayback:3.1, founderPct:70, sweatPct:30, minBank:100000,
+    ctRate:9, ctThreshold:375000, depYr:159000,
+    yall:[yr(1),yr(2),yr(3),yr(4),yr(5)],
+    mix:{event:1160000,cls:2260000,fb:229000,ret:86000}
   };
   var S=null;
   try{var raw=localStorage.getItem('redln-micro-summary');if(raw){var o=JSON.parse(raw);if(o&&o.yall&&o.yall.length>=5&&o.funding)S=o;}}catch(e){}
@@ -517,8 +513,11 @@ footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-sp
   function cls(v){return v<-0.5?'neg':(v>0.5?'pos':'');}
   function money(v){return '<td class="'+cls(v)+'">'+comma(v)+'</td>';}
   function rc(fn){return cols.map(fn).join('');}
+  var hasEos=cols.every(function(c){return c.ebitdaPre!=null;});
   setH('is-body',
     '<tr><td>Net revenue</td>'+rc(function(c){return '<td>'+comma(c.netRev)+'</td>';})+'</tr>'+
+    (hasEos?('<tr><td>EBITDA (pre end-of-service)</td>'+rc(function(c){return money(c.ebitdaPre);})+'</tr>'+
+             '<tr><td>End-of-service</td>'+rc(function(c){return '<td class="neg">'+comma(-Math.abs(c.eos))+'</td>';})+'</tr>'):'')+
     '<tr><td>EBITDA</td>'+rc(function(c){return money(c.ebitda);})+'</tr>'+
     '<tr><td>Depreciation</td>'+rc(function(c){return '<td class="neg">'+comma(-Math.abs(c.dep))+'</td>';})+'</tr>'+
     '<tr><td>Corporate tax ('+(D.ctRate||9)+'% &gt; '+m2(D.ctThreshold||375000)+')</td>'+rc(function(c){return '<td>'+(Math.abs(c.tax)<0.5?'—':comma(-Math.abs(c.tax)))+'</td>';})+'</tr>'+
@@ -543,6 +542,15 @@ footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-sp
   setT('pb-floor-h3', m2(D.minBank)+' floor sweep');
   setT('pb-split', Math.round(D.founderPct)+' / '+Math.round(D.sweatPct));
 
+  var fn=document.getElementById('fin-note');
+  if(fn){
+    var dep=D.depYr||Math.abs((y[0]||{}).dep)||0, cap=D.capexTotal||0, thr=m2(D.ctThreshold||375000), rate=(D.ctRate||9)+'%';
+    var loss=(y[0]&&y[0].netProfit<0);
+    fn.innerHTML=(loss
+      ? 'Early-year losses are driven by <b>depreciation</b> (~AED '+m2(dep)+'/yr on a AED '+m2(cap)+' fit-out) — a non-cash charge; at operating level the venue is cash-generative early. '
+      : 'The venue is profitable across the plan. <b>Depreciation</b> (~AED '+m2(dep)+'/yr on a AED '+m2(cap)+' fit-out) is a non-cash charge, so cash generation runs well above net profit. ')
+      + 'Corporate tax (UAE, '+rate+' above AED '+m2(D.ctThreshold||375000)+') applies only once profits clear the threshold.';
+  }
   var note=document.getElementById('sync-note');
   if(note&&S){
     var dt=''; try{dt=new Date(S.t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){}

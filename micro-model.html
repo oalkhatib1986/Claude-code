@@ -793,7 +793,7 @@ function saveSummary(A,Y){try{
   funding:A.funding, capexTotal:A.capexTotal, preopBurn:A.preopBurn, capitalReq:A.capitalReq,
   payback:A.payback, foundPayback:A.foundPayback, founderPct:A.founderPct, sweatPct:A.sweatPct, minBank:A.minBank,
   ctRate:num('ctRate'), ctThreshold:num('ctThreshold'), depYr:A.depYr,
-  yall:A.Yall.map(function(y){return {yr:y.yr,netRev:y.netRev,ebitdaPre:y.ebitdaPre,ebitda:y.ebitda,dep:y.dep,tax:y.tax,netProfit:y.netProfit};}),
+  yall:A.Yall.map(function(y){return {yr:y.yr,netRev:y.netRev,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,tax:y.tax,netProfit:y.netProfit};}),
   mix:{event:Y[0].grossEvent,cls:Y[0].grossClass,fb:Y[0].grossFb,ret:Y[0].grossRet}
  };
  localStorage.setItem('redln-micro-summary',JSON.stringify(s));
