@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>REDLN. — Business Plan · Competition-Driven Fitness</title>
-<meta name="description" content="REDLN. — the world's first Competition-Driven Fitness Center. Business plan, concept, and financial projections. Dubai, EST. 2026.">
+<title>REDLN. — Business Plan · Competitive Fitness</title>
+<meta name="description" content="REDLN. — the world's first Competitive Fitness Center. Business plan, concept, and financial projections. Dubai, EST. 2026.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -117,6 +117,11 @@ b{font-weight:700;color:var(--ink)}
 .feat li{position:relative;padding:11px 0 11px 20px;border-top:1px solid var(--line-2);font-size:13.5px;color:var(--muted)}
 .feat li::before{content:"";position:absolute;left:0;top:17px;width:8px;height:8px;background:var(--red)}
 .feat li b{color:var(--ink)}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.shot{margin:0;border:1px solid var(--ink);background:#0a0a0a;overflow:hidden}
+.shot img{width:100%;display:block;border-bottom:1px solid rgba(255,255,255,.12)}
+.shot figcaption{font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--ink);padding:10px 12px}
+@media(max-width:820px){.shots{grid-template-columns:1fr}}
 
 /* ---- comparison ---- */
 .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:12px}
@@ -198,15 +203,11 @@ b{font-weight:700;color:var(--ink)}
 @media(max-width:480px){.road{grid-template-columns:1fr}.road .p{border-right:0;border-bottom:1px solid var(--line)}.road .p:last-child{border-bottom:0}}
 
 /* ---- footer ---- */
-footer{background:var(--ink);padding:60px 0;border:0}
+footer{background:var(--paper-2);padding:60px 0;border-top:1px solid var(--line)}
 footer .row{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end}
-footer .tag{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#fff;margin-top:22px}
+footer .tag{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);margin-top:22px}
 footer .tag span{color:var(--red)}
-footer .fine{font-family:var(--mono);font-size:11px;color:#9aa0a4;letter-spacing:.03em;margin-top:28px;line-height:1.8;max-width:760px}
-footer .logo{background:transparent;border-color:#fff}
-footer .logo .wm{color:#fff}
-footer .logo .mk{border-color:#fff}
-footer .logo .mk .est{color:#fff}
+footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;margin-top:28px;line-height:1.8;max-width:760px}
 footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;background:var(--red);color:#fff;padding:13px 20px}
 
 .section-tail{margin-top:26px}
@@ -224,7 +225,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
     <a class="cta" href="micro-model.html">Live Model →</a>
   </div>
   <div class="ticker"><div class="track">
-    <span>TRAIN. COMPETE. BELONG.</span><b>/</b><span>FUEL. FOCUS. FINISH.</span><b>/</b><span>FIND YOUR LIMIT. THEN CROSS IT.</span><b>/</b><span>COMPETITION-DRIVEN FITNESS.</span><b>/</b><span>DUBAI · EST. 2026.</span><b>/</b><span>TRAIN. COMPETE. BELONG.</span><b>/</b><span>FUEL. FOCUS. FINISH.</span><b>/</b><span>FIND YOUR LIMIT. THEN CROSS IT.</span><b>/</b><span>COMPETITION-DRIVEN FITNESS.</span><b>/</b><span>DUBAI · EST. 2026.</span><b>/</b>
+    <span>TRAIN. COMPETE. BELONG.</span><b>/</b><span>FUEL. FOCUS. FINISH.</span><b>/</b><span>FIND YOUR LIMIT. THEN CROSS IT.</span><b>/</b><span>COMPETITIVE FITNESS.</span><b>/</b><span>DUBAI · EST. 2026.</span><b>/</b><span>TRAIN. COMPETE. BELONG.</span><b>/</b><span>FUEL. FOCUS. FINISH.</span><b>/</b><span>FIND YOUR LIMIT. THEN CROSS IT.</span><b>/</b><span>COMPETITIVE FITNESS.</span><b>/</b><span>DUBAI · EST. 2026.</span><b>/</b>
   </div></div>
 </header>
 
@@ -236,7 +237,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <div class="hero-bg"></div>
   <div class="inner">
     <div class="eyebrow">Dubai · EST. 2026 · Internal Business Plan</div>
-    <h1>The world's first<br><span class="rl cut">Competition-Driven</span><br>Fitness Center.</h1>
+    <h1>The world's first<br><span class="rl cut">Competitive Fitness</span><br>Center.</h1>
     <div class="tag">TRAIN<span>.</span> COMPETE<span>.</span> BELONG<span>.</span></div>
     <div class="metastrip">
       <span class="chip">New Category</span>
@@ -276,14 +277,14 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <section id="category" class="tint">
   <div class="wrap">
     <div class="kicker"><span class="num">02</span><span class="txt">The New Category</span></div>
-    <h2 class="big"><span class="rl">Competition-</span>Driven Fitness.</h2>
+    <h2 class="big"><span class="rl">Competitive</span> Fitness.</h2>
     <span class="redbar"></span>
     <p class="lead section-tail">Hyrox proved there is enormous, unmet demand for <b>amateur competition</b> — hundreds of thousands of everyday athletes paying to race, train for a result, and belong to a scene. But that demand is served by <b>events</b>: itinerant, a few times a year, in rented convention halls. Between races, competitors go back to ordinary gyms that were never built for them.</p>
-    <p class="sub">REDLN closes that gap. We take the competition format and give it a permanent home — a venue engineered around the race, with live scoring, seasons, leaderboards, coached preparation and a spectator floor. We are not opening another boutique studio or another commercial gym. <b>We are defining a new category: the Competition-Driven Fitness Center</b> — train, compete, spectate and belong, year-round, in one place. First-mover advantage in a category nobody else occupies yet.</p>
+    <p class="sub">REDLN closes that gap. We take the competition format and give it a permanent home — a venue engineered around the race, with live scoring, seasons, leaderboards, coached preparation and a spectator floor. We are not opening another boutique studio or another commercial gym. <b>We are defining a new category — Competitive Fitness</b> — train, compete, spectate and belong, year-round, in one place. First-mover advantage in a category nobody else occupies yet.</p>
     <div class="compare section-tail">
       <div class="col"><div class="hd">Boutique Studio</div><ul><li>Sells a class experience</li><li>Instructor-led, no result</li><li>Recurring, but interchangeable</li><li>No competition, no season</li></ul></div>
       <div class="col"><div class="hd">Commercial Gym</div><ul><li>Sells access to equipment</li><li>Solo, unstructured</li><li>Low engagement, high churn</li><li>No community, no stakes</li></ul></div>
-      <div class="col us"><div class="hd">REDLN — Competition-Driven</div><ul><li>Sells the competition itself</li><li>Measured, ranked, seasonal</li><li>Team-based — sticky by design</li><li>Train, compete, spectate, belong</li></ul></div>
+      <div class="col us"><div class="hd">REDLN — Competitive Fitness</div><ul><li>Sells the competition itself</li><li>Measured, ranked, seasonal</li><li>Team-based — sticky by design</li><li>Train, compete, spectate, belong</li></ul></div>
     </div>
   </div>
 </section>
@@ -340,6 +341,14 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
       </div>
     </div>
     <div class="callout section-tail"><b>Why it's a moat:</b> the platform keeps members engaged between events, captures first-party data on every athlete, turns every team into a marketing channel through shareable passes, and gives us a repeatable operating system to run the next venue — and the one after that.</div>
+
+    <div class="mono-label" style="color:var(--muted);margin:44px 0 16px">Live screens — already built</div>
+    <div class="shots">
+      <figure class="shot"><img src="brochure-assets/shots/client-tickets.jpg" alt="Member app — tickets"><figcaption>Member App · Tickets &amp; registration</figcaption></figure>
+      <figure class="shot"><img src="brochure-assets/shots/client-leaderboard.jpg" alt="Member app — leaderboard"><figcaption>Member App · Seasons &amp; leaderboards</figcaption></figure>
+      <figure class="shot"><img src="brochure-assets/shots/admin-scoring.jpg" alt="Ops console — scoring"><figcaption>Ops Console · Live scoring &amp; publishing</figcaption></figure>
+      <figure class="shot"><img src="brochure-assets/shots/admin-events.jpg" alt="Ops console — events"><figcaption>Ops Console · Event management</figcaption></figure>
+    </div>
   </div>
 </section>
 
@@ -503,7 +512,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <div class="wrap">
     <img class="logo-img lg" src="brochure-assets/redln-logo-black.png" alt="REDLN." style="margin:0 auto">
     <h2 class="big" style="max-width:900px;margin:26px auto 0">We're not opening a gym.<br>We're opening <span class="rl">a category.</span></h2>
-    <p class="sub" style="margin:22px auto 0">Competition-Driven Fitness. Train. Compete. Belong.</p>
+    <p class="sub" style="margin:22px auto 0">Competitive Fitness. Train. Compete. Belong.</p>
   </div>
 </section>
 
@@ -511,13 +520,13 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <div class="wrap">
     <div class="row">
       <div>
-        <img class="logo-img" src="brochure-assets/redln-logo-white.png" alt="REDLN." style="height:56px">
+        <img class="logo-img" src="brochure-assets/redln-logo-black.png" alt="REDLN." style="height:56px">
         <div class="tag">FUEL<span>.</span> FOCUS<span>.</span> FINISH<span>.</span></div>
       </div>
       <a class="cta" href="micro-model.html">Live Model →</a>
     </div>
     <div class="fine">
-      REDLN. — Competition-Driven Fitness Center · Dubai · EST. 2026. This document is an internal business plan and design-intent concept. Financial figures are the base-case output of the REDLN Micro-Hyrox financial model and are illustrative projections, not a forecast or an offer; all assumptions are adjustable in the live model. Interior images are AI-generated design-intent renders. Confidential.
+      REDLN. — Competitive Fitness Center · Dubai · EST. 2026. This document is an internal business plan and design-intent concept. Financial figures are the base-case output of the REDLN Micro-Hyrox financial model and are illustrative projections, not a forecast or an offer; all assumptions are adjustable in the live model. Interior images are AI-generated design-intent renders. Confidential.
     </div>
   </div>
 </footer>
