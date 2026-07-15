@@ -784,8 +784,20 @@ function update(){
    kpi('Cash end Y3',kfmt(cumline[2]),cumline[2]>=0?'green':'red','after funding '+kfmt(A.funding));
  barChart('ch-bars',['Y1','Y2','Y3'],Y.map(function(y){return y.netRev;}),Y.map(function(y){return y.ebitda;}));
  lineChart('ch-cash',[{x:'Open',y:A.funding-A.capexTotal-A.preopBurn}].concat(Y.map(function(y,i){return {x:'Y'+(i+1),y:cumline[i]};})));
- save();
+ save(); saveSummary(A,Y);
 }
+// Persist a computed summary so the business-plan brochure (same origin) can mirror these exact numbers.
+function saveSummary(A,Y){try{
+ var s={
+  v:2, t:Date.now(),
+  funding:A.funding, capexTotal:A.capexTotal, preopBurn:A.preopBurn, capitalReq:A.capitalReq,
+  payback:A.payback, foundPayback:A.foundPayback, founderPct:A.founderPct, sweatPct:A.sweatPct, minBank:A.minBank,
+  ctRate:num('ctRate'), ctThreshold:num('ctThreshold'), depYr:A.depYr,
+  yall:A.Yall.map(function(y){return {yr:y.yr,netRev:y.netRev,ebitdaPre:y.ebitdaPre,ebitda:y.ebitda,dep:y.dep,tax:y.tax,netProfit:y.netProfit};}),
+  mix:{event:Y[0].grossEvent,cls:Y[0].grossClass,fb:Y[0].grossFb,ret:Y[0].grossRet}
+ };
+ localStorage.setItem('redln-micro-summary',JSON.stringify(s));
+}catch(e){}}
 function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(e&&s[id]!=null)e.value=s[id];});}catch(e){}}
 function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});update();}

@@ -225,9 +225,9 @@ footer .logo{filter:invert(1)}
 <section class="band">
   <div class="wrap" style="padding:0 22px">
     <div class="grid" style="margin:0 -22px">
-      <div class="cell"><div class="v"><i>AED</i> 2.15M</div><div class="k">Capital to launch</div></div>
+      <div class="cell"><div class="v"><i>AED</i> <span id="st-capital">2.15M</span></div><div class="k">Capital to launch</div></div>
       <div class="cell"><div class="v">4</div><div class="k">Revenue streams</div></div>
-      <div class="cell"><div class="v">Year <i>3</i></div><div class="k">EBITDA-positive</div></div>
+      <div class="cell"><div class="v">Year <i id="st-ebitda-year">3</i></div><div class="k">EBITDA-positive</div></div>
       <div class="cell"><div class="v">1<sup style="font-size:.5em">st</sup></div><div class="k">In its category</div></div>
     </div>
   </div>
@@ -240,7 +240,7 @@ footer .logo{filter:invert(1)}
     <h2 class="big">A gym you don't just join.<br>One you compete in.</h2>
     <p class="lead section-tail">REDLN is a purpose-built venue for competitive fitness — a permanent home for the Hyrox-style team race format that has turned amateur athletes into a global movement. Under one roof we combine a <b>competition arena</b>, <b>coached boutique training</b>, a calendar of <b>live ticketed events</b>, a <b>performance retail store</b> and a <b>fuel café</b>.</p>
     <p class="sub">Boutique studios sell the workout. Commercial gyms sell access. Neither sells the thing people actually want to be part of — <b>the competition, the leaderboard, the team, the belonging.</b> REDLN makes competition the product, and makes it available every single day. This document sets out the concept, the category we intend to create, our values, and the financial plan for the first venue.</p>
-    <div class="callout section-tail">To launch Season 01 in Dubai, REDLN requires <b>AED&nbsp;2.15M</b> in capital — AED&nbsp;1.59M of fit-out and equipment plus AED&nbsp;0.47M of pre-opening runway. The venue is EBITDA-positive by Year&nbsp;3 and net-profit positive by Year&nbsp;5 on a conservative base case, built on four diversified, largely recurring revenue streams.</div>
+    <div class="callout section-tail">To launch Season 01 in Dubai, REDLN requires <b id="ov-capital">AED&nbsp;2.15M</b> in capital — <span id="ov-capex">AED&nbsp;1.59M</span> of fit-out and equipment plus <span id="ov-preop">AED&nbsp;0.47M</span> of pre-opening runway. The venue is EBITDA-positive by <span id="ov-ebitda-year">Year&nbsp;3</span> and net-profit positive by <span id="ov-np-year">Year&nbsp;5</span> on this base case, built on four diversified, largely recurring revenue streams.</div>
   </div>
 </section>
 
@@ -354,8 +354,9 @@ footer .logo{filter:invert(1)}
 <section id="financials" style="background:var(--paper-2)">
   <div class="wrap">
     <div class="kicker"><span class="num">07</span><span class="txt">Financial Projections</span></div>
-    <h2 class="big">The base case.</h2>
-    <p class="sub section-tail">Figures below are the base-case output of the REDLN financial model — a full 3-year plan with income statement, cash flow, balance sheet, depreciation, UAE corporate tax and payback. Every assumption is live and adjustable in the interactive model.</p>
+    <h2 class="big">The numbers.</h2>
+    <p class="sub section-tail">Figures below come straight from the REDLN financial model — a full 3-year plan with income statement, cash flow, balance sheet, depreciation, UAE corporate tax and payback. Every assumption is live and adjustable in the interactive model.</p>
+    <div id="sync-note" class="mono-label" style="margin-top:14px;color:var(--muted);display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#c7ccd0;display:inline-block"></span>Base-case defaults — open the model once to sync your saved inputs.</div>
 
     <div class="grid2 section-tail" style="align-items:start">
       <div>
@@ -363,9 +364,9 @@ footer .logo{filter:invert(1)}
         <div class="scrollx">
           <table class="fin">
             <tbody>
-              <tr><td>Fit-out &amp; equipment (CapEx, day one)</td><td>1,590,000</td></tr>
-              <tr><td>Pre-opening runway (fit-out period)</td><td>474,625</td></tr>
-              <tr class="tot"><td>Total capital to launch</td><td>2,153,787</td></tr>
+              <tr><td>Fit-out &amp; equipment (CapEx, day one)</td><td id="cap-capex">1,590,000</td></tr>
+              <tr><td>Pre-opening runway (fit-out period)</td><td id="cap-preop">474,625</td></tr>
+              <tr class="tot"><td>Total capital to launch</td><td id="cap-total">2,153,787</td></tr>
             </tbody>
           </table>
         </div>
@@ -376,7 +377,7 @@ footer .logo{filter:invert(1)}
         <div class="scrollx">
           <table class="fin">
             <thead><tr><th>Stream</th><th>AED / yr</th><th>Share</th></tr></thead>
-            <tbody>
+            <tbody id="mix-body">
               <tr><td>Group training</td><td>1,620,000</td><td>66%</td></tr>
               <tr><td>Events &amp; tickets</td><td>723,000</td><td>29%</td></tr>
               <tr><td>Café / F&amp;B</td><td>57,000</td><td>2%</td></tr>
@@ -394,7 +395,7 @@ footer .logo{filter:invert(1)}
     <div class="scrollx">
       <table class="fin">
         <thead><tr><th>Line</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Year 5</th></tr></thead>
-        <tbody>
+        <tbody id="is-body">
           <tr><td>Net revenue</td><td>1,809,000</td><td>2,006,000</td><td>2,222,000</td><td>2,724,000</td></tr>
           <tr><td>EBITDA</td><td class="neg">(113,000)</td><td>6,000</td><td class="pos">142,000</td><td class="pos">475,000</td></tr>
           <tr><td>Depreciation</td><td class="neg">(318,000)</td><td class="neg">(318,000)</td><td class="neg">(318,000)</td><td class="neg">(318,000)</td></tr>
@@ -405,8 +406,8 @@ footer .logo{filter:invert(1)}
     </div>
 
     <div class="chart">
-      <div class="mono-label" style="color:var(--muted);margin:26px 0 16px">EBITDA trajectory (AED, base case)</div>
-      <div style="position:relative">
+      <div class="mono-label" style="color:var(--muted);margin:26px 0 16px">EBITDA trajectory (AED)</div>
+      <div style="position:relative" id="ebitda-bars">
         <div class="zero"></div>
         <div class="row"><span class="yr">Y1</span><div class="track"><span class="fill neg" style="right:50%;width:6.0%"></span></div><span class="val">(113k)</span></div>
         <div class="row"><span class="yr">Y2</span><div class="track"><span class="fill" style="left:50%;width:0.4%"></span></div><span class="val">6k</span></div>
@@ -429,9 +430,9 @@ footer .logo{filter:invert(1)}
     <p class="sub section-tail">REDLN is a capital-intensive, physical, brand-owning business — closer to a hospitality venue than a software play. The reward for that capital is a durable location, a real community, and ownership of an entire category. Payback reflects that profile.</p>
 
     <div class="grid3 section-tail">
-      <div class="card"><span class="n">Capital Payback</span><h3>~6.6 years</h3><p class="tag">Cumulative operating cash recovers the full AED 2.15M injection (base case, projected on the same growth assumptions).</p></div>
-      <div class="card"><span class="n">Founder Payback</span><h3>~7.5 years</h3><p class="tag">The founder funds 100% of the capital but owns 70% after a 30% sweat-equity grant, so dividends return the injection a little later.</p></div>
-      <div class="card"><span class="n">Distribution Policy</span><h3>100k floor sweep</h3><p class="tag">The business keeps AED 100,000 in the bank at each period-end; all excess cash is distributed to shareholders by ownership (70 / 30).</p></div>
+      <div class="card"><span class="n">Capital Payback</span><h3 id="pb-capital">~6.6 years</h3><p class="tag">Cumulative operating cash recovers the full <span id="pb-cap-amt">AED 2.15M</span> injection (projected on the same growth assumptions).</p></div>
+      <div class="card"><span class="n">Founder Payback</span><h3 id="pb-founder">~7.5 years</h3><p class="tag">The founder funds 100% of the capital but owns <span id="pb-own">70</span>% after a <span id="pb-sweat">30</span>% sweat-equity grant, so dividends return the injection a little later.</p></div>
+      <div class="card"><span class="n">Distribution Policy</span><h3 id="pb-floor-h3">100k floor sweep</h3><p class="tag">The business keeps <span id="pb-floor">AED 100,000</span> in the bank at each period-end; all excess cash is distributed to shareholders by ownership (<span id="pb-split">70 / 30</span>).</p></div>
     </div>
 
     <div class="callout section-tail">The base case is deliberately conservative and holds every price flat in real terms. The levers that most improve payback — class price, class volume, event frequency, sponsorship and café throughput — are all live in the model. <b>Tune them and the picture moves quickly.</b></div>
@@ -476,6 +477,94 @@ footer .logo{filter:invert(1)}
     </div>
   </div>
 </footer>
+
+<script>
+/* Mirror the live financial model: read the computed summary the model writes to
+   localStorage (same origin) and repopulate every figure. Falls back to base-case
+   defaults if the model hasn't been opened on this browser yet. */
+(function(){
+  var BASE={
+    funding:2153787, capexTotal:1590000, preopBurn:474625, capitalReq:2153787,
+    payback:6.61, foundPayback:7.53, founderPct:70, sweatPct:30, minBank:100000,
+    ctRate:9, ctThreshold:375000, depYr:318000,
+    yall:[
+      {yr:1,netRev:1809338,ebitda:-113312,dep:318000,tax:0,netProfit:-431312},
+      {yr:2,netRev:2005511,ebitda:5955,dep:318000,tax:0,netProfit:-312045},
+      {yr:3,netRev:2221912,ebitda:142374,dep:318000,tax:0,netProfit:-175626},
+      {yr:4,netRev:2460587,ebitda:297867,dep:318000,tax:0,netProfit:-20133},
+      {yr:5,netRev:2723788,ebitda:474560,dep:318000,tax:0,netProfit:156560}
+    ],
+    mix:{event:723352,cls:1620000,fb:57143,ret:57143}
+  };
+  var S=null;
+  try{var raw=localStorage.getItem('redln-micro-summary');if(raw){var o=JSON.parse(raw);if(o&&o.yall&&o.yall.length>=5&&o.funding)S=o;}}catch(e){}
+  var D=S||BASE, y=D.yall, mx=D.mix||BASE.mix;
+  function rnd(n){return Math.round(n);}
+  function comma(n){var neg=n<-0.5;n=Math.abs(rnd(n));var s=n.toLocaleString('en-US');return neg?'('+s+')':s;}
+  function m2(n){var neg=n<0,a=Math.abs(n),s;if(a>=1e6)s=(a/1e6).toFixed(2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=''+Math.round(a);return (neg?'−':'')+s;}
+  function mM(n){return (n<0?'−':'')+'AED '+(Math.abs(n)/1e6).toFixed(2)+'M';}
+  function setT(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+  function setH(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
+  function firstYr(p){for(var i=0;i<y.length;i++){if(p(y[i]))return y[i].yr;}return null;}
+  function yrTxt(n){return n?('Year '+n):('beyond Year '+y[y.length-1].yr);}
+  var ebY=firstYr(function(x){return x.ebitda>0;}), npY=firstYr(function(x){return x.netProfit>0;});
+
+  setT('st-capital', m2(D.funding));
+  setT('st-ebitda-year', ebY||('>'+y[y.length-1].yr));
+  setT('ov-capital', mM(D.funding));
+  setT('ov-capex', mM(D.capexTotal));
+  setT('ov-preop', mM(D.preopBurn));
+  setH('ov-ebitda-year', yrTxt(ebY));
+  setH('ov-np-year', yrTxt(npY));
+  setT('cap-capex', comma(D.capexTotal));
+  setT('cap-preop', comma(D.preopBurn));
+  setT('cap-total', comma(D.funding));
+
+  var tot=mx.event+mx.cls+mx.fb+mx.ret;
+  function pct(v){return tot>0?Math.round(v/tot*100)+'%':'—';}
+  setH('mix-body',
+    '<tr><td>Group training</td><td>'+comma(mx.cls)+'</td><td>'+pct(mx.cls)+'</td></tr>'+
+    '<tr><td>Events &amp; tickets</td><td>'+comma(mx.event)+'</td><td>'+pct(mx.event)+'</td></tr>'+
+    '<tr><td>Café / F&amp;B</td><td>'+comma(mx.fb)+'</td><td>'+pct(mx.fb)+'</td></tr>'+
+    '<tr><td>Retail</td><td>'+comma(mx.ret)+'</td><td>'+pct(mx.ret)+'</td></tr>');
+
+  var cols=[y[0],y[1],y[2],y[4]];
+  function cls(v){return v<-0.5?'neg':(v>0.5?'pos':'');}
+  function money(v){return '<td class="'+cls(v)+'">'+comma(v)+'</td>';}
+  function rc(fn){return cols.map(fn).join('');}
+  setH('is-body',
+    '<tr><td>Net revenue</td>'+rc(function(c){return '<td>'+comma(c.netRev)+'</td>';})+'</tr>'+
+    '<tr><td>EBITDA</td>'+rc(function(c){return money(c.ebitda);})+'</tr>'+
+    '<tr><td>Depreciation</td>'+rc(function(c){return '<td class="neg">'+comma(-Math.abs(c.dep))+'</td>';})+'</tr>'+
+    '<tr><td>Corporate tax ('+(D.ctRate||9)+'% &gt; '+m2(D.ctThreshold||375000)+')</td>'+rc(function(c){return '<td>'+(Math.abs(c.tax)<0.5?'—':comma(-Math.abs(c.tax)))+'</td>';})+'</tr>'+
+    '<tr class="tot"><td>Net profit (after tax)</td>'+rc(function(c){return money(c.netProfit);})+'</tr>');
+
+  var eb=y.slice(0,5).map(function(x){return x.ebitda;});
+  var maxAbs=Math.max.apply(null,eb.map(function(v){return Math.abs(v);}))||1;
+  var bars='<div class="zero"></div>';
+  eb.forEach(function(v,i){
+    var w=(Math.abs(v)/maxAbs*46).toFixed(1);
+    var fill=v<0?'<span class="fill neg" style="right:50%;width:'+w+'%"></span>':'<span class="fill" style="left:50%;width:'+w+'%"></span>';
+    bars+='<div class="row"><span class="yr">Y'+(i+1)+'</span><div class="track">'+fill+'</div><span class="val">'+m2(v)+'</span></div>';
+  });
+  setH('ebitda-bars', bars);
+
+  setT('pb-capital', D.payback?('~'+(Math.round(D.payback*10)/10)+' years'):('> '+y.length+' years'));
+  setT('pb-founder', D.foundPayback?('~'+(Math.round(D.foundPayback*10)/10)+' years'):('> '+y.length+' years'));
+  setT('pb-cap-amt', mM(D.funding));
+  setT('pb-own', Math.round(D.founderPct));
+  setT('pb-sweat', Math.round(D.sweatPct));
+  setT('pb-floor', 'AED '+comma(D.minBank));
+  setT('pb-floor-h3', m2(D.minBank)+' floor sweep');
+  setT('pb-split', Math.round(D.founderPct)+' / '+Math.round(D.sweatPct));
+
+  var note=document.getElementById('sync-note');
+  if(note&&S){
+    var dt=''; try{dt=new Date(S.t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){}
+    note.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block"></span>Synced live from your model'+(dt?(' · '+dt):'');
+  }
+})();
+</script>
 
 </body>
 </html>
