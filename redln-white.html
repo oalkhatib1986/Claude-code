@@ -108,16 +108,20 @@ footer{border-top:1px solid var(--line);margin-top:10px}.foot-in{display:flex;ju
 /* ===== Japanese street-retro layer ===== */
 .hero{position:relative;overflow:hidden}
 /* hero background video — cinematic street-doc grade, projected onto the aluminum */
+.hero-poster{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:#e7e9eb url("redln-hero-poster.jpg") center 22% / cover no-repeat;
+  opacity:0.72;filter:grayscale(0.78) contrast(1.16) brightness(1.02) saturate(0.95)}
 .hero-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;
-  opacity:0.42;
-  filter:grayscale(0.92) contrast(1.3) brightness(1.05) saturate(0.9) sepia(0.04)}
+  opacity:0.72;
+  filter:grayscale(0.78) contrast(1.16) brightness(1.02) saturate(0.95)}
+.hero-vid.novid{display:none}
 /* projector gate flicker — tiny, keeps it feeling like footage not a photo */
 @keyframes gate{0%,100%{opacity:.40}17%{opacity:.37}19%{opacity:.44}55%{opacity:.385}57%{opacity:.425}80%{opacity:.395}}
 /* aluminum fade so the metal still reads through */
 .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;
   background:
-    linear-gradient(180deg,rgba(231,233,235,0.58) 0%,rgba(231,233,235,0.24) 34%,rgba(231,233,235,0.26) 60%,rgba(231,233,235,0.80) 100%),
-    linear-gradient(90deg,rgba(231,233,235,0.52) 0%,rgba(231,233,235,0.06) 26%,rgba(231,233,235,0.06) 74%,rgba(231,233,235,0.52) 100%),
+    linear-gradient(180deg,rgba(231,233,235,0.40) 0%,rgba(231,233,235,0.12) 34%,rgba(231,233,235,0.14) 60%,rgba(231,233,235,0.62) 100%),
+    linear-gradient(90deg,rgba(231,233,235,0.44) 0%,rgba(231,233,235,0.02) 26%,rgba(231,233,235,0.02) 74%,rgba(231,233,235,0.44) 100%),
     repeating-linear-gradient(90deg,rgba(255,255,255,0.28) 0 1px,rgba(18,22,26,0.02) 1px 2px,transparent 2px 5px)}
 /* filmic vignette — darkens the corners only (neutral, no colour cast) */
 .hero-vignette{position:absolute;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;
@@ -503,11 +507,11 @@ nav a{cursor:pointer}
 
 <main>
 <div id="page-home" class="pg on">
-<div class="hero"><video class="hero-vid" autoplay muted loop playsinline preload="auto" poster="" src="redln-hero.mp4"></video><div class="hero-veil"></div><div class="hero-vignette"></div><div class="hero-grain"></div><div class="hero-grain2"></div><div class="wrap"><div class="hgrid">
+<div class="hero"><div class="hero-poster"></div><video class="hero-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="redln-hero-poster.jpg" src="redln-hero.mp4"></video><div class="hero-veil"></div><div class="hero-vignette"></div><div class="hero-grain"></div><div class="hero-grain2"></div><div class="wrap"><div class="hgrid">
   <div>
     <div class="htop"><span class="no">Type-01</span><span class="bar"></span><span class="no">Fig. A</span></div>
-    <h1>Train.<br>Compete.<br><span class="r">Repeat.</span></h1>
-    <p class="lead">The region's first Competitive Fitness Center &mdash; a home to <b>train, compete and repeat.</b> Race it solo or as a team, every season. Find your limit, then cross it.</p>
+    <h1>Train.<br>Compete.<br><span class="r">Cross the line.</span></h1>
+    <p class="lead">The region's first Competitive Fitness Center. <b>Train</b> the race format in coached classes, then <b>compete</b> the season &mdash; solo or as a team. The workout you train all month is the one you race. Find your limit, then cross it.</p>
     <div class="meta"><div><div class="k">Location</div><div class="v">Dubai, UAE</div></div><div><div class="k">Next race</div><div class="v">Sat 21 Nov 2026</div></div></div>
     <div class="hact"><a class="btn btn-red" data-p="tickets">Register now &rarr;</a><a class="btn btn-line" data-p="workout">See the competition</a></div>
     <div class="speed"><span class="speed-bars"></span><span class="speed-tag"><i>+</i>&nbsp;&nbsp;REDLINE&nbsp;&nbsp;<i>+</i></span></div>
@@ -542,6 +546,20 @@ nav a{cursor:pointer}
   <span class="tbar"><i></i></span>
 </div></div>
 
+<section style="padding-bottom:8px"><div class="amb">
+  <div class="rulh" style="top:34px;right:-30px;width:300px"></div>
+  <div class="spine" style="left:4%;bottom:8%;font-size:60px">/01</div>
+  <div class="lab" style="right:26px;top:150px;transform:rotate(90deg);transform-origin:right top">TRAIN &middot; COMPETE &middot; REPEAT</div>
+</div><div class="wrap">
+  <div class="fig"><span class="r">FIG.01</span> &quot;How It Works&quot; <span class="ln"></span> <span>Train &middot; Compete &middot; Repeat</span></div>
+  <div class="race"><h2>One place.<br>Two <span class="r">halves.</span></h2>
+    <p>REDLN is a gym and a competition in one. You <b>train</b> on the race format in coached classes all season, then <b>compete</b> it for real on race day &mdash; solo or as a team. Same workout, measured and ranked. Then a new one drops next season and you go again.</p></div>
+  <div class="ovr"><div class="ovno">No.01<b>01</b></div><div class="ovk">Train</div><div><div class="ovt">Coached classes</div><div class="ovp">Boutique group classes built on the same run-bike-row-ski format as the race, programmed in seasons. Turn up year-round and build the exact engine race day rewards &mdash; no race entry needed to train.</div></div></div>
+  <div class="ovr"><div class="ovno">No.02<b>02</b></div><div class="ovk">Compete</div><div><div class="ovt">Race the season</div><div class="ovp">Five monthly race days. Enter on your own or as a team of four &mdash; chip-timed, live on the leaderboard. The workout you trained all month, now for real.</div></div></div>
+  <div class="ovr"><div class="ovno">No.03<b>03</b></div><div class="ovk">Repeat</div><div><div class="ovt">Every season</div><div class="ovp">A fresh workout every season. Train it, race it, then come back and beat your own line. That loop &mdash; not a one-off event &mdash; is the whole point.</div></div></div>
+  <div class="ovcta"><a class="btn btn-red" data-p="tickets">Register now &rarr;</a> <a class="btn btn-line" data-p="workout">Competition &amp; classes &rarr;</a></div>
+</div></section>
+
 <section><div class="amb">
   <div class="rulh" style="top:34px;left:-30px;width:330px"></div>
   <div class="spine rr" style="right:3%;top:9%;font-size:74px">REDLINE</div>
@@ -551,9 +569,9 @@ nav a{cursor:pointer}
   <div class="lab" style="right:26px;bottom:170px;transform:rotate(90deg);transform-origin:right bottom">VO&#8322; 62 ML&#183;KG&#8315;&#185;</div>
   <div class="lab" style="left:44px;top:150px">RPE 9 / 10</div>
 </div><div class="wrap">
-  <div class="fig"><span class="r">FIG.01</span> &quot;The Race&quot; <span class="ln"></span> <span>No.001 / DXB</span></div>
+  <div class="fig"><span class="r">FIG.02</span> &quot;The Race&quot; <span class="ln"></span> <span>No.001 / DXB</span></div>
   <div class="race"><h2>One line.<br>Everyone <span class="r">meets it.</span></h2>
-    <p>Four of you, one clock, nowhere to hide. Run, bike, row, ski — then a flat-out sprint for the line. Somewhere in the burn you'll hit the redline: the second your body wants to quit. Everyone meets it. The race is what you do next.</p></div>
+    <p>Solo or a team of four, one clock, nowhere to hide. Run, bike, row, ski — then a flat-out sprint for the line. Somewhere in the burn you'll hit the redline: the second your body wants to quit. Everyone meets it. The race is what you do next.</p></div>
 </div></section>
 
 <div class="ow-band"></div>
@@ -566,7 +584,7 @@ nav a{cursor:pointer}
   <div class="lab" style="right:24px;top:150px;transform:rotate(-90deg);transform-origin:right top">EMOM &#183; AMRAP &#183; FOR TIME</div>
   <div class="zone" style="right:34px;top:96px"><i></i><i></i><i></i><i></i><i class="hot"></i></div>
 </div><div class="wrap">
-  <div class="fig"><span class="r">FIG.02</span> &quot;The Format&quot; <span class="ln"></span> <span>3 Parts</span></div>
+  <div class="fig"><span class="r">FIG.03</span> &quot;The Format&quot; <span class="ln"></span> <span>3 Parts</span></div>
   <div class="ovr"><div class="ovno">No.01<b>01</b></div><div class="ovk">Enter</div><div><div class="ovt">Solo or team</div><div class="ovp">Race it on your own, or bring a team of four. Same workout, same clock — your time is your score, and it goes on the season leaderboard.</div></div></div>
   <div class="ovr"><div class="ovno">No.02<b>02</b></div><div class="ovk">The Competition</div><div><div class="ovt">Run bike row ski</div><div class="ovp">One fixed season workout — a run, then a machine, across bike, row and ski, with a sprint to the line. No skilled movements, all erg-based, scored on the clock.</div></div></div>
   <div class="ovr"><div class="ovno">No.03<b>03</b></div><div class="ovk">Categories</div><div><div class="ovt">Everyday &amp; Elite</div><div class="ovp">Same format, scaled load. Race once, or take the Season Pass for all five.</div></div></div>
@@ -579,7 +597,7 @@ nav a{cursor:pointer}
   <div class="rulv" style="left:16px;top:40px;height:200px"></div>
   <div class="lab" style="left:44px;top:150px">TRAIN &middot; COMPETE &middot; REPEAT</div>
 </div><div class="wrap">
-  <div class="fig"><span class="r">FIG.03</span> &quot;The Venue&quot; <span class="ln"></span> <span>Competitive Fitness</span></div>
+  <div class="fig"><span class="r">FIG.04</span> &quot;The Venue&quot; <span class="ln"></span> <span>Competitive Fitness</span></div>
   <div class="race"><h2>More than a race.<br>A <span class="r">competitive fitness</span> home.</h2>
     <p>REDLN isn't a one-off event &mdash; it's the region's first home for competitive fitness. Train for the format year-round, race it every season, then refuel and gear up on site. One venue, one community, one line to cross.</p></div>
   <div class="ovr"><div class="ovno">No.01<b>01</b></div><div class="ovk">Compete</div><div><div class="ovt">The season</div><div class="ovp">A calendar of ticketed race days &mdash; enter solo or as a team &mdash; with live scoring and season leaderboards. The main stage, and the reason the category exists.</div></div></div>
@@ -695,6 +713,20 @@ nav a{cursor:pointer}
   <div class="wrap foot-in"><span>Hold the line, set the pace</span><span class="r">REDLN&reg; LABS</span></div>
 </footer>
 <script>
+/* Hero video: play when allowed; if the browser blocks autoplay (e.g. iOS Low Power
+   Mode) swap to the poster still so there's never a dead play button. */
+(function(){
+  var v=document.querySelector('.hero-vid'); if(!v) return;
+  var fell=false;
+  function fallback(){ if(!fell){ fell=true; v.classList.add('novid'); } }
+  function attempt(){ v.muted=true; try{ var pr=v.play(); if(pr&&pr.catch) pr.catch(fallback); }catch(e){ fallback(); } }
+  if(v.readyState>=1) attempt(); else v.addEventListener('loadedmetadata',attempt,{once:true});
+  v.addEventListener('playing',function(){ fell=false; v.classList.remove('novid'); });
+  /* safety net: if it still hasn't started and isn't buffering, show the poster */
+  setTimeout(function(){ if(v.paused && v.readyState<3) fallback(); },3000);
+  /* let a first tap start it if the user wants motion */
+  document.addEventListener('touchstart',function h(){ if(v.paused){ v.classList.remove('novid'); fell=false; v.play().catch(function(){ fallback(); }); } document.removeEventListener('touchstart',h); },{passive:true});
+}());
 function go(p){document.querySelectorAll('.pg').forEach(function(e){e.classList.toggle('on',e.id==='page-'+p);});
 document.querySelectorAll('nav a').forEach(function(a){a.classList.toggle('on',a.dataset.p===p);});
 window.scrollTo(0,0);}
