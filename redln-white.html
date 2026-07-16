@@ -247,8 +247,8 @@ body{background:#e7e9eb !important;
   /* fixed REDLN logo pinned at the left of the band — exact brand wordmark; scrolling text passes behind it */
   .ticker-logo{position:absolute;left:0;top:0;bottom:0;z-index:4;display:flex;align-items:center;
     padding:0 26px 0 20px;pointer-events:none;
-    background:linear-gradient(to right,#fff 0%,#fff 64%,rgba(255,255,255,0) 100%)}
-  .ticker-logo-img{height:calc(100% - 4px);width:auto;object-fit:contain;display:block}
+    background:linear-gradient(to right,#e01313 0%,#e01313 62%,rgba(224,19,19,0) 100%)}
+  .ticker-logo-img{height:100%;width:auto;object-fit:cover;display:block;background:#fff}
 .ticker-wordmark{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:0.02em;text-transform:uppercase;line-height:1;white-space:nowrap;color:#fff !important;-webkit-text-fill-color:#fff !important;background-image:none !important;border:1.4px solid #fff;border-radius:2px;padding:4px 7px;display:inline-flex;align-items:flex-start}
 .ticker-wordmark sup{font-size:0.42em;line-height:1;margin-left:0.5px;-webkit-text-fill-color:#fff}
   .ticker-track{display:inline-flex;gap:0;padding:2px 0;position:relative;z-index:1;white-space:nowrap;animation:scroll 34s linear infinite}
@@ -293,7 +293,7 @@ body{background:#e7e9eb !important;
   }
   /* divider = a simple red slash between taglines */
   .ticker span b{color:inherit;font-weight:inherit;margin:0;padding:0}
-  .ticker span b::before{content:"/";font-family:var(--mono);color:#ffffff;font-weight:900;font-size:6.5px;line-height:1;margin:0 11px;vertical-align:baseline;
+  .ticker span b::before{content:"/";font-family:var(--mono);color:#ffffff;font-weight:900;font-size:9px;line-height:1;margin:0 11px;vertical-align:middle;position:relative;top:-0.5px;
     -webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);
     background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
   @keyframes scroll{to{transform:translateX(-50%)}}
@@ -499,7 +499,7 @@ nav a{cursor:pointer}
   <div class="navwrap"><nav><a class="on" data-p="home">Overview</a><a data-p="workout">Competition</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a><a data-p="why">The Why</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a></nav></div>
   <span class="hbtns"><a class="hbtn hbtn-line" data-p="account">Account</a><a class="hbtn" data-p="choose">Register &rarr;</a></span></div></header>
   <div class="ticker">
-    <div class="ticker-logo"><img class="ticker-logo-img" src="redln-badge-final.png" alt="REDLN"></div>
+    <div class="ticker-logo"><img class="ticker-logo-img" src="redln-badge-ticker.png" alt="REDLN"></div>
     <div class="ticker-track">
       <span><b>Set the pace</b><b>Hold the line</b><b>Run until it hurts</b><b>Win as a team</b><b>Strategy beats strength</b><b>Find your limit</b><b>Then cross it</b><b>Empty the tank</b><b>Move as one</b><b>Chase a faster line</b><b>Trust your four</b><b>Outwork the clock</b><b>Pain is the plan</b><b>Every second counts</b><b>Leave nothing on the floor</b><b>Redline together</b><b>Set the pace</b><b>Hold the line</b><b>Run until it hurts</b><b>Win as a team</b><b>Strategy beats strength</b><b>Find your limit</b><b>Then cross it</b><b>Empty the tank</b><b>Move as one</b><b>Chase a faster line</b><b>Trust your four</b><b>Outwork the clock</b><b>Pain is the plan</b><b>Every second counts</b><b>Leave nothing on the floor</b><b>Redline together</b></span>
     </div>
