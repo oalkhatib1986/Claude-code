@@ -396,10 +396,13 @@ nav a{cursor:pointer}
 .wtag{display:inline-flex;font-family:var(--mono);font-weight:700;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:#fff;background:var(--red);padding:5px 11px;border-radius:2px}
 .wpart .wp-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .wpart .wp-n{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}
-.wline{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;letter-spacing:0.04em;color:#33383d;align-items:baseline}
+.wline{display:grid;grid-template-columns:1fr 70px 70px;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;letter-spacing:0.04em;color:#33383d;align-items:baseline}
 .wline .wl-t{color:var(--ink);text-transform:uppercase;letter-spacing:0.08em;font-size:11px}
 .wline b{color:var(--ink);font-weight:700}
+.wline .wl-num{text-align:right}
 .wline .wl-tag{color:var(--red);text-transform:uppercase;font-size:10px;letter-spacing:0.12em}
+.wline.whead{border-top:none;padding:2px 0 0}
+.wline .wl-h{text-align:right;font-family:var(--mono);font-size:9.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--muted)}
 /* toggle */
 .tog{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-top:22px}
 .tog button{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 20px;background:var(--panel);color:var(--muted);border:0;cursor:pointer}
@@ -624,16 +627,20 @@ nav a{cursor:pointer}
    <div class="card"><div class="krow"><span>Categories</span><b>Everyday / Elite</b></div><div class="krow"><span>Scoring</span><b>Lower time wins</b></div></div>
   </div>
   <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 01</span><span class="wtag">Run</span></div>
-   <div class="wline"><span class="wl-t">Assault Runner</span><span><b class="w-ev">1,000m</b><b class="w-el" hidden>1,500m</b></span><span class="wl-tag">Erg</span></div></div>
+   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
+   <div class="wline"><span class="wl-t">Assault Runner</span><span class="wl-num"><b class="w-ev">1,000m</b><b class="w-el" hidden>1,500m</b></span><span class="wl-num"><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span></div></div>
   <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 02</span><span class="wtag">Ski</span></div>
-   <div class="wline"><span class="wl-t">Ski</span><span><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span><span class="wl-tag">Erg</span></div></div>
+   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
+   <div class="wline"><span class="wl-t">Ski</span><span class="wl-num"><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span><span class="wl-num"><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span></div></div>
   <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 03</span><span class="wtag">Bike</span></div>
-   <div class="wline"><span class="wl-t">Bike</span><span><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span><span class="wl-tag">Erg</span></div></div>
+   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
+   <div class="wline"><span class="wl-t">Bike</span><span class="wl-num"><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span><span class="wl-num"><b class="w-ev">8,000m</b><b class="w-el" hidden>12,000m</b></span></div></div>
   <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 04</span><span class="wtag">Row</span></div>
-   <div class="wline"><span class="wl-t">Row</span><span><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></span><span class="wl-tag">Erg</span></div></div>
+   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
+   <div class="wline"><span class="wl-t">Row</span><span class="wl-num"><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></span><span class="wl-num"><b class="w-ev">6,000m</b><b class="w-el" hidden>9,000m</b></span></div></div>
   <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">The Finish · end of Part 04</span><span class="wtag">Clock stops</span></div>
    <p class="plead" style="margin-top:0">The moment the last metre on the rower is done, the clock stops. Lower total time wins.</p></div>
-  <p class="note" style="margin-top:14px">Four ergs, back to back — run, ski, bike, row. Solo athletes complete every metre themselves; teams of four split each erg's distance across the team however they like.</p>
+  <p class="note" style="margin-top:14px">Four ergs, back to back — run, ski, bike, row. Solo athletes cover the solo distance alone; teams race the longer team distance, split across the four of you however you like.</p>
   <div class="card wpart" style="margin-top:24px"><div class="wp-h"><span class="wp-n">The Season</span><span class="wtag">Race again</span></div>
    <p class="plead" style="margin-top:0">Four races a season, all on this one workout. Race a single one, a couple, or chase all four &mdash; it's up to you. And because the workout never changes all season, every race is a shot to beat your own best: come back, go faster, climb the leaderboard.</p></div>
   <div class="peyebrow" style="margin-top:40px;color:var(--red)">On race day</div>
