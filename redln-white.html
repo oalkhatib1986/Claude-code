@@ -403,6 +403,29 @@ nav a{cursor:pointer}
 .wline .wl-tag{color:var(--red);text-transform:uppercase;font-size:10px;letter-spacing:0.12em}
 .wline.whead{border-top:none;padding:2px 0 0}
 .wline .wl-h{text-align:right;font-family:var(--mono);font-size:9.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--muted)}
+.wkspec{padding:0;overflow:hidden;position:relative;
+  background-color:#f7f8f9;
+  background-image:linear-gradient(rgba(60,90,120,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(60,90,120,0.03) 1px,transparent 1px),repeating-linear-gradient(90deg,rgba(255,255,255,0.6) 0 1px,rgba(18,22,26,0.014) 1px 2px,transparent 2px 5px),linear-gradient(116deg,#fdfdfe 0%,#f4f6f7 48%,#fafbfb 100%);
+  background-size:38px 38px,38px 38px,5px 100%,100% 100%}
+.wkspec .ck{position:absolute;width:13px;height:13px;z-index:3}
+.wkspec .ck::before,.wkspec .ck::after{content:"";position:absolute;background:var(--red)}
+.wkspec .ck::before{width:13px;height:2px}.wkspec .ck::after{width:2px;height:13px}
+.wkspec .ck.tl{left:12px;top:12px}.wkspec .ck.tl::before{left:0;top:0}.wkspec .ck.tl::after{left:0;top:0}
+.wkspec .ck.tr{right:12px;top:12px}.wkspec .ck.tr::before{right:0;top:0}.wkspec .ck.tr::after{right:0;top:0}
+.wkspec .ck.bl{left:12px;bottom:12px}.wkspec .ck.bl::before{left:0;bottom:0}.wkspec .ck.bl::after{left:0;bottom:0}
+.wkspec .ck.br{right:12px;bottom:12px}.wkspec .ck.br::before{right:0;bottom:0}.wkspec .ck.br::after{right:0;bottom:0}
+table.spec{width:100%;border-collapse:collapse;font-family:var(--mono);table-layout:fixed}
+table.spec th{font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:18px 20px 8px;text-align:right}
+table.spec th:first-child{text-align:left;padding-left:22px}
+table.spec td{padding:15px 20px;border-top:1px solid rgba(13,16,19,0.13);vertical-align:middle}
+table.spec td:first-child{padding-left:22px}
+table.spec td.er{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:19px;color:var(--ink);line-height:1}
+table.spec td.er .en{color:var(--red);margin-right:9px}
+table.spec td.er em{display:block;font-style:normal;font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:0.06em;color:var(--muted);margin-top:5px}
+table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-size:18px;color:var(--ink);width:76px}
+.wkspec .fintape{height:20px;background:repeating-linear-gradient(-26deg,var(--red) 0 12px,transparent 12px 29px);box-shadow:inset 0 1px 0 rgba(0,0,0,0.12),inset 0 -1px 0 rgba(0,0,0,0.12)}
+.wkspec .finstrip{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:16px 22px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.wkspec .finstrip .r{color:var(--red)}
 .finishcard{position:relative;padding-top:0;overflow:hidden}
 .finishcard .fin-flag{height:22px;margin:0 -22px 20px;background:repeating-linear-gradient(-26deg,var(--red) 0 12px,transparent 12px 29px);box-shadow:inset 0 1px 0 rgba(0,0,0,0.12),inset 0 -1px 0 rgba(0,0,0,0.12)}
 .finishcard .fin-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
@@ -630,21 +653,18 @@ nav a{cursor:pointer}
    <div class="card"><div class="krow"><span>Entry</span><b>Solo or team of 4</b></div><div class="krow"><span>Team make-up</span><b>4M, 4F or 2M/2F</b></div><div class="krow"><span>Movements</span><b>All erg-based</b></div></div>
    <div class="card"><div class="krow"><span>Categories</span><b>Everyday / Elite</b></div><div class="krow"><span>Work split (teams)</span><b>Split across the 4</b></div><div class="krow"><span>Scoring</span><b>Lower time wins</b></div></div>
   </div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 01</span><span class="wtag">Run</span></div>
-   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
-   <div class="wline"><span class="wl-t">Assault Runner</span><span class="wl-num"><b class="w-ev">1,000m</b><b class="w-el" hidden>1,500m</b></span><span class="wl-num"><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 02</span><span class="wtag">Ski</span></div>
-   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
-   <div class="wline"><span class="wl-t">Ski</span><span class="wl-num"><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span><span class="wl-num"><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 03</span><span class="wtag">Bike</span></div>
-   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
-   <div class="wline"><span class="wl-t">Bike</span><span class="wl-num"><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span><span class="wl-num"><b class="w-ev">8,000m</b><b class="w-el" hidden>12,000m</b></span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 04</span><span class="wtag">Row</span></div>
-   <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
-   <div class="wline"><span class="wl-t">Row</span><span class="wl-num"><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></span><span class="wl-num"><b class="w-ev">6,000m</b><b class="w-el" hidden>9,000m</b></span></div></div>
-  <div class="card wpart finishcard" style="margin-top:16px"><div class="fin-flag"></div>
-   <div class="fin-h"><span class="fin-t">The Finish</span><span class="wtag">Clock stops</span></div>
-   <p class="plead" style="margin-top:14px">The moment the last metre on the rower is done, the clock stops. Lower total time wins.</p></div>
+  <div class="card wkspec" style="margin-top:16px">
+   <span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
+   <table class="spec"><thead><tr><th>Erg</th><th>Solo</th><th>Team</th></tr></thead>
+   <tbody>
+    <tr><td class="er"><span class="en">01</span>Run<em>Assault Runner</em></td><td class="num"><b class="w-ev">1,000m</b><b class="w-el" hidden>1,500m</b></td><td class="num"><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></td></tr>
+    <tr><td class="er"><span class="en">02</span>Ski<em>Ski</em></td><td class="num"><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></td><td class="num"><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></td></tr>
+    <tr><td class="er"><span class="en">03</span>Bike<em>Bike</em></td><td class="num"><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></td><td class="num"><b class="w-ev">8,000m</b><b class="w-el" hidden>12,000m</b></td></tr>
+    <tr><td class="er"><span class="en">04</span>Row<em>Row</em></td><td class="num"><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></td><td class="num"><b class="w-ev">6,000m</b><b class="w-el" hidden>9,000m</b></td></tr>
+   </tbody></table>
+   <div class="fintape"></div>
+   <div class="finstrip"><span>The Finish &middot; clock stops</span><span class="r">Lower total time wins</span></div>
+  </div>
   <div class="peyebrow" style="margin-top:40px;color:var(--red)">The season</div>
   <h2 style="font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,5vw,36px);line-height:0.95;margin:6px 0 10px">Race once.<br>Or <span class="r">race them all.</span></h2>
   <p class="plead" style="margin-top:0;max-width:60ch">A season is four races, all on this one fixed workout. Enter a single race, a couple, or chase all four &mdash; entirely up to you. Every race is a chance to <b>beat your own best time</b>. Race it more than once and you'll see it drop: come back, go faster, climb the leaderboard.</p>
