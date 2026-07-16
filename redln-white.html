@@ -403,6 +403,11 @@ nav a{cursor:pointer}
 .wline .wl-tag{color:var(--red);text-transform:uppercase;font-size:10px;letter-spacing:0.12em}
 .wline.whead{border-top:none;padding:2px 0 0}
 .wline .wl-h{text-align:right;font-family:var(--mono);font-size:9.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--muted)}
+.finishcard{position:relative;padding-top:0;overflow:hidden}
+.finishcard .fin-flag{height:16px;margin:0 -22px 20px;background:repeating-conic-gradient(var(--ink) 0% 25%,#fff 0% 50%) 0 0/16px 16px;box-shadow:inset 0 -1px 0 var(--line),inset 0 1px 0 var(--line)}
+.finishcard .fin-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.finishcard .fin-t{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(22px,5vw,30px);line-height:0.9;color:var(--ink)}
+.finishcard .fin-sub{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-top:8px}
 /* toggle */
 .tog{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-top:22px}
 .tog button{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 20px;background:var(--panel);color:var(--muted);border:0;cursor:pointer}
@@ -638,8 +643,10 @@ nav a{cursor:pointer}
   <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 04</span><span class="wtag">Row</span></div>
    <div class="wline whead"><span></span><span class="wl-h">Solo</span><span class="wl-h">Team</span></div>
    <div class="wline"><span class="wl-t">Row</span><span class="wl-num"><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></span><span class="wl-num"><b class="w-ev">6,000m</b><b class="w-el" hidden>9,000m</b></span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">The Finish · end of Part 04</span><span class="wtag">Clock stops</span></div>
-   <p class="plead" style="margin-top:0">The moment the last metre on the rower is done, the clock stops. Lower total time wins.</p></div>
+  <div class="card wpart finishcard" style="margin-top:16px"><div class="fin-flag"></div>
+   <div class="fin-h"><span class="fin-t">The Finish</span><span class="wtag">Clock stops</span></div>
+   <div class="fin-sub">End of Part 04 &middot; the last metre on the rower</div>
+   <p class="plead" style="margin-top:12px">The moment the last metre on the rower is done, the clock stops. Lower total time wins.</p></div>
   <p class="note" style="margin-top:14px">Four ergs, back to back — run, ski, bike, row. Solo athletes cover the solo distance alone; teams race the longer team distance, split across the four of you however you like.</p>
   <div class="peyebrow" style="margin-top:40px;color:var(--red)">The season</div>
   <h2 style="font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,5vw,36px);line-height:0.95;margin:6px 0 10px">Race once.<br>Or <span class="r">race them all.</span></h2>
