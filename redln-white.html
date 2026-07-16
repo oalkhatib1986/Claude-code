@@ -601,9 +601,9 @@ nav a{cursor:pointer}
   <div class="lab" style="right:70px;bottom:110px">312 W &middot; 4.1 W&middot;KG&#8315;&#185;</div>
   <div class="zone" style="right:34px;top:96px"><i></i><i></i><i></i><i></i><i class="hot"></i></div>
 </div><div class="wrap">
-  <div class="fig"><span class="r">FIG.04</span> &quot;The Race&quot; <span class="ln"></span> <span>Bike &middot; Row &middot; Ski</span></div>
-  <div class="race"><h2>Three ergs.<br>One <span class="r">clock.</span></h2>
-    <p>The workout is all erg &mdash; bike, then row, then ski, back to back. No running, no skilled movements. Solo athletes cover every metre themselves; teams of four split each machine. It's over when the clock stops, and the lower total time wins. It all goes down in the DXB Race-haus &mdash; our custom-built arena &mdash; with live scoring on the big screen and a season leaderboard.</p></div>
+  <div class="fig"><span class="r">FIG.04</span> &quot;The Race&quot; <span class="ln"></span> <span>Run &middot; Ski &middot; Bike &middot; Row</span></div>
+  <div class="race"><h2>Four ergs.<br>One <span class="r">clock.</span></h2>
+    <p>The workout is all erg &mdash; the assault runner, ski, bike and rower, back to back. No skilled movements. Solo athletes cover every metre themselves; teams of four split each erg. It's over when the clock stops, and the lower total time wins. It all goes down in the DXB Race-haus &mdash; our custom-built arena &mdash; with live scoring on the big screen and a season leaderboard.</p></div>
   <div class="ovcta"><a class="btn btn-red" data-p="workout">See the full workout &rarr;</a> <a class="btn btn-line" data-p="leaderboard">Leaderboard &rarr;</a></div>
 </div></section>
 
@@ -626,8 +626,8 @@ nav a{cursor:pointer}
 </div>
 <div id="page-workout" class="pg">
  <div class="wrap phead"><div class="peyebrow">The Competition</div>
-  <h1 class="ph1">Bike.<br>Row. <span class="r">Ski.</span></h1>
-  <p class="plead">One fixed season workout, all erg-based — no running, no skilled movements. Enter <b>solo</b> or as a <b>team of four</b> (two men, two women). Three ergs, back to back — bike, then row, then ski — each worked at full distance, then again at half. Everyday or Elite: same format, scaled load. Lower total time wins.</p>
+  <h1 class="ph1">Run. Ski.<br>Bike. <span class="r">Row.</span></h1>
+  <p class="plead">One fixed season workout across all four ergs — the assault runner, ski erg, bike erg and rower. Enter <b>solo</b> or as a <b>team of four</b> (two men, two women). No skilled movements, all erg-based; each erg is worked at full distance, then again at half. Everyday or Elite: same format, scaled load. Lower total time wins.</p>
  </div>
  <!-- CT tab: the current season's competition workout. Backend TODO: this workout is fixed per season and updated by admin each season; render from the active-season record instead of hard-coding. -->
  <div class="wrap psec">
@@ -638,18 +638,21 @@ nav a{cursor:pointer}
    <div class="card"><div class="krow"><span>Entry</span><b>Solo or team of 4</b></div><div class="krow"><span>Movements</span><b>All erg-based</b></div></div>
    <div class="card"><div class="krow"><span>Categories</span><b>Everyday / Elite</b></div><div class="krow"><span>Scoring</span><b>Lower time wins</b></div></div>
   </div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 01</span><span class="wtag">Bike</span></div>
-   <div class="wline"><span class="wl-t">Bike</span><span><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span><span class="wl-tag">Erg</span></div>
-   <div class="wline"><span class="wl-t">Bike</span><span><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span><span class="wl-tag">Erg</span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 02</span><span class="wtag">Row</span></div>
-   <div class="wline"><span class="wl-t">Row</span><span><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></span><span class="wl-tag">Erg</span></div>
-   <div class="wline"><span class="wl-t">Row</span><span><b class="w-ev">1,500m</b><b class="w-el" hidden>2,250m</b></span><span class="wl-tag">Erg</span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 03</span><span class="wtag">Ski</span></div>
+  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 01</span><span class="wtag">Run</span></div>
+   <div class="wline"><span class="wl-t">Assault Runner</span><span><b class="w-ev">1,000m</b><b class="w-el" hidden>1,500m</b></span><span class="wl-tag">Erg</span></div>
+   <div class="wline"><span class="wl-t">Assault Runner</span><span><b class="w-ev">500m</b><b class="w-el" hidden>750m</b></span><span class="wl-tag">Erg</span></div></div>
+  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 02</span><span class="wtag">Ski</span></div>
    <div class="wline"><span class="wl-t">Ski</span><span><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span><span class="wl-tag">Erg</span></div>
    <div class="wline"><span class="wl-t">Ski</span><span><b class="w-ev">1,000m</b><b class="w-el" hidden>1,500m</b></span><span class="wl-tag">Erg</span></div></div>
-  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">The Finish · end of Part 03</span><span class="wtag">Clock stops</span></div>
-   <p class="plead" style="margin-top:0">The moment the last metre on the ski is done, the clock stops. Lower total time wins.</p></div>
-  <p class="note" style="margin-top:14px">Three ergs, back to back — bike, row, ski. Distances shown are the full race: solo athletes complete every metre themselves; teams of four split each machine's distance across the team however they like.</p>
+  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 03</span><span class="wtag">Bike</span></div>
+   <div class="wline"><span class="wl-t">Bike</span><span><b class="w-ev">4,000m</b><b class="w-el" hidden>6,000m</b></span><span class="wl-tag">Erg</span></div>
+   <div class="wline"><span class="wl-t">Bike</span><span><b class="w-ev">2,000m</b><b class="w-el" hidden>3,000m</b></span><span class="wl-tag">Erg</span></div></div>
+  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">Part 04</span><span class="wtag">Row</span></div>
+   <div class="wline"><span class="wl-t">Row</span><span><b class="w-ev">3,000m</b><b class="w-el" hidden>4,500m</b></span><span class="wl-tag">Erg</span></div>
+   <div class="wline"><span class="wl-t">Row</span><span><b class="w-ev">1,500m</b><b class="w-el" hidden>2,250m</b></span><span class="wl-tag">Erg</span></div></div>
+  <div class="card wpart" style="margin-top:16px"><div class="wp-h"><span class="wp-n">The Finish · end of Part 04</span><span class="wtag">Clock stops</span></div>
+   <p class="plead" style="margin-top:0">The moment the last metre on the rower is done, the clock stops. Lower total time wins.</p></div>
+  <p class="note" style="margin-top:14px">Four ergs, back to back — run, ski, bike, row. Distances shown are the full race: solo athletes complete every metre themselves; teams of four split each erg's distance across the team however they like.</p>
   <div style="margin-top:24px"><a class="btn btn-red" data-p="tickets">Register &rarr;</a></div>
  </div>
  </div><div id="page-classes" class="pg">
@@ -658,7 +661,7 @@ nav a{cursor:pointer}
   <p class="plead">Coached group classes for everyone &mdash; build for the race, or just come for a hard, well-programmed sweat and a proper calorie burn. Erg-based and inspired by the race format, run year-round and open to all levels. No race entry needed.</p></div>
  <div class="wrap psec">
   <div class="grid2">
-   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 01</span><span class="wtag">Engine</span></div><p class="plead" style="margin:0">Erg-based conditioning on the bike, row and ski &mdash; intervals that build the aerobic base the race is won on. All levels; loads scale to you.</p></div>
+   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 01</span><span class="wtag">Engine</span></div><p class="plead" style="margin:0">Erg-based conditioning across all four ergs &mdash; runner, ski, bike and rower &mdash; intervals that build the aerobic base the race is won on. All levels; loads scale to you.</p></div>
    <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 02</span><span class="wtag">Race Prep</span></div><p class="plead" style="margin:0">The race-day format at race pace &mdash; machine to machine, over and over &mdash; so nothing on race day is a surprise. Coached pacing and transitions, in the race format.</p></div>
    <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 03</span><span class="wtag">Strength</span></div><p class="plead" style="margin:0">Structured strength to hold form deep into the redline. Simple, repeatable lifts &mdash; no skilled movements, in keeping with the race.</p></div>
    <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 04</span><span class="wtag">Open Floor</span></div><p class="plead" style="margin:0">Open erg and floor time to log your own session, retest a split, or chase a faster line before the next race day.</p></div>
@@ -684,8 +687,7 @@ nav a{cursor:pointer}
  <div class="wrap phead"><div class="peyebrow">Season 01 · Live Standings</div><h1 class="ph1">Leader<span class="r">board.</span></h1>
   <p class="plead">Every split. Every second. Live, in front of everyone. Climb the board — or get left behind.</p></div>
  <div class="wrap psec"><div style="margin-bottom:16px"><a class="btn btn-line" data-p="seasons">&larr; All seasons</a></div><div style="overflow-x:auto">
-  <table class="lbt"><thead><tr><th>#</th><th>Team</th><th>Bike</th><th>Row</th><th>Ski</th><th>Total</th></tr></thead>
-  <tbody><tr class="top1"><td class="rk">1</td><td class="tm">The Redliners<span class="tn">001</span></td><td>23:28</td><td>20:17</td><td>17:20</td><td class="tot">1:01:05</td></tr><tr class=""><td class="rk">2</td><td class="tm">Iron Pace<span class="tn">014</span></td><td>23:39</td><td>20:28</td><td>17:09</td><td class="tot">1:01:16</td></tr><tr class=""><td class="rk">3</td><td class="tm">Night Shift<span class="tn">022</span></td><td>23:48</td><td>20:39</td><td>17:36</td><td class="tot">1:02:03</td></tr><tr class=""><td class="rk">4</td><td class="tm">Dust Devils<span class="tn">045</span></td><td>25:12</td><td>21:53</td><td>18:30</td><td class="tot">1:05:35</td></tr><tr class=""><td class="rk">5</td><td class="tm">Pace Makers<span class="tn">037</span></td><td>25:32</td><td>22:00</td><td>18:37</td><td class="tot">1:06:09</td></tr><tr class=""><td class="rk">6</td><td class="tm">First Blood<span class="tn">063</span></td><td>25:37</td><td>22:19</td><td>18:48</td><td class="tot">1:06:44</td></tr><tr class=""><td class="rk">7</td><td class="tm">Steel Pulse<span class="tn">058</span></td><td>25:43</td><td>22:14</td><td>18:59</td><td class="tot">1:06:56</td></tr><tr class=""><td class="rk">8</td><td class="tm">Sandstorm<span class="tn">086</span></td><td>26:29</td><td>22:56</td><td>19:13</td><td class="tot">1:08:38</td></tr><tr class=""><td class="rk">9</td><td class="tm">Wreckage<span class="tn">071</span></td><td>26:34</td><td>23:03</td><td>19:36</td><td class="tot">1:09:13</td></tr><tr class=""><td class="rk">10</td><td class="tm">Last Light<span class="tn">094</span></td><td>27:08</td><td>23:34</td><td>19:54</td><td class="tot">1:10:36</td></tr></tbody></table></div></div>
+  <table class="lbt"><thead><tr><th>#</th><th>Team</th><th>Run</th><th>Ski</th><th>Bike</th><th>Row</th><th>Total</th></tr></thead><tbody><tr class="top1"><td class="rk">1</td><td class="tm">The Redliners<span class="tn">001</span></td><td>6:12</td><td>17:20</td><td>23:28</td><td>20:17</td><td class="tot">1:07:17</td></tr><tr class=""><td class="rk">2</td><td class="tm">Iron Pace<span class="tn">014</span></td><td>6:18</td><td>17:09</td><td>23:39</td><td>20:28</td><td class="tot">1:07:34</td></tr><tr class=""><td class="rk">3</td><td class="tm">Night Shift<span class="tn">022</span></td><td>6:31</td><td>17:36</td><td>23:48</td><td>20:39</td><td class="tot">1:08:34</td></tr><tr class=""><td class="rk">4</td><td class="tm">Dust Devils<span class="tn">045</span></td><td>6:55</td><td>18:30</td><td>25:12</td><td>21:53</td><td class="tot">1:12:30</td></tr><tr class=""><td class="rk">5</td><td class="tm">Pace Makers<span class="tn">037</span></td><td>7:02</td><td>18:37</td><td>25:32</td><td>22:00</td><td class="tot">1:13:11</td></tr><tr class=""><td class="rk">6</td><td class="tm">First Blood<span class="tn">063</span></td><td>7:10</td><td>18:48</td><td>25:37</td><td>22:19</td><td class="tot">1:13:54</td></tr><tr class=""><td class="rk">7</td><td class="tm">Steel Pulse<span class="tn">058</span></td><td>7:15</td><td>18:59</td><td>25:43</td><td>22:14</td><td class="tot">1:14:11</td></tr><tr class=""><td class="rk">8</td><td class="tm">Sandstorm<span class="tn">086</span></td><td>7:33</td><td>19:13</td><td>26:29</td><td>22:56</td><td class="tot">1:16:11</td></tr><tr class=""><td class="rk">9</td><td class="tm">Wreckage<span class="tn">071</span></td><td>7:41</td><td>19:36</td><td>26:34</td><td>23:03</td><td class="tot">1:16:54</td></tr><tr class=""><td class="rk">10</td><td class="tm">Last Light<span class="tn">094</span></td><td>7:58</td><td>19:54</td><td>27:08</td><td>23:34</td><td class="tot">1:18:34</td></tr></tbody></table></div></div>
 </div><div id="page-account" class="pg">
  <div class="wrap phead"><div class="peyebrow">Account</div><h1 class="ph1">Your line, <span class="r">tracked.</span></h1>
   <p class="plead">Sign in to manage your team and entries — or create an account, no purchase needed.</p></div>
