@@ -293,10 +293,12 @@ body{background:#e7e9eb !important;
   }
   /* divider = a simple red slash between taglines */
   .ticker span b{color:inherit;font-weight:inherit;margin:0;padding:0}
-  .ticker span b::before{content:"/";font-family:var(--mono);color:#ffffff;font-weight:900;font-size:9px;line-height:1;margin:0 11px;vertical-align:middle;position:relative;top:-0.5px;
+  .ticker span b::before{content:"/";font-family:var(--mono);color:#ffffff;font-weight:900;font-size:9px;line-height:1;margin:0 11px;vertical-align:middle;position:relative;top:-1px;
     -webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);
     background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
   @keyframes scroll{to{transform:translateX(-50%)}}
+  /* brighter lit LEDs */
+  .ticker span,.ticker span b::before{background-image:radial-gradient(#ffffff 0.86px,rgba(255,255,255,0.32) 1.0px,transparent 1.25px) !important;filter:drop-shadow(0 0 0.6px rgba(255,255,255,0.9)) drop-shadow(0 0 1.4px rgba(255,120,120,0.55))}
 
 /* product barcode */
 .codeblk{padding:20px 0 46px}
