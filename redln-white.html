@@ -497,8 +497,8 @@ nav a{cursor:pointer}
 .hbtn-line{background:var(--panel) !important;color:var(--ink) !important;box-shadow:inset 0 0 0 1.4px var(--ink)}
 </style></head><body>
 
-<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-badge-final.png" alt="REDLN"></a></div>
-  <div class="navwrap"><nav><a class="on" data-p="home">Overview</a><a data-p="workout">Competition</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a><a data-p="why">The Why</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a></nav></div>
+<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-badge-ticker.png" alt="REDLN"></a></div>
+  <div class="navwrap"><nav><a class="on" data-p="home">Overview</a><a data-p="workout">Competition</a><a data-p="classes">Classes</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Tickets</a><a data-p="why">The Why</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a></nav></div>
   <span class="hbtns"><a class="hbtn hbtn-line" data-p="account">Account</a><a class="hbtn" data-p="choose">Register &rarr;</a></span></div></header>
   <div class="ticker">
     <div class="ticker-logo"><img class="ticker-logo-img" src="redln-badge-ticker.png" alt="REDLN"></div>
@@ -515,7 +515,7 @@ nav a{cursor:pointer}
     <h1>Find your<br>limit.<br><span class="r">Then cross it.</span></h1>
     <p class="lead">REDLN is the region's first Competitive Fitness Club, named for the redline &mdash; the second your body wants to quit. <b>Train, compete, repeat.</b> Anyone can race in the DXB Race-haus, our custom-built arena, solo or as a team. Want to build for it? Coached classes run year-round in a format inspired by the race.</p>
     <div class="meta"><div><div class="k">Location</div><div class="v">Dubai, UAE</div></div><div><div class="k">Next race</div><div class="v">Sat 27 Feb 2027</div></div></div>
-    <div class="hact"><a class="btn btn-red" data-p="tickets">Register now &rarr;</a><a class="btn btn-line" data-p="workout">See the competition</a></div>
+    <div class="hact"><a class="btn btn-red" data-p="workout">Explore races &rarr;</a><a class="btn btn-line" data-p="classes">Explore classes &rarr;</a></div>
     <div class="speed"><span class="speed-bars"></span><span class="speed-tag"><i>+</i>&nbsp;&nbsp;REDLINE&nbsp;&nbsp;<i>+</i></span></div>
   </div>
   <div class="rcol">
@@ -628,10 +628,9 @@ nav a{cursor:pointer}
  <div class="wrap phead"><div class="peyebrow">The Competition</div>
   <h1 class="ph1">Bike.<br>Row. <span class="r">Ski.</span></h1>
   <p class="plead">One fixed season workout, all erg-based — no running, no skilled movements. Enter <b>solo</b> or as a <b>team of four</b> (two men, two women). Three ergs, back to back — bike, then row, then ski — each worked at full distance, then again at half. Everyday or Elite: same format, scaled load. Lower total time wins.</p>
-  <div class="ctabs"><button class="on" onclick="ctab(this,'comp')">Competition</button><button onclick="ctab(this,'cls')">Classes</button></div>
  </div>
  <!-- CT tab: the current season's competition workout. Backend TODO: this workout is fixed per season and updated by admin each season; render from the active-season record instead of hard-coding. -->
- <div class="wrap psec ct" data-ct="comp">
+ <div class="wrap psec">
   <div class="seasonbar"><span class="livechip">Current</span><span class="sbtxt">Season 01 workout &middot; Jan &ndash; Apr 2027</span></div>
   <p class="note" style="margin:-4px 0 18px;max-width:64ch">This is the workout for all four Season 01 events (Jan, Feb, Mar, Apr). It doesn't change all season &mdash; so race it once or every month and your times are directly comparable. Season 02 (Sep&ndash;Dec) gets a brand-new one.</p>
   <div class="tog" style="margin-bottom:16px"><button class="on" onclick="wtog(this,'ev')">Everyday</button><button onclick="wtog(this,'el')">Elite</button></div>
@@ -653,16 +652,19 @@ nav a{cursor:pointer}
   <p class="note" style="margin-top:14px">Three ergs, back to back — bike, row, ski. Distances shown are the full race: solo athletes complete every metre themselves; teams of four split each machine's distance across the team however they like.</p>
   <div style="margin-top:24px"><a class="btn btn-red" data-p="tickets">Register &rarr;</a></div>
  </div>
- <div class="wrap psec ct" data-ct="cls" hidden>
-  <p class="plead" style="margin-top:0;max-width:60ch">Coached group classes for everyone &mdash; build for the race, or just come for a hard, well-programmed sweat and a proper calorie burn. Erg-based and inspired by the race format, run year-round and open to all levels. No race entry needed.</p>
-  <div class="grid2" style="margin-top:18px">
-   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 01</span><span class="wtag">Engine</span></div><p class="plead" style="margin:0">Erg-based conditioning on the bike, row and ski — intervals that build the aerobic base the race is won on. All levels; loads scale to you.</p></div>
-   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 02</span><span class="wtag">Race Prep</span></div><p class="plead" style="margin:0">The race-day format at race pace — machine to machine, over and over — so nothing on race day is a surprise. Coached pacing and transitions, in the race format.</p></div>
-   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 03</span><span class="wtag">Strength</span></div><p class="plead" style="margin:0">Structured strength to hold form deep into the redline. Simple, repeatable lifts — no skilled movements, in keeping with the race.</p></div>
+ </div><div id="page-classes" class="pg">
+ <div class="wrap phead"><div class="peyebrow">Coached Classes</div>
+  <h1 class="ph1">Train for it.<br>Or just <span class="r">train.</span></h1>
+  <p class="plead">Coached group classes for everyone &mdash; build for the race, or just come for a hard, well-programmed sweat and a proper calorie burn. Erg-based and inspired by the race format, run year-round and open to all levels. No race entry needed.</p></div>
+ <div class="wrap psec">
+  <div class="grid2">
+   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 01</span><span class="wtag">Engine</span></div><p class="plead" style="margin:0">Erg-based conditioning on the bike, row and ski &mdash; intervals that build the aerobic base the race is won on. All levels; loads scale to you.</p></div>
+   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 02</span><span class="wtag">Race Prep</span></div><p class="plead" style="margin:0">The race-day format at race pace &mdash; machine to machine, over and over &mdash; so nothing on race day is a surprise. Coached pacing and transitions, in the race format.</p></div>
+   <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 03</span><span class="wtag">Strength</span></div><p class="plead" style="margin:0">Structured strength to hold form deep into the redline. Simple, repeatable lifts &mdash; no skilled movements, in keeping with the race.</p></div>
    <div class="card wpart"><div class="wp-h"><span class="wp-n">Class 04</span><span class="wtag">Open Floor</span></div><p class="plead" style="margin:0">Open erg and floor time to log your own session, retest a split, or chase a faster line before the next race day.</p></div>
   </div>
   <div class="card" style="margin-top:16px"><div class="krow"><span>Format</span><b>Coached group classes</b></div><div class="krow"><span>Schedule</span><b>Year-round, seasonal blocks</b></div><div class="krow"><span>Who</span><b>All levels &mdash; solo athletes &amp; teams</b></div></div>
-  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-red" data-p="contact">Ask about classes &rarr;</a><a class="btn btn-line" data-p="tickets">See race entries</a></div>
+  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-red" data-p="contact">Book a class &rarr;</a><a class="btn btn-line" data-p="workout">See the competition &rarr;</a></div>
  </div>
 </div><div id="page-calendar" class="pg">
  <div class="wrap phead"><div class="peyebrow">Calendar</div><h1 class="ph1">Pick your <span class="r">date.</span></h1>
@@ -716,7 +718,7 @@ nav a{cursor:pointer}
     </div>
   </div>
   <div class="wrap foot-cols">
-    <div class="fcol"><div class="fh">Race</div><a data-p="workout">Competition</a><a data-p="calendar">Calendar</a><a data-p="tickets">Tickets</a></div>
+    <div class="fcol"><div class="fh">Race</div><a data-p="workout">Competition</a><a data-p="classes">Classes</a><a data-p="calendar">Calendar</a><a data-p="tickets">Tickets</a></div>
     <div class="fcol"><div class="fh">Company</div><a data-p="why">The Why</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a></div>
     <div class="fcol"><div class="fh">Account</div><a data-p="login">Sign in</a><a data-p="signup">Create account</a><a data-p="account">My bookings</a><a data-p="choose">Register</a></div>
   </div>
