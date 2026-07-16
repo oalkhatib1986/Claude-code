@@ -185,8 +185,8 @@ body{background:#e7e9eb !important;
 /* ===== black-theme LED ticker (verbatim) ===== */
 :root{--redline:#ff1717;--redline-glass:rgba(255,23,23,0.15);--redline-edge:rgba(255,23,23,0.5);}
   /* ticker */
-  .ticker{background:linear-gradient(180deg,#ff1717,#e01313);border-top:1px solid rgba(0,0,0,0.28);border-bottom:1px solid rgba(0,0,0,0.28);
-    margin-top:-1px;overflow:hidden;white-space:nowrap;position:relative;z-index:5;display:flex;align-items:center}
+  .ticker{background:linear-gradient(180deg,#ff1717,#e01313);
+    margin-top:0;overflow:hidden;white-space:nowrap;position:relative;z-index:5;display:flex;align-items:center}
   /* whole-band glow shaped like an irregular heartbeat (lub-dub spikes + rests, racing then pausing). a 2nd heartbeat layer on a co-prime period adds syncopated thumps so the rhythm never repeats — a redlining bpm */
   .ticker::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--redline);
     opacity:0.04}
@@ -245,10 +245,10 @@ body{background:#e7e9eb !important;
     100%{opacity:0.04}
   }
   /* fixed REDLN logo pinned at the left of the band — exact brand wordmark; scrolling text passes behind it */
-  .ticker-logo{position:absolute;left:0;top:-1px;bottom:-1px;z-index:4;display:flex;align-items:stretch;
+  .ticker-logo{position:absolute;left:0;top:-4px;bottom:-4px;z-index:4;display:flex;align-items:center;
     padding:0 26px 0 20px;pointer-events:none;
-    background:linear-gradient(to right,#e01313 0%,#e01313 62%,rgba(224,19,19,0) 100%)}
-  .ticker-logo-img{height:100%;width:auto;object-fit:contain;display:block;background:#fff}
+    background:linear-gradient(to right,#fff 0%,#fff 64%,rgba(255,255,255,0) 100%)}
+  .ticker-logo-img{height:calc(100% - 8px);width:auto;object-fit:contain;display:block}
 .ticker-wordmark{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:0.02em;text-transform:uppercase;line-height:1;white-space:nowrap;color:#fff !important;-webkit-text-fill-color:#fff !important;background-image:none !important;border:1.4px solid #fff;border-radius:2px;padding:4px 7px;display:inline-flex;align-items:flex-start}
 .ticker-wordmark sup{font-size:0.42em;line-height:1;margin-left:0.5px;-webkit-text-fill-color:#fff}
   .ticker-track{display:inline-flex;gap:0;padding:2px 0;position:relative;z-index:1;white-space:nowrap;animation:scroll 34s linear infinite}
