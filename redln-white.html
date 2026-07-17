@@ -725,12 +725,12 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
  <!-- CT tab: the current season's competition workout. Backend TODO: this workout is fixed per season and updated by admin each season; render from the active-season record instead of hard-coding. -->
  <div class="wrap psec">
   <div class="seasonbar"><span class="livechip">Current</span><span class="sbtxt">Season 01 workout &middot; Jan &ndash; Apr 2027</span></div>
-  <div class="tog" style="margin-bottom:16px"><button class="on" onclick="wtog(this,'ev')">Everyday</button><button onclick="wtog(this,'el')">Elite</button></div>
-  <div class="grid2">
+  <div class="grid2" style="margin-top:16px">
    <div class="card"><div class="krow"><span>Entry</span><b>Solo or team of 4</b></div><div class="krow"><span>Team make-up</span><b>4M, 4F or 2M/2F</b></div><div class="krow"><span>Movements</span><b>All erg-based</b></div></div>
    <div class="card"><div class="krow"><span>Categories</span><b>Everyday / Elite</b></div><div class="krow"><span>Work split (teams)</span><b>Split across the 4</b></div><div class="krow"><span>Scoring</span><b>Lower time wins</b></div></div>
   </div>
-  <div class="card wkspec" style="margin-top:16px">
+  <div class="tog" style="margin:26px 0 12px"><button class="on" onclick="wtog(this,'ev')">Everyday</button><button onclick="wtog(this,'el')">Elite</button></div>
+  <div class="card wkspec" style="margin-top:0">
    <span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
    <table class="spec"><thead><tr><th>Erg</th><th>Solo</th><th>Team</th></tr></thead>
    <tbody>
