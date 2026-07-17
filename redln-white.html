@@ -480,6 +480,23 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
 .dm-d:hover:not(.empty){background:var(--red);color:#fff}
 .xcta{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:26px;width:fit-content}
 .xcta .btn{width:100%;justify-content:center}
+.venue{margin:38px 0 8px}
+.venue .veyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.venue .vh{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,5.5vw,38px);line-height:0.92;color:var(--ink);margin:0 0 18px}
+.venue .vh .r{color:var(--red)}
+.plate{position:relative;margin:8px 0 6px;box-shadow:inset 0 0 0 1px var(--line)}
+.plate .im{display:block;width:100%;height:auto;filter:saturate(.82) contrast(1.06) brightness(1.02)}
+.plate::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(60,90,120,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(60,90,120,0.05) 1px,transparent 1px),radial-gradient(120% 90% at 50% 30%,rgba(255,23,23,0.10),transparent 60%),linear-gradient(180deg,rgba(13,16,19,0.10),rgba(13,16,19,0.02) 30%,rgba(13,16,19,0.28));background-size:34px 34px,34px 34px,100% 100%,100% 100%}
+.plate .cap{position:absolute;left:12px;bottom:12px;z-index:3;font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#fff;background:rgba(13,16,19,0.55);padding:6px 10px}
+.plate .fig{position:absolute;right:12px;top:12px;z-index:3;font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#fff;opacity:.85}
+.plate .ck{position:absolute;width:16px;height:16px;z-index:4}
+.plate .ck::before,.plate .ck::after{content:"";position:absolute;background:var(--red)}
+.plate .ck::before{width:16px;height:2px}.plate .ck::after{width:2px;height:16px}
+.plate .tl{left:9px;top:9px}.plate .tl::before,.plate .tl::after{left:0;top:0}
+.plate .tr{right:9px;top:9px}.plate .tr::before{right:0;top:0}.plate .tr::after{right:0;top:0}
+.plate .bl{left:9px;bottom:9px}.plate .bl::before{left:0;bottom:0}.plate .bl::after{left:0;bottom:0}
+.plate .br{right:9px;bottom:9px}.plate .br::before{right:0;bottom:0}.plate .br::after{right:0;bottom:0}
+.venue .pcap{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:10px}
 .eqbar{display:flex;align-items:flex-end;gap:4px;height:48px;margin:8px 0}
 .eqbar i{flex:1;background:linear-gradient(180deg,#ff1717,#c40d0d);border-radius:2px 2px 0 0;min-width:3px;opacity:.92}
 .xh2{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(30px,7vw,46px);line-height:0.9;color:var(--ink);margin:8px 0 24px}
@@ -690,6 +707,9 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
   <div class="fig"><span class="r">FIG.03</span> &quot;The Club&quot; <span class="ln"></span> <span>Competitive Fitness Club</span></div>
   <div class="race"><h2>More than a race.<br>A <span class="r">Competitive Fitness Club.</span></h2>
     <p>REDLN is the region's first Competitive Fitness Club &mdash; a whole new category, and we're the ones who built it. A permanent home for competitive fitness: train year-round, race the season in the DXB Race-haus &mdash; our custom-built arena &mdash; then refuel and gear up on site. The original, not a copy. One venue, one community, one line to cross.</p></div>
+  <div class="venue" style="margin:26px 0 20px">
+   <div class="plate"><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span><span class="fig">FIG.06</span><img class="im" src="redln-arena.jpg" alt="The DXB Race-haus competition floor"><span class="cap">DXB Race-haus &middot; The arena floor</span></div>
+  </div>
   <div class="ovr"><div class="ovno">No.01<b>01</b></div><div class="ovk">Race &amp; Train</div><div><div class="ovt">DXB Race-haus</div><div class="ovp">The arena floor &mdash; the DXB Race-haus. Ticketed race days, solo or as a team, with live scoring and season leaderboards &mdash; plus coached classes running year-round. The main stage, and the reason the category exists.</div></div></div>
   <div class="ovr"><div class="ovno">No.02<b>02</b></div><div class="ovk">Fuel &amp; Gear</div><div><div class="ovt">Caf&eacute; &amp; store</div><div class="ovp">Coffee, shakes and recovery at the on-site caf&eacute;, plus a store stocked with REDLN apparel and gear &mdash; so the badge lives on outside the arena.</div></div></div>
   <div class="ovcta"><a class="btn btn-red" data-p="calendar">See the calendar &rarr;</a></div>
@@ -741,6 +761,12 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <div class="card"><div class="peyebrow" style="color:var(--red)">The crowd</div><p class="plead" style="margin-top:6px">Spectators welcome &mdash; friends, family and the REDLN community cheering every heat.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Your moment</div><p class="plead" style="margin-top:6px">A chip-timed result, a finisher tee, and photos to take home from the floor.</p></div>
   </div>
+  <div class="venue">
+   <div class="veyebrow">The Venue</div>
+   <h2 class="vh">The floor you<br>race on. <span class="r">The DXB Race-haus.</span></h2>
+   <div class="plate"><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span><span class="fig">FIG.05</span><img class="im" src="redln-arena.jpg" alt="The DXB Race-haus competition floor"><span class="cap">DXB Race-haus &middot; Competition floor</span></div>
+   <p class="pcap">Four ergs, numbered lanes, live scoring on the ribbon &mdash; built for race day.</p>
+  </div>
   <div style="margin-top:28px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-red" data-p="tickets">Register &rarr;</a><a class="btn btn-line" data-p="calendar">Race calendar &rarr;</a><a class="btn btn-line" data-p="leaderboard">Leaderboard &rarr;</a></div>
  </div>
  </div><div id="page-classes" class="pg">
@@ -755,6 +781,12 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
   <h2 class="xh2">Not a class.<br>A <span class="r">production.</span></h2>
   <div class="xfeat"><div class="xf"><span class="xf-n">01</span><div class="xf-b"><h3 class="xf-t">Coach on the mic</h3><p>Every class is led by a coach on the mic &mdash; guiding you through the workout and setting the pace, from warm-up to the final metre.</p></div></div><div class="xf"><span class="xf-n">02</span><div class="xf-b"><h3 class="xf-t">Lights down, music up</h3><p>Every class is staged like a show: lights, sound, staging and the bass loud. You don&rsquo;t just work out &mdash; you&rsquo;re in the production.</p></div></div><div class="xf"><span class="xf-n">03</span><div class="xf-b"><h3 class="xf-t">All erg-based</h3><p>Every class is built on the four race machines &mdash; run, ski, bike and rower &mdash; with no skilled movements. Train to build for the race, or just for a hard, casual calorie burn.</p></div></div><div class="xf"><span class="xf-n">04</span><div class="xf-b"><h3 class="xf-t">Everyone&rsquo;s in</h3><p>All levels train side by side, first-timers next to racers. Every load scales to you &mdash; no experience needed, just show up.</p></div></div></div>
   <div class="card passcard" style="margin-top:18px"><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span><div class="krow"><span>Format</span><b>Coached group classes</b></div><div class="krow"><span>Where</span><b>DXB Race-haus</b></div><div class="krow"><span>When</span><b>Year-round</b></div><div class="krow"><span>Who</span><b>All levels welcome</b></div></div>
+  <div class="venue">
+   <div class="veyebrow">The Venue</div>
+   <h2 class="vh">Train where you<br>race. <span class="r">The DXB Race-haus.</span></h2>
+   <div class="plate"><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span><span class="fig">FIG.04</span><img class="im" src="redln-arena.jpg" alt="The DXB Race-haus competition floor"><span class="cap">DXB Race-haus &middot; Competition floor</span></div>
+   <p class="pcap">Same four ergs, same floor you race on &mdash; lights, sound and the ribbon live.</p>
+  </div>
   <div class="xcta"><a class="btn btn-red" data-p="calendar">See the timetable &rarr;</a><a class="btn btn-line" data-p="tickets">Get class credits &rarr;</a></div>
  </div>
 </div><div id="page-calendar" class="pg">
