@@ -460,6 +460,24 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
 .cr-nm{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:0.01em;color:var(--ink)}
 .cr-meta{font-family:var(--mono);font-size:11px;letter-spacing:0.03em;text-transform:uppercase;color:var(--muted);margin-top:3px}
 .cr-book{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--red);white-space:nowrap;cursor:pointer}
+.cr-t .mer{font-size:0.42em;letter-spacing:0.05em;margin-left:4px;color:var(--muted);vertical-align:0.16em;text-transform:uppercase}
+.clsrow{cursor:pointer;transition:box-shadow .12s,transform .12s}
+.clsrow:hover{box-shadow:inset 0 0 0 1.4px var(--red)}
+.datebtn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink);background:var(--panel);box-shadow:inset 0 0 0 1.4px var(--line);border:none;border-radius:3px;padding:8px 13px;cursor:pointer}
+.datebtn .dbi{width:12px;height:12px;box-shadow:inset 0 0 0 1.5px var(--red);border-radius:1px;position:relative}
+.datebtn .dbi::before{content:"";position:absolute;left:1.5px;right:1.5px;top:3px;height:1.5px;background:var(--red)}
+.datemodal{position:fixed;inset:0;z-index:9998;display:flex;align-items:flex-end;justify-content:center}
+.datemodal[hidden]{display:none}
+.dm-back{position:absolute;inset:0;background:rgba(13,16,19,0.55)}
+.dm-card{position:relative;width:100%;max-width:460px;background:var(--panel);padding:22px 20px 30px;border-radius:6px 6px 0 0;box-shadow:0 -14px 44px rgba(0,0,0,0.3)}
+.dm-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:20px;color:var(--ink)}
+.dm-head button{background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--muted)}
+.dm-month{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);margin:12px 0 14px}
+.dm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dm-w{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:4px}
+.dm-d{font-family:var(--disp);font-weight:700;font-size:15px;color:var(--ink);background:var(--paper2);border:none;box-shadow:inset 0 0 0 1px var(--line);border-radius:3px;padding:12px 0;cursor:pointer}
+.dm-d.empty{background:transparent;box-shadow:none;cursor:default}
+.dm-d:hover:not(.empty){background:var(--red);color:#fff}
 .lbfilters{margin-bottom:18px}
 .lbsearch{width:100%;font-family:var(--mono);font-size:13px;letter-spacing:0.02em;padding:14px 16px;background:var(--panel);border:none;box-shadow:inset 0 0 0 1.4px var(--line);color:var(--ink);border-radius:3px}
 .lbsearch::placeholder{color:var(--faint);text-transform:uppercase;letter-spacing:0.08em;font-size:11px}
@@ -735,7 +753,7 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
  </div>
  <div class="wrap psec ct" data-ct="classes" hidden>
   <p class="note" style="margin:-4px 0 14px;max-width:66ch">Pick a day to see its classes. Coached erg sessions plus open-floor time, year-round in the DXB Race-haus. Tap <b>Book</b> on any class &mdash; you'll sign in and use a class credit to lock your spot.</p>
-  <div class="wkhead"><span class="wkm">This week &middot; Feb 2027</span><span class="wkm" style="color:var(--red)">All levels welcome</span></div>
+  <div class="wkhead"><span class="wkm">This week &middot; Feb 2027</span><button class="datebtn" onclick="openDatePicker()"><span class="dbi"></span>Pick a date</button></div>
   <div class="wkstrip">
    <button class="daychip on" onclick="selday(this,'mon')"><span class="dc-d">Mon</span><span class="dc-n">02</span></button>
    <button class="daychip" onclick="selday(this,'tue')"><span class="dc-d">Tue</span><span class="dc-n">03</span></button>
@@ -746,38 +764,38 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <button class="daychip" onclick="selday(this,'sun')"><span class="dc-d">Sun</span><span class="dc-n">08</span></button>
   </div>
   <div class="dayset" data-day="mon">
-   <div class="clsrow"><div class="cr-t">06:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">12:00</div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">18:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Sam &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">12:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Sam &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div class="dayset" data-day="tue" hidden>
-   <div class="clsrow"><div class="cr-t">06:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Leo &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">18:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Zara &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Leo &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Zara &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div class="dayset" data-day="wed" hidden>
-   <div class="clsrow"><div class="cr-t">06:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">12:00</div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">18:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Omar &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">12:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Omar &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div class="dayset" data-day="thu" hidden>
-   <div class="clsrow"><div class="cr-t">06:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Sam &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">18:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Nadia &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Sam &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Nadia &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div class="dayset" data-day="fri" hidden>
-   <div class="clsrow"><div class="cr-t">06:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Zara &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">12:00</div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Zara &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">12:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div class="dayset" data-day="sat" hidden>
-   <div class="clsrow"><div class="cr-t">08:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">10:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Leo &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">8:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">10:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Leo &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div class="dayset" data-day="sun" hidden>
-   <div class="clsrow"><div class="cr-t">09:00</div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Omar &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
-   <div class="clsrow"><div class="cr-t">11:00</div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">9:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">60 min &middot; Coach Omar &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
+   <div class="clsrow" data-p="classbuy"><div class="cr-t">11:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
   </div>
   <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-red" data-p="classbuy">Buy class credits &rarr;</a><a class="btn btn-line" data-p="classes">About classes &rarr;</a></div>
  </div>
-</div><div id="page-classbuy" class="pg">
+<div id="datemodal" class="datemodal" hidden><div class="dm-back" onclick="closeDatePicker()"></div><div class="dm-card"><div class="dm-head"><span>Choose a date</span><button aria-label="Close" onclick="closeDatePicker()">&times;</button></div><div class="dm-month">February 2027</div><div class="dm-grid"><span class="dm-w">Mon</span><span class="dm-w">Tue</span><span class="dm-w">Wed</span><span class="dm-w">Thu</span><span class="dm-w">Fri</span><span class="dm-w">Sat</span><span class="dm-w">Sun</span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><button class="dm-d" onclick="pickdate(1)">01</button><button class="dm-d" onclick="pickdate(2)">02</button><button class="dm-d" onclick="pickdate(3)">03</button><button class="dm-d" onclick="pickdate(4)">04</button><button class="dm-d" onclick="pickdate(5)">05</button><button class="dm-d" onclick="pickdate(6)">06</button><button class="dm-d" onclick="pickdate(7)">07</button><button class="dm-d" onclick="pickdate(8)">08</button><button class="dm-d" onclick="pickdate(9)">09</button><button class="dm-d" onclick="pickdate(10)">10</button><button class="dm-d" onclick="pickdate(11)">11</button><button class="dm-d" onclick="pickdate(12)">12</button><button class="dm-d" onclick="pickdate(13)">13</button><button class="dm-d" onclick="pickdate(14)">14</button><button class="dm-d" onclick="pickdate(15)">15</button><button class="dm-d" onclick="pickdate(16)">16</button><button class="dm-d" onclick="pickdate(17)">17</button><button class="dm-d" onclick="pickdate(18)">18</button><button class="dm-d" onclick="pickdate(19)">19</button><button class="dm-d" onclick="pickdate(20)">20</button><button class="dm-d" onclick="pickdate(21)">21</button><button class="dm-d" onclick="pickdate(22)">22</button><button class="dm-d" onclick="pickdate(23)">23</button><button class="dm-d" onclick="pickdate(24)">24</button><button class="dm-d" onclick="pickdate(25)">25</button><button class="dm-d" onclick="pickdate(26)">26</button><button class="dm-d" onclick="pickdate(27)">27</button><button class="dm-d" onclick="pickdate(28)">28</button></div></div></div></div><div id="page-classbuy" class="pg">
  <div class="wrap"><span class="back" data-p="calendar">&larr; Back</span></div>
  <div class="wrap phead" style="padding-top:14px"><div class="peyebrow">Book a class · Step 1 of 3</div>
   <h1 class="ph1">Sign in to <span class="r">book.</span></h1>
@@ -914,6 +932,10 @@ function lbfilter(){var s=document.getElementById('lbsearch');if(!s)return;var q
   var ok=(!q||r.dataset.team.indexOf(q)>-1||r.dataset.num.indexOf(q)>-1)&&(!dv||r.dataset.division===dv)&&(!ct||r.dataset.cat===ct);
   r.style.display=ok?'':'none';if(ok)n++;});
  var none=document.getElementById('lb-none');if(none)none.style.display=n?'none':'';}
+function openDatePicker(){var m=document.getElementById('datemodal');if(m)m.hidden=false;}
+function closeDatePicker(){var m=document.getElementById('datemodal');if(m)m.hidden=true;}
+function pickdate(nn){var idx=(nn<=1)?6:((nn-2)%7);var days=['mon','tue','wed','thu','fri','sat','sun'];var chip=document.querySelectorAll('#page-calendar .daychip')[idx];if(chip)selday(chip,days[idx]);
+ var cls=document.querySelector('#page-calendar [data-ct="classes"]');if(cls)cls.scrollIntoView({block:'start'});closeDatePicker();}
 
 (function(){
  var tEl;
