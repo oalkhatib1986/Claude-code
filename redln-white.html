@@ -472,7 +472,11 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
 .dm-card{position:relative;width:100%;max-width:460px;background:var(--panel);padding:22px 20px 30px;border-radius:6px 6px 0 0;box-shadow:0 -14px 44px rgba(0,0,0,0.3)}
 .dm-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:20px;color:var(--ink)}
 .dm-head button{background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--muted)}
-.dm-month{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);margin:12px 0 14px}
+.dm-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 14px}
+.dm-month{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--red)}
+.dm-arrow{background:var(--paper2);border:none;box-shadow:inset 0 0 0 1px var(--line);border-radius:3px;width:40px;height:34px;font-size:20px;line-height:1;cursor:pointer;color:var(--ink)}
+.dm-arrow:hover:not([disabled]){background:var(--red);color:#fff}
+.dm-arrow[disabled]{opacity:.32;cursor:default}
 .dm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .dm-w{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:4px}
 .dm-d{font-family:var(--disp);font-weight:700;font-size:15px;color:var(--ink);background:var(--paper2);border:none;box-shadow:inset 0 0 0 1px var(--line);border-radius:3px;padding:12px 0;cursor:pointer}
@@ -844,7 +848,7 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
   </div>
   <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-red" data-p="classbuy">Buy class credits &rarr;</a><a class="btn btn-line" data-p="classes">About classes &rarr;</a></div>
  </div>
-<div id="datemodal" class="datemodal" hidden><div class="dm-back" onclick="closeDatePicker()"></div><div class="dm-card"><div class="dm-head"><span>Choose a date</span><button aria-label="Close" onclick="closeDatePicker()">&times;</button></div><div class="dm-month">February 2027</div><div class="dm-grid"><span class="dm-w">Mon</span><span class="dm-w">Tue</span><span class="dm-w">Wed</span><span class="dm-w">Thu</span><span class="dm-w">Fri</span><span class="dm-w">Sat</span><span class="dm-w">Sun</span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><span class="dm-d empty"></span><button class="dm-d" onclick="pickdate(1)">01</button><button class="dm-d" onclick="pickdate(2)">02</button><button class="dm-d" onclick="pickdate(3)">03</button><button class="dm-d" onclick="pickdate(4)">04</button><button class="dm-d" onclick="pickdate(5)">05</button><button class="dm-d" onclick="pickdate(6)">06</button><button class="dm-d" onclick="pickdate(7)">07</button><button class="dm-d" onclick="pickdate(8)">08</button><button class="dm-d" onclick="pickdate(9)">09</button><button class="dm-d" onclick="pickdate(10)">10</button><button class="dm-d" onclick="pickdate(11)">11</button><button class="dm-d" onclick="pickdate(12)">12</button><button class="dm-d" onclick="pickdate(13)">13</button><button class="dm-d" onclick="pickdate(14)">14</button><button class="dm-d" onclick="pickdate(15)">15</button><button class="dm-d" onclick="pickdate(16)">16</button><button class="dm-d" onclick="pickdate(17)">17</button><button class="dm-d" onclick="pickdate(18)">18</button><button class="dm-d" onclick="pickdate(19)">19</button><button class="dm-d" onclick="pickdate(20)">20</button><button class="dm-d" onclick="pickdate(21)">21</button><button class="dm-d" onclick="pickdate(22)">22</button><button class="dm-d" onclick="pickdate(23)">23</button><button class="dm-d" onclick="pickdate(24)">24</button><button class="dm-d" onclick="pickdate(25)">25</button><button class="dm-d" onclick="pickdate(26)">26</button><button class="dm-d" onclick="pickdate(27)">27</button><button class="dm-d" onclick="pickdate(28)">28</button></div></div></div></div><div id="page-classbuy" class="pg">
+<div id="datemodal" class="datemodal" hidden><div class="dm-back" onclick="closeDatePicker()"></div><div class="dm-card"><div class="dm-head"><span>Choose a date</span><button aria-label="Close" onclick="closeDatePicker()">&times;</button></div><div class="dm-nav"><button class="dm-arrow" id="dmPrev" aria-label="Previous month" onclick="dmShift(-1)">&#8249;</button><span class="dm-month" id="dmMonth">February 2027</span><button class="dm-arrow" id="dmNext" aria-label="Next month" onclick="dmShift(1)">&#8250;</button></div><div class="dm-grid" id="dmGrid"></div></div></div></div><div id="page-classbuy" class="pg">
  <div class="wrap"><span class="back" data-p="calendar">&larr; Back</span></div>
  <div class="wrap phead" style="padding-top:14px"><div class="peyebrow">Book a class · Step 1 of 3</div>
   <h1 class="ph1">Sign in to <span class="r">book.</span></h1>
@@ -981,9 +985,28 @@ function lbfilter(){var s=document.getElementById('lbsearch');if(!s)return;var q
   var ok=(!q||r.dataset.team.indexOf(q)>-1||r.dataset.num.indexOf(q)>-1)&&(!dv||r.dataset.division===dv)&&(!ct||r.dataset.cat===ct);
   r.style.display=ok?'':'none';if(ok)n++;});
  var none=document.getElementById('lb-none');if(none)none.style.display=n?'none':'';}
-function openDatePicker(){var m=document.getElementById('datemodal');if(m)m.hidden=false;}
+var DM_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var dmY=2027,dmM=1,DM_MIN=[2027,0],DM_MAX=[2028,11];
+function dmRender(){
+ var grid=document.getElementById('dmGrid'),lab=document.getElementById('dmMonth');if(!grid)return;
+ lab.textContent=DM_MONTHS[dmM]+' '+dmY;
+ var lead=(new Date(dmY,dmM,1).getDay()+6)%7,dim=new Date(dmY,dmM+1,0).getDate();
+ var wd=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],html='';
+ for(var i=0;i<7;i++)html+='<span class="dm-w">'+wd[i]+'</span>';
+ for(var b=0;b<lead;b++)html+='<span class="dm-d empty"></span>';
+ for(var d=1;d<=dim;d++)html+='<button class="dm-d" onclick="pickdate('+d+')">'+(d<10?'0'+d:d)+'</button>';
+ grid.innerHTML=html;
+ var pv=document.getElementById('dmPrev'),nx=document.getElementById('dmNext');
+ pv.disabled=(dmY<DM_MIN[0]||(dmY===DM_MIN[0]&&dmM<=DM_MIN[1]));
+ nx.disabled=(dmY>DM_MAX[0]||(dmY===DM_MAX[0]&&dmM>=DM_MAX[1]));
+}
+function dmShift(n){var m=dmM+n,y=dmY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}
+ if(y<DM_MIN[0]||(y===DM_MIN[0]&&m<DM_MIN[1]))return;
+ if(y>DM_MAX[0]||(y===DM_MAX[0]&&m>DM_MAX[1]))return;
+ dmM=m;dmY=y;dmRender();}
+function openDatePicker(){var m=document.getElementById('datemodal');if(m){dmRender();m.hidden=false;}}
 function closeDatePicker(){var m=document.getElementById('datemodal');if(m)m.hidden=true;}
-function pickdate(nn){var idx=(nn<=1)?6:((nn-2)%7);var days=['mon','tue','wed','thu','fri','sat','sun'];var chip=document.querySelectorAll('#page-calendar .daychip')[idx];if(chip)selday(chip,days[idx]);
+function pickdate(nn){var idx=(new Date(dmY,dmM,nn).getDay()+6)%7;var days=['mon','tue','wed','thu','fri','sat','sun'];var chip=document.querySelectorAll('#page-calendar .daychip')[idx];if(chip)selday(chip,days[idx]);
  var cls=document.querySelector('#page-calendar [data-ct="classes"]');if(cls)cls.scrollIntoView({block:'start'});closeDatePicker();}
 
 (function(){
