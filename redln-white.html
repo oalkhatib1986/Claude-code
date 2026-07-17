@@ -810,16 +810,8 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
  </div>
  <div class="wrap psec ct" data-ct="classes" hidden>
   <p class="note" style="margin:-4px 0 14px;max-width:66ch">Pick a day to see its classes. Coached erg sessions plus open-floor time, year-round in the DXB Race-haus. Tap <b>Book</b> on any class &mdash; you'll sign in and use a class credit to lock your spot.</p>
-  <div class="wkhead"><span class="wkm">This week &middot; Feb 2027</span><button class="datebtn" onclick="openDatePicker()"><span class="dbi"></span>Pick a date</button></div>
-  <div class="wkstrip">
-   <button class="daychip on" onclick="selday(this,'mon')"><span class="dc-d">Mon</span><span class="dc-n">02</span></button>
-   <button class="daychip" onclick="selday(this,'tue')"><span class="dc-d">Tue</span><span class="dc-n">03</span></button>
-   <button class="daychip" onclick="selday(this,'wed')"><span class="dc-d">Wed</span><span class="dc-n">04</span></button>
-   <button class="daychip" onclick="selday(this,'thu')"><span class="dc-d">Thu</span><span class="dc-n">05</span></button>
-   <button class="daychip" onclick="selday(this,'fri')"><span class="dc-d">Fri</span><span class="dc-n">06</span></button>
-   <button class="daychip" onclick="selday(this,'sat')"><span class="dc-d">Sat</span><span class="dc-n">07</span></button>
-   <button class="daychip" onclick="selday(this,'sun')"><span class="dc-d">Sun</span><span class="dc-n">08</span></button>
-  </div>
+  <div class="wkhead"><span class="wkm" id="wkm">Mon 02 Feb 2027</span><button class="datebtn" onclick="openDatePicker()"><span class="dbi"></span>Pick a date</button></div>
+  <div class="wkstrip" id="wkstrip"></div>
   <div class="dayset" data-day="mon">
    <div class="clsrow" data-p="classbuy"><div class="cr-t">6:00<span class="mer">am</span></div><div class="cr-info"><div class="cr-nm">Coached class</div><div class="cr-meta">45 min &middot; Coach Maya &middot; All levels</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
    <div class="clsrow" data-p="classbuy"><div class="cr-t">12:00<span class="mer">pm</span></div><div class="cr-info"><div class="cr-nm">Open floor</div><div class="cr-meta">Self-led &middot; open erg &amp; floor</div></div><a class="cr-book" data-p="classbuy">Book →</a></div>
@@ -1004,7 +996,7 @@ function dmRender(){
  var wd=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],html='';
  for(var i=0;i<7;i++)html+='<span class="dm-w">'+wd[i]+'</span>';
  for(var b=0;b<lead;b++)html+='<span class="dm-d empty"></span>';
- for(var d=1;d<=dim;d++)html+='<button class="dm-d" onclick="pickdate('+d+')">'+(d<10?'0'+d:d)+'</button>';
+ for(var d=1;d<=dim;d++)html+='<button class="dm-d'+((dmY===selY&&dmM===selM&&d===selD)?' sel':'')+'" onclick="pickdate('+d+')">'+(d<10?'0'+d:d)+'</button>';
  grid.innerHTML=html;
  var pv=document.getElementById('dmPrev'),nx=document.getElementById('dmNext');
  pv.disabled=(dmY<DM_MIN[0]||(dmY===DM_MIN[0]&&dmM<=DM_MIN[1]));
@@ -1023,10 +1015,24 @@ function cpSync(){var s=document.getElementById('cp-sel');if(!s)return;var o=s.o
  set('cp-term-valid','Credits valid for '+v+' from purchase');
  set('cd-pack',n);set('cd-valid',v);set('cd-paid',money(price));
  var pay=document.getElementById('cp-pay');if(pay)pay.innerHTML='Pay '+money(price)+' &rarr;';}
-function openDatePicker(){var m=document.getElementById('datemodal');if(m){dmRender();m.hidden=false;}}
+var WK=['mon','tue','wed','thu','fri','sat','sun'],WKLBL=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],MON_SH=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var selY=2027,selM=1,selD=2;
+function renderStrip(){var strip=document.getElementById('wkstrip');if(!strip)return;
+ var sel=new Date(selY,selM,selD),mon=new Date(sel);mon.setDate(sel.getDate()-((sel.getDay()+6)%7));
+ var html='';
+ for(var i=0;i<7;i++){var dt=new Date(mon);dt.setDate(mon.getDate()+i);
+  var on=(dt.getFullYear()===selY&&dt.getMonth()===selM&&dt.getDate()===selD),dd=dt.getDate();
+  html+='<button class="daychip'+(on?' on':'')+'" onclick="pickWeekday('+dt.getFullYear()+','+dt.getMonth()+','+dd+')"><span class="dc-d">'+WKLBL[i]+'</span><span class="dc-n">'+(dd<10?'0'+dd:dd)+'</span></button>';}
+ strip.innerHTML=html;
+ var wd=(sel.getDay()+6)%7,wkm=document.getElementById('wkm');
+ if(wkm)wkm.textContent=WKLBL[wd]+' '+(selD<10?'0'+selD:selD)+' '+MON_SH[selM]+' '+selY;
+ document.querySelectorAll('#page-calendar .dayset').forEach(function(ds){ds.hidden=(ds.dataset.day!==WK[wd]);});}
+function pickWeekday(y,m,d){selY=y;selM=m;selD=d;renderStrip();}
+function openDatePicker(){dmY=selY;dmM=selM;var m=document.getElementById('datemodal');if(m){dmRender();m.hidden=false;}}
 function closeDatePicker(){var m=document.getElementById('datemodal');if(m)m.hidden=true;}
-function pickdate(nn){var idx=(new Date(dmY,dmM,nn).getDay()+6)%7;var days=['mon','tue','wed','thu','fri','sat','sun'];var chip=document.querySelectorAll('#page-calendar .daychip')[idx];if(chip)selday(chip,days[idx]);
+function pickdate(nn){selY=dmY;selM=dmM;selD=nn;renderStrip();
  var cls=document.querySelector('#page-calendar [data-ct="classes"]');if(cls)cls.scrollIntoView({block:'start'});closeDatePicker();}
+renderStrip();
 
 (function(){
  var tEl;
