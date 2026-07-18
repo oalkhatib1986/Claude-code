@@ -597,6 +597,8 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
 .subtle a{color:var(--red);text-decoration:underline;cursor:pointer}
 .avatar{width:64px;height:64px;border-radius:50%;background:var(--red);color:#fff;font-family:var(--disp);font-weight:700;font-size:22px;display:flex;align-items:center;justify-content:center}
 .idpill{display:inline-flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#fff;background:var(--red);box-shadow:inset 0 0 0 1.4px var(--ink);padding:10px 15px;border-radius:2px;margin-top:10px}
+.tx-more[hidden]{display:none}
+.lnkmore{display:inline-flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);background:none;border:none;cursor:pointer;padding:12px 0 4px;margin-top:2px}
 .pmlist{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
 .pmrow{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);box-shadow:inset 0 0 0 1.4px var(--line);border-radius:3px}
 .pm-brand{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:0.04em;color:var(--ink);background:var(--paper2);padding:6px 8px;border-radius:2px;min-width:46px;text-align:center}
@@ -978,10 +980,17 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <a class="btn btn-line pm-add-btn" onclick="pmToggle(this)" style="width:100%;justify-content:center;display:flex;margin-top:4px;cursor:pointer">Add a card &rarr;</a>
    <p class="note pm-secure">Card details are encrypted and tokenised by our payment provider (PCI-DSS). REDLN never sees or stores your full card number or CVC.</p></div>
   <div class="card" style="margin-top:16px"><div class="peyebrow" style="color:var(--red)">Transaction history</div>
+   <div id="txlist">
    <div class="krow" style="margin-top:6px"><span>27 Feb 2027 &middot; Everyday Team entry</span><b>AED 1,099</b></div>
    <div class="krow"><span>12 Feb 2027 &middot; 10 class credits</span><b>AED 999</b></div>
    <div class="krow"><span>05 Jan 2027 &middot; Everyday Solo entry</span><b>AED 275</b></div>
-   <div class="krow"><span>02 Jan 2026 &middot; Membership</span><b>Free</b></div>
+   <div class="krow"><span>18 Dec 2026 &middot; Heat time · Season 01</span><b>AED 50</b></div>
+   <div class="krow"><span>02 Dec 2026 &middot; 5 class credits</span><b>AED 550</b></div>
+   <div class="krow tx-more" hidden><span>14 Nov 2026 &middot; Everyday Solo entry</span><b>AED 275</b></div>
+   <div class="krow tx-more" hidden><span>03 Nov 2026 &middot; 1 class credit</span><b>AED 125</b></div>
+   <div class="krow tx-more" hidden><span>02 Jan 2026 &middot; Membership</span><b>Free</b></div>
+   </div>
+   <button id="tx-toggle" class="lnkmore" type="button" onclick="txToggle(this)">View all transactions &darr;</button>
    <p class="note">All prices include 5% VAT. Receipts are emailed to alex@email.com.</p></div>
  </div>
  <div class="wrap psec at" data-at="races" hidden>
@@ -1055,6 +1064,7 @@ function askConfirm(msg,onYes){var m=document.getElementById('confirmmodal');if(
 function closeConfirm(){var m=document.getElementById('confirmmodal');if(m)m.hidden=true;_cfmYes=null;}
 function runConfirm(){var f=_cfmYes;closeConfirm();if(f)f();}
 function pmToggle(btn){var card=btn.closest('.card');var f=card.querySelector('.pmform');if(!f)return;f.hidden=!f.hidden;btn.textContent=f.hidden?'Add a card →':'Cancel';}
+function txToggle(btn){var more=document.querySelectorAll('#txlist .tx-more');var open=more.length&&more[0].hidden;for(var i=0;i<more.length;i++){more[i].hidden=!open;}btn.innerHTML=open?'Show fewer &uarr;':'View all transactions &darr;';}
 function activateTab(page,tab){var pg=document.getElementById('page-'+page);if(!pg)return;pg.querySelectorAll('.ctabs button').forEach(function(btn){var oc=btn.getAttribute('onclick')||'';if(oc.indexOf("'"+tab+"'")>-1)btn.click();});}
 document.querySelectorAll('[data-p]').forEach(function(a){a.style.cursor='pointer';a.addEventListener('click',function(){go(a.dataset.p);if(a.dataset.tab)activateTab(a.dataset.p,a.dataset.tab);if(a.dataset.p==='leaderboard'){var bk=document.getElementById('lb-back');if(bk)bk.style.display=a.dataset.back?'inline-flex':'none';}});});
 function wtog(btn,mode){btn.parentElement.querySelectorAll('button').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');
