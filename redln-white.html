@@ -629,11 +629,6 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
 .eqbar i{flex:1;background:linear-gradient(180deg,#ff1717,#c40d0d);border-radius:2px 2px 0 0;min-width:3px;opacity:.92}
 .xh2{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(30px,7vw,46px);line-height:0.9;color:var(--ink);margin:8px 0 24px}
 .xh2 .r{color:var(--red)}
-.xfeat{border-top:1px solid var(--line)}
-.xf{display:flex;gap:18px;padding:22px 2px;border-bottom:1px solid var(--line);align-items:flex-start}
-.xf-n{font-family:var(--disp);font-weight:700;font-size:44px;line-height:0.78;color:var(--red);flex:0 0 auto;min-width:50px}
-.xf-t{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:21px;line-height:1;color:var(--ink);margin:2px 0 8px}
-.xf-b p{font-family:var(--body);font-size:15px;line-height:1.5;color:#4a5057;margin:0}
 .passcard{position:relative;overflow:hidden;background-color:#f7f8f9;background-image:linear-gradient(rgba(60,90,120,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(60,90,120,0.03) 1px,transparent 1px),repeating-linear-gradient(90deg,rgba(255,255,255,0.6) 0 1px,rgba(18,22,26,0.014) 1px 2px,transparent 2px 5px),linear-gradient(116deg,#fdfdfe 0%,#f4f6f7 48%,#fafbfb 100%);background-size:38px 38px,38px 38px,5px 100%,100% 100%}
 .passcard>.ck{position:absolute;width:9px;height:9px;z-index:3}
 .passcard>.ck::before,.passcard>.ck::after{content:"";position:absolute;background:var(--red)}
@@ -943,7 +938,12 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
  <div class="wrap psec">
   <div class="peyebrow" style="color:var(--red)">The experience</div>
   <h2 class="xh2">Not just a class.<br>A <span class="r">production.</span></h2>
-  <div class="xfeat"><div class="xf"><span class="xf-n">01</span><div class="xf-b"><h3 class="xf-t">Coach on the mic</h3><p>Every class is led by a coach on the mic &mdash; guiding you through the workout and setting the pace, from warm-up to the final metre.</p></div></div><div class="xf"><span class="xf-n">02</span><div class="xf-b"><h3 class="xf-t">Lights down, music up</h3><p>Every class is staged like a show: lights, sound, staging and the bass loud. You don&rsquo;t just work out &mdash; you&rsquo;re in the production.</p></div></div><div class="xf"><span class="xf-n">03</span><div class="xf-b"><h3 class="xf-t">All erg-based</h3><p>Every class is built on the four race machines &mdash; run, ski, bike and rower &mdash; with no skilled movements. Train to build for the race, or just for a hard, casual calorie burn.</p></div></div><div class="xf"><span class="xf-n">04</span><div class="xf-b"><h3 class="xf-t">Everyone&rsquo;s in</h3><p>All levels train side by side, first-timers next to racers. Every load scales to you &mdash; no experience needed, just show up.</p></div></div></div>
+  <div class="grid2" style="margin-top:16px">
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Coach on the mic</div><p class="plead" style="margin-top:6px">Every class is led by a coach on the mic &mdash; guiding you through the workout and setting the pace, from warm-up to the final metre.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Lights down, music up</div><p class="plead" style="margin-top:6px">Every class is staged like a show: lights, sound, staging and the bass loud. You don&rsquo;t just work out &mdash; you&rsquo;re in the production.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">All erg-based</div><p class="plead" style="margin-top:6px">Every class is built on the four race machines &mdash; run, ski, bike and rower &mdash; with no skilled movements. Train to build for the race, or just for a hard, casual calorie burn.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Everyone&rsquo;s in</div><p class="plead" style="margin-top:6px">All levels train side by side, first-timers next to racers. Every load scales to you &mdash; no experience needed, just show up.</p></div>
+  </div>
   <div class="card passcard" style="margin-top:18px"><span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span><div class="krow"><span>Format</span><b>Coached group classes</b></div><div class="krow"><span>Where</span><b>DXB Race-haus</b></div><div class="krow"><span>When</span><b>Year-round</b></div><div class="krow"><span>Who</span><b>All levels welcome</b></div></div>
   <div class="venue">
    <div class="veyebrow">The Venue</div>
