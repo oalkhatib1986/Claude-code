@@ -9,7 +9,7 @@
   --grid:rgba(60,90,120,0.055);--red:#ff1717;
   --disp:'Chakra',sans-serif;--mono:'SMono',monospace;--body:'Chakra',sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;background:var(--paper)}
+html,body{overflow-x:clip;background:var(--paper)}
 body{color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),linear-gradient(180deg,#f7f8f9,#e8eaec);
   background-size:38px 38px,38px 38px,100% 100%}
@@ -20,7 +20,8 @@ a{color:inherit;text-decoration:none}
 .strip{border-bottom:1px solid var(--line);background:rgba(247,248,249,0.7)}
 .strip .in{display:flex;justify-content:space-between;align-items:center;height:32px;font-family:var(--mono);font-size:6.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
 .strip .r{color:var(--red)}
-header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:none}
+.sitehead{position:sticky;top:0;z-index:40;background:#e7e9eb}
+header{position:static;background:#fff;border-bottom:none}
 .hrow{display:flex;align-items:center;justify-content:space-between;min-height:74px;padding:14px 20px 12px;flex-wrap:wrap}
 .brand{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:0.02em}.brand i{color:var(--red);font-style:normal}
 .brand-badge{display:block;flex:0 0 auto;line-height:0}
@@ -772,7 +773,7 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
 .hbtn-line{background:var(--panel) !important;color:var(--ink) !important;box-shadow:inset 0 0 0 1.4px var(--ink)}
 </style></head><body>
 
-<header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-badge-ticker.png" alt="REDLN"></a></div>
+<div class="sitehead"><header><div class="wrap hrow"><div class="brandrow"><a class="brand-badge" aria-label="REDLN"><img class="brand-vid" src="redln-badge-ticker.png" alt="REDLN"></a></div>
   <div class="navwrap"><nav><a class="on" data-p="home">Overview</a><a data-p="workout">Races</a><a data-p="classes">Classes</a><a data-p="calendar">Calendar</a><a data-p="leaderboard">Leaderboard</a><a data-p="tickets">Buy</a><a data-p="why">The Why</a><a data-p="faq">FAQ</a><a data-p="contact">Contact</a></nav></div>
   <span class="hbtns"><a class="hbtn hbtn-line" data-p="account">Account</a><a class="hbtn" data-p="tickets" data-tab="races">Register &rarr;</a></span></div></header>
   <div class="ticker">
@@ -781,6 +782,7 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
       <span><b>Set the pace</b><b>Hold the line</b><b>Run until it hurts</b><b>Win as a team</b><b>Strategy beats strength</b><b>Find your limit</b><b>Then cross it</b><b>Empty the tank</b><b>Move as one</b><b>Chase a faster line</b><b>Trust your four</b><b>Outwork the clock</b><b>Pain is the plan</b><b>Every second counts</b><b>Leave nothing on the floor</b><b>Redline together</b><b>Set the pace</b><b>Hold the line</b><b>Run until it hurts</b><b>Win as a team</b><b>Strategy beats strength</b><b>Find your limit</b><b>Then cross it</b><b>Empty the tank</b><b>Move as one</b><b>Chase a faster line</b><b>Trust your four</b><b>Outwork the clock</b><b>Pain is the plan</b><b>Every second counts</b><b>Leave nothing on the floor</b><b>Redline together</b></span>
     </div>
   </div>
+</div>
 
 <main>
 <div id="page-home" class="pg on">
