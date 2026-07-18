@@ -411,51 +411,36 @@ section>.wrap{position:relative;z-index:1}
 .rulelist li:first-child{border-top:none;padding-top:2px}
 .rulelist li::before{content:"—";position:absolute;left:0;color:var(--red)}
 .rulelist li b{color:var(--ink);font-weight:700}
-.core{position:relative;color:var(--ink);margin-top:40px}
-.core::before{content:none}
-.core .cwrap{position:relative;z-index:2}
-.core-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red)}
-.core-h{font-family:var(--disp);font-weight:700;font-size:clamp(34px,6.6vw,64px);line-height:0.93;text-transform:uppercase;letter-spacing:-0.015em;margin:12px 0 0;color:var(--ink)}
-.core-h sup{font-size:0.32em;vertical-align:top;color:var(--red);margin-left:5px}
-.core-tag{font-family:var(--disp);font-weight:700;font-size:clamp(17px,2.5vw,23px);text-transform:uppercase;margin-top:16px;max-width:26ch;line-height:1.05;color:var(--ink)}
-.core-tag .r{color:var(--red)}
-.core-lead{max-width:58ch;margin-top:18px;color:#33383d;font-size:clamp(15px,1.6vw,18px);line-height:1.55}
-.core-screen{position:relative;margin-top:44px;border-radius:6px;overflow:hidden;aspect-ratio:16/9;background:#fff;box-shadow:0 26px 60px rgba(13,16,19,0.14),inset 0 0 0 1.5px var(--line)}
-.core-feed{position:absolute;inset:0;background:radial-gradient(60% 85% at 38% 26%,rgba(255,23,23,0.06),transparent 58%),linear-gradient(128deg,#f4f6f8,#e7eaed 55%,#eef1f3)}
-.core-feed::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(13,16,19,0.03) 0 1px,transparent 1px 44px)}
-.core-feed::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(13,16,19,0.02) 0 1px,transparent 1px 4px)}
-.core-ck{position:absolute;width:20px;height:20px;z-index:3}
-.core-ck::before,.core-ck::after{content:"";position:absolute;background:var(--red)}
-.core-ck::before{width:20px;height:2px}.core-ck::after{width:2px;height:20px}
-.core-ck.tl{left:14px;top:14px}.core-ck.tr{right:14px;top:14px}.core-ck.tr::before{right:0}.core-ck.tr::after{right:0}
-.core-ck.bl{left:14px;bottom:14px}.core-ck.bl::before,.core-ck.bl::after{bottom:0}.core-ck.br{right:14px;bottom:14px}.core-ck.br::before,.core-ck.br::after{right:0;bottom:0}
-.core-live{position:absolute;top:16px;left:16px;z-index:4;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;color:#fff;background:var(--red);padding:6px 11px;border-radius:3px;box-shadow:0 4px 14px rgba(255,23,23,0.3)}
-.core-live .d{width:7px;height:7px;border-radius:50%;background:#fff;animation:corepulse 1.4s ease-in-out infinite}
-.core-cam{position:absolute;top:19px;right:16px;z-index:4;font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
-.core-big{position:absolute;left:0;right:0;top:44%;transform:translateY(-50%);text-align:center;z-index:2;font-family:var(--disp);font-weight:700;text-transform:uppercase;color:rgba(13,16,19,0.07);font-size:clamp(30px,8vw,84px);letter-spacing:0.01em;line-height:0.88}
-.core-scanline{position:absolute;left:0;right:0;height:2px;z-index:3;background:linear-gradient(90deg,transparent,rgba(255,23,23,0.55),transparent);box-shadow:0 0 12px rgba(255,23,23,0.4);animation:corescan 4.8s ease-in-out infinite}
-.core-lower{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:clamp(13px,2.2vw,22px);background:linear-gradient(0deg,rgba(255,255,255,0.96),rgba(255,255,255,0.55) 62%,transparent);display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
-.core-lteam{display:flex;gap:11px;align-items:center}
-.core-lteam .bar{width:5px;height:38px;background:var(--red);flex:0 0 auto}
-.core-tn{font-family:var(--disp);font-weight:700;font-size:clamp(18px,3vw,28px);text-transform:uppercase;line-height:1;color:var(--ink)}
-.core-tm{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:5px}
-.core-rt{text-align:right}
-.core-clock{font-family:var(--mono);font-weight:700;font-size:clamp(22px,4.4vw,38px);letter-spacing:0.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
-.core-mx{display:flex;gap:clamp(10px,2vw,20px);justify-content:flex-end;margin-top:9px}
-.core-mx b{display:block;font-family:var(--disp);font-weight:700;font-size:clamp(13px,1.7vw,17px);color:var(--ink)}
-.core-mx b i{color:var(--red);font-style:normal;font-size:0.62em}
-.core-mx span{font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
-.core-feats{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}
-.core-feat{border-top:2px solid var(--red);padding-top:16px}
-.core-feat h3{font-family:var(--disp);font-weight:700;font-size:clamp(17px,2vw,21px);text-transform:uppercase;line-height:1;margin:0;color:var(--ink)}
-.core-feat p{margin-top:10px;color:#33383d;font-size:14px;line-height:1.6}
-.core-close{margin-top:52px;border-top:1px solid var(--line);padding-top:32px;text-align:center}
-.core-close .big{font-family:var(--disp);font-weight:700;font-size:clamp(26px,5vw,46px);text-transform:uppercase;line-height:0.96;letter-spacing:-0.01em;color:var(--ink)}
-.core-close .big .r{color:var(--red)}
-.core-close .sub{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:var(--muted);margin-top:16px}
+/* Redline CORE broadcast mock — built on the site card + .ck corner system */
+.cbc{padding:0;overflow:hidden;position:relative}
+.cbc .ck{position:absolute;width:9px;height:9px;z-index:5}
+.cbc .ck::before,.cbc .ck::after{content:"";position:absolute;background:var(--red)}
+.cbc .ck::before{width:9px;height:1.5px}.cbc .ck::after{width:1.5px;height:9px}
+.cbc .ck.tl{left:12px;top:12px}.cbc .ck.tr{right:12px;top:12px}.cbc .ck.tr::before,.cbc .ck.tr::after{right:0}
+.cbc .ck.bl{left:12px;bottom:12px}.cbc .ck.bl::before,.cbc .ck.bl::after{bottom:0}.cbc .ck.br{right:12px;bottom:12px}.cbc .ck.br::before,.cbc .ck.br::after{right:0;bottom:0}
+.cbc-top{display:flex;justify-content:space-between;align-items:center;padding:22px 24px 0}
+.cbc-live{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;color:#fff;background:var(--red);padding:6px 11px;border-radius:3px}
+.cbc-live i{width:7px;height:7px;border-radius:50%;background:#fff;animation:corepulse 1.4s ease-in-out infinite}
+.cbc-cam{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
+.cbc-feed{position:relative;height:clamp(190px,32vw,320px);margin-top:16px;overflow:hidden;background:linear-gradient(128deg,#f4f6f8,#e9ecef 55%,#eef1f3);box-shadow:inset 0 1px 0 rgba(13,16,19,0.05),inset 0 -1px 0 rgba(13,16,19,0.05)}
+.cbc-feed::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(13,16,19,0.03) 0 1px,transparent 1px 44px)}
+.cbc-ghost{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:var(--disp);font-weight:700;text-transform:uppercase;color:rgba(13,16,19,0.07);font-size:clamp(30px,8vw,72px);line-height:0.88;letter-spacing:0.01em}
+.cbc-scan{position:absolute;left:0;right:0;top:8%;height:2px;background:linear-gradient(90deg,transparent,rgba(255,23,23,0.5),transparent);box-shadow:0 0 12px rgba(255,23,23,0.35);animation:corescan 4.8s ease-in-out infinite}
+.cbc-lower{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:16px 24px 20px}
+.cbc-team{display:flex;gap:11px;align-items:center}
+.cbc-team .bar{width:5px;height:38px;background:var(--red);flex:0 0 auto}
+.cbc-tn{font-family:var(--disp);font-weight:700;font-size:clamp(18px,3vw,26px);text-transform:uppercase;line-height:1;color:var(--ink)}
+.cbc-tm{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.cbc-rt{text-align:right}
+.cbc-clock{font-family:var(--mono);font-weight:700;font-size:clamp(22px,4.4vw,34px);letter-spacing:0.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cbc-mx{display:flex;gap:clamp(10px,2vw,20px);justify-content:flex-end;margin-top:9px}
+.cbc-mx b{display:block;font-family:var(--disp);font-weight:700;font-size:clamp(13px,1.7vw,16px);color:var(--ink)}
+.cbc-mx b i{color:var(--red);font-style:normal;font-size:0.62em}
+.cbc-mx span{font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
+.cfeats{display:grid;gap:16px;margin-top:16px}
+@media(min-width:760px){.cfeats{grid-template-columns:1fr 1fr 1fr}}
 @keyframes corepulse{0%,100%{opacity:1}50%{opacity:0.25}}
 @keyframes corescan{0%{top:8%}50%{top:86%}100%{top:8%}}
-@media(max-width:720px){.core-feats{grid-template-columns:1fr;gap:18px}}
 .consent{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:14px 16px;background:var(--paper);box-shadow:inset 0 0 0 1.4px var(--line);border-radius:4px;cursor:pointer}
 .consent input{margin-top:1px;width:18px;height:18px;flex:0 0 auto;accent-color:var(--red);cursor:pointer}
 .consent .ctxt{font-family:var(--mono);font-size:11px;line-height:1.65;letter-spacing:0.01em;color:var(--ink)}
@@ -944,7 +929,22 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <div class="card"><div class="peyebrow" style="color:var(--red)">The crowd</div><p class="plead" style="margin-top:6px">Spectators welcome &mdash; friends, family and the REDLN community cheering every heat.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Your moment</div><p class="plead" style="margin-top:6px">A chip-timed result, a finisher tee, and photos to take home from the floor.</p></div>
   </div>
-  <section class="core"><div class="cwrap"><div class="core-eyebrow">The technology</div><div class="core-h">Powered by<br>Redline CORE<sup>&trade;</sup></div><div class="core-tag">More than a race. <span class="r">A live sporting production</span> where every team becomes the main event.</div><p class="core-lead">Every REDLN race is powered by Redline CORE&trade; &mdash; our proprietary race operating system that turns every competition into a fully immersive sporting experience. It combines live race timing, intelligent performance tracking and multi-camera coverage to bring every team to life across the arena, on giant LED screens, from start to finish.</p><div class="core-screen"><div class="core-feed"></div><span class="core-ck tl"></span><span class="core-ck tr"></span><span class="core-ck bl"></span><span class="core-ck br"></span><span class="core-live"><span class="d"></span>LIVE</span><span class="core-cam">Redline CORE&trade; &middot; CAM 04</span><div class="core-scanline"></div><div class="core-big">SkiErg<br>Station 3 / 4</div><div class="core-lower"><div class="core-lteam"><span class="bar"></span><div><div class="core-tn">The Redliners</div><div class="core-tm">Everyday &middot; Heat 2 &middot; Lane 04</div></div></div><div class="core-rt"><div class="core-clock" id="core-clock">12:47.3</div><div class="core-mx"><div><b>1:42<i>/500</i></b><span>Split</span></div><div><b>312<i>w</i></b><span>Power</span></div><div><b>84</b><span>Cal</span></div><div><b id="core-pos">P2</b><span>Live rank</span></div></div></div></div></div><div class="core-feats"><div class="core-feat"><h3>Live team coverage</h3><p>Multiple camera angles capture every stage of the race, with live footage showcased across giant LED screens throughout the arena.</p></div><div class="core-feat"><h3>Real-time race tracking</h3><p>Official race times, station progress and live performance metrics are tracked and displayed instantly as the competition unfolds.</p></div><div class="core-feat"><h3>Dynamic leaderboards</h3><p>Watch the standings update in real time as every second, every station and every performance shapes the race.</p></div></div><div class="core-close"><div class="big">Every team. Live. <span class="r">Every second.</span></div><div class="sub">Powered by Redline CORE&trade;</div></div></div></section><div class="xcta"><a class="btn btn-red" data-p="tickets" data-tab="races">Register &rarr;</a><a class="btn btn-line" data-p="rules">Rule book &rarr;</a><a class="btn btn-line" data-p="calendar" data-tab="races">Race calendar &rarr;</a><a class="btn btn-line" data-p="leaderboard">Leaderboard &rarr;</a></div>
+  <div class="peyebrow" style="margin-top:36px;color:var(--red)">The technology</div>
+  <h2 style="font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,5vw,36px);line-height:0.95;margin:6px 0 10px">Powered by<br>Redline <span class="r">CORE&trade;</span></h2>
+  <p class="plead" style="margin-top:0;max-width:62ch">More than a race &mdash; <b>a live sporting production</b> where every team becomes the main event. Every REDLN race is powered by Redline CORE&trade;, our proprietary race operating system that turns every competition into a fully immersive experience &mdash; combining live race timing, intelligent performance tracking and multi-camera coverage to bring every team to life across the arena, on giant LED screens, from start to finish.</p>
+  <div class="card cbc" style="margin-top:20px">
+   <span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
+   <div class="cbc-top"><span class="cbc-live"><i></i>LIVE</span><span class="cbc-cam">Redline CORE&trade; &middot; CAM 04</span></div>
+   <div class="cbc-feed"><div class="cbc-scan"></div><div class="cbc-ghost">SkiErg<br>Station 3 / 4</div></div>
+   <div class="cbc-lower"><div class="cbc-team"><span class="bar"></span><div><div class="cbc-tn">The Redliners</div><div class="cbc-tm">Everyday &middot; Heat 2 &middot; Lane 04</div></div></div><div class="cbc-rt"><div class="cbc-clock" id="core-clock">12:47.3</div><div class="cbc-mx"><div><b>1:42<i>/500</i></b><span>Split</span></div><div><b>312<i>w</i></b><span>Power</span></div><div><b>84</b><span>Cal</span></div><div><b>3/4</b><span>Station</span></div></div></div></div>
+  </div>
+  <div class="cfeats">
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Live team coverage</div><p class="plead" style="margin-top:6px">Multiple camera angles capture every stage of the race, with live footage showcased across giant LED screens throughout the arena.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Real-time race tracking</div><p class="plead" style="margin-top:6px">Official race times, station progress and live performance metrics are tracked and displayed instantly as the competition unfolds.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Dynamic leaderboards</div><p class="plead" style="margin-top:6px">Watch the standings update in real time as every second, every station and every performance shapes the race.</p></div>
+  </div>
+  <p class="note" style="margin-top:16px;max-width:64ch">Every team. Live. Every second &mdash; powered by Redline CORE&trade;.</p>
+  <div class="xcta"><a class="btn btn-red" data-p="tickets" data-tab="races">Register &rarr;</a><a class="btn btn-line" data-p="rules">Rule book &rarr;</a><a class="btn btn-line" data-p="calendar" data-tab="races">Race calendar &rarr;</a><a class="btn btn-line" data-p="leaderboard">Leaderboard &rarr;</a></div>
  </div>
  </div><div id="page-classes" class="pg">
  <div class="wrap phead"><div class="peyebrow">Immersive Coached Classes</div>
