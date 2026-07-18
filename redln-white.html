@@ -418,15 +418,11 @@ section>.wrap{position:relative;z-index:1}
 .cbc .ck::before{width:9px;height:1.5px}.cbc .ck::after{width:1.5px;height:9px}
 .cbc .ck.tl{left:12px;top:12px}.cbc .ck.tr{right:12px;top:12px}.cbc .ck.tr::before,.cbc .ck.tr::after{right:0}
 .cbc .ck.bl{left:12px;bottom:12px}.cbc .ck.bl::before,.cbc .ck.bl::after{bottom:0}.cbc .ck.br{right:12px;bottom:12px}.cbc .ck.br::before,.cbc .ck.br::after{right:0;bottom:0}
-.cbc-top{display:flex;justify-content:space-between;align-items:center;padding:22px 24px 0}
+.cbc-top{display:flex;justify-content:space-between;align-items:center;padding:20px 24px 15px;border-bottom:1px solid var(--line)}
 .cbc-live{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;color:#fff;background:var(--red);padding:6px 11px;border-radius:3px}
 .cbc-live i{width:7px;height:7px;border-radius:50%;background:#fff;animation:corepulse 1.4s ease-in-out infinite}
 .cbc-cam{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
-.cbc-feed{position:relative;height:clamp(190px,32vw,320px);margin-top:16px;overflow:hidden;background:linear-gradient(128deg,#f4f6f8,#e9ecef 55%,#eef1f3);box-shadow:inset 0 1px 0 rgba(13,16,19,0.05),inset 0 -1px 0 rgba(13,16,19,0.05)}
-.cbc-feed::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(13,16,19,0.03) 0 1px,transparent 1px 44px)}
-.cbc-ghost{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:var(--disp);font-weight:700;text-transform:uppercase;color:rgba(13,16,19,0.07);font-size:clamp(30px,8vw,72px);line-height:0.88;letter-spacing:0.01em}
-.cbc-scan{position:absolute;left:0;right:0;top:8%;height:2px;background:linear-gradient(90deg,transparent,rgba(255,23,23,0.5),transparent);box-shadow:0 0 12px rgba(255,23,23,0.35);animation:corescan 4.8s ease-in-out infinite}
-.cbc-lower{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:16px 24px 20px}
+.cbc-lower{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:20px 24px 20px}
 .cbc-team{display:flex;gap:11px;align-items:center}
 .cbc-team .bar{width:5px;height:38px;background:var(--red);flex:0 0 auto}
 .cbc-tn{font-family:var(--disp);font-weight:700;font-size:clamp(18px,3vw,26px);text-transform:uppercase;line-height:1;color:var(--ink)}
@@ -437,10 +433,7 @@ section>.wrap{position:relative;z-index:1}
 .cbc-mx b{display:block;font-family:var(--disp);font-weight:700;font-size:clamp(13px,1.7vw,16px);color:var(--ink)}
 .cbc-mx b i{color:var(--red);font-style:normal;font-size:0.62em}
 .cbc-mx span{font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
-.cfeats{display:grid;gap:16px;margin-top:16px}
-@media(min-width:760px){.cfeats{grid-template-columns:1fr 1fr 1fr}}
 @keyframes corepulse{0%,100%{opacity:1}50%{opacity:0.25}}
-@keyframes corescan{0%{top:8%}50%{top:86%}100%{top:8%}}
 .consent{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:14px 16px;background:var(--paper);box-shadow:inset 0 0 0 1.4px var(--line);border-radius:4px;cursor:pointer}
 .consent input{margin-top:1px;width:18px;height:18px;flex:0 0 auto;accent-color:var(--red);cursor:pointer}
 .consent .ctxt{font-family:var(--mono);font-size:11px;line-height:1.65;letter-spacing:0.01em;color:var(--ink)}
@@ -883,7 +876,6 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
  <div class="wrap phead"><div class="peyebrow">The Races</div>
   <h1 class="ph1">Run. Ski.<br>Bike. <span class="r">Row.</span></h1>
   <p class="plead">One fixed workout across the season. Enter <b>solo</b> or as a <b>team of four</b>. No skilled movements, all erg-based. Everyday or Elite: same format, scaled load. Lower total time wins. It all goes down in the DXB Race-haus &mdash; our custom-built arena &mdash; with live scoring on the big screen and a season leaderboard.</p>
-  <div style="margin-top:20px"><a class="btn btn-red" data-p="rules">Read the rule book &rarr;</a></div>
  </div>
  <!-- CT tab: the current season's competition workout. Backend TODO: this workout is fixed per season and updated by admin each season; render from the active-season record instead of hard-coding. -->
  <div class="wrap psec">
@@ -891,6 +883,7 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <div class="card"><div class="krow"><span>Entry</span><b>Solo or team of 4</b></div><div class="krow"><span>Team make-up</span><b>4M, 4F or 2M/2F</b></div><div class="krow"><span>Movements</span><b>All erg-based</b></div></div>
    <div class="card"><div class="krow"><span>Categories</span><b>Everyday / Elite</b></div><div class="krow"><span>Work split (teams)</span><b>Split across the 4</b></div><div class="krow"><span>Scoring</span><b>Lower time wins</b></div></div>
   </div>
+  <div style="margin-top:22px"><a class="btn btn-red" data-p="rules">Read the rule book &rarr;</a></div>
   <div class="seasonbar" style="margin-top:30px"><span class="livechip">Current</span><span class="sbtxt">Season 01 workout &middot; Jan &ndash; Apr 2027</span></div>
   <div class="tog" style="margin:12px 0 12px"><button class="on" onclick="wtog(this,'ev')">Everyday</button><button onclick="wtog(this,'el')">Elite</button></div>
   <div class="card wkspec" style="margin-top:0">
@@ -923,9 +916,7 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
   <p class="plead" style="margin-top:0;max-width:64ch">You don't just show up and race. Race day at the DXB Race-haus is a full production &mdash; a DJ on the floor, a crowd in the stands, and every team brought to life on giant LED screens by <b>Redline CORE&trade;</b>, our proprietary race operating system. Here's what's waiting for you.</p>
   <div class="card cbc" style="margin-top:20px">
    <span class="ck tl"></span><span class="ck tr"></span><span class="ck bl"></span><span class="ck br"></span>
-   <div class="cbc-top"><span class="cbc-live"><i></i>LIVE</span><span class="cbc-cam">Redline CORE&trade; &middot; CAM 04</span></div>
-   <div class="cbc-feed"><div class="cbc-scan"></div><div class="cbc-ghost">SkiErg<br>Station 3 / 4</div></div>
-   <div class="cbc-lower"><div class="cbc-team"><span class="bar"></span><div><div class="cbc-tn">The Redliners</div><div class="cbc-tm">Everyday &middot; Heat 2 &middot; Lane 04</div></div></div><div class="cbc-rt"><div class="cbc-clock" id="core-clock">12:47.3</div><div class="cbc-mx"><div><b>1:42<i>/500</i></b><span>Split</span></div><div><b>312<i>w</i></b><span>Power</span></div><div><b>84</b><span>Cal</span></div><div><b>3/4</b><span>Station</span></div></div></div></div>
+   <div class="cbc-top"><span class="cbc-live"><i></i>LIVE</span><span class="cbc-cam">Redline CORE&trade; &middot; CAM 04</span></div>   <div class="cbc-lower"><div class="cbc-team"><span class="bar"></span><div><div class="cbc-tn">The Redliners</div><div class="cbc-tm">Everyday &middot; Heat 2 &middot; Lane 04</div></div></div><div class="cbc-rt"><div class="cbc-clock" id="core-clock">12:47.3</div><div class="cbc-mx"><div><b>1:42<i>/500</i></b><span>Split</span></div><div><b>312<i>w</i></b><span>Power</span></div><div><b>84</b><span>Cal</span></div><div><b>SkiErg</b><span>Station 3/4</span></div></div></div></div>
   </div>
   <div class="grid2" style="margin-top:16px">
    <div class="card"><div class="peyebrow" style="color:var(--red)">Live DJ</div><p class="plead" style="margin-top:6px">A DJ driving the floor and the room loud &mdash; energy high from warm-up to the final metre.</p></div>
@@ -934,8 +925,8 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <div class="card"><div class="peyebrow" style="color:var(--red)">Recovery &amp; fuel</div><p class="plead" style="margin-top:6px">A recovery zone plus the on-site caf&eacute; &mdash; coffee, shakes and food when you're done.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Your moment</div><p class="plead" style="margin-top:6px">A chip-timed result, a finisher tee, and photos to take home from the floor.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Live team coverage</div><p class="plead" style="margin-top:6px">Multiple camera angles capture every stage of the race, with live footage showcased across giant LED screens throughout the arena.</p></div>
-   <div class="card"><div class="peyebrow" style="color:var(--red)">Real-time race tracking</div><p class="plead" style="margin-top:6px">Official race times, station progress and live performance metrics are tracked and displayed instantly as the competition unfolds.</p></div>
-   <div class="card"><div class="peyebrow" style="color:var(--red)">Dynamic leaderboards</div><p class="plead" style="margin-top:6px">Watch the standings update in real time as every second, every station and every performance shapes the race.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Real-time race tracking</div><p class="plead" style="margin-top:6px">Live splits, pace and station progress for every team on the floor &mdash; each metric up on the big screens the moment it happens.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Dynamic leaderboards</div><p class="plead" style="margin-top:6px">The moment a team crosses the finish, their time posts and the standings update &mdash; the season leaderboard climbing in front of the whole arena.</p></div>
   </div>
   <p class="note" style="margin-top:16px;max-width:64ch">Every team. Live. Every second &mdash; powered by Redline CORE&trade;.</p>
   <div class="xcta"><a class="btn btn-red" data-p="tickets" data-tab="races">Register &rarr;</a><a class="btn btn-line" data-p="rules">Rule book &rarr;</a><a class="btn btn-line" data-p="calendar" data-tab="races">Race calendar &rarr;</a><a class="btn btn-line" data-p="leaderboard">Leaderboard &rarr;</a></div>
