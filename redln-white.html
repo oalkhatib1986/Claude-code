@@ -428,7 +428,7 @@ section>.wrap{position:relative;z-index:1}
 .cbc-tn{font-family:var(--disp);font-weight:700;font-size:clamp(18px,3vw,26px);text-transform:uppercase;line-height:1;color:var(--ink)}
 .cbc-ath{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:700;font-size:clamp(13px,1.9vw,16px);text-transform:uppercase;letter-spacing:0.01em;line-height:1;color:var(--ink);margin-top:7px}
 .cbc-ath i{font-family:var(--mono);font-weight:700;font-style:normal;font-size:8.5px;letter-spacing:0.14em;color:var(--red)}
-.cbc-tm{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.cbc-tm{font-family:var(--mono);font-size:clamp(8px,2.4vw,10px);letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);margin-top:6px;white-space:nowrap}
 .cbc-rt{text-align:right}
 .cbc-clock{font-family:var(--mono);font-weight:700;font-size:clamp(22px,4.4vw,34px);letter-spacing:0.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
 .cbc-mx{display:flex;gap:clamp(10px,2vw,20px);justify-content:flex-end;margin-top:9px}
@@ -921,14 +921,14 @@ table.spec td.num{text-align:right;font-family:var(--disp);font-weight:700;font-
    <div class="cbc-top"><span class="cbc-live"><i></i>LIVE</span><span class="cbc-cam">Redline CORE&trade;</span></div>   <div class="cbc-lower"><div class="cbc-team"><span class="bar"></span><div><div class="cbc-tn">The Redliners</div><div class="cbc-ath">Alex Carter<i>On now</i></div><div class="cbc-tm">Everyday &middot; Heat 2 &middot; Lane 04 &middot; SkiErg 3/4</div></div></div><div class="cbc-rt"><div class="cbc-clock" id="core-clock">12:47.3</div><div class="cbc-mx"><div><b>1:42<i>/500</i></b><span>Split</span></div><div><b>312<i>w</i></b><span>Power</span></div><div><b>84</b><span>Cal</span></div></div></div></div>
   </div>
   <div class="grid2" style="margin-top:16px">
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Live team coverage</div><p class="plead" style="margin-top:6px">Multiple camera angles capture every stage of the race, with live footage showcased across giant LED screens throughout the arena.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Real-time race tracking</div><p class="plead" style="margin-top:6px">Live splits, pace and station progress for every team on the floor &mdash; each metric up on the big screens the moment it happens.</p></div>
+   <div class="card"><div class="peyebrow" style="color:var(--red)">Dynamic leaderboards</div><p class="plead" style="margin-top:6px">The moment a team crosses the finish, their time posts and the standings update &mdash; the season leaderboard climbing in front of the whole arena.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Live DJ</div><p class="plead" style="margin-top:6px">A DJ driving the floor and the room loud &mdash; energy high from warm-up to the final metre.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Partners on site</div><p class="plead" style="margin-top:6px">Fitness, recovery, hydration and food partners with activations, samples and giveaways.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">The crowd</div><p class="plead" style="margin-top:6px">Spectators welcome &mdash; friends, family and the REDLN community cheering every heat.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Recovery &amp; fuel</div><p class="plead" style="margin-top:6px">A recovery zone plus the on-site caf&eacute; &mdash; coffee, shakes and food when you're done.</p></div>
    <div class="card"><div class="peyebrow" style="color:var(--red)">Your moment</div><p class="plead" style="margin-top:6px">A chip-timed result, a finisher tee, and photos to take home from the floor.</p></div>
-   <div class="card"><div class="peyebrow" style="color:var(--red)">Live team coverage</div><p class="plead" style="margin-top:6px">Multiple camera angles capture every stage of the race, with live footage showcased across giant LED screens throughout the arena.</p></div>
-   <div class="card"><div class="peyebrow" style="color:var(--red)">Real-time race tracking</div><p class="plead" style="margin-top:6px">Live splits, pace and station progress for every team on the floor &mdash; each metric up on the big screens the moment it happens.</p></div>
-   <div class="card"><div class="peyebrow" style="color:var(--red)">Dynamic leaderboards</div><p class="plead" style="margin-top:6px">The moment a team crosses the finish, their time posts and the standings update &mdash; the season leaderboard climbing in front of the whole arena.</p></div>
   </div>
   <p class="note" style="margin-top:16px;max-width:64ch">Every team. Live. Every second &mdash; powered by Redline CORE&trade;.</p>
   <div class="xcta"><a class="btn btn-red" data-p="tickets" data-tab="races">Register &rarr;</a><a class="btn btn-line" data-p="rules">Rule book &rarr;</a><a class="btn btn-line" data-p="calendar" data-tab="races">Race calendar &rarr;</a><a class="btn btn-line" data-p="leaderboard">Leaderboard &rarr;</a></div>
