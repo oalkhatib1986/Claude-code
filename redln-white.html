@@ -412,13 +412,13 @@ section>.wrap{position:relative;z-index:1}
 .rulelist li::before{content:"—";position:absolute;left:0;color:var(--red)}
 .rulelist li b{color:var(--ink);font-weight:700}
 /* Redline CORE broadcast mock — built on the site card + .ck corner system */
-.cbc{padding:0;overflow:hidden;position:relative;background-color:#f7f8f9;background-image:linear-gradient(rgba(60,90,120,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(60,90,120,0.03) 1px,transparent 1px),repeating-linear-gradient(90deg,rgba(255,255,255,0.6) 0 1px,rgba(18,22,26,0.014) 1px 2px,transparent 2px 5px),linear-gradient(116deg,#fdfdfe 0%,#f4f6f7 48%,#fafbfb 100%);background-size:38px 38px,38px 38px,5px 100%,100% 100%}
+.card.cbc{padding:0;overflow:hidden;position:relative;background-color:#f7f8f9;background-image:linear-gradient(rgba(60,90,120,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(60,90,120,0.03) 1px,transparent 1px),repeating-linear-gradient(90deg,rgba(255,255,255,0.6) 0 1px,rgba(18,22,26,0.014) 1px 2px,transparent 2px 5px),linear-gradient(116deg,#fdfdfe 0%,#f4f6f7 48%,#fafbfb 100%);background-size:38px 38px,38px 38px,5px 100%,100% 100%}
 .cbc .ck{position:absolute;width:9px;height:9px;z-index:5}
 .cbc .ck::before,.cbc .ck::after{content:"";position:absolute;background:var(--red)}
 .cbc .ck::before{width:9px;height:1.5px}.cbc .ck::after{width:1.5px;height:9px}
 .cbc .ck.tl{left:12px;top:12px}.cbc .ck.tr{right:12px;top:12px}.cbc .ck.tr::before,.cbc .ck.tr::after{right:0}
 .cbc .ck.bl{left:12px;bottom:12px}.cbc .ck.bl::before,.cbc .ck.bl::after{bottom:0}.cbc .ck.br{right:12px;bottom:12px}.cbc .ck.br::before,.cbc .ck.br::after{right:0;bottom:0}
-.cbc-top{display:flex;justify-content:space-between;align-items:center;padding:20px 24px 15px;border-bottom:1.5px solid var(--ink)}
+.cbc-top{display:flex;justify-content:space-between;align-items:center;padding:20px 24px 15px;border-bottom:1px solid var(--line)}
 .cbc-live{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;color:#fff;background:var(--red);padding:6px 11px;border-radius:3px}
 .cbc-live i{width:7px;height:7px;border-radius:50%;background:#fff;animation:corepulse 1.4s ease-in-out infinite}
 .cbc-cam{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
