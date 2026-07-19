@@ -591,6 +591,7 @@ function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"'
  s+=line?('<td class="'+(neg?'neg ':'')+'dc" onclick="openDrill(\''+line+'\',\'T\')">'+nn(neg?-t:t)+'</td>')
         :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
  return s+'</tr>';}
+function pctRow(label,nums,dens,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>';var tn=0,td=0;nums.forEach(function(n,i){var d=dens[i]||0;tn+=n;td+=d;var pc=d?n/d*100:0;s+='<td class="calc">'+pc.toFixed(1)+'%</td>';});var tp=td?tn/td*100:0;return s+'<td class="calc">'+tp.toFixed(1)+'%</td></tr>';}
 var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossHeat:'Pick-your-heat',grossTrial:'Trial Day',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',mgmtFee:'Management fee',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
 function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,grossHeat:y.grossHeat,grossTrial:y.grossTrial,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,mgmtFee:y.mgmtFee,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
 function breakdown(line,i){
@@ -720,6 +721,18 @@ function update(){
  ih+=row3('Retail revenue',Y.map(function(y){return y.grossRet;}),false,'','grossRet');
  ih+=row3('Less: retail COGS',Y.map(function(y){return y.grossRet-y.netRet;}),true,'','retCogs');
  ih+=row3('Net retail',Y.map(function(y){return y.netRet;}),false,'subtot','netRet');
+ ih+='<tr class="sec"><td colspan="5">Revenue &amp; gross margin</td></tr>';
+ var fTG=function(y){return y.grossEvent+y.grossHeat+y.grossTrial+y.grossClass+y.grossFb+y.grossRet;};
+ var fCOGS=function(y){return (y.grossEvent-y.netEvent)+(y.grossClass-y.netClass)+(y.grossFb-y.netFb)+(y.grossRet-y.netRet);};
+ var fGP=function(y){return fTG(y)-fCOGS(y);};
+ ih+=row3('Total gross revenue',Y.map(fTG),false,'subtot');
+ ih+=row3('Total cost of revenue (COGS)',Y.map(fCOGS),true,'');
+ ih+=row3('Gross profit',Y.map(fGP),false,'subtot');
+ ih+=pctRow('Gross margin',Y.map(fGP),Y.map(fTG),'subtot');
+ ih+=pctRow('&mdash; Events (incl. add-ons)',Y.map(function(y){return y.netEvent+y.grossHeat+y.grossTrial;}),Y.map(function(y){return y.grossEvent+y.grossHeat+y.grossTrial;}),'');
+ ih+=pctRow('&mdash; Classes',Y.map(function(y){return y.netClass;}),Y.map(function(y){return y.grossClass;}),'');
+ ih+=pctRow('&mdash; F&amp;B',Y.map(function(y){return y.netFb;}),Y.map(function(y){return y.grossFb;}),'');
+ ih+=pctRow('&mdash; Retail',Y.map(function(y){return y.netRet;}),Y.map(function(y){return y.grossRet;}),'');
  ih+='<tr class="sec"><td colspan="5">Other</td></tr>';
  ih+=row3('Prizes',Y.map(function(y){return y.prizes;}),true,'','prizes');
  ih+=row3('Payment-processing fees',Y.map(function(y){return y.ppFees;}),true,'','ppFees');
@@ -735,6 +748,10 @@ function update(){
  ih+=row3('EBIT',Y.map(function(y){return y.ebit;}),false,'subtot','ebit');
  ih+=row3('Corporate tax',Y.map(function(y){return y.tax;}),true,'','tax');
  ih+=row3('Net profit (after tax)',Y.map(function(y){return y.netProfit;}),false,'grand','netProfit');
+ ih+='<tr class="sec"><td colspan="5">Profitability margins (% of net revenue)</td></tr>';
+ ih+=pctRow('EBITDA margin',Y.map(function(y){return y.ebitda;}),Y.map(function(y){return y.netRev;}),'');
+ ih+=pctRow('EBIT margin',Y.map(function(y){return y.ebit;}),Y.map(function(y){return y.netRev;}),'');
+ ih+=pctRow('Net profit margin',Y.map(function(y){return y.netProfit;}),Y.map(function(y){return y.netRev;}),'subtot');
  el('is-table').innerHTML=ih+'</tbody>';el('dash-is').innerHTML=ih+'</tbody>';
  set('is-sum','EBITDA Y1 '+aed(Y[0].ebitda));set('dash-sum','EBITDA Y1 '+aed(Y[0].ebitda));
  // cash flow
