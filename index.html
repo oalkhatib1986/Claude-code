@@ -23,14 +23,17 @@ header{display:flex;align-items:center;justify-content:space-between;gap:14px;fl
 .hero{margin:48px 0 6px}
 .peyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red)}
 .ph1{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(38px,9vw,72px);line-height:0.9;letter-spacing:0.004em;margin-top:12px}
-.ph1 .r{color:var(--red)}
+.ph1 .r{color:var(--red);text-shadow:5px 5px 0 rgba(13,16,19,0.10)}
 .plead{font-family:var(--body);font-size:clamp(15px,1.6vw,18px);line-height:1.55;color:#33383d;max-width:60ch;margin-top:18px}
 .plead b{color:var(--ink)}
-.facts{display:grid;grid-template-columns:1fr;gap:12px;margin-top:26px;max-width:680px}
+.facts{display:grid;grid-template-columns:1fr;gap:0;margin-top:30px;max-width:760px;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--panel)}
 @media(min-width:620px){.facts{grid-template-columns:repeat(3,1fr)}}
-.fact{border-top:2px solid var(--red);padding-top:11px}
-.fact b{display:block;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:15px}
-.fact span{display:block;font-family:var(--body);font-size:12.5px;line-height:1.45;color:#54595e;margin-top:5px}
+.fact{position:relative;padding:20px 22px 22px;border-top:3px solid var(--red)}
+.fact + .fact{border-left:1px solid var(--line)}
+@media(max-width:619px){.fact + .fact{border-left:none;border-top-color:var(--line)}.fact:first-child{border-top-color:var(--red)}}
+.fact .n{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.16em;color:var(--red);margin-top:0}
+.fact b{display:block;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:0.01em;font-size:22px;line-height:1;margin-top:9px}
+.fact span{display:block;font-family:var(--body);font-size:12.5px;line-height:1.5;color:#54595e;margin-top:9px}
 .explore{font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-top:44px}
 .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
 @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
@@ -68,9 +71,9 @@ footer .r{color:var(--red)}
     <h1 class="ph1">The region&rsquo;s first<br><span class="r">Competitive Fitness Club.</span></h1>
     <p class="plead">REDLN is where everyday athletes race head-to-head on ergs &mdash; solo or in teams of four, across a season &mdash; on the floor of the <b>DXB Race-haus</b>, our custom-built arena. Named for the redline: the moment before your body quits, and the line you&rsquo;re built to cross. Race days run as a live production powered by <b>Redline CORE&trade;</b>, alongside coached classes, a caf&eacute; and a store year-round. <b>Train, compete, repeat.</b></p>
     <div class="facts">
-      <div class="fact"><b>Compete</b><span>Season races at the DXB Race-haus &mdash; solo or teams of four, chip-timed.</span></div>
-      <div class="fact"><b>Train</b><span>Coached classes year-round, all levels, in the same arena.</span></div>
-      <div class="fact"><b>Belong</b><span>Arena, caf&eacute; and store &mdash; Dubai, EST. 2026.</span></div>
+      <div class="fact"><span class="n">01</span><b>Train</b><span>Coached classes year-round, all levels, on the same floor you race on.</span></div>
+      <div class="fact"><span class="n">02</span><b>Compete</b><span>Season races at the DXB Race-haus &mdash; solo or teams of four, chip-timed.</span></div>
+      <div class="fact"><span class="n">03</span><b>Repeat</b><span>Chase the line, recover, come back stronger. Dubai, EST. 2026.</span></div>
     </div>
   </section>
 
