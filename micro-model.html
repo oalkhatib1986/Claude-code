@@ -344,7 +344,12 @@
     <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;padding:0 16px 12px">Payback = when cumulative operating cash (EBITDA before end-of-service, which is not paid in cash) recovers the capital injected. Projected on the same growth/inflation assumptions beyond Year 3 until recovery.</p></div>
   <div class="card"><div class="ch">Dividends &amp; your payback <span class="csum" id="divpb-sum">—</span></div><div class="scroll"><table class="mono" id="divpb-table"></table></div>
     <p class="foot" id="divpb-foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;padding:0 16px 12px"></p></div>
-  <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer;margin-bottom:24px">Reset all to defaults</button></section>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+    <button class="reset" onclick="resetToBase()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#fff;background:var(--red);border:1px solid var(--red);border-radius:2px;padding:9px 14px;cursor:pointer">Reset to base case</button>
+    <button class="reset" onclick="setBase(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer">Save current as base case</button>
+    <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer">Factory defaults</button>
+  </div>
+  <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;margin:-14px 0 24px">Your current assumptions are saved as the <b>base case</b>. Change anything, then <b>Reset to base case</b> to restore it. <b>Save current as base case</b> re-baselines to whatever is on screen now. <b>Factory defaults</b> restores the model&rsquo;s original built-in numbers.</p></section>
 
 </div>
 <div class="drill-ov" id="drill" onclick="if(event.target===this)closeDrill()">
@@ -856,11 +861,19 @@ function saveSummary(A,Y){try{
 function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
 function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});update();}
+// ---- base case: a saved snapshot of the assumptions to reset back to ----
+var BKEY='redln-micro-base';
+function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});return s;}
+function applyInputs(s){Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
+function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
+function getBase(){try{var r=localStorage.getItem(BKEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function resetToBase(){var b=getBase();if(!b){resetAll();return;}applyInputs(b);update();}
+function setBase(btn){saveBase();if(btn){var t=btn.getAttribute('data-l')||btn.textContent;btn.setAttribute('data-l',t);btn.textContent='Base case saved ✓';setTimeout(function(){btn.textContent=t;},1500);}}
 document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-tab');[].forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});});
 document.getElementById('asm-sub').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-s');['rev','cost','capital','growth'].forEach(function(s){el('s-'+s).classList.toggle('on',s===t);});});
 document.addEventListener('input',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('cin'))update();});
 document.addEventListener('change',function(e){if(e.target&&e.target.type==='checkbox')update();});
-window.addEventListener('DOMContentLoaded',function(){renderStatic();load();update();});
+window.addEventListener('DOMContentLoaded',function(){renderStatic();load();if(!getBase())saveBase();update();});
 </script>
 </body>
 </html>
