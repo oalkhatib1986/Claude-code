@@ -354,6 +354,7 @@ var DEFAULTS={
  pEvT:1099,qEvT:30, pElT:1299,qElT:30, pEvS:275,qEvS:40, pElS:300,qElS:40,
  fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:10000, volunteers:3000, permits:7500,
  eventsYr:8, prizePerEvent:11250, ppPct:3,
+ heatPct:10, heatPrice:50, trialPct:10, trialPrice:50,
  classesMonth:30, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
  benMedical:25000, benResidency:25000, benTickets:25000,
@@ -384,6 +385,11 @@ function compute(){
  var vat=Math.max(0,v('vatPct'))/100, vd=1+vat;
  var ticket=(v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/vd; // tickets only, per event, net of VAT
  var gross=ticket;
+ // Race add-ons (booked on the website): pick-your-heat and Trial Day, per event, net of VAT
+ var entries=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');            // teams + solo entries per event
+ var athletes=4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS');       // athletes per event (teams x4 + solos)
+ var heatNet=(Math.max(0,v('heatPct'))/100)*entries*v('heatPrice')/vd;      // 10% of entries pick their heat @ AED 50
+ var trialNet=(Math.max(0,v('trialPct'))/100)*athletes*v('trialPrice')/vd;  // 10% of athletes buy Trial Day @ AED 50/athlete
  var fbRevYr=v('fbRev')*12/vd, retRevYr=v('retRev')*12/vd;   // F&B and Retail = standalone monthly businesses, net of VAT
  var fbCogsYr=fbRevYr*(1-v('fbMargin')/100), retCogsYr=retRevYr*(1-v('retMargin')/100); // COGS from margin % on net revenue
  var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event direct costs
@@ -411,14 +417,15 @@ function compute(){
  function yc(i){
    var vg=Math.pow(1+g,i), inf=Math.pow(1+infl,i);
    var grossEvent=ticket*eventsYr*vg;                 // ticket sales only
+   var grossHeat=heatNet*eventsYr*vg, grossTrial=trialNet*eventsYr*vg;  // race add-ons, grow with volume
    var eventDirect=evFix*eventsYr*inf;                // DJ / volunteers / permits
    var netEvent=grossEvent-eventDirect;
    var grossClass=classRevYr*vg, trainer=trainerYr*vg, netClass=grossClass-trainer;
    var grossFb=fbRevYr*vg, fbCogs=fbCogsYr*vg, netFb=grossFb-fbCogs;
    var grossRet=retRevYr*vg, retCogs=retCogsYr*vg, netRet=grossRet-retCogs;
    var prizes=prizesYr*inf;
-   var ppFees=pp*(grossEvent+grossClass+grossFb+grossRet);
-   var netRev=netEvent+netClass+netFb+netRet-prizes-ppFees;
+   var ppFees=pp*(grossEvent+grossHeat+grossTrial+grossClass+grossFb+grossRet);
+   var netRev=netEvent+grossHeat+grossTrial+netClass+netFb+netRet-prizes-ppFees;
    var payroll=payrollYr*inf, overhead=ovYr*inf;
    var ebitdaPre=netRev-payroll-overhead;
    var eos=eosYrBase*inf;
@@ -427,7 +434,7 @@ function compute(){
    var ebit=ebitda-dep;
    var tax=Math.max(0,ebit-ctThreshold)*ctRate;      // 9% on taxable profit above the threshold
    var netProfit=ebit-tax;
-   return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossClass:grossClass,netClass:netClass,grossFb:grossFb,netFb:netFb,grossRet:grossRet,netRet:netRet,prizes:prizes,ppFees:ppFees,netRev:netRev,
+   return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossHeat:grossHeat,grossTrial:grossTrial,grossClass:grossClass,netClass:netClass,grossFb:grossFb,netFb:netFb,grossRet:grossRet,netRet:netRet,prizes:prizes,ppFees:ppFees,netRev:netRev,
      payroll:payroll,overhead:overhead,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,tax:tax,netProfit:netProfit,opcash:ebitdaPre-tax};
  }
  var NPB=10;
@@ -474,7 +481,7 @@ function compute(){
  return {Y:Y,Yall:Yall,cash:cash,cash0:cash0,capexLines:capexLines,capexTotal:capexTotal,depLife:depLife,depYr:depYr,
    divs:divs,sweatPct:sweatPct,founderPct:founderPct,minBank:minBank,foundPayback:foundPayback,
    preopMonths:preopMonths,preopBurn:preopBurn,y1def:y1def,capitalReq:capitalReq,funding:funding,fundBuffer:v('fundBuffer'),peakFund:peakFund,payback:payback,pb:pb,coc3:coc3,ebitda3:ebitda3,
-   ticket:ticket,gross:gross,netEventY1:Y[0].netEvent,clientMonth:clientMonth,classRevYr:classRevYr,payrollYr:payrollYr,ovYr:ovYr,eosYrBase:eosYrBase,
+   ticket:ticket,gross:gross,heatNet:heatNet,trialNet:trialNet,entries:entries,athletes:athletes,netEventY1:Y[0].netEvent,clientMonth:clientMonth,classRevYr:classRevYr,payrollYr:payrollYr,ovYr:ovYr,eosYrBase:eosYrBase,
    salaries:salaries,benMo:benMo,payrollMo:payrollMo};
 }
 
@@ -494,7 +501,10 @@ function renderStatic(){
   '<tr><td>DJ expense</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
   '<tr><td>Volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
   '<tr><td>Permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
-  '<tr class="grand"><td>Net event revenue / event</td><td></td><td></td><td id="c_netEvent">—</td></tr></tbody>';
+  '<tr class="grand"><td>Net event revenue / event</td><td></td><td></td><td id="c_netEvent">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Race add-ons / event &mdash; fee &amp; % take-up (net of VAT)</td></tr>'+
+  '<tr><td>Pick-your-heat &middot; % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRev">—</td></tr>'+
+  '<tr><td>Trial Day &middot; % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRev">—</td></tr></tbody>';
  el('fbret-table').innerHTML='<thead><tr><th>Business unit</th><th>Monthly</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
   '<tr class="sec"><td colspan="3">F&amp;B (standalone)</td></tr>'+
   '<tr><td>F&amp;B sales / month (VAT incl.)</td><td class="inp">'+I('fbRev')+'</td><td class="calc" id="c_fbRevYr">—</td></tr>'+
@@ -566,8 +576,8 @@ function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"'
  s+=line?('<td class="'+(neg?'neg ':'')+'dc" onclick="openDrill(\''+line+'\',\'T\')">'+nn(neg?-t:t)+'</td>')
         :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
  return s+'</tr>';}
-var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
-function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
+var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossHeat:'Pick-your-heat',grossTrial:'Trial Day',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
+function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,grossHeat:y.grossHeat,grossTrial:y.grossTrial,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
 function breakdown(line,i){
  var A=compute();
  if(i==='T'){var vs=A.Y.map(function(y){return LVAL(y,line);});return {title:LBL[line]+' · 3-year total',rows:[{l:'Year 1',x:vs[0]},{l:'Year 2',x:vs[1]},{l:'Year 3',x:vs[2]},{l:'Total',x:vs[0]+vs[1]+vs[2],tot:1}]};}
@@ -586,12 +596,14 @@ function breakdown(line,i){
   case 'retCogs':return R([{l:'Retail revenue (net)',x:Yi.grossRet},{l:'Cost ratio (1 − '+v('retMargin')+'% margin)',x:1-v('retMargin')/100,mult:1}],Yi.grossRet-Yi.netRet);
   case 'netRet':return R([{l:'Retail revenue',x:Yi.grossRet},{l:'Less: retail COGS',x:-(Yi.grossRet-Yi.netRet)}],Yi.netRet);
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
+  case 'grossHeat':{var ent=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');var per=(v('heatPct')/100)*ent*v('heatPrice')/vd;return R([{l:'Entries / event (teams + solo)',x:ent},{l:'Pick-your-heat take-up',x:v('heatPct')/100,mult:1},{l:'Heat fee (VAT incl.)',x:v('heatPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per event (net)',x:per,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1}],per*ev*vg);}
+  case 'grossTrial':{var ath=4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS');var per=(v('trialPct')/100)*ath*v('trialPrice')/vd;return R([{l:'Athletes / event (teams × 4 + solo)',x:ath},{l:'Trial Day take-up',x:v('trialPct')/100,mult:1},{l:'Trial fee / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per event (net)',x:per,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1}],per*ev*vg);}
   case 'grossClass':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class (VAT incl.)',x:v('pricePerClass'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('capacity')*(v('pricePerClass')/vd)*12*vg);
   case 'trainer':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('trainerFee')*12*vg);
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
   case 'prizes':return R([{l:'Prize / event',x:v('prizePerEvent')},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],v('prizePerEvent')*ev*inf);
-  case 'ppFees':{var base=Yi.grossEvent+Yi.grossClass+Yi.grossFb+Yi.grossRet;return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Gross class revenue',x:Yi.grossClass},{l:'F&B revenue',x:Yi.grossFb},{l:'Retail revenue',x:Yi.grossRet},{l:'Base',x:base,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*base);}
-  case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Net class revenue',x:Yi.netClass},{l:'Net F&B',x:Yi.netFb},{l:'Net retail',x:Yi.netRet},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
+  case 'ppFees':{var base=Yi.grossEvent+Yi.grossHeat+Yi.grossTrial+Yi.grossClass+Yi.grossFb+Yi.grossRet;return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial Day',x:Yi.grossTrial},{l:'Gross class revenue',x:Yi.grossClass},{l:'F&B revenue',x:Yi.grossFb},{l:'Retail revenue',x:Yi.grossRet},{l:'Base',x:base,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*base);}
+  case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial Day',x:Yi.grossTrial},{l:'Net class revenue',x:Yi.netClass},{l:'Net F&B',x:Yi.netFb},{l:'Net retail',x:Yi.netRet},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
   case 'payroll':{var sal=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'),ben=(v('benMedical')+v('benResidency')+v('benTickets'))/12;return R([{l:'Business Manager',x:v('salBM')},{l:'Photographer / Social',x:v('salPhoto')},{l:'Reception ('+v('recHeads')+' × '+v('salRec')+')',x:v('recHeads')*v('salRec')},{l:'Monthly salaries',x:sal,sub:1},{l:'Employee benefits / mo',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1}],(sal+ben)*12*inf);}
   case 'overhead':{var L=[['Warehouse rent',v('oRent')],['License & registration',v('oLicense')],['Annual audit',v('oAudit')],['Accounting',v('oAccounting')*12],['Cleaning',v('oCleaning')*12],['DEWA',v('oDewa')*12],['Etisalat',v('oEtisalat')*12],['Maintenance',v('oMaintenance')*12],['Supplies',v('oSupplies')*12],['Water',v('oWater')*12],['Miscellaneous',v('oMisc')*12]];var tot=L.reduce(function(t,l){return t+l[1];},0);var rows=L.map(function(l){return {l:l[0],x:l[1]};});rows.push({l:'Total overheads / yr',x:tot,sub:1},{l:'Inflation',x:inf,mult:1});return R(rows,tot*inf);}
   case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead}],Yi.ebitdaPre);
@@ -652,6 +664,7 @@ function update(){
  set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticketInc',fmt(ticketInc));
  set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));set('c_ticket',fmt(A.ticket));
  var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
+ set('c_heatRev',fmt(A.heatNet));set('c_trialRev',fmt(A.trialNet));
  set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
  // F&B and retail standalone business units (net annual)
  set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));
@@ -671,6 +684,9 @@ function update(){
  ih+=row3('Gross event revenue',Y.map(function(y){return y.grossEvent;}),false,'','grossEvent');
  ih+=row3('Less: event direct costs',Y.map(function(y){return y.grossEvent-y.netEvent;}),true,'','eventDirect');
  ih+=row3('Net event revenue',Y.map(function(y){return y.netEvent;}),false,'subtot','netEvent');
+ ih+='<tr class="sec"><td colspan="5">Race add-ons</td></tr>';
+ ih+=row3('Pick-your-heat (10% of entries)',Y.map(function(y){return y.grossHeat;}),false,'','grossHeat');
+ ih+=row3('Trial Day (10% of athletes)',Y.map(function(y){return y.grossTrial;}),false,'','grossTrial');
  ih+='<tr class="sec"><td colspan="5">Class revenue</td></tr>';
  ih+=row3('Gross class revenue',Y.map(function(y){return y.grossClass;}),false,'','grossClass');
  ih+=row3('Less: trainer fees',Y.map(function(y){return y.grossClass-y.netClass;}),true,'','trainer');
