@@ -319,6 +319,7 @@
         <div class="card"><div class="ch">Payroll <span class="csum" id="exp-payroll">—</span></div><div class="scroll"><table class="mono" id="payroll-table"></table></div></div>
         <div class="card"><div class="ch">Overheads <span class="csum" id="exp-overhead">—</span></div><div class="scroll"><table class="mono" id="overhead-table"></table></div></div>
       </div>
+      <div class="card"><div class="ch">Management fee <span class="csum" id="exp-mgmt">—</span></div><div class="scroll"><table class="mono" id="mgmt-table"></table></div></div>
     </div>
     <div class="asmsub2" id="s-capital">
       <div class="card"><div class="ch">Capital expenditure (day one) <span class="csum" id="cap-total">—</span></div><div class="scroll"><table class="mono" id="capex-table"></table></div></div>
@@ -362,13 +363,17 @@ var DEFAULTS={
  oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
  cErgs:350000, cLed:150000, cAudioLight:120000, cTiming:100000, cFitout:500000, cBrand:100000, cTech:50000, cLaunch:100000, cLegal:20000, cContingency:100000,
  depLife:5, revGrowth:10, costInfl:4, basicPct:50, preopMonths:3, fundBuffer:0,
- sweatPct:30, minBank:100000, vatPct:5, ctRate:9, ctThreshold:375000
+ sweatPct:30, minBank:100000, vatPct:5, ctRate:9, ctThreshold:375000,
+ mgmtFeePct:10
 };
 var KEY='redln-micro-v2';
 var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
 var OVR=[['Warehouse rent','oRent','/yr'],['License &amp; registration','oLicense','/yr'],['Annual audit','oAudit','/yr'],['Accounting &amp; bookkeeping','oAccounting','/mo'],['Cleaning fees','oCleaning','/mo'],['DEWA','oDewa','/mo'],['Etisalat','oEtisalat','/mo'],['Maintenance','oMaintenance','/mo'],['Supplies &amp; stationery','oSupplies','/mo'],['Filtered drinking water','oWater','/mo'],['Miscellaneous &amp; sundries','oMisc','/mo']];
 function el(id){return document.getElementById(id);}
 function num(id){var e=el(id);if(!e)return 0;var n=parseFloat(String(e.value).replace(/,/g,''));return isNaN(n)?0:n;}
+// Management-fee base: which net-revenue lines are charged the fee (editable checkboxes)
+var MFLINES=[['mfEvent','Net event revenue',1],['mfAddon','Race add-ons (heat + Trial Day)',1],['mfClass','Net class revenue',1],['mfFb','Net F&amp;B',0],['mfRet','Net retail',0]];
+function chk(id){var e=el(id);return e&&e.checked?1:0;}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function kf(n){var a=Math.abs(n);if(a<0.5)return '—';var s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=String(Math.round(a));return n<0?'('+s+')':s;}
 // responsive number: full figure on desktop, abbreviated (840k) on phones — so statement tables never overflow
@@ -390,6 +395,9 @@ function compute(){
  var athletes=4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS');       // athletes per event (teams x4 + solos)
  var heatNet=(Math.max(0,v('heatPct'))/100)*entries*v('heatPrice')/vd;      // 10% of entries pick their heat @ AED 50
  var trialNet=(Math.max(0,v('trialPct'))/100)*athletes*v('trialPrice')/vd;  // 10% of athletes buy Trial Day @ AED 50/athlete
+ // Management fee: a % of selected net-revenue lines, paid to the management company (a sweat-equity shareholder)
+ var mgmtPct=Math.max(0,v('mgmtFeePct'));
+ var mfE=chk('mfEvent'),mfA=chk('mfAddon'),mfC=chk('mfClass'),mfF=chk('mfFb'),mfR=chk('mfRet');
  var fbRevYr=v('fbRev')*12/vd, retRevYr=v('retRev')*12/vd;   // F&B and Retail = standalone monthly businesses, net of VAT
  var fbCogsYr=fbRevYr*(1-v('fbMargin')/100), retCogsYr=retRevYr*(1-v('retMargin')/100); // COGS from margin % on net revenue
  var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event direct costs
@@ -427,7 +435,9 @@ function compute(){
    var ppFees=pp*(grossEvent+grossHeat+grossTrial+grossClass+grossFb+grossRet);
    var netRev=netEvent+grossHeat+grossTrial+netClass+netFb+netRet-prizes-ppFees;
    var payroll=payrollYr*inf, overhead=ovYr*inf;
-   var ebitdaPre=netRev-payroll-overhead;
+   var mgmtBase=(mfE?netEvent:0)+(mfA?(grossHeat+grossTrial):0)+(mfC?netClass:0)+(mfF?netFb:0)+(mfR?netRet:0);
+   var mgmtFee=mgmtBase*(mgmtPct/100);
+   var ebitdaPre=netRev-payroll-overhead-mgmtFee;
    var eos=eosYrBase*inf;
    var ebitda=ebitdaPre-eos;
    var dep=(i*depYr<capexTotal)?depYr:Math.max(0,capexTotal-i*depYr);
@@ -435,7 +445,7 @@ function compute(){
    var tax=Math.max(0,ebit-ctThreshold)*ctRate;      // 9% on taxable profit above the threshold
    var netProfit=ebit-tax;
    return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossHeat:grossHeat,grossTrial:grossTrial,grossClass:grossClass,netClass:netClass,grossFb:grossFb,netFb:netFb,grossRet:grossRet,netRet:netRet,prizes:prizes,ppFees:ppFees,netRev:netRev,
-     payroll:payroll,overhead:overhead,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,tax:tax,netProfit:netProfit,opcash:ebitdaPre-tax};
+     payroll:payroll,overhead:overhead,mgmtFee:mgmtFee,mgmtBase:mgmtBase,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,tax:tax,netProfit:netProfit,opcash:ebitdaPre-tax};
  }
  var NPB=10;
  var Yall=[]; for(var iy=0;iy<NPB;iy++)Yall.push(yc(iy));
@@ -544,6 +554,11 @@ function renderStatic(){
  OVR.forEach(function(r){oh+='<tr><td>'+r[0]+'</td><td class="calc">'+r[2]+'</td><td class="inp">'+I(r[1])+'</td><td class="calc" id="c_'+r[1]+'y">—</td></tr>';});
  oh+='<tr class="grand"><td>Total overheads / year</td><td></td><td></td><td id="c_ovYr">—</td></tr>';
  el('overhead-table').innerHTML=oh+'</tbody>';
+ el('mgmt-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
+  '<tr><td>Management fee (% of selected net revenue)</td><td class="inp">'+I('mgmtFeePct','small')+'</td><td class="calc" id="c_mgmtFeeYr">—</td></tr>'+
+  '<tr class="sec"><td colspan="3">Charge the fee on &mdash; tick lines to include</td></tr>'+
+  MFLINES.map(function(r){return '<tr><td>'+r[1]+'</td><td class="inp" style="text-align:right"><input type="checkbox" id="'+r[0]+'"'+(r[2]?' checked':'')+'></td><td class="calc" id="c_mf_'+r[0]+'">—</td></tr>';}).join('')+
+  '<tr class="subtot"><td>Fee base (Y1)</td><td></td><td id="c_mgmtBase">—</td></tr></tbody>';
  var cap='<thead><tr><th>Asset</th><th>Cost</th></tr></thead><tbody>';
  CAPEX.forEach(function(r){cap+='<tr><td>'+r[1]+'</td><td class="inp">'+I(r[0])+'</td></tr>';});
  cap+='<tr class="grand"><td>Total capital expenditure</td><td id="c_capexTotal">—</td></tr></tbody>';
@@ -576,8 +591,8 @@ function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"'
  s+=line?('<td class="'+(neg?'neg ':'')+'dc" onclick="openDrill(\''+line+'\',\'T\')">'+nn(neg?-t:t)+'</td>')
         :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
  return s+'</tr>';}
-var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossHeat:'Pick-your-heat',grossTrial:'Trial Day',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
-function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,grossHeat:y.grossHeat,grossTrial:y.grossTrial,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
+var LBL={grossEvent:'Gross event revenue',eventDirect:'Event direct costs',netEvent:'Net event revenue',grossHeat:'Pick-your-heat',grossTrial:'Trial Day',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',mgmtFee:'Management fee',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
+function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,grossHeat:y.grossHeat,grossTrial:y.grossTrial,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,mgmtFee:y.mgmtFee,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
 function breakdown(line,i){
  var A=compute();
  if(i==='T'){var vs=A.Y.map(function(y){return LVAL(y,line);});return {title:LBL[line]+' · 3-year total',rows:[{l:'Year 1',x:vs[0]},{l:'Year 2',x:vs[1]},{l:'Year 3',x:vs[2]},{l:'Total',x:vs[0]+vs[1]+vs[2],tot:1}]};}
@@ -606,7 +621,8 @@ function breakdown(line,i){
   case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial Day',x:Yi.grossTrial},{l:'Net class revenue',x:Yi.netClass},{l:'Net F&B',x:Yi.netFb},{l:'Net retail',x:Yi.netRet},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
   case 'payroll':{var sal=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'),ben=(v('benMedical')+v('benResidency')+v('benTickets'))/12;return R([{l:'Business Manager',x:v('salBM')},{l:'Photographer / Social',x:v('salPhoto')},{l:'Reception ('+v('recHeads')+' × '+v('salRec')+')',x:v('recHeads')*v('salRec')},{l:'Monthly salaries',x:sal,sub:1},{l:'Employee benefits / mo',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1}],(sal+ben)*12*inf);}
   case 'overhead':{var L=[['Warehouse rent',v('oRent')],['License & registration',v('oLicense')],['Annual audit',v('oAudit')],['Accounting',v('oAccounting')*12],['Cleaning',v('oCleaning')*12],['DEWA',v('oDewa')*12],['Etisalat',v('oEtisalat')*12],['Maintenance',v('oMaintenance')*12],['Supplies',v('oSupplies')*12],['Water',v('oWater')*12],['Miscellaneous',v('oMisc')*12]];var tot=L.reduce(function(t,l){return t+l[1];},0);var rows=L.map(function(l){return {l:l[0],x:l[1]};});rows.push({l:'Total overheads / yr',x:tot,sub:1},{l:'Inflation',x:inf,mult:1});return R(rows,tot*inf);}
-  case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead}],Yi.ebitdaPre);
+  case 'mgmtFee':{var comps=[];if(chk('mfEvent'))comps.push({l:'Net event revenue',x:Yi.netEvent});if(chk('mfAddon'))comps.push({l:'Race add-ons (heat + Trial Day)',x:Yi.grossHeat+Yi.grossTrial});if(chk('mfClass'))comps.push({l:'Net class revenue',x:Yi.netClass});if(chk('mfFb'))comps.push({l:'Net F&B',x:Yi.netFb});if(chk('mfRet'))comps.push({l:'Net retail',x:Yi.netRet});comps.push({l:'Fee base',x:Yi.mgmtBase,sub:1},{l:'Management fee rate',x:v('mgmtFeePct')/100,mult:1});return R(comps,Yi.mgmtFee);}
+  case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead},{l:'Less: management fee',x:-Yi.mgmtFee}],Yi.ebitdaPre);
   case 'eos':{var sal=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'),bm=sal*(v('basicPct')/100);return R([{l:'Monthly salaries',x:sal},{l:'Basic %',x:v('basicPct')/100,mult:1},{l:'Monthly basic',x:bm,sub:1},{l:'21 / 30 (21 days per year)',x:21/30,mult:1},{l:'Inflation',x:inf,mult:1}],bm*(21/30)*inf);}
   case 'ebitda':return R([{l:'EBITDA (pre end-of-service)',x:Yi.ebitdaPre},{l:'Less: end-of-service',x:-Yi.eos}],Yi.ebitda);
   case 'dep':return R([{l:'Total CapEx',x:A.capexTotal},{l:'Useful life (years)',x:A.depLife,mult:1,op:'÷'}],Yi.dep);
@@ -665,6 +681,11 @@ function update(){
  set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));set('c_ticket',fmt(A.ticket));
  var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
  set('c_heatRev',fmt(A.heatNet));set('c_trialRev',fmt(A.trialNet));
+ // management fee
+ var mfMap={mfEvent:Y[0].netEvent,mfAddon:Y[0].grossHeat+Y[0].grossTrial,mfClass:Y[0].netClass,mfFb:Y[0].netFb,mfRet:Y[0].netRet};
+ MFLINES.forEach(function(r){set('c_mf_'+r[0],chk(r[0])?fmt(mfMap[r[0]]):'—');});
+ set('c_mgmtBase',fmt(Y[0].mgmtBase));set('c_mgmtFeeYr',fmt(-Y[0].mgmtFee));
+ set('exp-mgmt',aed(Y[0].mgmtFee)+' / yr');
  set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
  // F&B and retail standalone business units (net annual)
  set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));
@@ -706,6 +727,7 @@ function update(){
  ih+='<tr class="sec"><td colspan="5">Operating costs</td></tr>';
  ih+=row3('Payroll',Y.map(function(y){return y.payroll;}),true,'','payroll');
  ih+=row3('Overheads',Y.map(function(y){return y.overhead;}),true,'','overhead');
+ ih+=row3('Management fee',Y.map(function(y){return y.mgmtFee;}),true,'','mgmtFee');
  ih+=row3('EBITDA (pre end-of-service)',Y.map(function(y){return y.ebitdaPre;}),false,'subtot','ebitdaPre');
  ih+=row3('End-of-service provision',Y.map(function(y){return y.eos;}),true,'','eos');
  ih+=row3('EBITDA',Y.map(function(y){return y.ebitda;}),false,'subtot','ebitda');
@@ -814,12 +836,13 @@ function saveSummary(A,Y){try{
  };
  localStorage.setItem('redln-micro-summary',JSON.stringify(s));
 }catch(e){}}
-function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
-function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(e&&s[id]!=null)e.value=s[id];});}catch(e){}}
-function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});update();}
+function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
+function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});update();}
 document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-tab');[].forEach.call(document.querySelectorAll('section.tab'),function(s){s.classList.toggle('on',s.id==='tab-'+t);});});
 document.getElementById('asm-sub').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-s');['rev','cost','capital','growth'].forEach(function(s){el('s-'+s).classList.toggle('on',s===t);});});
 document.addEventListener('input',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('cin'))update();});
+document.addEventListener('change',function(e){if(e.target&&e.target.type==='checkbox')update();});
 window.addEventListener('DOMContentLoaded',function(){renderStatic();load();update();});
 </script>
 </body>
