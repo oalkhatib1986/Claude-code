@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>REDLN. — Project Hub</title>
+<title>Project Race — REDLN</title>
 <meta name="description" content="REDLN project hub — the website, the financial model, the business-plan brochure and the ops console.">
 <style>
   :root{
@@ -35,8 +35,15 @@
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.26em;text-transform:uppercase;color:var(--red);font-weight:700}
   h1{font-family:var(--disp);font-weight:800;letter-spacing:-0.02em;text-transform:uppercase;font-size:clamp(40px,9vw,76px);line-height:0.92;margin:14px 0 0}
   h1 .r{color:var(--red)}
-  .lead{font-size:clamp(15px,1.7vw,18px);line-height:1.55;color:#33383d;max-width:52ch;margin:18px 0 0}
-  .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:34px}
+  .lead{font-size:clamp(15px,1.7vw,18px);line-height:1.55;color:#33383d;max-width:56ch;margin:18px 0 0}
+  .lead b{color:var(--ink)}
+  .facts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:24px;max-width:640px}
+  @media(min-width:620px){.facts{grid-template-columns:repeat(3,1fr)}}
+  .fact{border-top:2px solid var(--red);padding-top:10px}
+  .fact b{display:block;font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:0.01em;font-size:15px}
+  .fact span{display:block;font-size:12.5px;line-height:1.45;color:#54595e;margin-top:4px}
+  .explore{font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-top:40px}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
   @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
   .card{
     position:relative;display:block;text-decoration:none;color:inherit;
@@ -70,14 +77,21 @@
 <div class="wrap">
   <header>
     <div class="brand"><img src="redln-badge-final.png" alt="REDLN"></div>
-    <div class="htag">Project Hub<br><b>&bull; Internal</b></div>
+    <div class="htag">Project Race<br><b>&bull; Confidential</b></div>
   </header>
 
   <section class="hero">
-    <div class="eyebrow">Everything REDLN, one place</div>
-    <h1>Choose your<br><span class="r">destination.</span></h1>
-    <p class="lead">The customer website, the financial model, the business-plan brochure and the operations software &mdash; all the latest builds, linked below.</p>
+    <div class="eyebrow">Project Race &middot; A REDLN venture</div>
+    <h1>The region&rsquo;s first<br><span class="r">Competitive Fitness Club.</span></h1>
+    <p class="lead">REDLN is a purpose-built arena where everyday athletes race head-to-head on ergs &mdash; solo or in teams of four, across a season. Named for the redline: the moment before your body quits, and the line you&rsquo;re built to cross. Race days run as a live production powered by Redline CORE&trade;, alongside coached classes, a caf&eacute; and a store year-round. <b>Train, compete, repeat.</b></p>
+    <div class="facts">
+      <div class="fact"><b>Compete</b><span>Season races, solo or teams of four, chip-timed</span></div>
+      <div class="fact"><b>Train</b><span>Coached classes year-round, all levels</span></div>
+      <div class="fact"><b>Belong</b><span>Arena, caf&eacute; and store &mdash; Dubai, EST. 2026</span></div>
+    </div>
   </section>
+
+  <div class="explore">The deck &mdash; explore each piece</div>
 
   <div class="grid">
     <a class="card" href="redln-white.html">
