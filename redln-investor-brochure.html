@@ -337,10 +337,10 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
       <div class="scrollx"><table class="fin">
         <thead><tr><th>Entry</th><th>Single</th><th>Season &middot; 4 races</th></tr></thead>
         <tbody>
-          <tr><td>Everyday &middot; Solo</td><td>275</td><td>950</td></tr>
-          <tr><td>Elite &middot; Solo</td><td>300</td><td>1,020</td></tr>
-          <tr><td>Everyday &middot; Team of 4</td><td>1,099</td><td>3,750</td></tr>
-          <tr><td>Elite &middot; Team of 4</td><td>1,299</td><td>4,400</td></tr>
+          <tr><td>Everyday &middot; Solo</td><td>299</td><td>1,050</td></tr>
+          <tr><td>Elite &middot; Solo</td><td>349</td><td>1,220</td></tr>
+          <tr><td>Everyday &middot; Team of 4</td><td>1,199</td><td>4,150</td></tr>
+          <tr><td>Elite &middot; Team of 4</td><td>1,399</td><td>4,800</td></tr>
         </tbody>
       </table></div>
       <div class="note">Season passes save up to AED&nbsp;796 vs four single races, and add priority heat selection and season leaderboard tracking.</div>
@@ -584,20 +584,20 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <script>
 (function(){
   function Y(n,nr,eb,dp,tx,np){return {yr:n,netRev:nr,ebitda:eb,dep:dp,tax:tx,netProfit:np};}
-  var BASE={funding:2316336,capexTotal:1590000,preopBurn:474625,payback:8.5,foundPayback:9.2,
+  var BASE={funding:2257209,capexTotal:1590000,preopBurn:474625,payback:7.8,foundPayback:8.6,
     founderPct:70,sweatPct:30,minBank:100000,ctRate:9,ctThreshold:375000,depYr:318000,
     yall:[
-      Y(1,1842994,-275861,318000,0,-593861),
-      Y(2,2042533,-173832,318000,0,-491832),
-      Y(3,2262636,-56416,318000,0,-374416),
-      Y(4,2505383,78134,318000,0,-239866),
-      Y(5,2773064,231747,318000,0,-86253),
-      Y(6,3068200,406553,0,2840,403713),
-      Y(7,3393561,604904,0,20691,584213),
-      Y(8,3752201,829399,0,40896,788503),
-      Y(9,4147476,1082903,0,63711,1019192),
-      Y(10,4583080,1368581,0,89422,1279159)
-    ],mix:{event:723352,cls:1620000,fb:57143,ret:57143}};
+      Y(1,1908917,-216734,318000,0,-534734),
+      Y(2,2115048,-108793,318000,0,-426793),
+      Y(3,2342403,15128,318000,0,-302872),
+      Y(4,2593127,156832,318000,0,-161168),
+      Y(5,2869582,318314,318000,0,314),
+      Y(6,3174369,501777,0,11410,490367),
+      Y(7,3510348,709651,0,30119,679533),
+      Y(8,3880666,944621,0,51266,893355),
+      Y(9,4288788,1209647,0,75118,1134529),
+      Y(10,4738523,1507999,0,101970,1406029)
+    ],mix:{event:791314,cls:1620000,fb:57143,ret:57143}};
   var S=null;
   try{var raw=localStorage.getItem('redln-micro-summary');if(raw){var o=JSON.parse(raw);if(o&&o.yall&&o.yall.length>=5&&o.funding)S=o;}}catch(e){}
   var D=S||BASE,y=D.yall,mx=D.mix||BASE.mix;
