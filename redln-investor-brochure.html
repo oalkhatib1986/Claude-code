@@ -47,7 +47,7 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;line-height:0.95;text-transform
 .hbar .cta{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;background:var(--red);color:#fff;padding:11px 16px;border-radius:2px;white-space:nowrap}
 @media(max-width:620px){.hbar .doc{display:none}}
 :root{--redline:#ff1717}
-.ticker{background:linear-gradient(180deg,#ff1717,#e01313);margin-top:0;overflow:hidden;white-space:nowrap;position:relative;z-index:5;display:flex;align-items:center;min-height:44px}
+.ticker{background:linear-gradient(180deg,#ff1717,#e01313);margin-top:0;overflow:hidden;white-space:nowrap;position:relative;z-index:5;display:flex;align-items:center;min-height:36px}
 .ticker::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--redline);opacity:0.04}
 .ticker::after{content:"";position:absolute;inset:3px 0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
 .ticker-logo{position:absolute;left:0;top:0;bottom:0;z-index:4;display:flex;align-items:center;padding:0 26px 0 20px;pointer-events:none;background:linear-gradient(to right,#e01313 0%,#e01313 62%,rgba(224,19,19,0) 100%)}
@@ -160,10 +160,16 @@ table.fin{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:
 .chart .zero{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--line)}
 .legend{display:flex;gap:18px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend .sw{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}
-.hero{padding:66px 0 52px}
+.hero{position:relative;overflow:hidden;padding:84px 0 60px;border-bottom:1px solid var(--ink);
+  background:#0d1013;
+  background-image:linear-gradient(180deg,rgba(11,13,15,0.68),rgba(11,13,15,0.52) 42%,rgba(11,13,15,0.9)),url(brochure-assets/racehaus-floor.jpg);
+  background-size:cover;background-position:center;background-repeat:no-repeat}
+.hero .wrap{position:relative;z-index:1}
 .hero .eyebrow{margin-bottom:18px;display:block}
-.hero h1{font-size:clamp(44px,8.6vw,104px);line-height:0.86;margin-top:12px}
-.hero h1 .r{color:var(--red);text-shadow:6px 6px 0 rgba(13,16,19,0.10)}
+.hero h1{font-size:clamp(44px,8.6vw,104px);line-height:0.86;margin-top:12px;color:#fff}
+.hero h1 .r{color:var(--red);text-shadow:5px 5px 0 rgba(0,0,0,0.35)}
+.hero .htag{color:#fff}
+.hero .chips .chip{color:#fff;border-color:rgba(255,255,255,0.34);background:rgba(255,255,255,0.08)}
 .hero .htag{margin-top:24px;font-family:var(--mono);font-weight:700;font-size:clamp(12px,2vw,15px);letter-spacing:0.2em;text-transform:uppercase;color:var(--ink)}
 .hero .htag span{color:var(--red)}
 .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
@@ -307,7 +313,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
     <div class="card"><span class="n">The crowd</span><h3>Spectators of all ages</h3><p>Friends, family and the REDLN community in the stands &mdash; welcome to watch, cheering every heat.</p></div>
     <div class="card"><span class="n">Live DJ &amp; host</span><h3>Atmosphere</h3><p>Music and a host on the floor hold the arena at event pitch from the first heat to the finish.</p></div>
     <div class="card"><span class="n">Partners on site</span><h3>Activations</h3><p>Fitness, recovery, hydration and food brands with samples and giveaways &mdash; sponsor inventory built in.</p></div>
-    <div class="card"><span class="n">Your moment</span><h3>A result to keep</h3><p>A chip-timed result, a finisher tee and photos from the floor. Every athlete, live, every second.</p></div>
+    <div class="card"><span class="n">Your moment</span><h3>A result to keep</h3><p>A chip-timed result, a finisher tee, a shareable race badge and photos from the floor. Every athlete, live, every second.</p></div>
   </div>
 </div></section>
 
