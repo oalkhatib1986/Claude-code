@@ -46,11 +46,18 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;line-height:0.95;text-transform
 .hbar .doc{font-family:var(--mono);font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px}
 .hbar .cta{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;background:var(--red);color:#fff;padding:11px 16px;border-radius:2px;white-space:nowrap}
 @media(max-width:620px){.hbar .doc{display:none}}
-.ticker{background:linear-gradient(180deg,#ff1717,#e01313);overflow:hidden;white-space:nowrap;border-bottom:1px solid #c40f0f}
-.ticker .track{display:inline-block;padding:8px 0;font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#fff;animation:tick 34s linear infinite}
-.ticker .track span{padding:0 22px}
-.ticker .track b{color:rgba(255,255,255,0.5)}
-@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+:root{--redline:#ff1717}
+.ticker{background:linear-gradient(180deg,#ff1717,#e01313);margin-top:0;overflow:hidden;white-space:nowrap;position:relative;z-index:5;display:flex;align-items:center;min-height:28px}
+.ticker::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--redline);opacity:0.04}
+.ticker::after{content:"";position:absolute;inset:3px 0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.10) 0.9px,transparent 1.3px);background-size:2.5px 2.5px}
+.ticker-logo{position:absolute;left:0;top:0;bottom:0;z-index:4;display:flex;align-items:center;padding:0 26px 0 20px;pointer-events:none;background:linear-gradient(to right,#e01313 0%,#e01313 62%,rgba(224,19,19,0) 100%)}
+.ticker-logo-img{height:100%;width:auto;object-fit:cover;display:block;background:#fff}
+.ticker-track{display:inline-flex;gap:0;padding:2px 0;position:relative;z-index:1;white-space:nowrap;animation:scroll 34s linear infinite}
+.ticker span{font-family:var(--mono);font-size:6.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#ffffff;display:inline-block;-webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
+.ticker span b{color:inherit;font-weight:inherit;margin:0;padding:0}
+.ticker span b::before{content:"/";font-family:var(--mono);color:#ffffff;font-weight:900;font-size:9px;line-height:1;margin:0 11px;vertical-align:middle;position:relative;top:-1px;-webkit-text-fill-color:transparent;background-image:radial-gradient(#ffffff 0.6px,transparent 0.9px);background-size:1.6px 1.6px;-webkit-background-clip:text;background-clip:text}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.ticker span,.ticker span b::before{background-image:radial-gradient(#ffffff 0.86px,rgba(255,255,255,0.32) 1.0px,transparent 1.25px) !important;filter:drop-shadow(0 0 0.6px rgba(255,255,255,0.9)) drop-shadow(0 0 1.4px rgba(255,120,120,0.55))}
 section{padding:74px 0;border-bottom:1px solid var(--line-2);position:relative}
 .fig{display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:22px}
 .fig .tg{background:var(--red);color:#fff;padding:5px 9px;letter-spacing:0.06em}
@@ -170,7 +177,7 @@ footer .ftag{font-family:var(--mono);font-weight:700;font-size:12px;letter-spaci
 footer .ftag span{color:var(--red)}
 footer .fine{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.03em;margin-top:24px;line-height:1.8;max-width:760px}
 footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;background:var(--red);color:#fff;padding:12px 18px;border-radius:2px}
-.hubback{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:60;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#fff;background:var(--red);border:1px solid var(--red);border-radius:999px;padding:9px 15px 9px 12px;box-shadow:0 6px 20px rgba(255,23,23,0.32);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background .15s,border-color .15s,transform .15s}
+.hubback{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:60;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#fff;background:var(--red);border:1px solid var(--red);border-radius:999px;padding:9px 15px 9px 12px;box-shadow:inset 0 0 0 1.5px #0d1013, 0 6px 20px rgba(255,23,23,0.30);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background .15s,border-color .15s,transform .15s}
 .hubback:hover{background:#d10d0d;border-color:#d10d0d;transform:translateY(-2px)}
 
 
@@ -180,6 +187,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   .fin th{white-space:normal;line-height:1.2}
   .fin td:first-child{white-space:normal;line-height:1.25}
   .fin .mname{display:none}
+  .fin.wk td:first-child{white-space:nowrap}
   .scrollx{border-radius:3px}
 }
 </style>
@@ -193,9 +201,12 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <div class="hbar"><div class="in">
     <div class="brand"><img src="brochure-assets/redln-logo-black.png" alt="REDLN."><span class="doc">Investor Brochure</span></div>
   </div></div>
-  <div class="ticker"><div class="track">
-    <span>Find your limit, then cross it</span><b>/</b><span>Train, compete, repeat</span><b>/</b><span>Season 01 &middot; Live</span><b>/</b><span>Next race &middot; Sat 27 Feb 2027</span><b>/</b><span>Dubai-it: the extraordinary, in record time</span><b>/</b><span>4 races &middot; Jan&ndash;Apr 2027</span><b>/</b><span>Run &middot; Ski &middot; Bike &middot; Row</span><b>/</b><span>DXB Race-haus &middot; Dubai</span><b>/</b><span>Fuel. Focus. Finish.</span><b>/</b><span>Find your limit, then cross it</span><b>/</b><span>Train, compete, repeat</span><b>/</b><span>Season 01 &middot; Live</span><b>/</b><span>Next race &middot; Sat 27 Feb 2027</span><b>/</b><span>Dubai-it: the extraordinary, in record time</span><b>/</b><span>4 races &middot; Jan&ndash;Apr 2027</span><b>/</b><span>Run &middot; Ski &middot; Bike &middot; Row</span><b>/</b><span>DXB Race-haus &middot; Dubai</span><b>/</b><span>Fuel. Focus. Finish.</span><b>/</b>
-  </div></div>
+  <div class="ticker">
+    <div class="ticker-logo"><img class="ticker-logo-img" src="redln-badge-ticker.png" alt="REDLN"></div>
+    <div class="ticker-track">
+      <span><b>Find your limit, then cross it</b><b>Train, compete, repeat</b><b>Season 01 &middot; Live</b><b>Next race &middot; Sat 27 Feb 2027</b><b>Dubai-it: the extraordinary, in record time</b><b>4 races &middot; Jan&ndash;Apr 2027</b><b>Run &middot; Ski &middot; Bike &middot; Row</b><b>DXB Race-haus &middot; Dubai</b><b>Find your limit, then cross it</b><b>Train, compete, repeat</b><b>Season 01 &middot; Live</b><b>Next race &middot; Sat 27 Feb 2027</b><b>Dubai-it: the extraordinary, in record time</b><b>4 races &middot; Jan&ndash;Apr 2027</b><b>Run &middot; Ski &middot; Bike &middot; Row</b><b>DXB Race-haus &middot; Dubai</b></span>
+    </div>
+  </div>
 </div>
 
 <!-- HERO -->
@@ -267,7 +278,7 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <p class="lead tail">Every REDLN race is the same fixed, erg-based workout &mdash; <b>Run, Ski, Bike, Row</b>, no skilled movements, all on the machines. Enter <b>solo</b> or as a <b>team of four</b>. Two divisions run the identical format at a different load &mdash; <b>Everyday</b> (scaled) and <b>Elite</b> (full). The clock decides it: <b>lowest total time wins</b>, and every entry is chip-timed.</p>
   <p class="sub">The season workout is published two to four weeks out and never changes, so every race is a direct shot at a personal best. Four monthly races make a season; two seasons a year, and Season&nbsp;02 brings a brand-new workout.</p>
   <div class="mlabel" style="margin:34px 0 12px">Season 01 workout &mdash; distance by division</div>
-  <div class="scrollx"><table class="fin">
+  <div class="scrollx"><table class="fin wk">
     <thead><tr><th>Station</th><th>Solo &middot; Everyday</th><th>Solo &middot; Elite</th><th>Team &middot; Everyday</th><th>Team &middot; Elite</th></tr></thead>
     <tbody>
       <tr><td>01 &middot; Run <span class="mname" style="color:var(--muted)">(Assault Runner)</span></td><td>1,000 m</td><td>1,500 m</td><td>2,000 m</td><td>3,000 m</td></tr>
