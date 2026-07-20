@@ -302,6 +302,12 @@
   <section class="tab" id="tab-asm">
     <h1>Assumptions</h1>
     <p class="sub">Grouped so each view stays short. Revenue drivers, costs, capital and the growth/timeline levers.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 4px">
+      <button class="reset" onclick="resetToBase()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#fff;background:var(--red);border:1px solid var(--red);border-radius:2px;padding:9px 14px;cursor:pointer">Reset to base case</button>
+      <button class="reset" onclick="setBase(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer">Save current as base case</button>
+      <button class="reset" onclick="resetAll()" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 14px;cursor:pointer">Factory defaults</button>
+    </div>
+    <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;margin:0 0 10px">Change any assumption, then <b>Reset to base case</b> to restore your saved base. <b>Save current as base case</b> re-baselines to the current values; <b>Factory defaults</b> restores the original model.</p>
     <nav class="subnav" id="asm-sub">
       <button data-s="rev" class="on">Revenue</button>
       <button data-s="cost">Costs</button>
