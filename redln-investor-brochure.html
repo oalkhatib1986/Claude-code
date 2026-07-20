@@ -173,6 +173,15 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 .hubback{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:60;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#fff;background:var(--red);border:1px solid var(--red);border-radius:999px;padding:9px 15px 9px 12px;box-shadow:0 6px 20px rgba(255,23,23,0.32);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background .15s,border-color .15s,transform .15s}
 .hubback:hover{background:#d10d0d;border-color:#d10d0d;transform:translateY(-2px)}
 
+
+@media(max-width:600px){
+  table.fin{font-size:9.5px}
+  .fin th,.fin td{padding:8px 4px}
+  .fin th{white-space:normal;line-height:1.2}
+  .fin td:first-child{white-space:normal;line-height:1.25}
+  .fin .mname{display:none}
+  .scrollx{border-radius:3px}
+}
 </style>
 </head>
 <body>
@@ -226,12 +235,12 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <div class="fig"><span class="tg">FIG.02</span><span>The New Category</span><span class="ln"></span><span>First mover</span></div>
   <h2 class="big"><span class="r">Competitive</span> Fitness Club.</h2>
   <span class="redbar"></span>
-  <p class="lead tail">Hyrox proved there is enormous, unmet demand for <b>amateur competition</b> &mdash; hundreds of thousands of everyday athletes paying to race, train for a result, and belong to a scene. But that demand is served by <b>events</b>: itinerant, a few times a year, in rented convention halls. Between races, competitors go back to ordinary gyms that were never built for them.</p>
+  <p class="lead tail">Hyrox proved there is enormous, unmet demand for <b>amateur competition</b> &mdash; hundreds of thousands of everyday athletes paying to race, train for a result, and belong to a scene. But that demand is served by <b>events</b>: itinerant, a few times a year, in rented convention halls. Between races, they train wherever they can &mdash; in gyms and studios built for general fitness, not for the race.</p>
   <p class="sub">REDLN closes that gap. We take the competition format and give it a permanent home &mdash; a venue engineered around the race, with live scoring, seasons, leaderboards, coached preparation and a spectator floor. We are not opening another boutique studio or another commercial gym. <b>We are defining a new category &mdash; the Competitive Fitness Club</b> &mdash; train, compete, spectate and belong, year-round, in one place. First-mover advantage in a category nobody else occupies yet.</p>
   <div class="compare tail">
-    <div class="col"><div class="hd">Boutique Studio</div><ul><li>Sells a class experience</li><li>Instructor-led, no result</li><li>Recurring, but interchangeable</li><li>No competition, no season</li></ul></div>
-    <div class="col"><div class="hd">Commercial Gym</div><ul><li>Sells access to equipment</li><li>Solo, unstructured</li><li>Low engagement, high churn</li><li>No community, no stakes</li></ul></div>
-    <div class="col us"><div class="hd">REDLN &mdash; Competitive Fitness Club</div><ul><li>Sells the competition itself</li><li>Measured, ranked, seasonal</li><li>Team-based &mdash; sticky by design</li><li>Train, compete, spectate, belong</li></ul></div>
+    <div class="col"><div class="hd">Boutique Studio</div><ul><li>Brilliant coaching &amp; energy</li><li>A great workout, every class</li><li>Community around the timetable</li><li>Built to train &mdash; not to race</li></ul></div>
+    <div class="col"><div class="hd">Commercial Gym</div><ul><li>Equipment &amp; space, all in one</li><li>Train on your own schedule</li><li>Flexible, low-commitment</li><li>Built for access &mdash; not the race</li></ul></div>
+    <div class="col us"><div class="hd">REDLN &mdash; Competitive Fitness Club</div><ul><li>Coaching <b>and</b> a real race</li><li>A measured, ranked, seasonal result</li><li>Teams and a scene to belong to</li><li>Train, compete, spectate, belong</li></ul></div>
   </div>
 </div></section>
 
@@ -261,10 +270,10 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <div class="scrollx"><table class="fin">
     <thead><tr><th>Station</th><th>Solo &middot; Everyday</th><th>Solo &middot; Elite</th><th>Team &middot; Everyday</th><th>Team &middot; Elite</th></tr></thead>
     <tbody>
-      <tr><td>01 &middot; Run <span style="color:var(--muted)">(Assault Runner)</span></td><td>1,000 m</td><td>1,500 m</td><td>2,000 m</td><td>3,000 m</td></tr>
-      <tr><td>02 &middot; Ski <span style="color:var(--muted)">(SkiErg)</span></td><td>2,000 m</td><td>3,000 m</td><td>4,000 m</td><td>6,000 m</td></tr>
-      <tr><td>03 &middot; Bike <span style="color:var(--muted)">(Assault Bike)</span></td><td>4,000 m</td><td>6,000 m</td><td>8,000 m</td><td>12,000 m</td></tr>
-      <tr><td>04 &middot; Row <span style="color:var(--muted)">(Rower)</span></td><td>3,000 m</td><td>4,500 m</td><td>6,000 m</td><td>9,000 m</td></tr>
+      <tr><td>01 &middot; Run <span class="mname" style="color:var(--muted)">(Assault Runner)</span></td><td>1,000 m</td><td>1,500 m</td><td>2,000 m</td><td>3,000 m</td></tr>
+      <tr><td>02 &middot; Ski <span class="mname" style="color:var(--muted)">(SkiErg)</span></td><td>2,000 m</td><td>3,000 m</td><td>4,000 m</td><td>6,000 m</td></tr>
+      <tr><td>03 &middot; Bike <span class="mname" style="color:var(--muted)">(Assault Bike)</span></td><td>4,000 m</td><td>6,000 m</td><td>8,000 m</td><td>12,000 m</td></tr>
+      <tr><td>04 &middot; Row <span class="mname" style="color:var(--muted)">(Rower)</span></td><td>3,000 m</td><td>4,500 m</td><td>6,000 m</td><td>9,000 m</td></tr>
     </tbody>
   </table></div>
   <div class="note">Teams (four men, four women or 2&nbsp;+&nbsp;2) split the work across the four athletes; solos cover the full distance alone. The clock stops at the finish &mdash; lower total time wins.</div>
@@ -298,8 +307,8 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
   <span class="redbar"></span>
   <p class="sub tail">Beyond the entry fee, REDLN monetises intent &mdash; the athletes who want an edge pay for it. Every add-on is built into the platform and priced with VAT included.</p>
   <div class="grid3 tail">
-    <div class="card"><span class="n">Add-on &middot; AED 50</span><h3>Pick your heat</h3><p>Heats are assigned at random 48 hours out, free. Want to choose your slot? AED&nbsp;50 &mdash; captain only, for the whole team &mdash; changeable to any open slot up to 48h before.</p></div>
-    <div class="card"><span class="n">Add-on &middot; AED 50 / athlete</span><h3>Trial Day</h3><p>The day before the race, book a private one-hour lane on the real track to rehearse the season workout &mdash; solo or with the team.</p></div>
+    <div class="card"><span class="n">Add-on &middot; AED 99</span><h3>Pick your heat</h3><p>Heats are assigned at random 48 hours out, free. Want to choose your slot? AED&nbsp;99 &mdash; captain only, for the whole team &mdash; changeable to any open slot up to 48h before.</p></div>
+    <div class="card"><span class="n">Add-on &middot; AED 99 / athlete</span><h3>Trial Day</h3><p>The day before the race, book a private one-hour lane on the real track to rehearse the season workout &mdash; solo or with the team.</p></div>
     <div class="card"><span class="n">Zero-effort demand capture</span><h3>Waitlists</h3><p>Sold-out categories keep a waitlist. The moment a spot opens, the next athlete&rsquo;s saved card is charged automatically and the entry is confirmed.</p></div>
   </div>
   <div class="callout tail"><b>Why it matters:</b> heats, Trial Day and waitlists convert enthusiasm into incremental, high-margin revenue &mdash; and a waitlist means a sold-out race keeps selling itself with no staff effort.</div>
@@ -333,8 +342,8 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
           <tr><td>1 Class</td><td>125</td><td>2 weeks</td></tr>
           <tr><td>5 Classes</td><td>550</td><td>2 months</td></tr>
           <tr><td>10 Classes &middot; best value</td><td>999</td><td>3 months</td></tr>
-          <tr><td>Pick your heat</td><td>50</td><td>per team</td></tr>
-          <tr><td>Trial Day lane</td><td>50</td><td>per athlete</td></tr>
+          <tr><td>Pick your heat</td><td>99</td><td>per team</td></tr>
+          <tr><td>Trial Day lane</td><td>99</td><td>per athlete</td></tr>
         </tbody>
       </table></div>
     </div>
@@ -564,19 +573,19 @@ footer .cta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacin
 <script>
 (function(){
   function Y(n,nr,eb,dp,tx,np){return {yr:n,netRev:nr,ebitda:eb,dep:dp,tax:tx,netProfit:np};}
-  var BASE={funding:2331277,capexTotal:1590000,preopBurn:474625,payback:8.7,foundPayback:9.4,
+  var BASE={funding:2316336,capexTotal:1590000,preopBurn:474625,payback:8.5,foundPayback:9.2,
     founderPct:70,sweatPct:30,minBank:100000,ctRate:9,ctThreshold:375000,depYr:318000,
     yall:[
-      Y(1,1826336,-290802,318000,0,-608802),
-      Y(2,2024209,-190267,318000,0,-508267),
-      Y(3,2242480,-74494,318000,0,-392494),
-      Y(4,2483211,58248,318000,0,-259752),
-      Y(5,2748675,209872,318000,0,-108128),
-      Y(6,3041371,382490,0,674,381816),
-      Y(7,3364050,578436,0,18309,560127),
-      Y(8,3719739,800284,0,38276,762008),
-      Y(9,4111768,1050877,0,60829,990048),
-      Y(10,4543801,1333351,0,86252,1247100)
+      Y(1,1842994,-275861,318000,0,-593861),
+      Y(2,2042533,-173832,318000,0,-491832),
+      Y(3,2262636,-56416,318000,0,-374416),
+      Y(4,2505383,78134,318000,0,-239866),
+      Y(5,2773064,231747,318000,0,-86253),
+      Y(6,3068200,406553,0,2840,403713),
+      Y(7,3393561,604904,0,20691,584213),
+      Y(8,3752201,829399,0,40896,788503),
+      Y(9,4147476,1082903,0,63711,1019192),
+      Y(10,4583080,1368581,0,89422,1279159)
     ],mix:{event:723352,cls:1620000,fb:57143,ret:57143}};
   var S=null;
   try{var raw=localStorage.getItem('redln-micro-summary');if(raw){var o=JSON.parse(raw);if(o&&o.yall&&o.yall.length>=5&&o.funding)S=o;}}catch(e){}
