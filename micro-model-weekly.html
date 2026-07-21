@@ -374,7 +374,7 @@
 var DEFAULTS={
  pEvT:1199,qEvT:5, pElT:1399,qElT:5, pEvS:350,qEvS:7, pElS:399,qElS:8,
  fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:1500, volunteers:3000, permits:7500,
- eventsYr:64, calYear:2027, fillPct:70, prizePerEvent:0, ppPct:3,
+ eventsYr:64, calYear:2027, fillPct:70, prizePerEvent:0, badgeCost:10, ppPct:3,
  finales:2, finEvT:10, finElT:10, finEvS:14, finElS:16, finPctPass:0, finDJ:10000, finPrize:0,
  heatPct:10, heatPrice:99, trialPct:10, trialPrice:99,
  classesMonth:60, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
@@ -435,11 +435,15 @@ function compute(){
  var finHeatYr=hp*finEntries*v('heatPrice')/vd*finales;          // finale pick-your-heat (net, annual)
  var finTrialYr=tp*finAthletes*v('trialPrice')/vd*finales;       // finale Trial Day (net, annual)
  var finDirectYr=(v('finDJ')+v('volunteers')+v('permits'))*finales; // full-production cost per finale
+ // ---- Finisher badges: one per athlete (team member or solo) who completes a race ----
+ var badge=Math.max(0,v('badgeCost'));
+ var wkBadgeYr=badge*athletes*eventsYr;        // race-day badges (athletes/day × race days)
+ var finBadgeYr=badge*finAthletes*finales;     // finale badges
  // ---- Combined annual event revenue, add-ons & direct cost ----
  var ticketYr=wkTicketYr+finTicketYr;
  var heatYr=wkHeatYr+finHeatYr, trialYr=wkTrialYr+finTrialYr;    // add-ons: weekly + finale
  var evFix=v('djExp');                                          // resident DJ / race day — weekly has no permits/volunteers
- var eventDirectYr=evFix*eventsYr+finDirectYr;
+ var eventDirectYr=evFix*eventsYr+wkBadgeYr+finDirectYr+finBadgeYr;
  // Management fee: a % of selected net-revenue lines, paid to the management company (a sweat-equity shareholder)
  var mgmtPct=Math.max(0,v('mgmtFeePct'));
  var mfE=chk('mfEvent'),mfA=chk('mfAddon'),mfC=chk('mfClass'),mfF=chk('mfFb'),mfR=chk('mfRet');
@@ -571,6 +575,7 @@ function renderStatic(){
   '<tr><td>Trial Day &middot; fee / % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRevYr">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Race-day direct cost / year</td></tr>'+
   '<tr><td>Resident DJ / race day</td><td></td><td class="inp">'+I('djExp')+'</td><td class="calc" id="c_wkDJYr">—</td></tr>'+
+  '<tr><td>Finisher badge &middot; AED / athlete</td><td class="inp">'+I('badgeCost','small')+'</td><td></td><td class="calc" id="c_wkBadgeYr">—</td></tr>'+
   '<tr><td>Prize / race day</td><td></td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_wkPrizeYr">—</td></tr>'+
   '<tr class="grand"><td>Net race-days revenue / year</td><td></td><td></td><td id="c_racedayNet">—</td></tr></tbody>';
  // 2 · Season Finale
@@ -600,7 +605,8 @@ function renderStatic(){
   '<tr><td>Volunteers</td><td></td><td class="inp">'+I('volunteers')+'</td><td></td></tr>'+
   '<tr><td>Permits</td><td></td><td class="inp">'+I('permits')+'</td><td></td></tr>'+
   '<tr><td>Prize purse</td><td></td><td class="inp">'+I('finPrize')+'</td><td></td></tr>'+
-  '<tr><td>Finale direct cost / year (production + prize)</td><td></td><td></td><td class="calc" id="c_finDirectYr">—</td></tr>'+
+  '<tr><td>Finisher badge &middot; AED / athlete</td><td class="calc" id="c_finBadgeFee">—</td><td></td><td class="calc" id="c_finBadgeYr">—</td></tr>'+
+  '<tr><td>Finale direct cost / year (production + prize + badges)</td><td></td><td></td><td class="calc" id="c_finDirectYr">—</td></tr>'+
   '<tr class="grand"><td>Net finale revenue / year</td><td></td><td></td><td id="c_finaleNet">—</td></tr></tbody>';
  // 4 · F&B
  el('fb-table').innerHTML='<thead><tr><th>F&amp;B (standalone)</th><th>Value</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
@@ -760,8 +766,9 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  regDrill('c_trialRevYr','Trial Day / year',[rP('Team athletes / race day (4 × teams)',4*teamsPD),rP('Solo athletes / race day',solosPD),rS('Athletes / race day',athPD),rM('Take-up %',tp),rM('Fee / athlete (VAT incl.)',num('trialPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',tp*athPD*num('trialPrice')/vd*rd)]);
  regDrill('c_wkDJYr','Resident DJ / year',[rP('Resident DJ / race day',num('djExp')),rM('Race days / year',rd),rT('DJ cost / year',-num('djExp')*rd)]);
  regDrill('c_wkPrizeYr','Weekly prize / year',[rP('Prize / race day',num('prizePerEvent')),rM('Race days / year',rd),rT('Prize cost / year',-num('prizePerEvent')*rd)]);
- var wkTix=ticketNet*fillv*rd,wkHeat=hp*entPD*num('heatPrice')/vd*rd,wkTrial=tp*athPD*num('trialPrice')/vd*rd,wkDJ=num('djExp')*rd,wkPrize=num('prizePerEvent')*rd;
- regDrill('c_racedayNet','Net race-days revenue / year',[rP('Ticket revenue (net, at fill)',wkTix),rP('+ Pick-your-heat',wkHeat),rP('+ Trial Day',wkTrial),rP('− Resident DJ',-wkDJ),rP('− Weekly prize',-wkPrize),rT('Net race-days revenue',wkTix+wkHeat+wkTrial-wkDJ-wkPrize)]);
+ var wkTix=ticketNet*fillv*rd,wkHeat=hp*entPD*num('heatPrice')/vd*rd,wkTrial=tp*athPD*num('trialPrice')/vd*rd,wkDJ=num('djExp')*rd,wkBadge=num('badgeCost')*athPD*rd,wkPrize=num('prizePerEvent')*rd;
+ regDrill('c_wkBadgeYr','Finisher badges / year',[rP('Athletes / race day (4×teams + solo)',athPD),rM('Badge cost / athlete',num('badgeCost')),rM('Race days / year',rd),rT('Badge cost / year',-wkBadge)]);
+ regDrill('c_racedayNet','Net race-days revenue / year',[rP('Ticket revenue (net, at fill)',wkTix),rP('+ Pick-your-heat',wkHeat),rP('+ Trial Day',wkTrial),rP('− Resident DJ',-wkDJ),rP('− Finisher badges',-wkBadge),rP('− Weekly prize',-wkPrize),rT('Net race-days revenue',wkTix+wkHeat+wkTrial-wkDJ-wkBadge-wkPrize)]);
  var yr=Math.round(num('calYear'))||2027,mrows=[],tot=0;MONTHS.forEach(function(m,i){if(chk(m[0])){var w=weekendsInMonth(yr,i);mrows.push(rP(m[1]+' '+yr,w));tot+=w;}});mrows.push(rT('Weekend days / year',tot));
  regDrill('c_eventsYr','Weekend race days / year',mrows);
  // 2 · Finale
@@ -784,9 +791,11 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  regDrill('c_finAthN','Athletes / finale (Trial base)',[rP('Team athletes (4 × '+finTeamsN+')',4*finTeamsN),rP('Solo athletes',finSoloN),rT('Athletes (4×teams + solo)',finAth)]);
  regDrill('c_finHeatYr','Finale pick-your-heat / year',[rP('Teams / finale',finTeamsN),rP('Solo athletes / finale',finSoloN),rS('Entries / finale',finQ),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',hp*finQ*num('heatPrice')/vd*finales)]);
  regDrill('c_finTrialYr','Finale Trial Day / year',[rP('Team athletes (4 × teams)',4*finTeamsN),rP('Solo athletes',finSoloN),rS('Athletes / finale',finAth),rM('Take-up %',tp),rM('Fee (VAT incl.)',num('trialPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',tp*finAth*num('trialPrice')/vd*finales)]);
- regDrill('c_finDirectYr','Finale direct cost / year',[rP('DJ / production',num('finDJ')),rP('Volunteers',num('volunteers')),rP('Permits',num('permits')),rP('Prize purse',num('finPrize')),rS('Per finale',num('finDJ')+num('volunteers')+num('permits')+num('finPrize')),rM('Finales / year',finales),rT('Cost / year',-(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales)]);
- var finTix=finNet*(1-finFree)*finales,finHeat=hp*finQ*num('heatPrice')/vd*finales,finTrial=tp*finAth*num('trialPrice')/vd*finales,finDir=(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales;
- regDrill('c_finaleNet','Net finale revenue / year',[rP('Ticket revenue (net)',finTix),rP('+ Pick-your-heat',finHeat),rP('+ Trial Day',finTrial),rP('− Production + prize',-finDir),rT('Net finale revenue',finTix+finHeat+finTrial-finDir)]);
+ var finBadge=num('badgeCost')*finAth*finales,finProdPrize=(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales;
+ regDrill('c_finBadgeYr','Finale finisher badges / year',[rP('Athletes / finale (4×teams + solo)',finAth),rM('Badge cost / athlete',num('badgeCost')),rM('Finales / year',finales),rT('Badge cost / year',-finBadge)]);
+ regDrill('c_finDirectYr','Finale direct cost / year',[rP('DJ / production',num('finDJ')),rP('Volunteers',num('volunteers')),rP('Permits',num('permits')),rP('Prize purse',num('finPrize')),rS('Production + prize / finale',num('finDJ')+num('volunteers')+num('permits')+num('finPrize')),rM('Finales / year',finales),rP('+ Finisher badges / year',-finBadge),rT('Cost / year',-(finProdPrize+finBadge))]);
+ var finTix=finNet*(1-finFree)*finales,finHeat=hp*finQ*num('heatPrice')/vd*finales,finTrial=tp*finAth*num('trialPrice')/vd*finales,finDir=finProdPrize+finBadge;
+ regDrill('c_finaleNet','Net finale revenue / year',[rP('Ticket revenue (net)',finTix),rP('+ Pick-your-heat',finHeat),rP('+ Trial Day',finTrial),rP('− Production + prize',-finProdPrize),rP('− Finisher badges',-finBadge),rT('Net finale revenue',finTix+finHeat+finTrial-finDir)]);
  // 3 · Classes
  var classInc=num('classesMonth')*num('capacity')*num('pricePerClass')*12,classNet=classInc/vd,trainerYr=num('classesMonth')*num('trainerFee')*12;
  regDrill('c_classInc','Gross class revenue (VAT incl.)',[rP('Classes / month',num('classesMonth')),rM('Capacity / class',num('capacity')),rM('Price / class (VAT incl.)',num('pricePerClass')),rM('12 months',12),rT('Gross (VAT incl.)',classInc)]);
@@ -852,8 +861,9 @@ function update(){
  var heatRevYr=(num('heatPct')/100)*entPD*num('heatPrice')/vd*rd; set('c_heatRevYr',fmt(heatRevYr));
  var trialRevYr=(num('trialPct')/100)*athPD*num('trialPrice')/vd*rd; set('c_trialRevYr',fmt(trialRevYr));
  var wkDJYr=num('djExp')*rd; set('c_wkDJYr',fmt(-wkDJYr));
+ var wkBadgeYr=num('badgeCost')*athPD*rd; set('c_wkBadgeYr',fmt(-wkBadgeYr));
  var wkPrizeYr=num('prizePerEvent')*rd; set('c_wkPrizeYr',fmt(-wkPrizeYr));
- var racedayNet=wkTicketYr+heatRevYr+trialRevYr-wkDJYr-wkPrizeYr; set('c_racedayNet',fmt(racedayNet));set('rev-raceday',aed(racedayNet)+' net / yr');
+ var racedayNet=wkTicketYr+heatRevYr+trialRevYr-wkDJYr-wkBadgeYr-wkPrizeYr; set('c_racedayNet',fmt(racedayNet));set('rev-raceday',aed(racedayNet)+' net / yr');
  // 2 · Season Finale
  var finales=Math.max(0,num('finales'));
  var finPassFree=Math.max(0,Math.min(100,num('finPctPass')))/100;
@@ -870,7 +880,8 @@ function update(){
  set('c_finHeatFee',fmt(num('heatPrice')));set('c_finHeatPct',fmt(num('heatPct')));set('c_finTrialFee',fmt(num('trialPrice')));set('c_finTrialPct',fmt(num('trialPct')));
  var finHeatYr=fhp*finQ*num('heatPrice')/vd*finales, finTrialYr=ftp*finAth*num('trialPrice')/vd*finales;
  set('c_finHeatYr',fmt(finHeatYr));set('c_finTrialYr',fmt(finTrialYr));
- var finDirectYr=(num('finDJ')+num('volunteers')+num('permits'))*finales+num('finPrize')*finales; set('c_finDirectYr',fmt(-finDirectYr));
+ var finBadgeYr=num('badgeCost')*finAth*finales; set('c_finBadgeFee',fmt(num('badgeCost')));set('c_finBadgeYr',fmt(-finBadgeYr));
+ var finDirectYr=(num('finDJ')+num('volunteers')+num('permits'))*finales+num('finPrize')*finales+finBadgeYr; set('c_finDirectYr',fmt(-finDirectYr));
  var finaleNet=finTicketYr+finHeatYr+finTrialYr-finDirectYr; set('c_finaleNet',fmt(finaleNet));set('rev-finale',aed(finaleNet)+' net / yr');
  // management fee
  var mfMap={mfEvent:Y[0].netEvent,mfAddon:Y[0].grossHeat+Y[0].grossTrial,mfClass:Y[0].netClass,mfFb:Y[0].netFb,mfRet:Y[0].netRet};
