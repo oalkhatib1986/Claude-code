@@ -433,6 +433,10 @@ var CAL_DEFAULT={
        ['','C','C','C','','','','']]          // Sun — 7/8/9am classes, no races
 };
 function calClone(o){return JSON.parse(JSON.stringify(o));}
+// A calendar is valid only in the two-full-week shape. Old saves (wk/rc/of) are rejected.
+function calValid(o){return !!(o&&Array.isArray(o.times)&&Array.isArray(o.inS)&&o.inS.length===7&&Array.isArray(o.offS)&&o.offS.length===7);}
+// Self-heal: guarantee CAL is the current shape and calMode is a real season before any read
+function calGuard(){if(!calValid(CAL))CAL=calClone(CAL_DEFAULT);if(calMode!=='inS'&&calMode!=='offS')calMode='inS';}
 var CAL=calClone(CAL_DEFAULT);
 var calMode='inS';   // which full-week calendar is shown/edited: 'inS' or 'offS'
 var CAL_COL2JS=[1,2,3,4,5,6,0];   // calendar column (Mon..Sun) → JS getDay()
@@ -443,6 +447,7 @@ function seasonDayCounts(year,flags){var inS=[0,0,0,0,0,0,0],offS=[0,0,0,0,0,0,0
  return {inS:inS,offS:offS};}
 // Everything the revenue model needs, derived live from BOTH calendars + month selector
 function calDerive(){
+ calGuard();
  var yr=Math.round(num('calYear'))||2027;
  var flags=MONTHS.map(function(m){return chk(m[0])?1:0;});
  var dc=seasonDayCounts(yr,flags);
@@ -465,15 +470,15 @@ function calDerive(){
    wkdayCls:wkdayCls,raceWkndCls:inWkndCls,offWkndCls:offWkndCls};
 }
 // Cycle a cell empty → C → T → R → empty, then recompute
-function calCycle(col,t){var order=['','C','T','R'];var cur=CAL[calMode][col][t]||'';var ni=(order.indexOf(cur)+1)%order.length;CAL[calMode][col][t]=order[ni];renderCalendar();update();}
-function setCalMode(m){calMode=m;renderCalendar();}
-function calSetTime(t,val){CAL.times[t]=val;renderCalendar();}
-function calAddRow(){CAL.times.push('12:00 PM');CAL.inS.forEach(function(c){c.push('');});CAL.offS.forEach(function(c){c.push('');});renderCalendar();update();}
-function calDelRow(t){if(CAL.times.length<=1)return;CAL.times.splice(t,1);CAL.inS.forEach(function(c){c.splice(t,1);});CAL.offS.forEach(function(c){c.splice(t,1);});renderCalendar();update();}
+function calCycle(col,t){calGuard();var order=['','C','T','R'];var cur=CAL[calMode][col][t]||'';var ni=(order.indexOf(cur)+1)%order.length;CAL[calMode][col][t]=order[ni];renderCalendar();update();}
+function setCalMode(m){calMode=(m==='offS')?'offS':'inS';renderCalendar();update();}
+function calSetTime(t,val){calGuard();CAL.times[t]=val;renderCalendar();}
+function calAddRow(){calGuard();CAL.times.push('12:00 PM');CAL.inS.forEach(function(c){c.push('');});CAL.offS.forEach(function(c){c.push('');});renderCalendar();update();}
+function calDelRow(t){calGuard();if(CAL.times.length<=1)return;CAL.times.splice(t,1);CAL.inS.forEach(function(c){c.splice(t,1);});CAL.offS.forEach(function(c){c.splice(t,1);});renderCalendar();update();}
 function calCellHTML(col,t){var v=CAL[calMode][col][t]||'';var lab={'C':'Class','T':'Trial','R':'Race'}[v]||'&middot;';var cl=v==='C'?'cCls':v==='T'?'cTr':v==='R'?'cRace':'cEmp';return '<td class="wcx '+cl+'" onclick="calCycle('+col+','+t+')">'+lab+'</td>';}
 // 30-minute interval options (12:00 AM … 11:30 PM) for the time-slot dropdown
 function calTimeOptions(){var o='';for(var h=0;h<24;h++){for(var mi=0;mi<2;mi++){var mm=mi?'30':'00';var ap=h<12?'AM':'PM';var h12=(h%12)===0?12:h%12;o+='<option value="'+h12+':'+mm+' '+ap+'"></option>';}}return o;}
-function renderCalendar(){var box=el('week-cal');if(!box)return;
+function renderCalendar(){var box=el('week-cal');if(!box)return;calGuard();
  var d=calDerive();
  var h='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:0;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.05em;padding:5px 3px}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap;padding:2px 4px}.wctime{font-family:var(--mono);font-size:10px;width:92px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:4px 4px;border-radius:3px;cursor:pointer}.wctime:hover,.wctime:focus{border-color:var(--red);outline:none}.wcdel{cursor:pointer;color:#c4c4c4;font-size:11px;padding:0 3px}.wcdel:hover{color:var(--red)}.wcx{cursor:pointer;user-select:none;padding:6px 3px;transition:background .1s}.wcx:hover{outline:2px solid var(--red);outline-offset:-2px}.wc .cEmp{color:#c4c4c4}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}.wmode{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px}.wmode.on{background:var(--red);color:#fff;border-color:var(--red)}.waddr{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 9px;border:1px dashed var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px;margin-top:6px}.waddr:hover{border-color:var(--red);color:var(--red)}</style>';
  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Editing</span>'+
@@ -1187,12 +1192,12 @@ function saveSummary(A,Y){try{
  localStorage.setItem('redln-weekly-summary',JSON.stringify(s));
 }catch(e){}}
 function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=CAL;s.__calMode=calMode;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
-function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);if(s.__cal&&s.__cal.wk){CAL=s.__cal;}if(s.__calMode)calMode=s.__calMode;Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
-function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='rc';renderCalendar();update();}
+function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);if(calValid(s.__cal))CAL=calClone(s.__cal);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
+function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='inS';renderCalendar();update();}
 // ---- base case: a saved snapshot of the assumptions to reset back to ----
 var BKEY='redln-weekly-base';
 function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=calClone(CAL);s.__calMode=calMode;return s;}
-function applyInputs(s){if(s.__cal&&s.__cal.wk){CAL=calClone(s.__cal);}if(s.__calMode)calMode=s.__calMode;renderCalendar();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
+function applyInputs(s){if(calValid(s.__cal))CAL=calClone(s.__cal);else CAL=calClone(CAL_DEFAULT);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();renderCalendar();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
 function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
 function getBase(){try{var r=localStorage.getItem(BKEY);return r?JSON.parse(r):null;}catch(e){return null;}}
 function resetToBase(){var b=getBase();if(!b){resetAll();return;}applyInputs(b);update();}
