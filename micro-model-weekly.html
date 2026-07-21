@@ -719,6 +719,71 @@ function openDrill(line,i){var b=breakdown(line,i);if(!b)return;el('drill-title'
    h+='<tr'+(c?' class="'+c+'"':'')+'><td>'+r.l+'</td><td>'+val+'</td></tr>';});
  el('drill-body').innerHTML=h+'</tbody></table>';el('drill').classList.add('on');}
 function closeDrill(){el('drill').classList.remove('on');}
+// ---- generic click-to-explain for any output cell ----
+var DRILLS={};
+function rP(l,x){return {l:l,x:x};}
+function rM(l,x,op){return {l:l,x:x,mult:1,op:op};}
+function rS(l,x){return {l:l,x:x,sub:1};}
+function rT(l,x){return {l:l,x:x,tot:1};}
+function regDrill(id,title,rows){var e=el(id);if(!e)return;DRILLS[id]={title:title,rows:rows};e.classList.add('dc');e.setAttribute('onclick',"showDrill('"+id+"')");}
+function showDrill(id){var b=DRILLS[id];if(!b)return;el('drill-title').textContent=b.title;var h='<table><tbody>';
+ b.rows.forEach(function(r){var c=r.tot?'tot':(r.sub?'sub':(r.mult?'mult':''));var val=r.mult?((r.op||'×')+' '+mfmt(r.x)):fmt(r.x);h+='<tr'+(c?' class="'+c+'"':'')+'><td>'+r.l+'</td><td>'+val+'</td></tr>';});
+ el('drill-body').innerHTML=h+'</tbody></table>';el('drill').classList.add('on');}
+// Register every derived cell on the Revenue tab with its calculation (called from update()).
+function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
+ var pEvT=num('pEvT'),qEvT=num('qEvT'),pElT=num('pElT'),qElT=num('qElT'),pEvS=num('pEvS'),qEvS=num('qEvS'),pElS=num('pElS'),qElS=num('qElS');
+ var slots=qEvT+qElT+qEvS+qElS,ticketInc=pEvT*qEvT+pElT*qElT+pEvS*qEvS+pElS*qElS,ticketNet=ticketInc/vd;
+ var fillv=Math.max(0,Math.min(100,num('fillPct')))/100,rd=Math.max(0,num('eventsYr'));
+ regDrill('c_revEvT','Everyday team · amount',[rP('Price / team (VAT incl.)',pEvT),rM('Slots / day',qEvT),rT('Amount / day',pEvT*qEvT)]);
+ regDrill('c_revElT','Elite team · amount',[rP('Price / team (VAT incl.)',pElT),rM('Slots / day',qElT),rT('Amount / day',pElT*qElT)]);
+ regDrill('c_revEvS','Everyday solo · amount',[rP('Price / solo (VAT incl.)',pEvS),rM('Slots / day',qEvS),rT('Amount / day',pEvS*qEvS)]);
+ regDrill('c_revElS','Elite solo · amount',[rP('Price / solo (VAT incl.)',pElS),rM('Slots / day',qElS),rT('Amount / day',pElS*qElS)]);
+ regDrill('c_ticketInc','Ticket revenue / day at full (VAT incl.)',[rP('Everyday team ('+qEvT+'×'+pEvT+')',pEvT*qEvT),rP('Elite team ('+qElT+'×'+pElT+')',pElT*qElT),rP('Everyday solo ('+qEvS+'×'+pEvS+')',pEvS*qEvS),rP('Elite solo ('+qElS+'×'+pElS+')',pElS*qElS),rT('Total (VAT incl.)',ticketInc)]);
+ regDrill('c_eventVat','VAT removed',[rP('Ticket revenue (VAT incl.)',ticketInc),rM('÷ '+mfmt(vd),1/vd),rS('Net of VAT',ticketNet),rT('VAT ('+vp+'%)',-(ticketInc-ticketNet))]);
+ regDrill('c_ticket','Net ticket / race day (full slots)',[rP('Ticket revenue (VAT incl.)',ticketInc),rM('Remove '+vp+'% VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / race day',ticketNet)]);
+ regDrill('c_wkTicketYr','Ticket revenue / year (net, at fill)',[rP('Net ticket / race day',ticketNet),rM('Fill rate',fillv),rM('Weekend race days / year',rd),rT('Net ticket / year',ticketNet*fillv*rd)]);
+ var entPD=slots*fillv,athPD=(4*(qEvT+qElT)+qEvS+qElS)*fillv,hp=num('heatPct')/100,tp=num('trialPct')/100;
+ regDrill('c_heatRevYr','Pick-your-heat / year',[rP('Filled entries / race day',entPD),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',hp*entPD*num('heatPrice')/vd*rd)]);
+ regDrill('c_trialRevYr','Trial Day / year',[rP('Filled athletes / race day',athPD),rM('Take-up %',tp),rM('Fee / athlete (VAT incl.)',num('trialPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',tp*athPD*num('trialPrice')/vd*rd)]);
+ regDrill('c_wkDJYr','Resident DJ / year',[rP('Resident DJ / race day',num('djExp')),rM('Race days / year',rd),rT('DJ cost / year',-num('djExp')*rd)]);
+ regDrill('c_wkPrizeYr','Weekly prize / year',[rP('Prize / race day',num('prizePerEvent')),rM('Race days / year',rd),rT('Prize cost / year',-num('prizePerEvent')*rd)]);
+ var wkTix=ticketNet*fillv*rd,wkHeat=hp*entPD*num('heatPrice')/vd*rd,wkTrial=tp*athPD*num('trialPrice')/vd*rd,wkDJ=num('djExp')*rd,wkPrize=num('prizePerEvent')*rd;
+ regDrill('c_racedayNet','Net race-days revenue / year',[rP('Ticket revenue (net, at fill)',wkTix),rP('+ Pick-your-heat',wkHeat),rP('+ Trial Day',wkTrial),rP('− Resident DJ',-wkDJ),rP('− Weekly prize',-wkPrize),rT('Net race-days revenue',wkTix+wkHeat+wkTrial-wkDJ-wkPrize)]);
+ var yr=Math.round(num('calYear'))||2027,mrows=[],tot=0;MONTHS.forEach(function(m,i){if(chk(m[0])){var w=weekendsInMonth(yr,i);mrows.push(rP(m[1]+' '+yr,w));tot+=w;}});mrows.push(rT('Weekend days / year',tot));
+ regDrill('c_eventsYr','Weekend race days / year',mrows);
+ // 2 · Finale
+ var finEvT=num('finEvT'),finElT=num('finElT'),finEvS=num('finEvS'),finElS=num('finElS'),finales=Math.max(0,num('finales')),finFree=Math.max(0,Math.min(100,num('finPctPass')))/100;
+ var finInc=pEvT*finEvT+pElT*finElT+pEvS*finEvS+pElS*finElS,finQ=finEvT+finElT+finEvS+finElS,finAth=4*(finEvT+finElT)+finEvS+finElS,finNet=finInc/vd;
+ regDrill('c_finRevEvT','Finale Everyday team',[rP('Race-day price',pEvT),rM('Entries / finale',finEvT),rT('Amount',pEvT*finEvT)]);
+ regDrill('c_finRevElT','Finale Elite team',[rP('Race-day price',pElT),rM('Entries / finale',finElT),rT('Amount',pElT*finElT)]);
+ regDrill('c_finRevEvS','Finale Everyday solo',[rP('Race-day price',pEvS),rM('Entries / finale',finEvS),rT('Amount',pEvS*finEvS)]);
+ regDrill('c_finRevElS','Finale Elite solo',[rP('Race-day price',pElS),rM('Entries / finale',finElS),rT('Amount',pElS*finElS)]);
+ regDrill('c_finTicketInc','Ticket revenue / finale (VAT incl.)',[rP('Everyday team',pEvT*finEvT),rP('Elite team',pElT*finElT),rP('Everyday solo',pEvS*finEvS),rP('Elite solo',pElS*finElS),rT('Total (VAT incl.)',finInc)]);
+ regDrill('c_finVat','VAT removed',[rP('Ticket revenue (VAT incl.)',finInc),rM('÷ '+mfmt(vd),1/vd),rT('VAT',-(finInc-finNet))]);
+ regDrill('c_finNetFinale','Net ticket / finale',[rP('Ticket revenue (VAT incl.)',finInc),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / finale',finNet)]);
+ regDrill('c_finPayers','Paying finalists / year',[rP('Qualifiers / finale',finQ),rM('× (1 − pass-free '+num('finPctPass')+'%)',1-finFree),rM('Finales / year',finales),rT('Paying / year',finQ*(1-finFree)*finales)]);
+ regDrill('c_finTicket','Finale ticket revenue / year (net)',[rP('Net ticket / finale',finNet),rM('× (1 − pass-free '+num('finPctPass')+'%)',1-finFree),rM('Finales / year',finales),rT('Net / year',finNet*(1-finFree)*finales)]);
+ regDrill('c_finHeatYr','Finale pick-your-heat / year',[rP('Finale entries',finQ),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',hp*finQ*num('heatPrice')/vd*finales)]);
+ regDrill('c_finTrialYr','Finale Trial Day / year',[rP('Finale athletes',finAth),rM('Take-up %',tp),rM('Fee (VAT incl.)',num('trialPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',tp*finAth*num('trialPrice')/vd*finales)]);
+ regDrill('c_finDirectYr','Finale direct cost / year',[rP('DJ / production',num('finDJ')),rP('Volunteers',num('volunteers')),rP('Permits',num('permits')),rP('Prize purse',num('finPrize')),rS('Per finale',num('finDJ')+num('volunteers')+num('permits')+num('finPrize')),rM('Finales / year',finales),rT('Cost / year',-(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales)]);
+ var finTix=finNet*(1-finFree)*finales,finHeat=hp*finQ*num('heatPrice')/vd*finales,finTrial=tp*finAth*num('trialPrice')/vd*finales,finDir=(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales;
+ regDrill('c_finaleNet','Net finale revenue / year',[rP('Ticket revenue (net)',finTix),rP('+ Pick-your-heat',finHeat),rP('+ Trial Day',finTrial),rP('− Production + prize',-finDir),rT('Net finale revenue',finTix+finHeat+finTrial-finDir)]);
+ // 3 · Classes
+ var classInc=num('classesMonth')*num('capacity')*num('pricePerClass')*12,classNet=classInc/vd,trainerYr=num('classesMonth')*num('trainerFee')*12;
+ regDrill('c_classInc','Gross class revenue (VAT incl.)',[rP('Classes / month',num('classesMonth')),rM('Capacity / class',num('capacity')),rM('Price / class (VAT incl.)',num('pricePerClass')),rM('12 months',12),rT('Gross (VAT incl.)',classInc)]);
+ regDrill('c_classVat','VAT removed',[rP('Gross (VAT incl.)',classInc),rM('÷ '+mfmt(vd),1/vd),rT('VAT',-(classInc-classNet))]);
+ regDrill('c_classRevYr','Gross class revenue (net)',[rP('Gross (VAT incl.)',classInc),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net',classNet)]);
+ regDrill('c_trainerYr','Trainer fees / year',[rP('Classes / month',num('classesMonth')),rM('Trainer fee / class',num('trainerFee')),rM('12 months',12),rT('Trainer fees',-trainerYr)]);
+ regDrill('c_netClassYr','Net class revenue / year',[rP('Gross class revenue (net)',classNet),rP('− Trainer fees',-trainerYr),rT('Net class revenue',classNet-trainerYr)]);
+ // 4 · F&B, 5 · Retail
+ var fbNet=num('fbRev')*12/vd,fbCogs=fbNet*(1-num('fbMargin')/100),retNet=num('retRev')*12/vd,retCogs=retNet*(1-num('retMargin')/100);
+ regDrill('c_fbRevYr','F&B revenue / year (net)',[rP('F&B sales / month (VAT incl.)',num('fbRev')),rM('12 months',12),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / year',fbNet)]);
+ regDrill('c_fbCogs','F&B COGS',[rP('F&B revenue (net)',fbNet),rM('Cost ratio (1 − '+num('fbMargin')+'% margin)',1-num('fbMargin')/100),rT('COGS',-fbCogs)]);
+ regDrill('c_netFbYr','Net F&B / year',[rP('F&B revenue (net)',fbNet),rP('− COGS',-fbCogs),rT('Net F&B',fbNet-fbCogs)]);
+ regDrill('c_retRevYr','Retail revenue / year (net)',[rP('Retail sales / month (VAT incl.)',num('retRev')),rM('12 months',12),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / year',retNet)]);
+ regDrill('c_retCogs','Retail COGS',[rP('Retail revenue (net)',retNet),rM('Cost ratio (1 − '+num('retMargin')+'% margin)',1-num('retMargin')/100),rT('COGS',-retCogs)]);
+ regDrill('c_netRetYr','Net retail / year',[rP('Retail revenue (net)',retNet),rP('− COGS',-retCogs),rT('Net retail',retNet-retCogs)]);
+}
 
 /* ---------- charts ---------- */
 function barChart(id,cats,seriesA,seriesB){
@@ -945,6 +1010,8 @@ function update(){
    kpi('Cash end Y3',kfmt(cumline[2]),cumline[2]>=0?'green':'red','after funding '+kfmt(A.funding));
  barChart('ch-bars',['Y1','Y2','Y3'],Y.map(function(y){return y.netRev;}),Y.map(function(y){return y.ebitda;}));
  lineChart('ch-cash',[{x:'Open',y:A.funding-A.capexTotal-A.preopBurn}].concat(Y.map(function(y,i){return {x:'Y'+(i+1),y:cumline[i]};})));
+ regRevenueDrills();
+ var ppb=breakdown('ppFees',0); if(ppb)regDrill('c_ppFeesYr','Payment-processing fees / year',ppb.rows);
  save(); saveSummary(A,Y);
 }
 // Persist a computed summary so the business-plan brochure (same origin) can mirror these exact numbers.
