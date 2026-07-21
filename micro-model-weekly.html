@@ -379,8 +379,8 @@ var DEFAULTS={
  eventsYr:64, calYear:2027, fillPct:70, prizePerEvent:0, badgeCost:10, ppPct:3,
  finales:2, finEvT:10, finElT:10, finEvS:14, finElS:16, finPctPass:0, finDJ:10000, finPrize:0,
  heatPct:10, heatPrice:99, trialPrice:99,
- trSlots:3, trLanes:8, trPerLane:4, trAthDay:40, trWeeks:52,
- clsWeekday:3, clsWkndOff:3, clsRaceDay:1, classesMonth:60, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
+ trLanes:8, trPerLane:4, trAthDay:40,
+ capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
  benMedical:25000, benResidency:25000, benTickets:25000,
  oRent:600000, oLicense:40000, oAudit:7500,
@@ -403,6 +403,72 @@ var MONTHS=[['mM0','Jan',1],['mM1','Feb',1],['mM2','Mar',1],['mM3','Apr',1],['mM
 function weekendsInMonth(year,mIndex){var d=new Date(year,mIndex,1),c=0;while(d.getMonth()===mIndex){var w=d.getDay();if(w===0||w===6)c++;d.setDate(d.getDate()+1);}return c;}
 function yearDayCounts(year){var wk=0,we=0;for(var m=0;m<12;m++){var d=new Date(year,m,1);while(d.getMonth()===m){var w=d.getDay();if(w===0||w===6)we++;else wk++;d.setDate(d.getDate()+1);}}return {weekdays:wk,weekends:we};}
 function computeRaceDays(){var yr=Math.round(num('calYear'))||2027,total=0,nMonths=0;MONTHS.forEach(function(m,i){if(chk(m[0])){total+=weekendsInMonth(yr,i);nMonths++;}});var e=el('eventsYr');if(e)e.value=total;set('c_eventsYr',fmt(total));set('cal-note','= '+total+' weekend race days across '+nMonths+' months ('+yr+')');return total;}
+// Per-weekday occurrence counts in a year, indexed by JS getDay() (0=Sun … 6=Sat)
+function weekdayOccurrences(year){var occ=[0,0,0,0,0,0,0];for(var m=0;m<12;m++){var d=new Date(year,m,1);while(d.getMonth()===m){occ[d.getDay()]++;d.setDate(d.getDate()+1);}}return occ;}
+// Saturdays / Sundays inside the ticked (race) months — splits weekend days into race vs off-season
+function weekendSplitInMonths(year,flags){var sat=0,sun=0;for(var m=0;m<12;m++){if(!flags[m])continue;var d=new Date(year,m,1);while(d.getMonth()===m){var w=d.getDay();if(w===6)sat++;else if(w===0)sun++;d.setDate(d.getDate()+1);}}return {sat:sat,sun:sun};}
+/* ---------- Interactive weekly-schedule calendar ----------
+   Cells cycle: empty → Class → Trial → Race. The revenue model reads class counts,
+   trial days and slots straight from here. Weekend columns hold TWO layouts — a
+   Race-weekend layout (applied to the weekend days in ticked months) and an
+   Off-season layout (applied to the remaining weekend days). Race DAY count still
+   comes from the month selector; Race cells here are the visual race window.        */
+var CAL_TIMES=['6:00 AM','7:00 AM','8:00 AM','9:00 AM','12:00 PM','5:00 PM','6:00 PM','7:00 PM'];
+var CAL_DEFAULT={
+ times:CAL_TIMES,
+ wk:[['C','C','C','','','','',''],            // Mon
+     ['C','C','C','','','','',''],            // Tue
+     ['C','C','C','','','T','T','T'],         // Wed (+ trial runs 5/6/7pm)
+     ['C','C','C','','','','',''],            // Thu
+     ['C','C','C','','','','','']],           // Fri
+ rc:[['','C','','','R','','',''],             // Sat — race weekend (1 morning class + races)
+     ['','C','','','R','','','']],            // Sun — race weekend
+ of:[['','C','C','C','','','',''],            // Sat — off-season (7/8/9am classes)
+     ['','C','C','C','','','','']]            // Sun — off-season
+};
+function calClone(o){return JSON.parse(JSON.stringify(o));}
+var CAL=calClone(CAL_DEFAULT);
+var calMode='rc';   // which weekend layout the Sat/Sun columns are showing/editing
+function calCnt(arr,type){var n=0;for(var t=0;t<CAL_TIMES.length;t++){if(arr[t]===type)n++;}return n;}
+// Everything the revenue model needs, derived live from the calendar + month selector
+function calDerive(){
+ var yr=Math.round(num('calYear'))||2027;
+ var occ=weekdayOccurrences(yr);
+ var flags=MONTHS.map(function(m){return chk(m[0])?1:0;});
+ var sp=weekendSplitInMonths(yr,flags);
+ var raceSat=sp.sat,raceSun=sp.sun;
+ var offSat=Math.max(0,occ[6]-raceSat),offSun=Math.max(0,occ[0]-raceSun);
+ var wkJS=[1,2,3,4,5];   // calendar cols Mon..Fri → JS getDay index
+ var classesYr=0,trialDaysYr=0,wkdayCls=0;
+ CAL.wk.forEach(function(col,i){var o=occ[wkJS[i]];var c=calCnt(col,'C'),tr=calCnt(col,'T');classesYr+=c*o;wkdayCls+=c*o;if(tr>0)trialDaysYr+=o;});
+ var wknd=[['rc',0,raceSat],['rc',1,raceSun],['of',0,offSat],['of',1,offSun]];
+ var raceWkndCls=0,offWkndCls=0;
+ wknd.forEach(function(w){var arr=CAL[w[0]][w[1]],days=w[2];var c=calCnt(arr,'C'),tr=calCnt(arr,'T');classesYr+=c*days;if(w[0]==='rc')raceWkndCls+=c*days;else offWkndCls+=c*days;if(tr>0)trialDaysYr+=days;});
+ var maxT=0;CAL.wk.concat(CAL.rc,CAL.of).forEach(function(col){var t=calCnt(col,'T');if(t>maxT)maxT=t;});
+ return {classesYr:classesYr,trialDaysYr:trialDaysYr,trSlotsDay:maxT,
+   weekdays:occ[1]+occ[2]+occ[3]+occ[4]+occ[5],weekends:occ[0]+occ[6],
+   raceSat:raceSat,raceSun:raceSun,offSat:offSat,offSun:offSun,nonRaceWknd:offSat+offSun,
+   wkdayCls:wkdayCls,raceWkndCls:raceWkndCls,offWkndCls:offWkndCls,raceDays:raceSat+raceSun};
+}
+// Cycle a cell empty → C → T → R → empty, then recompute
+function calCycle(section,col,t){var order=['','C','T','R'];var cur=CAL[section][col][t]||'';var ni=(order.indexOf(cur)+1)%order.length;CAL[section][col][t]=order[ni];renderCalendar();update();}
+function setCalMode(m){calMode=m;renderCalendar();}
+function calCellHTML(section,col,t){var v=CAL[section][col][t]||'';var lab={'C':'Class','T':'Trial','R':'Race'}[v]||'&middot;';var cl=v==='C'?'cCls':v==='T'?'cTr':v==='R'?'cRace':'cEmp';return '<td class="wcx '+cl+'" onclick="calCycle(\''+section+'\','+col+','+t+')">'+lab+'</td>';}
+function renderCalendar(){var box=el('week-cal');if(!box)return;
+ var d=calDerive();
+ var h='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:0;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.05em;padding:5px 3px}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap;padding:5px 6px}.wcx{cursor:pointer;user-select:none;padding:6px 3px;transition:background .1s}.wcx:hover{outline:2px solid var(--red);outline-offset:-2px}.wc .cEmp{color:#c4c4c4}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}.wmode{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px}.wmode.on{background:var(--red);color:#fff;border-color:var(--red)}</style>';
+ h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Weekend layout</span>'+
+    '<button class="wmode'+(calMode==='rc'?' on':'')+'" onclick="setCalMode(\'rc\')">Race weekend ('+d.raceDays+' days/yr)</button>'+
+    '<button class="wmode'+(calMode==='of'?' on':'')+'" onclick="setCalMode(\'of\')">Off-season weekend ('+d.nonRaceWknd+' days/yr)</button></div>';
+ h+='<div class="scroll"><table class="wc"><thead><tr><th class="tl">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead><tbody>';
+ for(var t=0;t<CAL_TIMES.length;t++){h+='<tr><td class="tl">'+CAL_TIMES[t]+'</td>';
+   for(var c=0;c<5;c++)h+=calCellHTML('wk',c,t);
+   h+=calCellHTML(calMode,0,t)+calCellHTML(calMode,1,t);
+   h+='</tr>';}
+ h+='</tbody></table></div>';
+ h+='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;line-height:1.6">Tap any cell to cycle <b>empty → class → trial → race</b>. Sat/Sun switch between the two weekend layouts above. Race <i>days</i> per year come from the month selector under &ldquo;Race days&rdquo;. &nbsp;<span style="color:var(--red)">■</span> race &nbsp;<span style="color:#b35c00">■</span> trial run &nbsp;<span style="color:#0d1013">■</span> class</div>';
+ box.innerHTML=h;
+}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function kf(n){var a=Math.abs(n);if(a<0.5)return '—';var s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=String(Math.round(a));return n<0?'('+s+')':s;}
 // responsive number: full figure on desktop, abbreviated (840k) on phones — so statement tables never overflow
@@ -424,11 +490,10 @@ function compute(){
  var gross=ticket;
  var entries=(v('qEvT')+v('qElT')+v('qEvS')+v('qElS'))*fill;     // filled entries / race day
  var athletes=(4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS'))*fill;// filled athletes / race day
- var hp=Math.max(0,v('heatPct'))/100, tp=Math.max(0,v('trialPct'))/100;
+ var hp=Math.max(0,v('heatPct'))/100;
  var heatNet=hp*entries*v('heatPrice')/vd;      // pick-your-heat / race day (net)
- var trialNet=tp*athletes*v('trialPrice')/vd;   // Trial Day / race day (net)
  var wkTicketYr=ticket*fill*eventsYr;                            // annual weekly ticket revenue (net)
- var wkHeatYr=heatNet*eventsYr, wkTrialYr=trialNet*eventsYr;     // annual weekly add-ons
+ var wkHeatYr=heatNet*eventsYr;                                  // annual weekly add-on (heat)
  // ---- Season finales (same ticket + add-on format as race days; adds full production) ----
  var finales=Math.max(0,v('finales'));
  var finPassFree=Math.max(0,Math.min(100,v('finPctPass')))/100;
@@ -437,7 +502,6 @@ function compute(){
  var finEntries=v('finEvT')+v('finElT')+v('finEvS')+v('finElS');
  var finAthletes=4*(v('finEvT')+v('finElT'))+v('finEvS')+v('finElS');
  var finHeatYr=hp*finEntries*v('heatPrice')/vd*finales;          // finale pick-your-heat (net, annual)
- var finTrialYr=tp*finAthletes*v('trialPrice')/vd*finales;       // finale Trial Day (net, annual)
  var finDirectYr=(v('finDJ')+v('volunteers')+v('permits'))*finales; // full-production cost per finale
  // ---- Finisher badges: one per athlete (team member or solo) who completes a race ----
  var badge=Math.max(0,v('badgeCost'));
@@ -446,9 +510,11 @@ function compute(){
  // ---- Combined annual event revenue, add-ons & direct cost ----
  var ticketYr=wkTicketYr+finTicketYr;
  var heatYr=wkHeatYr+finHeatYr;                                  // pick-your-heat: weekly + finale
- // ---- Trial runs — Wednesday evenings, bookable lanes on the workout (replaces per-race Trial Day) ----
- var trCap=Math.max(0,v('trSlots'))*Math.max(0,v('trLanes'))*Math.max(0,v('trPerLane'));  // max capacity / trial day (slots × lanes × per-lane)
- var trialYr=Math.max(0,v('trAthDay'))*(v('trialPrice')/vd)*Math.max(0,v('trWeeks')); // net annual — you enter the assumed athletes / trial day
+ // ---- Weekly schedule (calendar-driven): classes, trial days & slots read straight from CAL ----
+ var cal=calDerive();
+ // ---- Trial runs — evenings, bookable lanes on the workout; days & slots come from the calendar ----
+ var trCap=Math.max(0,cal.trSlotsDay)*Math.max(0,v('trLanes'))*Math.max(0,v('trPerLane'));  // max capacity / trial day (slots × lanes × per-lane)
+ var trialYr=Math.max(0,v('trAthDay'))*(v('trialPrice')/vd)*Math.max(0,cal.trialDaysYr); // net annual — assumed athletes/day × trial days/year (from calendar)
  var evFix=v('djExp');                                          // resident DJ / race day — weekly has no permits/volunteers
  var eventDirectYr=evFix*eventsYr+wkBadgeYr+finDirectYr+finBadgeYr;
  // Management fee: a % of selected net-revenue lines, paid to the management company (a sweat-equity shareholder)
@@ -456,9 +522,8 @@ function compute(){
  var mfE=chk('mfEvent'),mfA=chk('mfAddon'),mfC=chk('mfClass'),mfF=chk('mfFb'),mfR=chk('mfRet');
  var fbRevYr=v('fbRev')*12/vd, retRevYr=v('retRev')*12/vd;   // F&B and Retail = standalone monthly businesses, net of VAT
  var fbCogsYr=fbRevYr*(1-v('fbMargin')/100), retCogsYr=retRevYr*(1-v('retMargin')/100); // COGS from margin % on net revenue
- // ---- Group classes — count derived from the weekly schedule × the calendar ----
- var dc=yearDayCounts(Math.round(v('calYear'))||2027);
- var classesYr=v('clsWeekday')*dc.weekdays + v('clsRaceDay')*eventsYr + v('clsWkndOff')*Math.max(0,dc.weekends-eventsYr);
+ // ---- Group classes — count read directly from the interactive weekly calendar ----
+ var classesYr=cal.classesYr;
  var clientMonth=(classesYr/12)*v('capacity');
  var classRevYr=classesYr*v('capacity')*v('pricePerClass')/vd;
  var trainerYr=classesYr*v('trainerFee');
@@ -548,7 +613,7 @@ function compute(){
    divs:divs,sweatPct:sweatPct,founderPct:founderPct,minBank:minBank,foundPayback:foundPayback,
    preopMonths:preopMonths,preopBurn:preopBurn,y1def:y1def,capitalReq:capitalReq,funding:funding,fundBuffer:v('fundBuffer'),peakFund:peakFund,payback:payback,pb:pb,coc3:coc3,ebitda3:ebitda3,
    ticket:ticket,gross:gross,heatNet:heatNet,entries:entries,athletes:athletes,netEventY1:Y[0].netEvent,clientMonth:clientMonth,classRevYr:classRevYr,payrollYr:payrollYr,ovYr:ovYr,eosYrBase:eosYrBase,
-   classesYr:classesYr,trialYr:trialYr,weekdaysYr:dc.weekdays,weekendsYr:dc.weekends,nonRaceWknd:Math.max(0,dc.weekends-eventsYr),trCap:trCap,
+   classesYr:classesYr,trialYr:trialYr,weekdaysYr:cal.weekdays,weekendsYr:cal.weekends,nonRaceWknd:cal.nonRaceWknd,trCap:trCap,cal:cal,
    salaries:salaries,benMo:benMo,payrollMo:payrollMo};
 }
 
@@ -633,12 +698,10 @@ function renderStatic(){
   '<tr><td>Seasons / year</td><td class="inp">'+I('seasons','small')+'</td><td class="calc">info</td></tr>'+
   '<tr><td>Payment-processing fees (% of gross)</td><td class="inp">'+I('ppPct','small')+'</td><td class="calc" id="c_ppFeesYr">—</td></tr></tbody>';
  el('class-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
-  '<tr class="sec"><td colspan="3">Weekly schedule &mdash; classes / day (from the calendar)</td></tr>'+
-  '<tr><td>Weekday (Mon&ndash;Fri, AM)</td><td class="inp">'+I('clsWeekday','small')+'</td><td class="calc">6/7/8am</td></tr>'+
-  '<tr><td>Weekend non-race day (AM)</td><td class="inp">'+I('clsWkndOff','small')+'</td><td class="calc">7/8/9am</td></tr>'+
-  '<tr><td>Race day (morning, before races)</td><td class="inp">'+I('clsRaceDay','small')+'</td><td></td></tr>'+
-  '<tr><td>Weekdays / year</td><td></td><td class="calc" id="c_wkdays">—</td></tr>'+
-  '<tr><td>Non-race weekend days / year</td><td></td><td class="calc" id="c_nonRaceWknd">—</td></tr>'+
+  '<tr class="sec"><td colspan="3">Classes / year &mdash; counted from the calendar above (edit it to change these)</td></tr>'+
+  '<tr><td>Weekday classes / year</td><td></td><td class="calc" id="c_wkdayCls">—</td></tr>'+
+  '<tr><td>Race-weekend classes / year</td><td></td><td class="calc" id="c_raceWkndCls">—</td></tr>'+
+  '<tr><td>Off-season weekend classes / year</td><td></td><td class="calc" id="c_offWkndCls">—</td></tr>'+
   '<tr class="calc"><td>Classes / year</td><td></td><td class="calc" id="c_classesYr">—</td></tr>'+
   '<tr class="subtot"><td>Classes / month (average)</td><td></td><td id="c_classesMonth">—</td></tr>'+
   '<tr><td>Capacity / class</td><td class="inp">'+I('capacity','small')+'</td><td></td></tr>'+
@@ -648,31 +711,20 @@ function renderStatic(){
   '<tr class="subtot"><td>Gross class revenue (net)</td><td></td><td id="c_classRevYr">—</td></tr>'+
   '<tr><td>Trainer fee / class</td><td class="inp">'+I('trainerFee','small')+'</td><td class="calc" id="c_trainerYr">—</td></tr>'+
   '<tr class="grand"><td>Net class revenue</td><td></td><td id="c_netClassYr">—</td></tr></tbody>';
- // 3 · Trial runs (Wednesday evenings)
+ // 3 · Trial runs (evenings) — slots & days read from the calendar; you set turnout
  el('trial-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
-  '<tr class="sec"><td colspan="3">Wednesday evenings &mdash; bookable trial-run lanes (5/6/7pm, 1 hr each)</td></tr>'+
-  '<tr><td>Evening slots / Wednesday</td><td class="inp">'+I('trSlots','small')+'</td><td class="calc">5/6/7pm</td></tr>'+
+  '<tr class="sec"><td colspan="3">Bookable trial-run lanes &mdash; slots &amp; days come from the calendar</td></tr>'+
+  '<tr><td>Evening slots / trial day (from calendar)</td><td></td><td class="calc" id="c_trSlotsDay">—</td></tr>'+
+  '<tr><td>Trial days / year (from calendar)</td><td></td><td class="calc" id="c_trDaysYr">—</td></tr>'+
   '<tr><td>Lanes</td><td class="inp">'+I('trLanes','small')+'</td><td></td></tr>'+
   '<tr><td>Athletes / lane (max)</td><td class="inp">'+I('trPerLane','small')+'</td><td></td></tr>'+
   '<tr class="calc"><td>Max capacity / trial day (slots &times; lanes &times; per-lane)</td><td></td><td class="calc" id="c_trCap">—</td></tr>'+
   '<tr><td>Athletes / trial day (assumed turnout)</td><td class="inp">'+I('trAthDay','small')+'</td><td></td></tr>'+
   '<tr><td>Price / athlete (VAT incl.)</td><td class="inp">'+I('trialPrice','small')+'</td><td></td></tr>'+
-  '<tr><td>Weeks / year</td><td class="inp">'+I('trWeeks','small')+'</td><td></td></tr>'+
   '<tr class="calc"><td>Athletes / year</td><td></td><td class="calc" id="c_trBooked">—</td></tr>'+
   '<tr class="grand"><td>Net trial-runs revenue / year</td><td></td><td id="c_trialRevNet">—</td></tr></tbody>';
- // Weekly schedule calendar (visual)
- function wcRow(t,cs){var s='<tr><td class="tl">'+t+'</td>';cs.forEach(function(c){var cl=c==='Class'?'cCls':c==='Race'?'cRace':c==='Trial'?'cTr':'';s+='<td class="'+cl+'">'+(c||'&middot;')+'</td>';});return s+'</tr>';}
- el('week-cal').innerHTML='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:5px 3px;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.06em}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}</style>'+
-  '<div class="scroll"><table class="wc"><thead><tr><th class="tl">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat*</th><th>Sun*</th></tr></thead><tbody>'+
-  wcRow('6:00 AM',['Class','Class','Class','Class','Class','',''])+
-  wcRow('7:00 AM',['Class','Class','Class','Class','Class','Class','Class'])+
-  wcRow('8:00 AM',['Class','Class','Class','Class','Class','',''])+
-  wcRow('12&ndash;3 PM',['','','','','','Race','Race'])+
-  wcRow('5:00 PM',['','','Trial','','','',''])+
-  wcRow('6:00 PM',['','','Trial','','','',''])+
-  wcRow('7:00 PM',['','','Trial','','','',''])+
-  '</tbody></table></div>'+
-  '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;line-height:1.6">* In-season weekends are <b>race days</b> — 1 morning class then races. Off-season weekends run 3 morning classes (7/8/9am), no races. &nbsp;<span style="color:var(--red)">■</span> race &nbsp;<span style="color:#b35c00">■</span> trial run &nbsp;<span style="color:#0d1013">■</span> class</div>';
+ // Weekly schedule calendar — interactive; rendered by renderCalendar()
+ renderCalendar();
  el('payroll-table').innerHTML='<thead><tr><th>Item</th><th>Heads</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>'+
   '<tr><td>Business Manager</td><td>1</td><td class="inp">'+I('salBM')+'</td><td class="calc" id="c_yBM">—</td></tr>'+
   '<tr><td>Photographer / Video / Social</td><td>1</td><td class="inp">'+I('salPhoto')+'</td><td class="calc" id="c_yPhoto">—</td></tr>'+
@@ -745,9 +797,9 @@ function breakdown(line,i){
   case 'netRet':return R([{l:'Retail revenue',x:Yi.grossRet},{l:'Less: retail COGS',x:-(Yi.grossRet-Yi.netRet)}],Yi.netRet);
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
   case 'grossHeat':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var ent=(v('qEvT')+v('qElT')+v('qEvS')+v('qElS'))*fillv;var per=(v('heatPct')/100)*ent*v('heatPrice')/vd;var wk=per*ev;var finEnt=v('finEvT')+v('finElT')+v('finEvS')+v('finElS');var finH=(v('heatPct')/100)*finEnt*v('heatPrice')/vd*v('finales');return R([{l:'Entries / race day (filled)',x:ent},{l:'Pick-your-heat take-up',x:v('heatPct')/100,mult:1},{l:'Heat fee (VAT incl.)',x:v('heatPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per race day (net)',x:per,sub:1},{l:'Race days / year',x:ev,mult:1},{l:'Weekly heat',x:wk,sub:1},{l:'+ Finale heat ('+finEnt+' × '+v('finales')+')',x:finH}],(wk+finH)*vg);}
-  case 'grossTrial':return R([{l:'Athletes / trial day',x:v('trAthDay')},{l:'Weeks / year',x:v('trWeeks'),mult:1},{l:'Price / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],v('trAthDay')*v('trWeeks')*(v('trialPrice')/vd)*vg);
-  case 'grossClass':{var dcx=yearDayCounts(Math.round(v('calYear'))||2027),rdx=Math.max(0,v('eventsYr')),cyr=v('clsWeekday')*dcx.weekdays+v('clsRaceDay')*rdx+v('clsWkndOff')*Math.max(0,dcx.weekends-rdx);return R([{l:'Classes / year (from schedule)',x:cyr},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class (VAT incl.)',x:v('pricePerClass'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],cyr*v('capacity')*(v('pricePerClass')/vd)*vg);}
-  case 'trainer':{var dcx=yearDayCounts(Math.round(v('calYear'))||2027),rdx=Math.max(0,v('eventsYr')),cyr=v('clsWeekday')*dcx.weekdays+v('clsRaceDay')*rdx+v('clsWkndOff')*Math.max(0,dcx.weekends-rdx);return R([{l:'Classes / year',x:cyr},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'Volume growth',x:vg,mult:1}],cyr*v('trainerFee')*vg);}
+  case 'grossTrial':{var cd=calDerive();return R([{l:'Athletes / trial day',x:v('trAthDay')},{l:'Trial days / year (from calendar)',x:cd.trialDaysYr,mult:1},{l:'Price / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],v('trAthDay')*cd.trialDaysYr*(v('trialPrice')/vd)*vg);}
+  case 'grossClass':{var cd=calDerive();return R([{l:'Classes / year (from calendar)',x:cd.classesYr},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class (VAT incl.)',x:v('pricePerClass'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('capacity')*(v('pricePerClass')/vd)*vg);}
+  case 'trainer':{var cd=calDerive();return R([{l:'Classes / year',x:cd.classesYr},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('trainerFee')*vg);}
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
   case 'prizes':{var wk=v('prizePerEvent')*ev,fin=v('finPrize')*v('finales');return R([{l:'Weekly prize / race day',x:v('prizePerEvent')},{l:'Race days / year',x:ev,mult:1},{l:'Weekly prizes',x:wk,sub:1},{l:'Finale purse / finale',x:v('finPrize')},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale prizes',x:fin,sub:1},{l:'Inflation',x:inf,mult:1}],(wk+fin)*inf);}
   case 'ppFees':{var base=Yi.grossEvent+Yi.grossHeat+Yi.grossTrial+Yi.grossClass+Yi.grossFb+Yi.grossRet;return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial runs',x:Yi.grossTrial},{l:'Gross class revenue',x:Yi.grossClass},{l:'F&B revenue',x:Yi.grossFb},{l:'Retail revenue',x:Yi.grossRet},{l:'Base',x:base,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*base);}
@@ -808,13 +860,17 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  var wkTix=ticketNet*fillv*rd,wkHeat=hp*entPD*num('heatPrice')/vd*rd,wkDJ=num('djExp')*rd,wkBadge=num('badgeCost')*athPD*rd,wkPrize=num('prizePerEvent')*rd;
  regDrill('c_wkBadgeYr','Finisher badges / year',[rP('Athletes / race day (4×teams + solo)',athPD),rM('Badge cost / athlete',num('badgeCost')),rM('Race days / year',rd),rT('Badge cost / year',-wkBadge)]);
  regDrill('c_racedayNet','Net race-days revenue / year',[rP('Ticket revenue (net, at fill)',wkTix),rP('+ Pick-your-heat',wkHeat),rP('− Resident DJ',-wkDJ),rP('− Finisher badges',-wkBadge),rP('− Weekly prize',-wkPrize),rT('Net race-days revenue',wkTix+wkHeat-wkDJ-wkBadge-wkPrize)]);
- // 3 · Trial runs (Wednesday evenings) — you specify athletes / trial day
- var trCap=Math.max(0,num('trSlots'))*Math.max(0,num('trLanes'))*Math.max(0,num('trPerLane')),trAthDay=Math.max(0,num('trAthDay')),trWeeks=Math.max(0,num('trWeeks')),trPrice=num('trialPrice');
- regDrill('c_trCap','Max capacity / trial day',[rP('Evening slots',num('trSlots')),rM('Lanes',num('trLanes')),rM('Athletes / lane',num('trPerLane')),rT('Max athletes / day',trCap)]);
- regDrill('c_trBooked','Athletes / year',[rP('Athletes / trial day',trAthDay),rM('Weeks / year',trWeeks),rT('Athletes / year',trAthDay*trWeeks)]);
- regDrill('c_trialRevNet','Trial-runs revenue / year (net)',[rP('Athletes / trial day',trAthDay),rM('Weeks / year',trWeeks),rM('Price / athlete (VAT incl.)',trPrice),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / year',trAthDay*trWeeks*(trPrice/vd))]);
- var trNet=trAthDay*trWeeks*(trPrice/vd);
- set('c_trCap',fmt(trCap));set('c_trBooked',fmt(trAthDay*trWeeks));set('c_trialRevNet',fmt(trNet));set('rev-trial',aed(trNet)+' net / yr');
+ // 3 · Trial runs — evenings; slots & trial days read from the calendar, you specify athletes/day
+ var cd=calDerive();
+ var trSlotsDay=Math.max(0,cd.trSlotsDay),trDaysYr=Math.max(0,cd.trialDaysYr);
+ var trCap=trSlotsDay*Math.max(0,num('trLanes'))*Math.max(0,num('trPerLane')),trAthDay=Math.max(0,num('trAthDay')),trPrice=num('trialPrice');
+ regDrill('c_trSlotsDay','Evening slots / trial day (from calendar)',[rP('Trial cells on the busiest day',trSlotsDay),rT('Slots / trial day',trSlotsDay)]);
+ regDrill('c_trDaysYr','Trial days / year (from calendar)',[rP('Days with a trial slot × their yearly occurrences',trDaysYr),rT('Trial days / year',trDaysYr)]);
+ regDrill('c_trCap','Max capacity / trial day',[rP('Evening slots',trSlotsDay),rM('Lanes',num('trLanes')),rM('Athletes / lane',num('trPerLane')),rT('Max athletes / day',trCap)]);
+ regDrill('c_trBooked','Athletes / year',[rP('Athletes / trial day',trAthDay),rM('Trial days / year',trDaysYr),rT('Athletes / year',trAthDay*trDaysYr)]);
+ regDrill('c_trialRevNet','Trial-runs revenue / year (net)',[rP('Athletes / trial day',trAthDay),rM('Trial days / year',trDaysYr),rM('Price / athlete (VAT incl.)',trPrice),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / year',trAthDay*trDaysYr*(trPrice/vd))]);
+ var trNet=trAthDay*trDaysYr*(trPrice/vd);
+ set('c_trSlotsDay',fmt(trSlotsDay));set('c_trDaysYr',fmt(trDaysYr));set('c_trCap',fmt(trCap));set('c_trBooked',fmt(trAthDay*trDaysYr));set('c_trialRevNet',fmt(trNet));set('rev-trial',aed(trNet)+' net / yr');
  var yr=Math.round(num('calYear'))||2027,mrows=[],tot=0;MONTHS.forEach(function(m,i){if(chk(m[0])){var w=weekendsInMonth(yr,i);mrows.push(rP(m[1]+' '+yr,w));tot+=w;}});mrows.push(rT('Weekend days / year',tot));
  regDrill('c_eventsYr','Weekend race days / year',mrows);
  // 2 · Finale
@@ -841,12 +897,14 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  regDrill('c_finDirectYr','Finale direct cost / year',[rP('DJ / production',num('finDJ')),rP('Volunteers',num('volunteers')),rP('Permits',num('permits')),rP('Prize purse',num('finPrize')),rS('Production + prize / finale',num('finDJ')+num('volunteers')+num('permits')+num('finPrize')),rM('Finales / year',finales),rP('+ Finisher badges / year',-finBadge),rT('Cost / year',-(finProdPrize+finBadge))]);
  var finTix=finNet*(1-finFree)*finales,finHeat=hp*finQ*num('heatPrice')/vd*finales,finDir=finProdPrize+finBadge;
  regDrill('c_finaleNet','Net finale revenue / year',[rP('Ticket revenue (net)',finTix),rP('+ Pick-your-heat',finHeat),rP('− Production + prize',-finProdPrize),rP('− Finisher badges',-finBadge),rT('Net finale revenue',finTix+finHeat-finDir)]);
- // 3 · Classes
- var dcY=yearDayCounts(Math.round(num('calYear'))||2027),rdc=Math.max(0,num('eventsYr')),nonRace=Math.max(0,dcY.weekends-rdc);
- var classesYr=num('clsWeekday')*dcY.weekdays+num('clsRaceDay')*rdc+num('clsWkndOff')*nonRace;
+ // 3 · Classes — counted straight from the interactive calendar
+ var classesYr=cd.classesYr;
  var classInc=classesYr*num('capacity')*num('pricePerClass'),classNet=classInc/vd,trainerYr=classesYr*num('trainerFee');
- set('c_classesYr',fmt(classesYr));set('c_classesMonth',fmt(classesYr/12));set('c_wkdays',fmt(dcY.weekdays));set('c_nonRaceWknd',fmt(nonRace));
- regDrill('c_classesYr','Classes / year (from the schedule)',[rP('Weekday classes ('+num('clsWeekday')+' × '+dcY.weekdays+' weekdays)',num('clsWeekday')*dcY.weekdays),rP('Race-day AM classes ('+num('clsRaceDay')+' × '+rdc+' race days)',num('clsRaceDay')*rdc),rP('Non-race weekend classes ('+num('clsWkndOff')+' × '+nonRace+' days)',num('clsWkndOff')*nonRace),rT('Classes / year',classesYr)]);
+ set('c_classesYr',fmt(classesYr));set('c_classesMonth',fmt(classesYr/12));set('c_wkdayCls',fmt(cd.wkdayCls));set('c_raceWkndCls',fmt(cd.raceWkndCls));set('c_offWkndCls',fmt(cd.offWkndCls));set('c_wkdays',fmt(cd.weekdays));set('c_nonRaceWknd',fmt(cd.nonRaceWknd));
+ regDrill('c_classesYr','Classes / year (from the calendar)',[rP('Weekday classes (Mon–Fri × their yearly counts)',cd.wkdayCls),rP('Race-weekend classes ('+cd.raceDays+' race days)',cd.raceWkndCls),rP('Off-season weekend classes ('+cd.nonRaceWknd+' days)',cd.offWkndCls),rT('Classes / year',classesYr)]);
+ regDrill('c_wkdayCls','Weekday classes / year',[rP('Class cells across Mon–Fri × each day’s yearly occurrences',cd.wkdayCls),rT('Weekday classes / year',cd.wkdayCls)]);
+ regDrill('c_raceWkndCls','Race-weekend classes / year',[rP('Class cells on race-weekend Sat/Sun × race days',cd.raceWkndCls),rT('Race-weekend classes / year',cd.raceWkndCls)]);
+ regDrill('c_offWkndCls','Off-season weekend classes / year',[rP('Class cells on off-season Sat/Sun × off-season weekend days',cd.offWkndCls),rT('Off-season classes / year',cd.offWkndCls)]);
  regDrill('c_classesMonth','Classes / month (average)',[rP('Classes / year',classesYr),rM('÷ 12 months',1/12),rT('Classes / month',classesYr/12)]);
  regDrill('c_classInc','Gross class revenue (VAT incl.)',[rP('Classes / year',classesYr),rM('Capacity / class',num('capacity')),rM('Price / class (VAT incl.)',num('pricePerClass')),rT('Gross (VAT incl.)',classInc)]);
  regDrill('c_classVat','VAT removed',[rP('Gross (VAT incl.)',classInc),rM('÷ '+mfmt(vd),1/vd),rT('VAT',-(classInc-classNet))]);
@@ -1106,13 +1164,13 @@ function saveSummary(A,Y){try{
  };
  localStorage.setItem('redln-weekly-summary',JSON.stringify(s));
 }catch(e){}}
-function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
-function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
-function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});update();}
+function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=CAL;s.__calMode=calMode;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);if(s.__cal&&s.__cal.wk){CAL=s.__cal;}if(s.__calMode)calMode=s.__calMode;Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
+function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='rc';renderCalendar();update();}
 // ---- base case: a saved snapshot of the assumptions to reset back to ----
 var BKEY='redln-weekly-base';
-function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});return s;}
-function applyInputs(s){Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
+function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=calClone(CAL);s.__calMode=calMode;return s;}
+function applyInputs(s){if(s.__cal&&s.__cal.wk){CAL=calClone(s.__cal);}if(s.__calMode)calMode=s.__calMode;renderCalendar();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
 function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
 function getBase(){try{var r=localStorage.getItem(BKEY);return r?JSON.parse(r):null;}catch(e){return null;}}
 function resetToBase(){var b=getBase();if(!b){resetAll();return;}applyInputs(b);update();}
@@ -1121,7 +1179,7 @@ document.getElementById('tabs').addEventListener('click',function(e){var b=e.tar
 document.getElementById('asm-sub').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-s');['rev','cost','capital','growth'].forEach(function(s){el('s-'+s).classList.toggle('on',s===t);});});
 document.addEventListener('input',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('cin'))update();});
 document.addEventListener('change',function(e){if(e.target&&e.target.type==='checkbox')update();});
-window.addEventListener('DOMContentLoaded',function(){renderStatic();load();if(!getBase())saveBase();update();});
+window.addEventListener('DOMContentLoaded',function(){renderStatic();load();renderCalendar();if(!getBase())saveBase();update();});
 </script>
 </body>
 </html>
