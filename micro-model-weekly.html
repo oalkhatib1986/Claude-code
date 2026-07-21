@@ -563,6 +563,10 @@ function renderStatic(){
   '<tr><td>Weekend race days / year &middot; from calendar above</td><td></td><td class="calc" id="c_eventsYr">—</td><td></td></tr>'+
   '<tr class="subtot"><td>Ticket revenue / year (net, at fill)</td><td></td><td></td><td id="c_wkTicketYr">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Race add-ons / year (net of VAT)</td></tr>'+
+  '<tr><td>Teams / race day (filled)</td><td></td><td class="calc" id="c_wkTeams">—</td><td></td></tr>'+
+  '<tr><td>Solo athletes / race day (filled)</td><td></td><td class="calc" id="c_wkSolo">—</td><td></td></tr>'+
+  '<tr><td>Entries (heat base) &middot; teams + solo</td><td></td><td class="calc" id="c_wkEnt">—</td><td></td></tr>'+
+  '<tr><td>Athletes (Trial base) &middot; 4&times;teams + solo</td><td></td><td class="calc" id="c_wkAth">—</td><td></td></tr>'+
   '<tr><td>Pick-your-heat &middot; fee / % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRevYr">—</td></tr>'+
   '<tr><td>Trial Day &middot; fee / % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRevYr">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Race-day direct cost / year</td></tr>'+
@@ -585,6 +589,10 @@ function renderStatic(){
   '<tr><td>Qualifiers on season pass &mdash; free (%)</td><td></td><td class="inp">'+I('finPctPass','small')+'</td><td class="calc" id="c_finPayers">—</td></tr>'+
   '<tr class="subtot"><td>Finale ticket revenue / year (net)</td><td></td><td></td><td id="c_finTicket">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Finale add-ons / year &mdash; same fees as race days (net of VAT)</td></tr>'+
+  '<tr><td>Teams / finale</td><td></td><td class="calc" id="c_finTeamsN">—</td><td></td></tr>'+
+  '<tr><td>Solo athletes / finale</td><td></td><td class="calc" id="c_finSoloN">—</td><td></td></tr>'+
+  '<tr><td>Entries (heat base) &middot; teams + solo</td><td></td><td class="calc" id="c_finEnt">—</td><td></td></tr>'+
+  '<tr><td>Athletes (Trial base) &middot; 4&times;teams + solo</td><td></td><td class="calc" id="c_finAthN">—</td><td></td></tr>'+
   '<tr><td>Pick-your-heat &middot; fee / % of entries</td><td class="calc" id="c_finHeatFee">—</td><td class="calc" id="c_finHeatPct">—</td><td class="calc" id="c_finHeatYr">—</td></tr>'+
   '<tr><td>Trial Day &middot; fee / % of athletes</td><td class="calc" id="c_finTrialFee">—</td><td class="calc" id="c_finTrialPct">—</td><td class="calc" id="c_finTrialYr">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Finale production &middot; per finale (the extra vs race days)</td></tr>'+
@@ -742,9 +750,14 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  regDrill('c_eventVat','VAT removed',[rP('Ticket revenue (VAT incl.)',ticketInc),rM('÷ '+mfmt(vd),1/vd),rS('Net of VAT',ticketNet),rT('VAT ('+vp+'%)',-(ticketInc-ticketNet))]);
  regDrill('c_ticket','Net ticket / race day (full slots)',[rP('Ticket revenue (VAT incl.)',ticketInc),rM('Remove '+vp+'% VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / race day',ticketNet)]);
  regDrill('c_wkTicketYr','Ticket revenue / year (net, at fill)',[rP('Net ticket / race day',ticketNet),rM('Fill rate',fillv),rM('Weekend race days / year',rd),rT('Net ticket / year',ticketNet*fillv*rd)]);
- var entPD=slots*fillv,athPD=(4*(qEvT+qElT)+qEvS+qElS)*fillv,hp=num('heatPct')/100,tp=num('trialPct')/100;
- regDrill('c_heatRevYr','Pick-your-heat / year',[rP('Filled entries / race day',entPD),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',hp*entPD*num('heatPrice')/vd*rd)]);
- regDrill('c_trialRevYr','Trial Day / year',[rP('Filled athletes / race day',athPD),rM('Take-up %',tp),rM('Fee / athlete (VAT incl.)',num('trialPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',tp*athPD*num('trialPrice')/vd*rd)]);
+ var teamsPD=(qEvT+qElT)*fillv,solosPD=(qEvS+qElS)*fillv,entPD=slots*fillv,athPD=(4*(qEvT+qElT)+qEvS+qElS)*fillv,hp=num('heatPct')/100,tp=num('trialPct')/100;
+ set('c_wkTeams',fmt(teamsPD));set('c_wkSolo',fmt(solosPD));set('c_wkEnt',fmt(entPD));set('c_wkAth',fmt(athPD));
+ regDrill('c_wkTeams','Teams / race day (filled)',[rP('Team slots / day (Everyday + Elite)',qEvT+qElT),rM('Fill rate',fillv),rT('Teams / race day',teamsPD)]);
+ regDrill('c_wkSolo','Solo athletes / race day (filled)',[rP('Solo slots / day (Everyday + Elite)',qEvS+qElS),rM('Fill rate',fillv),rT('Solo athletes / race day',solosPD)]);
+ regDrill('c_wkEnt','Entries / race day (heat base)',[rP('Teams / race day',teamsPD),rP('Solo athletes / race day',solosPD),rT('Entries (teams + solo)',entPD)]);
+ regDrill('c_wkAth','Athletes / race day (Trial base)',[rP('Team athletes (4 × '+fmt(teamsPD)+' teams)',4*teamsPD),rP('Solo athletes',solosPD),rT('Athletes (4×teams + solo)',athPD)]);
+ regDrill('c_heatRevYr','Pick-your-heat / year',[rP('Teams / race day',teamsPD),rP('Solo athletes / race day',solosPD),rS('Entries / race day (teams + solo)',entPD),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',hp*entPD*num('heatPrice')/vd*rd)]);
+ regDrill('c_trialRevYr','Trial Day / year',[rP('Team athletes / race day (4 × teams)',4*teamsPD),rP('Solo athletes / race day',solosPD),rS('Athletes / race day',athPD),rM('Take-up %',tp),rM('Fee / athlete (VAT incl.)',num('trialPrice')),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rM('Race days / year',rd),rT('Net / year',tp*athPD*num('trialPrice')/vd*rd)]);
  regDrill('c_wkDJYr','Resident DJ / year',[rP('Resident DJ / race day',num('djExp')),rM('Race days / year',rd),rT('DJ cost / year',-num('djExp')*rd)]);
  regDrill('c_wkPrizeYr','Weekly prize / year',[rP('Prize / race day',num('prizePerEvent')),rM('Race days / year',rd),rT('Prize cost / year',-num('prizePerEvent')*rd)]);
  var wkTix=ticketNet*fillv*rd,wkHeat=hp*entPD*num('heatPrice')/vd*rd,wkTrial=tp*athPD*num('trialPrice')/vd*rd,wkDJ=num('djExp')*rd,wkPrize=num('prizePerEvent')*rd;
@@ -763,8 +776,14 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  regDrill('c_finNetFinale','Net ticket / finale',[rP('Ticket revenue (VAT incl.)',finInc),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / finale',finNet)]);
  regDrill('c_finPayers','Paying finalists / year',[rP('Qualifiers / finale',finQ),rM('× (1 − pass-free '+num('finPctPass')+'%)',1-finFree),rM('Finales / year',finales),rT('Paying / year',finQ*(1-finFree)*finales)]);
  regDrill('c_finTicket','Finale ticket revenue / year (net)',[rP('Net ticket / finale',finNet),rM('× (1 − pass-free '+num('finPctPass')+'%)',1-finFree),rM('Finales / year',finales),rT('Net / year',finNet*(1-finFree)*finales)]);
- regDrill('c_finHeatYr','Finale pick-your-heat / year',[rP('Finale entries',finQ),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',hp*finQ*num('heatPrice')/vd*finales)]);
- regDrill('c_finTrialYr','Finale Trial Day / year',[rP('Finale athletes',finAth),rM('Take-up %',tp),rM('Fee (VAT incl.)',num('trialPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',tp*finAth*num('trialPrice')/vd*finales)]);
+ var finTeamsN=finEvT+finElT,finSoloN=finEvS+finElS;
+ set('c_finTeamsN',fmt(finTeamsN));set('c_finSoloN',fmt(finSoloN));set('c_finEnt',fmt(finQ));set('c_finAthN',fmt(finAth));
+ regDrill('c_finTeamsN','Teams / finale',[rP('Everyday teams',finEvT),rP('Elite teams',finElT),rT('Teams / finale',finTeamsN)]);
+ regDrill('c_finSoloN','Solo athletes / finale',[rP('Everyday solo',finEvS),rP('Elite solo',finElS),rT('Solo athletes / finale',finSoloN)]);
+ regDrill('c_finEnt','Entries / finale (heat base)',[rP('Teams',finTeamsN),rP('Solo athletes',finSoloN),rT('Entries (teams + solo)',finQ)]);
+ regDrill('c_finAthN','Athletes / finale (Trial base)',[rP('Team athletes (4 × '+finTeamsN+')',4*finTeamsN),rP('Solo athletes',finSoloN),rT('Athletes (4×teams + solo)',finAth)]);
+ regDrill('c_finHeatYr','Finale pick-your-heat / year',[rP('Teams / finale',finTeamsN),rP('Solo athletes / finale',finSoloN),rS('Entries / finale',finQ),rM('Take-up %',hp),rM('Fee (VAT incl.)',num('heatPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',hp*finQ*num('heatPrice')/vd*finales)]);
+ regDrill('c_finTrialYr','Finale Trial Day / year',[rP('Team athletes (4 × teams)',4*finTeamsN),rP('Solo athletes',finSoloN),rS('Athletes / finale',finAth),rM('Take-up %',tp),rM('Fee (VAT incl.)',num('trialPrice')),rM('Remove VAT',1/vd),rM('Finales / year',finales),rT('Net / year',tp*finAth*num('trialPrice')/vd*finales)]);
  regDrill('c_finDirectYr','Finale direct cost / year',[rP('DJ / production',num('finDJ')),rP('Volunteers',num('volunteers')),rP('Permits',num('permits')),rP('Prize purse',num('finPrize')),rS('Per finale',num('finDJ')+num('volunteers')+num('permits')+num('finPrize')),rM('Finales / year',finales),rT('Cost / year',-(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales)]);
  var finTix=finNet*(1-finFree)*finales,finHeat=hp*finQ*num('heatPrice')/vd*finales,finTrial=tp*finAth*num('trialPrice')/vd*finales,finDir=(num('finDJ')+num('volunteers')+num('permits')+num('finPrize'))*finales;
  regDrill('c_finaleNet','Net finale revenue / year',[rP('Ticket revenue (net)',finTix),rP('+ Pick-your-heat',finHeat),rP('+ Trial Day',finTrial),rP('− Production + prize',-finDir),rT('Net finale revenue',finTix+finHeat+finTrial-finDir)]);
