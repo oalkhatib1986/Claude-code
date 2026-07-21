@@ -469,11 +469,19 @@ function calDerive(){
    weekdays:weekdays,weekends:weekends,nonRaceWknd:nonRaceWknd,raceDays:raceDays,
    wkdayCls:wkdayCls,raceWkndCls:inWkndCls,offWkndCls:offWkndCls};
 }
+// Parse a time label to minutes-since-midnight for sorting; unparseable rows sort last
+function calTimeMins(s){var m=String(s).match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);if(!m)return 1e9;var h=parseInt(m[1],10),mm=parseInt(m[2],10),ap=m[3]?m[3].toUpperCase():'';if(ap==='PM'&&h!==12)h+=12;else if(ap==='AM'&&h===12)h=0;return h*60+mm;}
+// Keep the time column chronological — reorder times[] and every column in both calendars together
+function calSortRows(){calGuard();var n=CAL.times.length,idx=[];for(var i=0;i<n;i++)idx.push(i);
+ idx.sort(function(a,b){var d=calTimeMins(CAL.times[a])-calTimeMins(CAL.times[b]);return d!==0?d:a-b;});
+ CAL.times=idx.map(function(i){return CAL.times[i];});
+ CAL.inS=CAL.inS.map(function(col){return idx.map(function(i){return col[i];});});
+ CAL.offS=CAL.offS.map(function(col){return idx.map(function(i){return col[i];});});}
 // Cycle a cell empty → C → T → R → empty, then recompute
 function calCycle(col,t){calGuard();var order=['','C','T','R'];var cur=CAL[calMode][col][t]||'';var ni=(order.indexOf(cur)+1)%order.length;CAL[calMode][col][t]=order[ni];renderCalendar();update();}
 function setCalMode(m){calMode=(m==='offS')?'offS':'inS';renderCalendar();update();}
-function calSetTime(t,val){calGuard();CAL.times[t]=val;renderCalendar();}
-function calAddRow(){calGuard();CAL.times.push('12:00 PM');CAL.inS.forEach(function(c){c.push('');});CAL.offS.forEach(function(c){c.push('');});renderCalendar();update();}
+function calSetTime(t,val){calGuard();CAL.times[t]=val;calSortRows();renderCalendar();update();}
+function calAddRow(){calGuard();CAL.times.push('12:00 PM');CAL.inS.forEach(function(c){c.push('');});CAL.offS.forEach(function(c){c.push('');});calSortRows();renderCalendar();update();}
 function calDelRow(t){calGuard();if(CAL.times.length<=1)return;CAL.times.splice(t,1);CAL.inS.forEach(function(c){c.splice(t,1);});CAL.offS.forEach(function(c){c.splice(t,1);});renderCalendar();update();}
 function calCellHTML(col,t){var v=CAL[calMode][col][t]||'';var lab={'C':'Class','T':'Trial','R':'Race'}[v]||'&middot;';var cl=v==='C'?'cCls':v==='T'?'cTr':v==='R'?'cRace':'cEmp';return '<td class="wcx '+cl+'" onclick="calCycle('+col+','+t+')">'+lab+'</td>';}
 // 30-minute interval labels (12:00 AM … 11:30 PM) for the custom time picker
