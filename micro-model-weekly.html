@@ -372,7 +372,7 @@ var DEFAULTS={
  pEvT:1199,qEvT:5, pElT:1399,qElT:5, pEvS:299,qEvS:7, pElS:349,qElS:8,
  fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:1500, volunteers:3000, permits:7500,
  eventsYr:64, fillPct:70, prizePerEvent:0, ppPct:3,
- finales:2, finQual:40, finPrice:500, finPctPass:50, finDJ:10000, finPrize:25000,
+ finales:2, finQual:40, finPctPass:50, finDJ:10000, finPrize:11250,
  heatPct:10, heatPrice:99, trialPct:10, trialPrice:99,
  classesMonth:30, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
@@ -419,7 +419,9 @@ function compute(){
  // ---- Season finales (ticketed championship; free to qualifying pass-holders) ----
  var finales=Math.max(0,v('finales'));
  var finPayers=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100); // qualifiers who pay (non pass-holders)
- var finTicketYr=finPayers*v('finPrice')/vd*finales;            // annual finale ticket revenue (net)
+ var slotsPerDay=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');
+ var perEntryNet=slotsPerDay>0?ticket/slotsPerDay:0;            // finalists pay the SAME category prices as a normal race (blended net / entry)
+ var finTicketYr=finPayers*perEntryNet*finales;                // annual finale ticket revenue (net)
  var finDirectYr=(v('finDJ')+v('volunteers')+v('permits'))*finales; // full-production cost per finale
  // ---- Combined annual event revenue & direct cost ----
  var ticketYr=wkTicketYr+finTicketYr;
@@ -545,7 +547,7 @@ function renderStatic(){
   '<tr class="sec"><td colspan="4">Season finales &mdash; ticketed championship (free to qualifying pass-holders)</td></tr>'+
   '<tr><td>Finales / year</td><td></td><td class="inp">'+I('finales','small')+'</td><td></td></tr>'+
   '<tr><td>Qualifiers / finale</td><td></td><td class="inp">'+I('finQual','small')+'</td><td></td></tr>'+
-  '<tr><td>Finale ticket (VAT incl.)</td><td class="inp">'+I('finPrice','small')+'</td><td></td><td></td></tr>'+
+  '<tr><td>Finale entry &middot; same category prices as weekly races</td><td></td><td class="calc">net / entry</td><td class="calc" id="c_finPer">—</td></tr>'+
   '<tr><td>Qualifiers on season pass (free) &middot; %</td><td></td><td class="inp">'+I('finPctPass','small')+'</td><td class="calc" id="c_finTicket">—</td></tr>'+
   '<tr><td>Finale DJ / production</td><td></td><td></td><td class="inp">'+I('finDJ')+'</td></tr>'+
   '<tr><td>Finale volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
@@ -639,7 +641,7 @@ function breakdown(line,i){
  var vat=v('vatPct')/100,vd=1+vat;
  function R(rows,total){return {title:LBL[line]+' · Year '+(i+1),rows:rows.concat([{l:LBL[line],x:total,tot:1}])};}
  switch(line){
-  case 'grossEvent':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var perNet=ticket/vd;var wk=perNet*fillv*ev*vg;var finP=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100);var fin=finP*v('finPrice')/vd*v('finales')*vg;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket / race day (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Net / race day (full)',x:perNet,sub:1},{l:'Fill rate',x:fillv,mult:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1},{l:'Weekly ticket revenue',x:wk,sub:1},{l:'+ Finale tickets ('+Math.round(finP)+' pay × '+v('finPrice')+' × '+v('finales')+', net)',x:fin});return R(rows,wk+fin);}
+  case 'grossEvent':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var perNet=ticket/vd;var wk=perNet*fillv*ev*vg;var slotsPD=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');var perEntryNet=slotsPD>0?perNet/slotsPD:0;var finP=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100);var fin=finP*perEntryNet*v('finales')*vg;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket / race day (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Net / race day (full)',x:perNet,sub:1},{l:'Fill rate',x:fillv,mult:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1},{l:'Weekly ticket revenue',x:wk,sub:1},{l:'+ Finale ('+Math.round(finP)+' pay × '+Math.round(perEntryNet)+' net/entry × '+v('finales')+')',x:fin});return R(rows,wk+fin);}
   case 'eventDirect':{var wk=v('djExp')*ev*inf;var finU=v('finDJ')+v('volunteers')+v('permits');var fin=finU*v('finales')*inf;return R([{l:'Resident DJ / race day',x:v('djExp')},{l:'Race days / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1},{l:'Weekly DJ cost',x:wk,sub:1},{l:'Finale production / finale (DJ+vol+permits)',x:finU},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale production',x:fin,sub:1}],wk+fin);}
   case 'grossFb':return R([{l:'F&B sales / month (VAT incl.)',x:fbMo},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],fbMo/vd*12*vg);
   case 'fbCogs':return R([{l:'F&B revenue (net)',x:Yi.grossFb},{l:'Cost ratio (1 − '+v('fbMargin')+'% margin)',x:1-v('fbMargin')/100,mult:1}],Yi.grossFb-Yi.netFb);
@@ -718,8 +720,10 @@ function update(){
  set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));set('c_ticket',fmt(A.ticket));
  set('c_netEvent',fmt(A.netEventY1));
  set('c_heatRev',fmt(A.heatNet));set('c_trialRev',fmt(A.trialNet));
- var finTicketYr=Math.max(0,num('finQual'))*(1-Math.max(0,Math.min(100,num('finPctPass')))/100)*num('finPrice')/vd*Math.max(0,num('finales'));
- set('c_finTicket',fmt(finTicketYr));
+ var slotsPD=num('qEvT')+num('qElT')+num('qEvS')+num('qElS');
+ var perEntryNet=slotsPD>0?((num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS'))/vd)/slotsPD:0;
+ var finTicketYr=Math.max(0,num('finQual'))*(1-Math.max(0,Math.min(100,num('finPctPass')))/100)*perEntryNet*Math.max(0,num('finales'));
+ set('c_finPer',fmt(perEntryNet));set('c_finTicket',fmt(finTicketYr));
  // management fee
  var mfMap={mfEvent:Y[0].netEvent,mfAddon:Y[0].grossHeat+Y[0].grossTrial,mfClass:Y[0].netClass,mfFb:Y[0].netFb,mfRet:Y[0].netRet};
  MFLINES.forEach(function(r){set('c_mf_'+r[0],chk(r[0])?fmt(mfMap[r[0]]):'—');});
