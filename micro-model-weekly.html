@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>REDLN — Micro Model · 3-Year Plan</title>
+<title>REDLN — Weekly Races Model · 3-Year Plan</title>
 <style>
   :root{
     --red:#FF1717;--ink:#0d1013;--muted:#6a7075;--line:rgba(13,16,19,0.14);
@@ -274,8 +274,8 @@
 <header><div class="wrap">
   <div class="hrow">
     <img class="brand-logo" src="redln-badge-final.png" alt="REDLN">
-    <span class="htitle"><b>Monthly Races · 3-Year Plan</b>8 events/yr · internal · AED</span>
-    <a href="micro-model-weekly.html" style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#ff1717;text-decoration:none;border:1px solid #ff1717;border-radius:3px;padding:6px 11px;white-space:nowrap;align-self:center">&harr; Weekly model</a>
+    <span class="htitle"><b>Weekly Races · 3-Year Plan</b>Two-tier · internal · AED</span>
+    <a href="micro-model.html" style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#ff1717;text-decoration:none;border:1px solid #ff1717;border-radius:3px;padding:6px 11px;white-space:nowrap;align-self:center">&harr; Monthly model</a>
   </div>
   <nav class="tabs" id="tabs">
     <button data-tab="dash" class="on">Dashboard</button>
@@ -291,7 +291,7 @@
 
   <section class="tab on" id="tab-dash">
     <h1>3-Year Financial Plan</h1>
-    <p class="sub">Boutique competition + daily-class venue, fully costed over three years — capital requirement, P&amp;L, cash flow and balance sheet. Edit anything on the Assumptions tab and every view recomputes.</p>
+    <p class="sub"><b>Weekly-races model.</b> Two-tier competition venue — weekly weekend race days (25 slots) across 8 months, two season finales, plus daily classes — fully costed over three years. Edit anything on the Assumptions tab and every view recomputes. (Toggle to the monthly-events model, top-right.)</p>
     <div class="kpis" id="dash-kpis"></div>
     <div class="grid2">
       <div class="card"><div class="ch">Revenue &amp; EBITDA by year</div><div class="chartcard"><svg id="ch-bars" viewBox="0 0 480 240" preserveAspectRatio="xMidYMid meet"></svg></div></div>
@@ -366,9 +366,10 @@
 </div>
 <script>
 var DEFAULTS={
- pEvT:1199,qEvT:30, pElT:1399,qElT:30, pEvS:299,qEvS:40, pElS:349,qElS:40,
- fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:10000, volunteers:3000, permits:7500,
- eventsYr:8, prizePerEvent:11250, ppPct:3,
+ pEvT:1199,qEvT:5, pElT:1399,qElT:5, pEvS:299,qEvS:7, pElS:349,qElS:8,
+ fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:1500, volunteers:3000, permits:7500,
+ eventsYr:64, fillPct:70, prizePerEvent:0, ppPct:3,
+ finales:2, finQual:40, finPrice:500, finPctPass:50, finDJ:10000, finPrize:25000,
  heatPct:10, heatPrice:99, trialPct:10, trialPrice:99,
  classesMonth:30, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
@@ -380,7 +381,7 @@ var DEFAULTS={
  sweatPct:30, minBank:100000, vatPct:5, ctRate:9, ctThreshold:375000,
  mgmtFeePct:10
 };
-var KEY='redln-micro-v2';
+var KEY='redln-weekly-v1';
 var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
 var OVR=[['Warehouse rent','oRent','/yr'],['License &amp; registration','oLicense','/yr'],['Annual audit','oAudit','/yr'],['Accounting &amp; bookkeeping','oAccounting','/mo'],['Cleaning fees','oCleaning','/mo'],['DEWA','oDewa','/mo'],['Etisalat','oEtisalat','/mo'],['Maintenance','oMaintenance','/mo'],['Supplies &amp; stationery','oSupplies','/mo'],['Filtered drinking water','oWater','/mo'],['Miscellaneous &amp; sundries','oMisc','/mo']];
 function el(id){return document.getElementById(id);}
@@ -402,25 +403,35 @@ function compute(){
  // ---- Year-1 base (annual) ----
  // Revenue inputs (ticket, F&B, retail, class prices) are VAT-inclusive; recognise revenue net of VAT.
  var vat=Math.max(0,v('vatPct'))/100, vd=1+vat;
- var ticket=(v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/vd; // tickets only, per event, net of VAT
+ var fill=Math.max(0,Math.min(100,v('fillPct')))/100;            // weekend fill-rate (share of the 25 slots sold)
+ var eventsYr=v('eventsYr');                                     // weekend race days / year (Sat+Sun across the 8 active months)
+ // ---- Weekly weekend races (per race day, net of VAT) ----
+ var ticket=(v('pEvT')*v('qEvT')+v('pElT')*v('qElT')+v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/vd; // net ticket / race day at full slots
  var gross=ticket;
- // Race add-ons (booked on the website): pick-your-heat and Trial Day, per event, net of VAT
- var entries=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');            // teams + solo entries per event
- var athletes=4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS');       // athletes per event (teams x4 + solos)
- var heatNet=(Math.max(0,v('heatPct'))/100)*entries*v('heatPrice')/vd;      // 10% of entries pick their heat @ AED 50
- var trialNet=(Math.max(0,v('trialPct'))/100)*athletes*v('trialPrice')/vd;  // 10% of athletes buy Trial Day @ AED 50/athlete
+ var entries=(v('qEvT')+v('qElT')+v('qEvS')+v('qElS'))*fill;     // filled entries / race day
+ var athletes=(4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS'))*fill;// filled athletes / race day
+ var heatNet=(Math.max(0,v('heatPct'))/100)*entries*v('heatPrice')/vd;      // pick-your-heat / race day (net)
+ var trialNet=(Math.max(0,v('trialPct'))/100)*athletes*v('trialPrice')/vd;  // Trial Day / race day (net)
+ var wkTicketYr=ticket*fill*eventsYr;                            // annual weekly ticket revenue (net)
+ // ---- Season finales (ticketed championship; free to qualifying pass-holders) ----
+ var finales=Math.max(0,v('finales'));
+ var finPayers=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100); // qualifiers who pay (non pass-holders)
+ var finTicketYr=finPayers*v('finPrice')/vd*finales;            // annual finale ticket revenue (net)
+ var finDirectYr=(v('finDJ')+v('volunteers')+v('permits'))*finales; // full-production cost per finale
+ // ---- Combined annual event revenue & direct cost ----
+ var ticketYr=wkTicketYr+finTicketYr;
+ var evFix=v('djExp');                                          // resident DJ / race day — weekly has no permits/volunteers
+ var eventDirectYr=evFix*eventsYr+finDirectYr;
  // Management fee: a % of selected net-revenue lines, paid to the management company (a sweat-equity shareholder)
  var mgmtPct=Math.max(0,v('mgmtFeePct'));
  var mfE=chk('mfEvent'),mfA=chk('mfAddon'),mfC=chk('mfClass'),mfF=chk('mfFb'),mfR=chk('mfRet');
  var fbRevYr=v('fbRev')*12/vd, retRevYr=v('retRev')*12/vd;   // F&B and Retail = standalone monthly businesses, net of VAT
  var fbCogsYr=fbRevYr*(1-v('fbMargin')/100), retCogsYr=retRevYr*(1-v('retMargin')/100); // COGS from margin % on net revenue
- var evFix=v('djExp')+v('volunteers')+v('permits'); // per-event direct costs
- var eventsYr=v('eventsYr');
  var clientMonth=v('classesMonth')*v('capacity');
  var classRevMo=clientMonth*v('pricePerClass')/vd;
  var classRevYr=classRevMo*12;
  var trainerYr=v('classesMonth')*v('trainerFee')*12;
- var prizesYr=v('prizePerEvent')*eventsYr;
+ var prizesYr=v('prizePerEvent')*eventsYr + v('finPrize')*finales;   // weekly prize/day (default 0) + finale purse
  var pp=v('ppPct')/100;
  var salaries=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'); // reception = heads × salary/head
  var benMo=(v('benMedical')+v('benResidency')+v('benTickets'))/12;
@@ -438,9 +449,9 @@ function compute(){
  var ctRate=v('ctRate')/100, ctThreshold=v('ctThreshold'); // UAE corporate tax: 9% above AED 375,000
  function yc(i){
    var vg=Math.pow(1+g,i), inf=Math.pow(1+infl,i);
-   var grossEvent=ticket*eventsYr*vg;                 // ticket sales only
-   var grossHeat=heatNet*eventsYr*vg, grossTrial=trialNet*eventsYr*vg;  // race add-ons, grow with volume
-   var eventDirect=evFix*eventsYr*inf;                // DJ / volunteers / permits
+   var grossEvent=ticketYr*vg;                        // weekly + finale ticket sales
+   var grossHeat=heatNet*eventsYr*vg, grossTrial=trialNet*eventsYr*vg;  // weekly race add-ons, grow with volume
+   var eventDirect=eventDirectYr*inf;                 // resident DJ (weekly) + finale production
    var netEvent=grossEvent-eventDirect;
    var grossClass=classRevYr*vg, trainer=trainerYr*vg, netClass=grossClass-trainer;
    var grossFb=fbRevYr*vg, fbCogs=fbCogsYr*vg, netFb=grossFb-fbCogs;
@@ -511,24 +522,32 @@ function compute(){
 
 /* ---------- static assumption tables ---------- */
 function renderStatic(){
- el('event-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Tickets</th><th>Amount</th></tr></thead><tbody>'+
+ el('event-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Slots / day</th><th>Amount</th></tr></thead><tbody>'+
+  '<tr class="sec"><td colspan="4">Weekly weekend races &mdash; tickets per race day (25 max)</td></tr>'+
   '<tr class="sec"><td colspan="4">Teams</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvT')+'</td><td class="inp">'+I('qEvT','small')+'</td><td class="calc" id="c_revEvT">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElT')+'</td><td class="inp">'+I('qElT','small')+'</td><td class="calc" id="c_revElT">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Solo</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvS')+'</td><td class="inp">'+I('qEvS','small')+'</td><td class="calc" id="c_revEvS">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElS')+'</td><td class="inp">'+I('qElS','small')+'</td><td class="calc" id="c_revElS">—</td></tr>'+
-  '<tr class="calc"><td>Ticket revenue (VAT incl.)</td><td></td><td id="c_qTotal">—</td><td class="calc" id="c_ticketInc">—</td></tr>'+
+  '<tr class="calc"><td>Ticket revenue / day at full (VAT incl.)</td><td></td><td id="c_qTotal">—</td><td class="calc" id="c_ticketInc">—</td></tr>'+
   '<tr><td>Less: VAT</td><td></td><td></td><td class="calc" id="c_eventVat">—</td></tr>'+
-  '<tr class="subtot"><td>Net ticket revenue / event</td><td></td><td></td><td id="c_ticket">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Per-event direct costs</td></tr>'+
-  '<tr><td>DJ expense</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
-  '<tr><td>Volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
-  '<tr><td>Permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
-  '<tr class="grand"><td>Net event revenue / event</td><td></td><td></td><td id="c_netEvent">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Race add-ons / event &mdash; fee &amp; % take-up (net of VAT)</td></tr>'+
+  '<tr class="subtot"><td>Net ticket / race day (full slots)</td><td></td><td></td><td id="c_ticket">—</td></tr>'+
+  '<tr><td>Fill rate &middot; % of slots sold</td><td></td><td class="inp">'+I('fillPct','small')+'</td><td></td></tr>'+
+  '<tr><td>Resident DJ / race day</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
+  '<tr class="grand"><td>Net event revenue / year (all races)</td><td></td><td></td><td id="c_netEvent">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Race add-ons / race day &mdash; fee &amp; % take-up (net of VAT)</td></tr>'+
   '<tr><td>Pick-your-heat &middot; % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRev">—</td></tr>'+
-  '<tr><td>Trial Day &middot; % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRev">—</td></tr></tbody>';
+  '<tr><td>Trial Day &middot; % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRev">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Season finales &mdash; ticketed championship (free to qualifying pass-holders)</td></tr>'+
+  '<tr><td>Finales / year</td><td></td><td class="inp">'+I('finales','small')+'</td><td></td></tr>'+
+  '<tr><td>Qualifiers / finale</td><td></td><td class="inp">'+I('finQual','small')+'</td><td></td></tr>'+
+  '<tr><td>Finale ticket (VAT incl.)</td><td class="inp">'+I('finPrice','small')+'</td><td></td><td></td></tr>'+
+  '<tr><td>Qualifiers on season pass (free) &middot; %</td><td></td><td class="inp">'+I('finPctPass','small')+'</td><td class="calc" id="c_finTicket">—</td></tr>'+
+  '<tr><td>Finale DJ / production</td><td></td><td></td><td class="inp">'+I('finDJ')+'</td></tr>'+
+  '<tr><td>Finale volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
+  '<tr><td>Finale permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
+  '<tr><td>Finale prize purse</td><td></td><td></td><td class="inp">'+I('finPrize')+'</td></tr></tbody>';
  el('fbret-table').innerHTML='<thead><tr><th>Business unit</th><th>Monthly</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
   '<tr class="sec"><td colspan="3">F&amp;B (standalone)</td></tr>'+
   '<tr><td>F&amp;B sales / month (VAT incl.)</td><td class="inp">'+I('fbRev')+'</td><td class="calc" id="c_fbRevYr">—</td></tr>'+
@@ -541,10 +560,10 @@ function renderStatic(){
   '<tr><td>Retail COGS</td><td></td><td class="calc" id="c_retCogs">—</td></tr>'+
   '<tr class="subtot"><td>Net retail / year</td><td></td><td id="c_netRetYr">—</td></tr></tbody>';
  el('annual-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
-  '<tr><td>Events / year</td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
+  '<tr><td>Weekend race days / year</td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
   '<tr><td>Seasons / year</td><td class="inp">'+I('seasons','small')+'</td><td class="calc">info</td></tr>'+
   '<tr class="subtot"><td>Net event revenue</td><td></td><td id="c_netEventYr">—</td></tr>'+
-  '<tr><td>Prizes / event</td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_prizesYr">—</td></tr>'+
+  '<tr><td>Weekly prize / race day</td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_prizesYr">—</td></tr>'+
   '<tr><td>Payment fees (%)</td><td class="inp">'+I('ppPct','small')+'</td><td class="calc" id="c_ppFeesYr">—</td></tr></tbody>';
  el('class-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
   '<tr><td>Classes / month</td><td class="inp">'+I('classesMonth','small')+'</td><td></td></tr>'+
@@ -617,8 +636,8 @@ function breakdown(line,i){
  var vat=v('vatPct')/100,vd=1+vat;
  function R(rows,total){return {title:LBL[line]+' · Year '+(i+1),rows:rows.concat([{l:LBL[line],x:total,tot:1}])};}
  switch(line){
-  case 'grossEvent':{var perNet=ticket/vd;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket revenue / event (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Ticket revenue / event (net)',x:perNet,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1});return R(rows,perNet*ev*vg);}
-  case 'eventDirect':{var fixc=(v('djExp')+v('volunteers')+v('permits'))*ev*inf;return R([{l:'DJ / event',x:v('djExp')},{l:'Volunteers / event',x:v('volunteers')},{l:'Permits / event',x:v('permits')},{l:'Per-event direct cost',x:v('djExp')+v('volunteers')+v('permits'),sub:1},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],fixc);}
+  case 'grossEvent':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var perNet=ticket/vd;var wk=perNet*fillv*ev*vg;var finP=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100);var fin=finP*v('finPrice')/vd*v('finales')*vg;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket / race day (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Net / race day (full)',x:perNet,sub:1},{l:'Fill rate',x:fillv,mult:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1},{l:'Weekly ticket revenue',x:wk,sub:1},{l:'+ Finale tickets ('+Math.round(finP)+' pay × '+v('finPrice')+' × '+v('finales')+', net)',x:fin});return R(rows,wk+fin);}
+  case 'eventDirect':{var wk=v('djExp')*ev*inf;var finU=v('finDJ')+v('volunteers')+v('permits');var fin=finU*v('finales')*inf;return R([{l:'Resident DJ / race day',x:v('djExp')},{l:'Race days / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1},{l:'Weekly DJ cost',x:wk,sub:1},{l:'Finale production / finale (DJ+vol+permits)',x:finU},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale production',x:fin,sub:1}],wk+fin);}
   case 'grossFb':return R([{l:'F&B sales / month (VAT incl.)',x:fbMo},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],fbMo/vd*12*vg);
   case 'fbCogs':return R([{l:'F&B revenue (net)',x:Yi.grossFb},{l:'Cost ratio (1 − '+v('fbMargin')+'% margin)',x:1-v('fbMargin')/100,mult:1}],Yi.grossFb-Yi.netFb);
   case 'netFb':return R([{l:'F&B revenue',x:Yi.grossFb},{l:'Less: F&B COGS',x:-(Yi.grossFb-Yi.netFb)}],Yi.netFb);
@@ -626,12 +645,12 @@ function breakdown(line,i){
   case 'retCogs':return R([{l:'Retail revenue (net)',x:Yi.grossRet},{l:'Cost ratio (1 − '+v('retMargin')+'% margin)',x:1-v('retMargin')/100,mult:1}],Yi.grossRet-Yi.netRet);
   case 'netRet':return R([{l:'Retail revenue',x:Yi.grossRet},{l:'Less: retail COGS',x:-(Yi.grossRet-Yi.netRet)}],Yi.netRet);
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
-  case 'grossHeat':{var ent=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');var per=(v('heatPct')/100)*ent*v('heatPrice')/vd;return R([{l:'Entries / event (teams + solo)',x:ent},{l:'Pick-your-heat take-up',x:v('heatPct')/100,mult:1},{l:'Heat fee (VAT incl.)',x:v('heatPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per event (net)',x:per,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1}],per*ev*vg);}
-  case 'grossTrial':{var ath=4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS');var per=(v('trialPct')/100)*ath*v('trialPrice')/vd;return R([{l:'Athletes / event (teams × 4 + solo)',x:ath},{l:'Trial Day take-up',x:v('trialPct')/100,mult:1},{l:'Trial fee / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per event (net)',x:per,sub:1},{l:'Events / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1}],per*ev*vg);}
+  case 'grossHeat':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var ent=(v('qEvT')+v('qElT')+v('qEvS')+v('qElS'))*fillv;var per=(v('heatPct')/100)*ent*v('heatPrice')/vd;return R([{l:'Entries / race day (filled)',x:ent},{l:'Pick-your-heat take-up',x:v('heatPct')/100,mult:1},{l:'Heat fee (VAT incl.)',x:v('heatPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per race day (net)',x:per,sub:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1}],per*ev*vg);}
+  case 'grossTrial':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var ath=(4*(v('qEvT')+v('qElT'))+v('qEvS')+v('qElS'))*fillv;var per=(v('trialPct')/100)*ath*v('trialPrice')/vd;return R([{l:'Athletes / race day (filled)',x:ath},{l:'Trial Day take-up',x:v('trialPct')/100,mult:1},{l:'Trial fee / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per race day (net)',x:per,sub:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1}],per*ev*vg);}
   case 'grossClass':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Price / class (VAT incl.)',x:v('pricePerClass'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('capacity')*(v('pricePerClass')/vd)*12*vg);
   case 'trainer':return R([{l:'Classes / month',x:v('classesMonth')},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],v('classesMonth')*v('trainerFee')*12*vg);
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
-  case 'prizes':return R([{l:'Prize / event',x:v('prizePerEvent')},{l:'Events / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1}],v('prizePerEvent')*ev*inf);
+  case 'prizes':{var wk=v('prizePerEvent')*ev,fin=v('finPrize')*v('finales');return R([{l:'Weekly prize / race day',x:v('prizePerEvent')},{l:'Race days / year',x:ev,mult:1},{l:'Weekly prizes',x:wk,sub:1},{l:'Finale purse / finale',x:v('finPrize')},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale prizes',x:fin,sub:1},{l:'Inflation',x:inf,mult:1}],(wk+fin)*inf);}
   case 'ppFees':{var base=Yi.grossEvent+Yi.grossHeat+Yi.grossTrial+Yi.grossClass+Yi.grossFb+Yi.grossRet;return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial Day',x:Yi.grossTrial},{l:'Gross class revenue',x:Yi.grossClass},{l:'F&B revenue',x:Yi.grossFb},{l:'Retail revenue',x:Yi.grossRet},{l:'Base',x:base,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*base);}
   case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial Day',x:Yi.grossTrial},{l:'Net class revenue',x:Yi.netClass},{l:'Net F&B',x:Yi.netFb},{l:'Net retail',x:Yi.netRet},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
   case 'payroll':{var sal=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'),ben=(v('benMedical')+v('benResidency')+v('benTickets'))/12;return R([{l:'Business Manager',x:v('salBM')},{l:'Photographer / Social',x:v('salPhoto')},{l:'Reception ('+v('recHeads')+' × '+v('salRec')+')',x:v('recHeads')*v('salRec')},{l:'Monthly salaries',x:sal,sub:1},{l:'Employee benefits / mo',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1}],(sal+ben)*12*inf);}
@@ -694,14 +713,16 @@ function update(){
  var ticketInc=num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS');
  set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticketInc',fmt(ticketInc));
  set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));set('c_ticket',fmt(A.ticket));
- var netEvent1=A.netEventY1/num('eventsYr'); set('c_netEvent',fmt(netEvent1));
+ set('c_netEvent',fmt(A.netEventY1));
  set('c_heatRev',fmt(A.heatNet));set('c_trialRev',fmt(A.trialNet));
+ var finTicketYr=Math.max(0,num('finQual'))*(1-Math.max(0,Math.min(100,num('finPctPass')))/100)*num('finPrice')/vd*Math.max(0,num('finales'));
+ set('c_finTicket',fmt(finTicketYr));
  // management fee
  var mfMap={mfEvent:Y[0].netEvent,mfAddon:Y[0].grossHeat+Y[0].grossTrial,mfClass:Y[0].netClass,mfFb:Y[0].netFb,mfRet:Y[0].netRet};
  MFLINES.forEach(function(r){set('c_mf_'+r[0],chk(r[0])?fmt(mfMap[r[0]]):'—');});
  set('c_mgmtBase',fmt(Y[0].mgmtBase));set('c_mgmtFeeYr',fmt(-Y[0].mgmtFee));
  set('exp-mgmt',aed(Y[0].mgmtFee)+' / yr');
- set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-num('prizePerEvent')*num('eventsYr')));set('c_ppFeesYr',fmt(-Y[0].ppFees));
+ set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-(num('prizePerEvent')*num('eventsYr')+num('finPrize')*Math.max(0,num('finales')))));set('c_ppFeesYr',fmt(-Y[0].ppFees));
  // F&B and retail standalone business units (net annual)
  set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));
  set('c_retRevYr',fmt(Y[0].grossRet));set('c_retCogs',fmt(-(Y[0].grossRet-Y[0].netRet)));set('c_netRetYr',fmt(Y[0].netRet));
@@ -712,7 +733,7 @@ function update(){
  set('c_salaries',fmt(A.salaries));set('c_salariesYr',fmt(A.salaries*12));set('c_payrollMo',fmt(A.payrollMo));set('c_payrollYr',fmt(A.payrollYr));
  OVR.forEach(function(r){var mult=r[2]==='/mo'?12:1;set('c_'+r[1]+'y',fmt(num(r[1])*mult));});
  set('c_ovYr',fmt(A.ovYr));set('c_capexTotal',fmt(A.capexTotal));
- set('rev-netevent',aed(netEvent1)+' / event');set('rev-classyr',aed(Y[0].netClass)+' net / yr');set('rev-fbret',aed(Y[0].netFb+Y[0].netRet)+' net / yr');
+ set('rev-netevent',aed(A.netEventY1)+' / yr');set('rev-classyr',aed(Y[0].netClass)+' net / yr');set('rev-fbret',aed(Y[0].netFb+Y[0].netRet)+' net / yr');
  set('exp-payroll',aed(A.payrollYr)+' / yr');set('exp-overhead',aed(A.ovYr)+' / yr');set('cap-total',aed(A.capexTotal));
  // income statement
  var ih=y3head('Line item')+'<tbody>';
@@ -865,13 +886,13 @@ function saveSummary(A,Y){try{
   yall:A.Yall.map(function(y){return {yr:y.yr,netRev:y.netRev,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,tax:y.tax,netProfit:y.netProfit};}),
   mix:{event:Y[0].grossEvent,cls:Y[0].grossClass,fb:Y[0].grossFb,ret:Y[0].grossRet}
  };
- localStorage.setItem('redln-micro-summary',JSON.stringify(s));
+ localStorage.setItem('redln-weekly-summary',JSON.stringify(s));
 }catch(e){}}
 function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
 function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});update();}
 // ---- base case: a saved snapshot of the assumptions to reset back to ----
-var BKEY='redln-micro-base';
+var BKEY='redln-weekly-base';
 function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});return s;}
 function applyInputs(s){Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
 function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
