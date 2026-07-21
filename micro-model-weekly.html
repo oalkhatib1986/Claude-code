@@ -320,7 +320,7 @@
     </nav>
     <div class="asmsub2 on" id="s-rev">
       <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;margin:0 0 6px">Five revenue segments, each built up from its own assumptions. All figures Year&nbsp;1, net of 5% VAT. The five nets, less payment fees, sum to net revenue.</p>
-      <div class="card"><div class="ch">1 &middot; Race days <span class="csum" id="rev-raceday">—</span></div><div class="scroll"><table class="mono" id="raceday-table"></table></div></div>
+      <div class="card"><div class="ch">1 &middot; Race days <span class="csum" id="rev-raceday">—</span></div><div id="race-calendar" style="margin:2px 0 10px"></div><div class="scroll"><table class="mono" id="raceday-table"></table></div></div>
       <div class="card"><div class="ch">2 &middot; Season Finale <span class="csum" id="rev-finale">—</span></div><div class="scroll"><table class="mono" id="finale-table"></table></div></div>
       <div class="card"><div class="ch">3 &middot; Group classes <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
       <div class="grid2">
@@ -374,7 +374,7 @@
 var DEFAULTS={
  pEvT:1199,qEvT:5, pElT:1399,qElT:5, pEvS:350,qEvS:7, pElS:399,qElS:8,
  fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:1500, volunteers:3000, permits:7500,
- eventsYr:64, fillPct:70, prizePerEvent:0, ppPct:3,
+ eventsYr:64, calYear:2027, fillPct:70, prizePerEvent:0, ppPct:3,
  finales:2, finEvT:10, finElT:10, finEvS:14, finElS:16, finPctPass:0, finDJ:10000, finPrize:0,
  heatPct:10, heatPrice:99, trialPct:10, trialPrice:99,
  classesMonth:60, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
@@ -395,6 +395,10 @@ function num(id){var e=el(id);if(!e)return 0;var n=parseFloat(String(e.value).re
 // Management-fee base: which net-revenue lines are charged the fee (editable checkboxes)
 var MFLINES=[['mfEvent','Net event revenue',1],['mfAddon','Race add-ons (heat + Trial Day)',1],['mfClass','Net class revenue',1],['mfFb','Net F&amp;B',0],['mfRet','Net retail',0]];
 function chk(id){var e=el(id);return e&&e.checked?1:0;}
+// Race calendar: active months → weekend race days counted from the real calendar (Sat+Sun)
+var MONTHS=[['mM0','Jan',1],['mM1','Feb',1],['mM2','Mar',1],['mM3','Apr',1],['mM4','May',0],['mM5','Jun',0],['mM6','Jul',0],['mM7','Aug',0],['mM8','Sep',1],['mM9','Oct',1],['mM10','Nov',1],['mM11','Dec',1]];
+function weekendsInMonth(year,mIndex){var d=new Date(year,mIndex,1),c=0;while(d.getMonth()===mIndex){var w=d.getDay();if(w===0||w===6)c++;d.setDate(d.getDate()+1);}return c;}
+function computeRaceDays(){var yr=Math.round(num('calYear'))||2027,total=0,nMonths=0;MONTHS.forEach(function(m,i){if(chk(m[0])){total+=weekendsInMonth(yr,i);nMonths++;}});var e=el('eventsYr');if(e)e.value=total;set('c_eventsYr',fmt(total));set('cal-note','= '+total+' weekend race days across '+nMonths+' months ('+yr+')');return total;}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function kf(n){var a=Math.abs(n);if(a<0.5)return '—';var s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=String(Math.round(a));return n<0?'('+s+')':s;}
 // responsive number: full figure on desktop, abbreviated (840k) on phones — so statement tables never overflow
@@ -536,7 +540,14 @@ function compute(){
 
 /* ---------- static assumption tables ---------- */
 function renderStatic(){
- // 1 · Race days
+ // 1 · Race days — calendar selector
+ el('race-calendar').innerHTML='<style>.mchip{cursor:pointer;user-select:none}.mchip span{display:inline-block;font-family:var(--mono);font-size:11px;padding:5px 9px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:#fff;transition:background .12s,color .12s,border-color .12s}.mchip input:checked+span{background:var(--red);color:#fff;border-color:var(--red)}.mchip:hover span{border-color:var(--red)}</style>'+
+  '<input type="hidden" id="eventsYr" value="'+DEFAULTS.eventsYr+'">'+
+  '<div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Race calendar &middot; active months &mdash; weekend days auto-counted from the real calendar</div>'+
+  '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+
+  MONTHS.map(function(m){return '<label class="mchip"><input type="checkbox" id="'+m[0]+'"'+(m[2]?' checked':'')+' style="position:absolute;opacity:0;pointer-events:none"><span>'+m[1]+'</span></label>';}).join('')+
+  '</div>'+
+  '<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">Reference year <input class="cin small" id="calYear" value="'+DEFAULTS.calYear+'" inputmode="decimal" style="width:72px;margin:0 4px"> &middot; only Sat+Sun days in ticked months count. <b id="cal-note" style="color:var(--ink)"></b></div>';
  el('raceday-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Slots / day</th><th>Amount</th></tr></thead><tbody>'+
   '<tr class="sec"><td colspan="4">Tickets per race day &mdash; 25 slots max</td></tr>'+
   '<tr class="sec"><td colspan="4">Teams</td></tr>'+
@@ -549,7 +560,7 @@ function renderStatic(){
   '<tr><td>Less: VAT</td><td></td><td></td><td class="calc" id="c_eventVat">—</td></tr>'+
   '<tr class="subtot"><td>Net ticket / race day (full slots)</td><td></td><td></td><td id="c_ticket">—</td></tr>'+
   '<tr><td>Fill rate &middot; % of slots sold</td><td></td><td class="inp">'+I('fillPct','small')+'</td><td></td></tr>'+
-  '<tr><td>Weekend race days / year</td><td></td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
+  '<tr><td>Weekend race days / year &middot; from calendar above</td><td></td><td class="calc" id="c_eventsYr">—</td><td></td></tr>'+
   '<tr class="subtot"><td>Ticket revenue / year (net, at fill)</td><td></td><td></td><td id="c_wkTicketYr">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Race add-ons / year (net of VAT)</td></tr>'+
   '<tr><td>Pick-your-heat &middot; fee / % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRevYr">—</td></tr>'+
@@ -740,6 +751,7 @@ function lineChart(id,pts){
 
 /* ---------- update ---------- */
 function update(){
+ computeRaceDays();   // sync weekend race days from the calendar selector
  var A=compute(),Y=A.Y;
  // assumptions calc cells
  var vd=1+num('vatPct')/100;
@@ -947,12 +959,12 @@ function saveSummary(A,Y){try{
  };
  localStorage.setItem('redln-weekly-summary',JSON.stringify(s));
 }catch(e){}}
-function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=JSON.parse(raw);Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
-function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});update();}
+function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});update();}
 // ---- base case: a saved snapshot of the assumptions to reset back to ----
 var BKEY='redln-weekly-base';
-function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});return s;}
+function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});return s;}
 function applyInputs(s){Object.keys(s).forEach(function(id){var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
 function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
 function getBase(){try{var r=localStorage.getItem(BKEY);return r?JSON.parse(r):null;}catch(e){return null;}}
