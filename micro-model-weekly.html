@@ -375,9 +375,9 @@ var DEFAULTS={
  pEvT:1199,qEvT:5, pElT:1399,qElT:5, pEvS:299,qEvS:7, pElS:349,qElS:8,
  fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:1500, volunteers:3000, permits:7500,
  eventsYr:64, fillPct:70, prizePerEvent:0, ppPct:3,
- finales:2, finQual:40, finPctPass:50, finDJ:10000, finPrize:11250,
+ finales:2, finTeams:20, finSolos:30, finPctPass:0, finDJ:10000, finPrize:0,
  heatPct:10, heatPrice:99, trialPct:10, trialPrice:99,
- classesMonth:30, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
+ classesMonth:60, capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
  salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
  benMedical:25000, benResidency:25000, benTickets:25000,
  oRent:600000, oLicense:40000, oAudit:7500,
@@ -421,10 +421,11 @@ function compute(){
  var wkTicketYr=ticket*fill*eventsYr;                            // annual weekly ticket revenue (net)
  // ---- Season finales (ticketed championship; free to qualifying pass-holders) ----
  var finales=Math.max(0,v('finales'));
- var finPayers=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100); // qualifiers who pay (non pass-holders)
- var slotsPerDay=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');
- var perEntryNet=slotsPerDay>0?ticket/slotsPerDay:0;            // finalists pay the SAME category prices as a normal race (blended net / entry)
- var finTicketYr=finPayers*perEntryNet*finales;                // annual finale ticket revenue (net)
+ var finPassFree=Math.max(0,Math.min(100,v('finPctPass')))/100;
+ var nTeam=v('qEvT')+v('qElT'), nSolo=v('qEvS')+v('qElS');
+ var teamPriceNet=nTeam>0?((v('pEvT')*v('qEvT')+v('pElT')*v('qElT'))/nTeam)/vd:0;   // finale team ticket = normal race team price (blended EV/EL), net
+ var soloPriceNet=nSolo>0?((v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/nSolo)/vd:0;   // finale solo ticket = normal race solo price, net
+ var finTicketYr=(v('finTeams')*teamPriceNet+v('finSolos')*soloPriceNet)*(1-finPassFree)*finales; // annual finale ticket revenue (net), team/solo split
  var finDirectYr=(v('finDJ')+v('volunteers')+v('permits'))*finales; // full-production cost per finale
  // ---- Combined annual event revenue & direct cost ----
  var ticketYr=wkTicketYr+finTicketYr;
@@ -553,10 +554,11 @@ function renderStatic(){
   '<tr><td>Prize / race day</td><td></td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_wkPrizeYr">—</td></tr>'+
   '<tr class="grand"><td>Net race-days revenue / year</td><td></td><td></td><td id="c_racedayNet">—</td></tr></tbody>';
  // 2 · Season Finale
- el('finale-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
+ el('finale-table').innerHTML='<thead><tr><th>Item</th><th>Entries / finale</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
   '<tr><td>Finales / year</td><td class="inp">'+I('finales','small')+'</td><td></td></tr>'+
-  '<tr><td>Qualifiers / finale (top teams &amp; solos)</td><td class="inp">'+I('finQual','small')+'</td><td></td></tr>'+
-  '<tr><td>Entry &middot; same category prices as races (net / entry)</td><td class="calc" id="c_finPer">—</td><td></td></tr>'+
+  '<tr class="sec"><td colspan="3">Qualifier split &mdash; same prices as normal race days</td></tr>'+
+  '<tr><td>Team entries &middot; @ AED <span id="c_finTeamPer">—</span> net / team</td><td class="inp">'+I('finTeams','small')+'</td><td class="calc" id="c_finTeamRev">—</td></tr>'+
+  '<tr><td>Solo entries &middot; @ AED <span id="c_finSoloPer">—</span> net / solo</td><td class="inp">'+I('finSolos','small')+'</td><td class="calc" id="c_finSoloRev">—</td></tr>'+
   '<tr><td>Qualifiers on season pass &mdash; free (%)</td><td class="inp">'+I('finPctPass','small')+'</td><td class="calc" id="c_finPayers">—</td></tr>'+
   '<tr class="subtot"><td>Finale ticket revenue / year (net)</td><td></td><td id="c_finTicket">—</td></tr>'+
   '<tr class="sec"><td colspan="3">Finale production &middot; per finale</td></tr>'+
@@ -653,7 +655,7 @@ function breakdown(line,i){
  var vat=v('vatPct')/100,vd=1+vat;
  function R(rows,total){return {title:LBL[line]+' · Year '+(i+1),rows:rows.concat([{l:LBL[line],x:total,tot:1}])};}
  switch(line){
-  case 'grossEvent':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var perNet=ticket/vd;var wk=perNet*fillv*ev*vg;var slotsPD=v('qEvT')+v('qElT')+v('qEvS')+v('qElS');var perEntryNet=slotsPD>0?perNet/slotsPD:0;var finP=Math.max(0,v('finQual'))*(1-Math.max(0,Math.min(100,v('finPctPass')))/100);var fin=finP*perEntryNet*v('finales')*vg;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket / race day (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Net / race day (full)',x:perNet,sub:1},{l:'Fill rate',x:fillv,mult:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1},{l:'Weekly ticket revenue',x:wk,sub:1},{l:'+ Finale ('+Math.round(finP)+' pay × '+Math.round(perEntryNet)+' net/entry × '+v('finales')+')',x:fin});return R(rows,wk+fin);}
+  case 'grossEvent':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var perNet=ticket/vd;var wk=perNet*fillv*ev*vg;var finFree=Math.max(0,Math.min(100,v('finPctPass')))/100;var nTeam=v('qEvT')+v('qElT'),nSolo=v('qEvS')+v('qElS');var tPN=nTeam>0?((v('pEvT')*v('qEvT')+v('pElT')*v('qElT'))/nTeam)/vd:0;var sPN=nSolo>0?((v('pEvS')*v('qEvS')+v('pElS')*v('qElS'))/nSolo)/vd:0;var fin=(v('finTeams')*tPN+v('finSolos')*sPN)*(1-finFree)*v('finales')*vg;var rows=tc.map(function(c){return {l:c[0]+' ('+c[1]+' × '+c[2]+')',x:c[1]*c[2]};});rows.push({l:'Ticket / race day (VAT incl.)',x:ticket,sub:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Net / race day (full)',x:perNet,sub:1},{l:'Fill rate',x:fillv,mult:1},{l:'Race days / year',x:ev,mult:1},{l:'Volume growth',x:vg,mult:1},{l:'Weekly ticket revenue',x:wk,sub:1},{l:'+ Finale ('+v('finTeams')+' team × '+Math.round(tPN)+' + '+v('finSolos')+' solo × '+Math.round(sPN)+', × '+v('finales')+')',x:fin});return R(rows,wk+fin);}
   case 'eventDirect':{var wk=v('djExp')*ev*inf;var finU=v('finDJ')+v('volunteers')+v('permits');var fin=finU*v('finales')*inf;return R([{l:'Resident DJ / race day',x:v('djExp')},{l:'Race days / year',x:ev,mult:1},{l:'Inflation',x:inf,mult:1},{l:'Weekly DJ cost',x:wk,sub:1},{l:'Finale production / finale (DJ+vol+permits)',x:finU},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale production',x:fin,sub:1}],wk+fin);}
   case 'grossFb':return R([{l:'F&B sales / month (VAT incl.)',x:fbMo},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'12 months',x:12,mult:1},{l:'Volume growth',x:vg,mult:1}],fbMo/vd*12*vg);
   case 'fbCogs':return R([{l:'F&B revenue (net)',x:Yi.grossFb},{l:'Cost ratio (1 − '+v('fbMargin')+'% margin)',x:1-v('fbMargin')/100,mult:1}],Yi.grossFb-Yi.netFb);
@@ -742,10 +744,16 @@ function update(){
  var wkPrizeYr=num('prizePerEvent')*rd; set('c_wkPrizeYr',fmt(-wkPrizeYr));
  var racedayNet=wkTicketYr+heatRevYr+trialRevYr-wkDJYr-wkPrizeYr; set('c_racedayNet',fmt(racedayNet));set('rev-raceday',aed(racedayNet)+' net / yr');
  // 2 · Season Finale
- var perEntryNet=slots>0?ticketNetDay/slots:0; set('c_finPer',fmt(perEntryNet));
  var finales=Math.max(0,num('finales'));
- var finPayersYr=Math.max(0,num('finQual'))*(1-Math.max(0,Math.min(100,num('finPctPass')))/100)*finales; set('c_finPayers',fmt(finPayersYr));
- var finTicketYr=finPayersYr*perEntryNet; set('c_finTicket',fmt(finTicketYr));
+ var finPassFree=Math.max(0,Math.min(100,num('finPctPass')))/100;
+ var nTeam=num('qEvT')+num('qElT'), nSolo=num('qEvS')+num('qElS');
+ var teamPriceNet=nTeam>0?((num('pEvT')*num('qEvT')+num('pElT')*num('qElT'))/nTeam)/vd:0;
+ var soloPriceNet=nSolo>0?((num('pEvS')*num('qEvS')+num('pElS')*num('qElS'))/nSolo)/vd:0;
+ set('c_finTeamPer',fmt(teamPriceNet));set('c_finSoloPer',fmt(soloPriceNet));
+ set('c_finTeamRev',fmt(num('finTeams')*teamPriceNet*(1-finPassFree)*finales));
+ set('c_finSoloRev',fmt(num('finSolos')*soloPriceNet*(1-finPassFree)*finales));
+ var finPayersYr=(num('finTeams')+num('finSolos'))*(1-finPassFree)*finales; set('c_finPayers',fmt(finPayersYr));
+ var finTicketYr=(num('finTeams')*teamPriceNet+num('finSolos')*soloPriceNet)*(1-finPassFree)*finales; set('c_finTicket',fmt(finTicketYr));
  var finDirectYr=(num('finDJ')+num('volunteers')+num('permits'))*finales+num('finPrize')*finales; set('c_finDirectYr',fmt(-finDirectYr));
  var finaleNet=finTicketYr-finDirectYr; set('c_finaleNet',fmt(finaleNet));set('rev-finale',aed(finaleNet)+' net / yr');
  // management fee
