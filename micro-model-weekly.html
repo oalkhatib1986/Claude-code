@@ -319,12 +319,15 @@
       <button data-s="growth">Growth &amp; Timeline</button>
     </nav>
     <div class="asmsub2 on" id="s-rev">
-      <div class="card"><div class="ch">Event build-up <span class="csum" id="rev-netevent">—</span></div><div class="scroll"><table class="mono" id="event-table"></table></div></div>
+      <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;margin:0 0 6px">Five revenue segments, each built up from its own assumptions. All figures Year&nbsp;1, net of 5% VAT. The five nets, less payment fees, sum to net revenue.</p>
+      <div class="card"><div class="ch">1 &middot; Race days <span class="csum" id="rev-raceday">—</span></div><div class="scroll"><table class="mono" id="raceday-table"></table></div></div>
+      <div class="card"><div class="ch">2 &middot; Season Finale <span class="csum" id="rev-finale">—</span></div><div class="scroll"><table class="mono" id="finale-table"></table></div></div>
+      <div class="card"><div class="ch">3 &middot; Group classes <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
       <div class="grid2">
-        <div class="card"><div class="ch">Annualisation, prizes &amp; fees</div><div class="scroll"><table class="mono" id="annual-table"></table></div></div>
-        <div class="card"><div class="ch">Group classes <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
+        <div class="card"><div class="ch">4 &middot; F&amp;B <span class="csum" id="rev-fb">—</span></div><div class="scroll"><table class="mono" id="fb-table"></table></div></div>
+        <div class="card"><div class="ch">5 &middot; Retail <span class="csum" id="rev-ret">—</span></div><div class="scroll"><table class="mono" id="retail-table"></table></div></div>
       </div>
-      <div class="card"><div class="ch">F&amp;B &amp; Retail business units <span class="csum" id="rev-fbret">—</span></div><div class="scroll"><table class="mono" id="fbret-table"></table></div></div>
+      <div class="card"><div class="ch">Cross-cutting &middot; fees &amp; cadence</div><div class="scroll"><table class="mono" id="xcut-table"></table></div></div>
     </div>
     <div class="asmsub2" id="s-cost">
       <div class="grid2">
@@ -527,8 +530,9 @@ function compute(){
 
 /* ---------- static assumption tables ---------- */
 function renderStatic(){
- el('event-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Slots / day</th><th>Amount</th></tr></thead><tbody>'+
-  '<tr class="sec"><td colspan="4">Weekly weekend races &mdash; tickets per race day (25 max)</td></tr>'+
+ // 1 · Race days
+ el('raceday-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Slots / day</th><th>Amount</th></tr></thead><tbody>'+
+  '<tr class="sec"><td colspan="4">Tickets per race day &mdash; 25 slots max</td></tr>'+
   '<tr class="sec"><td colspan="4">Teams</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvT')+'</td><td class="inp">'+I('qEvT','small')+'</td><td class="calc" id="c_revEvT">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElT')+'</td><td class="inp">'+I('qElT','small')+'</td><td class="calc" id="c_revElT">—</td></tr>'+
@@ -539,37 +543,45 @@ function renderStatic(){
   '<tr><td>Less: VAT</td><td></td><td></td><td class="calc" id="c_eventVat">—</td></tr>'+
   '<tr class="subtot"><td>Net ticket / race day (full slots)</td><td></td><td></td><td id="c_ticket">—</td></tr>'+
   '<tr><td>Fill rate &middot; % of slots sold</td><td></td><td class="inp">'+I('fillPct','small')+'</td><td></td></tr>'+
-  '<tr><td>Resident DJ / race day</td><td></td><td></td><td class="inp">'+I('djExp')+'</td></tr>'+
-  '<tr class="grand"><td>Net event revenue / year (all races)</td><td></td><td></td><td id="c_netEvent">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Race add-ons / race day &mdash; fee &amp; % take-up (net of VAT)</td></tr>'+
-  '<tr><td>Pick-your-heat &middot; % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRev">—</td></tr>'+
-  '<tr><td>Trial Day &middot; % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRev">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Season finales &mdash; ticketed championship (free to qualifying pass-holders)</td></tr>'+
-  '<tr><td>Finales / year</td><td></td><td class="inp">'+I('finales','small')+'</td><td></td></tr>'+
-  '<tr><td>Qualifiers / finale</td><td></td><td class="inp">'+I('finQual','small')+'</td><td></td></tr>'+
-  '<tr><td>Finale entry &middot; same category prices as weekly races</td><td></td><td class="calc">net / entry</td><td class="calc" id="c_finPer">—</td></tr>'+
-  '<tr><td>Qualifiers on season pass (free) &middot; %</td><td></td><td class="inp">'+I('finPctPass','small')+'</td><td class="calc" id="c_finTicket">—</td></tr>'+
-  '<tr><td>Finale DJ / production</td><td></td><td></td><td class="inp">'+I('finDJ')+'</td></tr>'+
-  '<tr><td>Finale volunteers</td><td></td><td></td><td class="inp">'+I('volunteers')+'</td></tr>'+
-  '<tr><td>Finale permits</td><td></td><td></td><td class="inp">'+I('permits')+'</td></tr>'+
-  '<tr><td>Finale prize purse</td><td></td><td></td><td class="inp">'+I('finPrize')+'</td></tr></tbody>';
- el('fbret-table').innerHTML='<thead><tr><th>Business unit</th><th>Monthly</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
-  '<tr class="sec"><td colspan="3">F&amp;B (standalone)</td></tr>'+
+  '<tr><td>Weekend race days / year</td><td></td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
+  '<tr class="subtot"><td>Ticket revenue / year (net, at fill)</td><td></td><td></td><td id="c_wkTicketYr">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Race add-ons / year (net of VAT)</td></tr>'+
+  '<tr><td>Pick-your-heat &middot; fee / % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRevYr">—</td></tr>'+
+  '<tr><td>Trial Day &middot; fee / % of athletes</td><td class="inp">'+I('trialPrice','small')+'</td><td class="inp">'+I('trialPct','small')+'</td><td class="calc" id="c_trialRevYr">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Race-day direct cost / year</td></tr>'+
+  '<tr><td>Resident DJ / race day</td><td></td><td class="inp">'+I('djExp')+'</td><td class="calc" id="c_wkDJYr">—</td></tr>'+
+  '<tr><td>Prize / race day</td><td></td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_wkPrizeYr">—</td></tr>'+
+  '<tr class="grand"><td>Net race-days revenue / year</td><td></td><td></td><td id="c_racedayNet">—</td></tr></tbody>';
+ // 2 · Season Finale
+ el('finale-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
+  '<tr><td>Finales / year</td><td class="inp">'+I('finales','small')+'</td><td></td></tr>'+
+  '<tr><td>Qualifiers / finale (top teams &amp; solos)</td><td class="inp">'+I('finQual','small')+'</td><td></td></tr>'+
+  '<tr><td>Entry &middot; same category prices as races (net / entry)</td><td class="calc" id="c_finPer">—</td><td></td></tr>'+
+  '<tr><td>Qualifiers on season pass &mdash; free (%)</td><td class="inp">'+I('finPctPass','small')+'</td><td class="calc" id="c_finPayers">—</td></tr>'+
+  '<tr class="subtot"><td>Finale ticket revenue / year (net)</td><td></td><td id="c_finTicket">—</td></tr>'+
+  '<tr class="sec"><td colspan="3">Finale production &middot; per finale</td></tr>'+
+  '<tr><td>DJ / production</td><td class="inp">'+I('finDJ')+'</td><td></td></tr>'+
+  '<tr><td>Volunteers</td><td class="inp">'+I('volunteers')+'</td><td></td></tr>'+
+  '<tr><td>Permits</td><td class="inp">'+I('permits')+'</td><td></td></tr>'+
+  '<tr><td>Prize purse</td><td class="inp">'+I('finPrize')+'</td><td></td></tr>'+
+  '<tr><td>Finale direct cost / year (production + prize)</td><td></td><td class="calc" id="c_finDirectYr">—</td></tr>'+
+  '<tr class="grand"><td>Net finale revenue / year</td><td></td><td id="c_finaleNet">—</td></tr></tbody>';
+ // 4 · F&B
+ el('fb-table').innerHTML='<thead><tr><th>F&amp;B (standalone)</th><th>Value</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
   '<tr><td>F&amp;B sales / month (VAT incl.)</td><td class="inp">'+I('fbRev')+'</td><td class="calc" id="c_fbRevYr">—</td></tr>'+
   '<tr><td>F&amp;B margin (%)</td><td class="inp">'+I('fbMargin','small')+'</td><td></td></tr>'+
   '<tr><td>F&amp;B COGS</td><td></td><td class="calc" id="c_fbCogs">—</td></tr>'+
-  '<tr class="subtot"><td>Net F&amp;B / year</td><td></td><td id="c_netFbYr">—</td></tr>'+
-  '<tr class="sec"><td colspan="3">Retail (standalone)</td></tr>'+
+  '<tr class="grand"><td>Net F&amp;B / year</td><td></td><td id="c_netFbYr">—</td></tr></tbody>';
+ // 5 · Retail
+ el('retail-table').innerHTML='<thead><tr><th>Retail (standalone)</th><th>Value</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
   '<tr><td>Retail sales / month (VAT incl.)</td><td class="inp">'+I('retRev')+'</td><td class="calc" id="c_retRevYr">—</td></tr>'+
   '<tr><td>Retail margin (%)</td><td class="inp">'+I('retMargin','small')+'</td><td></td></tr>'+
   '<tr><td>Retail COGS</td><td></td><td class="calc" id="c_retCogs">—</td></tr>'+
-  '<tr class="subtot"><td>Net retail / year</td><td></td><td id="c_netRetYr">—</td></tr></tbody>';
- el('annual-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
-  '<tr><td>Weekend race days / year</td><td class="inp">'+I('eventsYr','small')+'</td><td></td></tr>'+
+  '<tr class="grand"><td>Net retail / year</td><td></td><td id="c_netRetYr">—</td></tr></tbody>';
+ // cross-cutting
+ el('xcut-table').innerHTML='<thead><tr><th>Applies across all segments</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
   '<tr><td>Seasons / year</td><td class="inp">'+I('seasons','small')+'</td><td class="calc">info</td></tr>'+
-  '<tr class="subtot"><td>Net event revenue</td><td></td><td id="c_netEventYr">—</td></tr>'+
-  '<tr><td>Weekly prize / race day</td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_prizesYr">—</td></tr>'+
-  '<tr><td>Payment fees (%)</td><td class="inp">'+I('ppPct','small')+'</td><td class="calc" id="c_ppFeesYr">—</td></tr></tbody>';
+  '<tr><td>Payment-processing fees (% of gross)</td><td class="inp">'+I('ppPct','small')+'</td><td class="calc" id="c_ppFeesYr">—</td></tr></tbody>';
  el('class-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual</th></tr></thead><tbody>'+
   '<tr><td>Classes / month</td><td class="inp">'+I('classesMonth','small')+'</td><td></td></tr>'+
   '<tr><td>Capacity / class</td><td class="inp">'+I('capacity','small')+'</td><td></td></tr>'+
@@ -716,23 +728,35 @@ function update(){
  var vd=1+num('vatPct')/100;
  set('c_revEvT',fmt(num('pEvT')*num('qEvT')));set('c_revElT',fmt(num('pElT')*num('qElT')));set('c_revEvS',fmt(num('pEvS')*num('qEvS')));set('c_revElS',fmt(num('pElS')*num('qElS')));
  var ticketInc=num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS');
- set('c_qTotal',fmt(num('qEvT')+num('qElT')+num('qEvS')+num('qElS')));set('c_ticketInc',fmt(ticketInc));
- set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));set('c_ticket',fmt(A.ticket));
- set('c_netEvent',fmt(A.netEventY1));
- set('c_heatRev',fmt(A.heatNet));set('c_trialRev',fmt(A.trialNet));
- var slotsPD=num('qEvT')+num('qElT')+num('qEvS')+num('qElS');
- var perEntryNet=slotsPD>0?((num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS'))/vd)/slotsPD:0;
- var finTicketYr=Math.max(0,num('finQual'))*(1-Math.max(0,Math.min(100,num('finPctPass')))/100)*perEntryNet*Math.max(0,num('finales'));
- set('c_finPer',fmt(perEntryNet));set('c_finTicket',fmt(finTicketYr));
+ var slots=num('qEvT')+num('qElT')+num('qEvS')+num('qElS');
+ set('c_qTotal',fmt(slots));set('c_ticketInc',fmt(ticketInc));
+ set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));
+ var ticketNetDay=ticketInc/vd; set('c_ticket',fmt(ticketNetDay));
+ // 1 · Race days
+ var fillv=Math.max(0,Math.min(100,num('fillPct')))/100, rd=Math.max(0,num('eventsYr'));
+ var wkTicketYr=ticketNetDay*fillv*rd; set('c_wkTicketYr',fmt(wkTicketYr));
+ var entPD=slots*fillv, athPD=(4*(num('qEvT')+num('qElT'))+num('qEvS')+num('qElS'))*fillv;
+ var heatRevYr=(num('heatPct')/100)*entPD*num('heatPrice')/vd*rd; set('c_heatRevYr',fmt(heatRevYr));
+ var trialRevYr=(num('trialPct')/100)*athPD*num('trialPrice')/vd*rd; set('c_trialRevYr',fmt(trialRevYr));
+ var wkDJYr=num('djExp')*rd; set('c_wkDJYr',fmt(-wkDJYr));
+ var wkPrizeYr=num('prizePerEvent')*rd; set('c_wkPrizeYr',fmt(-wkPrizeYr));
+ var racedayNet=wkTicketYr+heatRevYr+trialRevYr-wkDJYr-wkPrizeYr; set('c_racedayNet',fmt(racedayNet));set('rev-raceday',aed(racedayNet)+' net / yr');
+ // 2 · Season Finale
+ var perEntryNet=slots>0?ticketNetDay/slots:0; set('c_finPer',fmt(perEntryNet));
+ var finales=Math.max(0,num('finales'));
+ var finPayersYr=Math.max(0,num('finQual'))*(1-Math.max(0,Math.min(100,num('finPctPass')))/100)*finales; set('c_finPayers',fmt(finPayersYr));
+ var finTicketYr=finPayersYr*perEntryNet; set('c_finTicket',fmt(finTicketYr));
+ var finDirectYr=(num('finDJ')+num('volunteers')+num('permits'))*finales+num('finPrize')*finales; set('c_finDirectYr',fmt(-finDirectYr));
+ var finaleNet=finTicketYr-finDirectYr; set('c_finaleNet',fmt(finaleNet));set('rev-finale',aed(finaleNet)+' net / yr');
  // management fee
  var mfMap={mfEvent:Y[0].netEvent,mfAddon:Y[0].grossHeat+Y[0].grossTrial,mfClass:Y[0].netClass,mfFb:Y[0].netFb,mfRet:Y[0].netRet};
  MFLINES.forEach(function(r){set('c_mf_'+r[0],chk(r[0])?fmt(mfMap[r[0]]):'—');});
  set('c_mgmtBase',fmt(Y[0].mgmtBase));set('c_mgmtFeeYr',fmt(-Y[0].mgmtFee));
  set('exp-mgmt',aed(Y[0].mgmtFee)+' / yr');
- set('c_netEventYr',fmt(A.netEventY1));set('c_prizesYr',fmt(-(num('prizePerEvent')*num('eventsYr')+num('finPrize')*Math.max(0,num('finales')))));set('c_ppFeesYr',fmt(-Y[0].ppFees));
- // F&B and retail standalone business units (net annual)
- set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));
- set('c_retRevYr',fmt(Y[0].grossRet));set('c_retCogs',fmt(-(Y[0].grossRet-Y[0].netRet)));set('c_netRetYr',fmt(Y[0].netRet));
+ set('c_ppFeesYr',fmt(-Y[0].ppFees));
+ // 4 · F&B and 5 · Retail (standalone business units, net annual)
+ set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));set('rev-fb',aed(Y[0].netFb)+' net / yr');
+ set('c_retRevYr',fmt(Y[0].grossRet));set('c_retCogs',fmt(-(Y[0].grossRet-Y[0].netRet)));set('c_netRetYr',fmt(Y[0].netRet));set('rev-ret',aed(Y[0].netRet)+' net / yr');
  var classInc=num('classesMonth')*num('capacity')*num('pricePerClass')*12;
  set('c_classInc',fmt(classInc));set('c_classVat',fmt(-(classInc-A.classRevYr)));
  set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
@@ -740,7 +764,7 @@ function update(){
  set('c_salaries',fmt(A.salaries));set('c_salariesYr',fmt(A.salaries*12));set('c_payrollMo',fmt(A.payrollMo));set('c_payrollYr',fmt(A.payrollYr));
  OVR.forEach(function(r){var mult=r[2]==='/mo'?12:1;set('c_'+r[1]+'y',fmt(num(r[1])*mult));});
  set('c_ovYr',fmt(A.ovYr));set('c_capexTotal',fmt(A.capexTotal));
- set('rev-netevent',aed(A.netEventY1)+' / yr');set('rev-classyr',aed(Y[0].netClass)+' net / yr');set('rev-fbret',aed(Y[0].netFb+Y[0].netRet)+' net / yr');
+ set('rev-classyr',aed(Y[0].netClass)+' net / yr');
  set('exp-payroll',aed(A.payrollYr)+' / yr');set('exp-overhead',aed(A.ovYr)+' / yr');set('cap-total',aed(A.capexTotal));
  // income statement
  var ih=y3head('Line item')+'<tbody>';
