@@ -382,7 +382,6 @@ var DEFAULTS={
  heatPct:10, heatPrice:99, trialPrice:99,
  trLanes:8, trPerLane:4, trAthDay:40,
  capacity:45, pricePerClass:105, trainerFee:700, seasons:2,
- salBM:25000, salPhoto:20000, salRec:8000, recHeads:3,
  benMedical:5000, benResidency:5000, benTickets:5000,
  oRent:600000, oLicense:40000, oAudit:7500,
  oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
@@ -392,6 +391,15 @@ var DEFAULTS={
  mgmtFeePct:10
 };
 var KEY='redln-weekly-v1';
+// ---- Payroll roster: editable list of roles (name × heads × monthly salary), add/delete supported ----
+var ROLES_DEFAULT=[{name:'Business Manager',heads:1,pay:25000},{name:'Photographer / Video / Social',heads:1,pay:20000},{name:'Reception',heads:3,pay:8000}];
+function rolesClone(a){return JSON.parse(JSON.stringify(a));}
+function rolesValid(a){return Array.isArray(a)&&a.every(function(r){return r&&typeof r==='object'&&('pay' in r);});}
+var ROLES=rolesClone(ROLES_DEFAULT);
+function rolesGuard(){if(!rolesValid(ROLES))ROLES=rolesClone(ROLES_DEFAULT);if(!ROLES.length)ROLES.push({name:'Role',heads:1,pay:0});}
+function roleSet(i,field,val){rolesGuard();if(!ROLES[i])return;if(field==='name')ROLES[i].name=val;else ROLES[i][field]=Math.max(0,parseFloat(String(val).replace(/,/g,''))||0);update();}
+function roleAdd(){rolesGuard();ROLES.push({name:'New role',heads:1,pay:10000});renderPayroll();update();}
+function roleDel(i){rolesGuard();ROLES.splice(i,1);rolesGuard();renderPayroll();update();}
 var CAPEX=[['cErgs','Race equipment / ergs'],['cLed','LED &amp; screens'],['cAudioLight','Audio &amp; lighting'],['cTiming','Timing system'],['cFitout','Warehouse fit-out (cafe, reception, showers, DJ booth)'],['cBrand','Branding &amp; signage'],['cTech','Tech / app / platform'],['cLaunch','Launch marketing'],['cLegal','Legal &amp; setup'],['cContingency','Contingency']];
 var OVR=[['Warehouse rent','oRent','/yr'],['License &amp; registration','oLicense','/yr'],['Annual audit','oAudit','/yr'],['Accounting &amp; bookkeeping','oAccounting','/mo'],['Cleaning fees','oCleaning','/mo'],['DEWA','oDewa','/mo'],['Etisalat','oEtisalat','/mo'],['Maintenance','oMaintenance','/mo'],['Supplies &amp; stationery','oSupplies','/mo'],['Filtered drinking water','oWater','/mo'],['Miscellaneous &amp; sundries','oMisc','/mo']];
 function el(id){return document.getElementById(id);}
@@ -523,6 +531,24 @@ function renderCalendar(){var box=el('week-cal');if(!box)return;calGuard();
  h+='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">Two calendars, one per season — the model reads each. Edit a <b>time</b> to rename a slot; ✕ removes it; both calendars share the row grid. Tap any cell to cycle <b>empty → class → trial → race</b>. In-season weeks are the ticked race months; race <i>days</i> per year = in-season weekend days (set under &ldquo;Race days&rdquo;). &nbsp;<span style="color:var(--red)">■</span> race &nbsp;<span style="color:#b35c00">■</span> trial run &nbsp;<span style="color:#0d1013">■</span> class</div>';
  box.innerHTML=h;
 }
+// Payroll roster — editable role rows (name/heads/salary), add & delete
+function renderPayroll(){var t=el('payroll-table');if(!t)return;rolesGuard();
+ var rows=ROLES.map(function(r,i){return '<tr>'+
+   '<td><input class="cin" style="width:100%;min-width:110px;text-align:left" value="'+calEsc(r.name)+'" oninput="roleSet('+i+',\'name\',this.value)"></td>'+
+   '<td class="inp"><input class="cin small" inputmode="decimal" value="'+calEsc(r.heads)+'" oninput="roleSet('+i+',\'heads\',this.value)"></td>'+
+   '<td class="inp"><input class="cin" inputmode="decimal" value="'+calEsc(r.pay)+'" oninput="roleSet('+i+',\'pay\',this.value)"></td>'+
+   '<td class="calc" style="white-space:nowrap"><span id="c_role'+i+'">—</span> &nbsp;<span class="wcdel" title="Delete role" onclick="roleDel('+i+')">✕</span></td></tr>';}).join('');
+ t.innerHTML='<thead><tr><th>Role</th><th>Heads</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>'+
+  rows+
+  '<tr><td colspan="4" style="padding:7px 10px"><button class="waddr" onclick="roleAdd()">+ add employee type</button></td></tr>'+
+  '<tr class="subtot"><td>Monthly salaries</td><td class="calc" id="c_headsTot">—</td><td id="c_salaries">—</td><td id="c_salariesYr">—</td></tr>'+
+  '<tr class="sec"><td colspan="4">Employee benefits &mdash; headcount &times; AED / employee / year</td></tr>'+
+  '<tr><td>Medical insurance</td><td class="calc" id="c_staffN1">—</td><td class="inp">'+Iv('benMedical')+'</td><td class="calc" id="c_yMedical">—</td></tr>'+
+  '<tr><td>Residencies</td><td class="calc" id="c_staffN2">—</td><td class="inp">'+Iv('benResidency')+'</td><td class="calc" id="c_yResidency">—</td></tr>'+
+  '<tr><td>Annual tickets</td><td class="calc" id="c_staffN3">—</td><td class="inp">'+Iv('benTickets')+'</td><td class="calc" id="c_yTickets">—</td></tr>'+
+  '<tr class="subtot"><td>Employee benefits / year</td><td class="calc" id="c_staffN">—</td><td></td><td id="c_benYr">—</td></tr>'+
+  '<tr class="grand"><td>Total payroll</td><td></td><td id="c_payrollMo">—</td><td id="c_payrollYr">—</td></tr></tbody>';
+}
 function fmt(n){if(Math.abs(n)<0.5)return '—';var s=Math.round(Math.abs(n)).toLocaleString('en-US');return n<0?'('+s+')':s;}
 function kf(n){var a=Math.abs(n);if(a<0.5)return '—';var s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+'M';else if(a>=1e3)s=Math.round(a/1e3)+'k';else s=String(Math.round(a));return n<0?'('+s+')':s;}
 // responsive number: full figure on desktop, abbreviated (840k) on phones — so statement tables never overflow
@@ -531,6 +557,8 @@ function aed(n){var neg=n<0;var s=Math.round(Math.abs(n)).toLocaleString('en-US'
 function kfmt(n){var neg=n<0,a=Math.abs(n);var s=a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?Math.round(a/1e3)+'k':Math.round(a);return (neg?'−':'')+'AED '+s;}
 function cls(n){return n<0?'neg':(n>0?'pos':'calc');}
 function I(id,c){return '<input class="cin'+(c?' '+c:'')+'" id="'+id+'" value="'+DEFAULTS[id]+'" inputmode="decimal">';}
+// like I() but preserves the current on-screen value when a table is re-rendered
+function Iv(id,c){var e=el(id);var val=e?e.value:DEFAULTS[id];return '<input class="cin'+(c?' '+c:'')+'" id="'+id+'" value="'+val+'" inputmode="decimal">';}
 
 function compute(){
  var v=num;
@@ -583,8 +611,9 @@ function compute(){
  var trainerYr=classesYr*v('trainerFee');
  var prizesYr=v('prizePerEvent')*eventsYr + v('finPrize')*finales;   // weekly prize/day (default 0) + finale purse
  var pp=v('ppPct')/100;
- var salaries=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'); // reception = heads × salary/head
- var staff=2+Math.max(0,v('recHeads'));   // headcount = Business Manager + Photographer + reception heads
+ rolesGuard();
+ var salaries=0,staff=0;                   // roster: Σ heads × monthly salary; headcount = Σ heads
+ ROLES.forEach(function(r){var h=Math.max(0,r.heads||0);salaries+=h*Math.max(0,r.pay||0);staff+=h;});
  var benYr=staff*(v('benMedical')+v('benResidency')+v('benTickets')); // benefits = headcount × per-employee annual costs
  var benMo=benYr/12;
  var payrollMo=salaries+benMo, payrollYr=payrollMo*12;
@@ -781,17 +810,7 @@ function renderStatic(){
   '<tr class="grand"><td>Net trial-runs revenue / year</td><td></td><td id="c_trialRevNet">—</td></tr></tbody>';
  // Weekly schedule calendar — interactive; rendered by renderCalendar()
  renderCalendar();
- el('payroll-table').innerHTML='<thead><tr><th>Item</th><th>Heads</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>'+
-  '<tr><td>Business Manager</td><td>1</td><td class="inp">'+I('salBM')+'</td><td class="calc" id="c_yBM">—</td></tr>'+
-  '<tr><td>Photographer / Video / Social</td><td>1</td><td class="inp">'+I('salPhoto')+'</td><td class="calc" id="c_yPhoto">—</td></tr>'+
-  '<tr><td>Reception</td><td class="inp">'+I('recHeads','small')+'</td><td class="inp">'+I('salRec')+'</td><td class="calc" id="c_yRec">—</td></tr>'+
-  '<tr class="subtot"><td>Monthly salaries</td><td></td><td id="c_salaries">—</td><td id="c_salariesYr">—</td></tr>'+
-  '<tr class="sec"><td colspan="4">Employee benefits &mdash; headcount &times; AED / employee / year</td></tr>'+
-  '<tr><td>Medical insurance</td><td class="calc" id="c_staffN1">—</td><td class="inp">'+I('benMedical')+'</td><td class="calc" id="c_yMedical">—</td></tr>'+
-  '<tr><td>Residencies</td><td class="calc" id="c_staffN2">—</td><td class="inp">'+I('benResidency')+'</td><td class="calc" id="c_yResidency">—</td></tr>'+
-  '<tr><td>Annual tickets</td><td class="calc" id="c_staffN3">—</td><td class="inp">'+I('benTickets')+'</td><td class="calc" id="c_yTickets">—</td></tr>'+
-  '<tr class="subtot"><td>Employee benefits / year</td><td class="calc" id="c_staffN">—</td><td></td><td id="c_benYr">—</td></tr>'+
-  '<tr class="grand"><td>Total payroll</td><td></td><td id="c_payrollMo">—</td><td id="c_payrollYr">—</td></tr></tbody>';
+ renderPayroll();
  var oh='<thead><tr><th>Item</th><th>Basis</th><th>Input</th><th>Annual</th></tr></thead><tbody>';
  OVR.forEach(function(r){oh+='<tr><td>'+r[0]+'</td><td class="calc">'+r[2]+'</td><td class="inp">'+I(r[1])+'</td><td class="calc" id="c_'+r[1]+'y">—</td></tr>';});
  oh+='<tr class="grand"><td>Total overheads / year</td><td></td><td></td><td id="c_ovYr">—</td></tr>';
@@ -862,11 +881,11 @@ function breakdown(line,i){
   case 'prizes':{var wk=v('prizePerEvent')*ev,fin=v('finPrize')*v('finales');return R([{l:'Weekly prize / race day',x:v('prizePerEvent')},{l:'Race days / year',x:ev,mult:1},{l:'Weekly prizes',x:wk,sub:1},{l:'Finale purse / finale',x:v('finPrize')},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale prizes',x:fin,sub:1},{l:'Inflation',x:inf,mult:1}],(wk+fin)*inf);}
   case 'ppFees':{var base=Yi.grossEvent+Yi.grossHeat+Yi.grossTrial+Yi.grossClass+Yi.grossFb+Yi.grossRet;return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial runs',x:Yi.grossTrial},{l:'Gross class revenue',x:Yi.grossClass},{l:'F&B revenue',x:Yi.grossFb},{l:'Retail revenue',x:Yi.grossRet},{l:'Base',x:base,sub:1},{l:'Fee rate',x:v('ppPct')/100,mult:1}],(v('ppPct')/100)*base);}
   case 'netRev':return R([{l:'Net event revenue',x:Yi.netEvent},{l:'Pick-your-heat',x:Yi.grossHeat},{l:'Trial runs',x:Yi.grossTrial},{l:'Net class revenue',x:Yi.netClass},{l:'Net F&B',x:Yi.netFb},{l:'Net retail',x:Yi.netRet},{l:'Less: prizes',x:-Yi.prizes},{l:'Less: payment fees',x:-Yi.ppFees}],Yi.netRev);
-  case 'payroll':{var sal=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'),staff=2+Math.max(0,v('recHeads')),ben=staff*(v('benMedical')+v('benResidency')+v('benTickets'))/12;return R([{l:'Business Manager',x:v('salBM')},{l:'Photographer / Social',x:v('salPhoto')},{l:'Reception ('+v('recHeads')+' × '+v('salRec')+')',x:v('recHeads')*v('salRec')},{l:'Monthly salaries',x:sal,sub:1},{l:'Benefits ('+staff+' staff × '+(v('benMedical')+v('benResidency')+v('benTickets'))+'/yr ÷ 12)',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1}],(sal+ben)*12*inf);}
+  case 'payroll':{rolesGuard();var sal=0,staff=0;ROLES.forEach(function(r){var h=Math.max(0,r.heads||0);sal+=h*Math.max(0,r.pay||0);staff+=h;});var ben=staff*(v('benMedical')+v('benResidency')+v('benTickets'))/12;var rows=ROLES.map(function(r){return {l:r.name+' ('+Math.max(0,r.heads||0)+' × '+Math.max(0,r.pay||0)+')',x:Math.max(0,r.heads||0)*Math.max(0,r.pay||0)};});rows.push({l:'Monthly salaries',x:sal,sub:1},{l:'Benefits ('+staff+' staff × '+(v('benMedical')+v('benResidency')+v('benTickets'))+'/yr ÷ 12)',x:ben},{l:'Monthly payroll',x:sal+ben,sub:1},{l:'12 months',x:12,mult:1},{l:'Inflation',x:inf,mult:1});return R(rows,(sal+ben)*12*inf);}
   case 'overhead':{var L=[['Warehouse rent',v('oRent')],['License & registration',v('oLicense')],['Annual audit',v('oAudit')],['Accounting',v('oAccounting')*12],['Cleaning',v('oCleaning')*12],['DEWA',v('oDewa')*12],['Etisalat',v('oEtisalat')*12],['Maintenance',v('oMaintenance')*12],['Supplies',v('oSupplies')*12],['Water',v('oWater')*12],['Miscellaneous',v('oMisc')*12]];var tot=L.reduce(function(t,l){return t+l[1];},0);var rows=L.map(function(l){return {l:l[0],x:l[1]};});rows.push({l:'Total overheads / yr',x:tot,sub:1},{l:'Inflation',x:inf,mult:1});return R(rows,tot*inf);}
   case 'mgmtFee':{var comps=[];if(chk('mfEvent'))comps.push({l:'Net event revenue',x:Yi.netEvent});if(chk('mfAddon'))comps.push({l:'Add-ons (heat) + trial runs',x:Yi.grossHeat+Yi.grossTrial});if(chk('mfClass'))comps.push({l:'Net class revenue',x:Yi.netClass});if(chk('mfFb'))comps.push({l:'Net F&B',x:Yi.netFb});if(chk('mfRet'))comps.push({l:'Net retail',x:Yi.netRet});comps.push({l:'Fee base',x:Yi.mgmtBase,sub:1},{l:'Management fee rate',x:v('mgmtFeePct')/100,mult:1});return R(comps,Yi.mgmtFee);}
   case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead},{l:'Less: management fee',x:-Yi.mgmtFee}],Yi.ebitdaPre);
-  case 'eos':{var sal=v('salBM')+v('salPhoto')+v('recHeads')*v('salRec'),bm=sal*(v('basicPct')/100);return R([{l:'Monthly salaries',x:sal},{l:'Basic %',x:v('basicPct')/100,mult:1},{l:'Monthly basic',x:bm,sub:1},{l:'21 / 30 (21 days per year)',x:21/30,mult:1},{l:'Inflation',x:inf,mult:1}],bm*(21/30)*inf);}
+  case 'eos':{rolesGuard();var sal=0;ROLES.forEach(function(r){sal+=Math.max(0,r.heads||0)*Math.max(0,r.pay||0);});var bm=sal*(v('basicPct')/100);return R([{l:'Monthly salaries',x:sal},{l:'Basic %',x:v('basicPct')/100,mult:1},{l:'Monthly basic',x:bm,sub:1},{l:'21 / 30 (21 days per year)',x:21/30,mult:1},{l:'Inflation',x:inf,mult:1}],bm*(21/30)*inf);}
   case 'ebitda':return R([{l:'EBITDA (pre end-of-service)',x:Yi.ebitdaPre},{l:'Less: end-of-service',x:-Yi.eos}],Yi.ebitda);
   case 'dep':return R([{l:'Total CapEx',x:A.capexTotal},{l:'Useful life (years)',x:A.depLife,mult:1,op:'÷'}],Yi.dep);
   case 'ebit':return R([{l:'EBITDA',x:Yi.ebitda},{l:'Less: depreciation',x:-Yi.dep}],Yi.ebit);
@@ -1061,10 +1080,11 @@ function update(){
  set('c_classInc',fmt(classInc));set('c_classVat',fmt(-(classInc-A.classRevYr)));
  set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
  set('c_classesYr',fmt(A.classesYr));set('c_classesMonth',fmt(A.classesYr/12));set('c_wkdays',fmt(A.weekdaysYr));set('c_nonRaceWknd',fmt(A.nonRaceWknd));
- set('c_yBM',fmt(num('salBM')*12));set('c_yPhoto',fmt(num('salPhoto')*12));set('c_yRec',fmt(num('recHeads')*num('salRec')*12));
+ ROLES.forEach(function(r,i){set('c_role'+i,fmt(Math.max(0,r.heads||0)*Math.max(0,r.pay||0)*12));});
+ set('c_headsTot',fmt(A.staff));
  var staffN=A.staff;['c_staffN1','c_staffN2','c_staffN3','c_staffN'].forEach(function(id){set(id,fmt(staffN));});
  set('c_yMedical',fmt(staffN*num('benMedical')));set('c_yResidency',fmt(staffN*num('benResidency')));set('c_yTickets',fmt(staffN*num('benTickets')));set('c_benYr',fmt(A.benYr));
- regDrill('c_yMedical','Medical insurance / year',[rP('Employees (BM + Photographer + '+num('recHeads')+' reception)',staffN),rM('Medical insurance / employee / yr',num('benMedical')),rT('Annual',staffN*num('benMedical'))]);
+ regDrill('c_yMedical','Medical insurance / year',[rP('Employees (headcount across all roles)',staffN),rM('Medical insurance / employee / yr',num('benMedical')),rT('Annual',staffN*num('benMedical'))]);
  regDrill('c_yResidency','Residencies / year',[rP('Employees',staffN),rM('Residency / employee / yr',num('benResidency')),rT('Annual',staffN*num('benResidency'))]);
  regDrill('c_yTickets','Annual tickets / year',[rP('Employees',staffN),rM('Ticket / employee / yr',num('benTickets')),rT('Annual',staffN*num('benTickets'))]);
  regDrill('c_benYr','Employee benefits / year',[rP('Medical insurance',staffN*num('benMedical')),rP('Residencies',staffN*num('benResidency')),rP('Annual tickets',staffN*num('benTickets')),rT('Benefits / year',A.benYr)]);
@@ -1230,13 +1250,17 @@ function saveSummary(A,Y){try{
 }catch(e){}}
 // Benefits changed from an annual TOTAL to a per-employee cost — convert legacy saves once
 function migrateBenefits(s){if(s&&s.__benPerEmp!==1){var hd=2+(parseFloat(s.recHeads)||0);if(hd>0){['benMedical','benResidency','benTickets'].forEach(function(k){if(s[k]!=null)s[k]=Math.round(parseFloat(s[k])/hd);});}s.__benPerEmp=1;}return s;}
-function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=CAL;s.__calMode=calMode;s.__benPerEmp=1;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
-function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=migrateBenefits(JSON.parse(raw));if(calValid(s.__cal))CAL=calClone(s.__cal);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
-function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='inS';renderCalendar();update();}
+// Payroll became an editable roster — rebuild ROLES from legacy salBM/salPhoto/salRec/recHeads saves
+function rolesFromSave(s){if(rolesValid(s.__roles))return rolesClone(s.__roles);
+ if(s.salBM!=null||s.salPhoto!=null||s.salRec!=null){return [{name:'Business Manager',heads:1,pay:parseFloat(s.salBM)||25000},{name:'Photographer / Video / Social',heads:1,pay:parseFloat(s.salPhoto)||20000},{name:'Reception',heads:parseFloat(s.recHeads)||3,pay:parseFloat(s.salRec)||8000}];}
+ return null;}
+function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=CAL;s.__calMode=calMode;s.__benPerEmp=1;s.__roles=ROLES;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=migrateBenefits(JSON.parse(raw));var rr=rolesFromSave(s);if(rr)ROLES=rr;rolesGuard();if(calValid(s.__cal))CAL=calClone(s.__cal);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode'||id==='__roles')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
+function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='inS';ROLES=rolesClone(ROLES_DEFAULT);renderCalendar();renderPayroll();update();}
 // ---- base case: a saved snapshot of the assumptions to reset back to ----
 var BKEY='redln-weekly-base';
-function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=calClone(CAL);s.__calMode=calMode;s.__benPerEmp=1;return s;}
-function applyInputs(s){s=migrateBenefits(s);if(calValid(s.__cal))CAL=calClone(s.__cal);else CAL=calClone(CAL_DEFAULT);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();renderCalendar();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
+function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=calClone(CAL);s.__calMode=calMode;s.__benPerEmp=1;s.__roles=rolesClone(ROLES);return s;}
+function applyInputs(s){s=migrateBenefits(s);var rr=rolesFromSave(s);ROLES=rr?rr:rolesClone(ROLES_DEFAULT);rolesGuard();if(calValid(s.__cal))CAL=calClone(s.__cal);else CAL=calClone(CAL_DEFAULT);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();renderCalendar();renderPayroll();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode'||id==='__roles')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
 function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
 function getBase(){try{var r=localStorage.getItem(BKEY);return r?JSON.parse(r):null;}catch(e){return null;}}
 function resetToBase(){var b=getBase();if(!b){resetAll();return;}applyInputs(b);update();}
@@ -1245,7 +1269,7 @@ document.getElementById('tabs').addEventListener('click',function(e){var b=e.tar
 document.getElementById('asm-sub').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.classList.remove('on');});b.classList.add('on');var t=b.getAttribute('data-s');['rev','cost','capital','growth'].forEach(function(s){el('s-'+s).classList.toggle('on',s===t);});});
 document.addEventListener('input',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('cin'))update();});
 document.addEventListener('change',function(e){if(e.target&&e.target.type==='checkbox')update();});
-window.addEventListener('DOMContentLoaded',function(){renderStatic();load();renderCalendar();if(!getBase())saveBase();update();});
+window.addEventListener('DOMContentLoaded',function(){renderStatic();load();renderCalendar();renderPayroll();if(!getBase())saveBase();update();});
 </script>
 </body>
 </html>
