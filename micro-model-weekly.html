@@ -713,7 +713,7 @@ function renderStatic(){
   '</div>'+
   '<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">Reference year <input class="cin small" id="calYear" value="'+DEFAULTS.calYear+'" inputmode="decimal" style="width:72px;margin:0 4px"> &middot; only Sat+Sun days in ticked months count. <b id="cal-note" style="color:var(--ink)"></b></div>';
  el('raceday-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Slots / day</th><th>Amount</th></tr></thead><tbody>'+
-  '<tr class="sec"><td colspan="4">Tickets per race day &mdash; 25 slots max</td></tr>'+
+  '<tr class="sec"><td colspan="4">Tickets per race day &middot; <span id="c_slotsHdr">—</span> slots / day</td></tr>'+
   '<tr class="sec"><td colspan="4">Teams</td></tr>'+
   '<tr><td>Everyday</td><td class="inp">'+I('pEvT')+'</td><td class="inp">'+I('qEvT','small')+'</td><td class="calc" id="c_revEvT">—</td></tr>'+
   '<tr><td>Elite</td><td class="inp">'+I('pElT')+'</td><td class="inp">'+I('qElT','small')+'</td><td class="calc" id="c_revElT">—</td></tr>'+
@@ -734,7 +734,7 @@ function renderStatic(){
   '<tr><td>Pick-your-heat &middot; fee / % of entries</td><td class="inp">'+I('heatPrice','small')+'</td><td class="inp">'+I('heatPct','small')+'</td><td class="calc" id="c_heatRevYr">—</td></tr>'+
   '<tr class="sec"><td colspan="4">Race-day direct cost / year</td></tr>'+
   '<tr><td>Resident DJ / race day</td><td></td><td class="inp">'+I('djExp')+'</td><td class="calc" id="c_wkDJYr">—</td></tr>'+
-  '<tr><td>Finisher badge &middot; AED / athlete</td><td class="inp">'+I('badgeCost','small')+'</td><td></td><td class="calc" id="c_wkBadgeYr">—</td></tr>'+
+  '<tr><td>Finisher badge &middot; AED / athlete</td><td></td><td class="inp">'+I('badgeCost','small')+'</td><td class="calc" id="c_wkBadgeYr">—</td></tr>'+
   '<tr><td>Prize / race day</td><td></td><td class="inp">'+I('prizePerEvent')+'</td><td class="calc" id="c_wkPrizeYr">—</td></tr>'+
   '<tr class="grand"><td>Net race-days revenue / year</td><td></td><td></td><td id="c_racedayNet">—</td></tr></tbody>';
  // 2 · Season Finale
@@ -763,7 +763,7 @@ function renderStatic(){
   '<tr><td>Volunteers</td><td></td><td class="inp">'+I('volunteers')+'</td><td></td></tr>'+
   '<tr><td>Permits</td><td></td><td class="inp">'+I('permits')+'</td><td></td></tr>'+
   '<tr><td>Prize purse</td><td></td><td class="inp">'+I('finPrize')+'</td><td></td></tr>'+
-  '<tr><td>Finisher badge &middot; AED / athlete</td><td class="calc" id="c_finBadgeFee">—</td><td></td><td class="calc" id="c_finBadgeYr">—</td></tr>'+
+  '<tr><td>Finisher badge &middot; AED / athlete</td><td></td><td class="calc" id="c_finBadgeFee">—</td><td class="calc" id="c_finBadgeYr">—</td></tr>'+
   '<tr><td>Finale direct cost / year (production + prize + badges)</td><td></td><td></td><td class="calc" id="c_finDirectYr">—</td></tr>'+
   '<tr class="grand"><td>Net finale revenue / year</td><td></td><td></td><td id="c_finaleNet">—</td></tr></tbody>';
  // 4 · F&B
@@ -1036,7 +1036,7 @@ function update(){
  set('c_revEvT',fmt(num('pEvT')*num('qEvT')));set('c_revElT',fmt(num('pElT')*num('qElT')));set('c_revEvS',fmt(num('pEvS')*num('qEvS')));set('c_revElS',fmt(num('pElS')*num('qElS')));
  var ticketInc=num('pEvT')*num('qEvT')+num('pElT')*num('qElT')+num('pEvS')*num('qEvS')+num('pElS')*num('qElS');
  var slots=num('qEvT')+num('qElT')+num('qEvS')+num('qElS');
- set('c_qTotal',fmt(slots));set('c_ticketInc',fmt(ticketInc));
+ set('c_qTotal',fmt(slots));set('c_ticketInc',fmt(ticketInc));set('c_slotsHdr',fmt(slots));
  set('c_eventVat',fmt(-(ticketInc-ticketInc/vd)));
  var ticketNetDay=ticketInc/vd; set('c_ticket',fmt(ticketNetDay));
  // 1 · Race days
