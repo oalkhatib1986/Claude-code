@@ -377,7 +377,7 @@
 var DEFAULTS={
  pEvT:1199,qEvT:5, pElT:1399,qElT:5, pEvS:350,qEvS:7, pElS:399,qElS:8,
  fbRev:5000, retRev:5000, fbMargin:40, retMargin:40, djExp:1500, volunteers:3000, permits:7500,
- eventsYr:64, calYear:2027, fillPct:70, prizePerEvent:0, badgeCost:10, ppPct:3,
+ eventsYr:64, calYear:2027, wkndPerMonth:0, fillPct:70, prizePerEvent:0, badgeCost:10, ppPct:3,
  finales:2, finEvT:10, finElT:10, finEvS:14, finElS:16, finPctPass:0, finDJ:10000, finPrize:0,
  heatPct:10, heatPrice:99, trialPrice:99,
  trLanes:8, trPerLane:4, trAthDay:40,
@@ -409,9 +409,19 @@ var MFLINES=[['mfEvent','Net event revenue',1],['mfAddon','Add-ons (heat) + tria
 function chk(id){var e=el(id);return e&&e.checked?1:0;}
 // Race calendar: active months → weekend race days counted from the real calendar (Sat+Sun)
 var MONTHS=[['mM0','Jan',1],['mM1','Feb',1],['mM2','Mar',1],['mM3','Apr',1],['mM4','May',0],['mM5','Jun',0],['mM6','Jul',0],['mM7','Aug',0],['mM8','Sep',1],['mM9','Oct',1],['mM10','Nov',1],['mM11','Dec',1]];
+// Which weekend days host races (checkboxes, saved with the model)
+var RACEWK=[['raceSat','Sat',1],['raceSun','Sun',1]];
 function weekendsInMonth(year,mIndex){var d=new Date(year,mIndex,1),c=0;while(d.getMonth()===mIndex){var w=d.getDay();if(w===0||w===6)c++;d.setDate(d.getDate()+1);}return c;}
+function satSunInMonth(year,mIndex){var d=new Date(year,mIndex,1),sat=0,sun=0;while(d.getMonth()===mIndex){var w=d.getDay();if(w===6)sat++;else if(w===0)sun++;d.setDate(d.getDate()+1);}return {sat:sat,sun:sun};}
 function yearDayCounts(year){var wk=0,we=0;for(var m=0;m<12;m++){var d=new Date(year,m,1);while(d.getMonth()===m){var w=d.getDay();if(w===0||w===6)we++;else wk++;d.setDate(d.getDate()+1);}}return {weekdays:wk,weekends:we};}
-function computeRaceDays(){var yr=Math.round(num('calYear'))||2027,total=0,nMonths=0;MONTHS.forEach(function(m,i){if(chk(m[0])){total+=weekendsInMonth(yr,i);nMonths++;}});var e=el('eventsYr');if(e)e.value=total;set('c_eventsYr',fmt(total));set('cal-note','= '+total+' weekend race days across '+nMonths+' months ('+yr+')');return total;}
+// Race days = for each ticked month, the chosen weekend days (Sat/Sun), capped at N race weekends/month
+function raceDaysForYear(){var yr=Math.round(num('calYear'))||2027;var wpm=Math.round(num('wkndPerMonth'))||0;var cap=wpm>0?wpm:Infinity;var useSat=chk('raceSat'),useSun=chk('raceSun');var total=0,nMonths=0;
+ MONTHS.forEach(function(m,i){if(chk(m[0])){var ss=satSunInMonth(yr,i);total+=(useSat?Math.min(cap,ss.sat):0)+(useSun?Math.min(cap,ss.sun):0);nMonths++;}});
+ return {total:total,nMonths:nMonths,useSat:useSat,useSun:useSun,wpm:wpm,yr:yr};}
+function computeRaceDays(){var r=raceDaysForYear();var e=el('eventsYr');if(e)e.value=r.total;set('c_eventsYr',fmt(r.total));
+ var dayTxt=(r.useSat&&r.useSun)?'Sat + Sun':(r.useSat?'Sat only':(r.useSun?'Sun only':'no weekend days selected'));
+ var freqTxt=r.wpm>0?(r.wpm+' weekend'+(r.wpm>1?'s':'')+'/month'):'every weekend';
+ set('cal-note','= '+r.total+' race days · '+dayTxt+' · '+freqTxt+' · '+r.nMonths+' months ('+r.yr+')');return r.total;}
 // Per-weekday occurrence counts in a year, indexed by JS getDay() (0=Sun … 6=Sat)
 function weekdayOccurrences(year){var occ=[0,0,0,0,0,0,0];for(var m=0;m<12;m++){var d=new Date(year,m,1);while(d.getMonth()===m){occ[d.getDay()]++;d.setDate(d.getDate()+1);}}return occ;}
 // Saturdays / Sundays inside the ticked (race) months — splits weekend days into race vs off-season
@@ -472,7 +482,7 @@ function calDerive(){
      if(tr>maxT)maxT=tr;
    });
  });
- var raceDays=dc.inS[5]+dc.inS[6];          // in-season weekend days = race days
+ var raceDays=raceDaysForYear().total;      // race days = chosen weekend days × N weekends/month, from the real calendar
  var nonRaceWknd=dc.offS[5]+dc.offS[6];     // off-season weekend days
  return {classesYr:classesYr,trialDaysYr:trialDaysYr,trSlotsDay:maxT,
    weekdays:weekdays,weekends:weekends,nonRaceWknd:nonRaceWknd,raceDays:raceDays,
@@ -711,7 +721,12 @@ function renderStatic(){
   '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+
   MONTHS.map(function(m){return '<label class="mchip"><input type="checkbox" id="'+m[0]+'"'+(m[2]?' checked':'')+' style="position:absolute;opacity:0;pointer-events:none"><span>'+m[1]+'</span></label>';}).join('')+
   '</div>'+
-  '<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">Reference year <input class="cin small" id="calYear" value="'+DEFAULTS.calYear+'" inputmode="decimal" style="width:72px;margin:0 4px"> &middot; only Sat+Sun days in ticked months count. <b id="cal-note" style="color:var(--ink)"></b></div>';
+  '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px">'+
+    '<span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Race on</span>'+
+    RACEWK.map(function(w){return '<label class="mchip"><input type="checkbox" id="'+w[0]+'"'+(w[2]?' checked':'')+' style="position:absolute;opacity:0;pointer-events:none"><span>'+w[1]+'</span></label>';}).join('')+
+    '<span style="font-family:var(--mono);font-size:12px;color:var(--muted)">Race weekends / month <input class="cin small" id="wkndPerMonth" value="'+DEFAULTS.wkndPerMonth+'" inputmode="decimal" style="width:56px;margin:0 4px"> <span style="font-size:10px">0 = every weekend</span></span>'+
+  '</div>'+
+  '<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">Reference year <input class="cin small" id="calYear" value="'+DEFAULTS.calYear+'" inputmode="decimal" style="width:72px;margin:0 4px"> &middot; <b id="cal-note" style="color:var(--ink)"></b></div>';
  el('raceday-table').innerHTML='<thead><tr><th>Item</th><th>Price</th><th>Slots / day</th><th>Amount</th></tr></thead><tbody>'+
   '<tr class="sec"><td colspan="4">Tickets per race day &middot; <span id="c_slotsHdr">—</span> slots / day</td></tr>'+
   '<tr class="sec"><td colspan="4">Teams</td></tr>'+
@@ -1254,12 +1269,12 @@ function migrateBenefits(s){if(s&&s.__benPerEmp!==1){var hd=2+(parseFloat(s.recH
 function rolesFromSave(s){if(rolesValid(s.__roles))return rolesClone(s.__roles);
  if(s.salBM!=null||s.salPhoto!=null||s.salRec!=null){return [{name:'Business Manager',heads:1,pay:parseFloat(s.salBM)||25000},{name:'Photographer / Video / Social',heads:1,pay:parseFloat(s.salPhoto)||20000},{name:'Reception',heads:parseFloat(s.recHeads)||3,pay:parseFloat(s.salRec)||8000}];}
  return null;}
-function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=CAL;s.__calMode=calMode;s.__benPerEmp=1;s.__roles=ROLES;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+function save(){try{var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});RACEWK.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=CAL;s.__calMode=calMode;s.__benPerEmp=1;s.__roles=ROLES;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 function load(){try{var raw=localStorage.getItem(KEY);if(!raw)return;var s=migrateBenefits(JSON.parse(raw));var rr=rolesFromSave(s);if(rr)ROLES=rr;rolesGuard();if(calValid(s.__cal))CAL=calClone(s.__cal);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode'||id==='__roles')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}catch(e){}}
-function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='inS';ROLES=rolesClone(ROLES_DEFAULT);renderCalendar();renderPayroll();update();}
+function resetAll(){try{localStorage.removeItem(KEY);}catch(e){}Object.keys(DEFAULTS).forEach(function(id){var e=el(id);if(e)e.value=DEFAULTS[id];});MFLINES.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});MONTHS.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});RACEWK.forEach(function(r){var e=el(r[0]);if(e)e.checked=!!r[2];});CAL=calClone(CAL_DEFAULT);calMode='inS';ROLES=rolesClone(ROLES_DEFAULT);renderCalendar();renderPayroll();update();}
 // ---- base case: a saved snapshot of the assumptions to reset back to ----
 var BKEY='redln-weekly-base';
-function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=calClone(CAL);s.__calMode=calMode;s.__benPerEmp=1;s.__roles=rolesClone(ROLES);return s;}
+function snapshotInputs(){var s={};Object.keys(DEFAULTS).forEach(function(id){s[id]=num(id);});MFLINES.forEach(function(r){s[r[0]]=chk(r[0]);});MONTHS.forEach(function(r){s[r[0]]=chk(r[0]);});RACEWK.forEach(function(r){s[r[0]]=chk(r[0]);});s.__cal=calClone(CAL);s.__calMode=calMode;s.__benPerEmp=1;s.__roles=rolesClone(ROLES);return s;}
 function applyInputs(s){s=migrateBenefits(s);var rr=rolesFromSave(s);ROLES=rr?rr:rolesClone(ROLES_DEFAULT);rolesGuard();if(calValid(s.__cal))CAL=calClone(s.__cal);else CAL=calClone(CAL_DEFAULT);if(s.__calMode==='inS'||s.__calMode==='offS')calMode=s.__calMode;calGuard();renderCalendar();renderPayroll();Object.keys(s).forEach(function(id){if(id==='__cal'||id==='__calMode'||id==='__roles')return;var e=el(id);if(!e||s[id]==null)return;if(e.type==='checkbox')e.checked=!!s[id];else e.value=s[id];});}
 function saveBase(){try{localStorage.setItem(BKEY,JSON.stringify(snapshotInputs()));}catch(e){}}
 function getBase(){try{var r=localStorage.getItem(BKEY);return r?JSON.parse(r):null;}catch(e){return null;}}
