@@ -477,7 +477,9 @@ function calClone(o){return JSON.parse(JSON.stringify(o));}
 // A calendar is valid only in the two-full-week shape. Old saves (wk/rc/of) are rejected.
 function calValid(o){return !!(o&&Array.isArray(o.times)&&Array.isArray(o.inS)&&o.inS.length===7&&Array.isArray(o.offS)&&o.offS.length===7);}
 // Self-heal: guarantee CAL is the current shape and calMode is a real season before any read
-function calGuard(){if(!calValid(CAL))CAL=calClone(CAL_DEFAULT);if(calMode!=='inS'&&calMode!=='offS')calMode='inS';}
+function calGuard(){if(!calValid(CAL))CAL=calClone(CAL_DEFAULT);if(calMode!=='inS'&&calMode!=='offS')calMode='inS';
+ // FLEXIBLE: races are set in the race table, not the calendar — strip any stale Race cells so the two never disagree
+ [CAL.inS,CAL.offS].forEach(function(g){if(g)g.forEach(function(col){if(col)for(var t=0;t<col.length;t++)if(col[t]==='R')col[t]='';});});}
 var CAL=calClone(CAL_DEFAULT);
 var calMode='inS';   // which full-week calendar is shown/edited: 'inS' or 'offS'
 var CAL_COL2JS=[1,2,3,4,5,6,0];   // calendar column (Mon..Sun) → JS getDay()
