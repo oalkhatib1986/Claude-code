@@ -577,6 +577,7 @@ function renderRaces(){var t=el('raceday-table');if(!t)return;racesGuard();
    h+='<tr class="sec"><td colspan="4">'+daySel(i,r.day)+' &nbsp;'+fmtSel(i,r.fmt)+' &nbsp;<span style="color:var(--muted);text-transform:none;letter-spacing:0">&times; <b id="c_raceOcc'+i+'">—</b>/yr</span> <span class="wcdel" style="float:right" title="Delete race day" onclick="raceDel('+i+')">✕</span></td></tr>';
    if(r.fmt!=='solo'){h+=pc(i,'pEvT','nEvT','Everyday team')+pc(i,'pElT','nElT','Elite team');}
    if(r.fmt!=='teams'){h+=pc(i,'pEvS','nEvS','Everyday solo')+pc(i,'pElS','nElS','Elite solo');}
+   h+='<tr class="calc"><td>Athletes / day &middot; 4&times;teams + solo</td><td></td><td class="calc" id="c_raceAth'+i+'">—</td><td></td></tr>';
    h+='<tr class="subtot"><td>'+RACE_DAYS[r.day]+' &mdash; net revenue / year</td><td></td><td></td><td id="c_raceRev'+i+'">—</td></tr>';
  });
  h+='<tr><td colspan="4" style="padding:7px 10px"><button class="waddr" onclick="raceAdd()">+ add race day</button></td></tr>';
@@ -952,7 +953,8 @@ function showDrill(id){var b=DRILLS[id];if(!b)return;el('drill-title').textConte
 function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  var rc=raceCompute(),hp=Math.max(0,num('heatPct'))/100;
  rc.rows.forEach(function(row,i){if(!RACES[i])return;var lbl=RACE_DAYS[RACES[i].day];
-   regDrill('c_raceRev'+i,lbl+' · net revenue / year',[rP('Net ticket / '+lbl+' (VAT removed)',row.net),rM(lbl+'s in season',row.occ),rT('Net / year',row.revYr)]);});
+   regDrill('c_raceRev'+i,lbl+' · net revenue / year',[rP('Net ticket / '+lbl+' (VAT removed)',row.net),rM(lbl+'s in season',row.occ),rT('Net / year',row.revYr)]);
+   regDrill('c_raceAth'+i,lbl+' · athletes / day',[rP('Teams this day',row.teams),rM('× 4 athletes / team',4),rP('+ Solo athletes',row.solos),rT('Athletes / day',row.ath)]);});
  set('c_wkEnt',fmt(rc.entriesYr));set('c_wkAth',fmt(rc.athletesYr));
  regDrill('c_wkEnt','Entries / year (heat base)',[rP('Σ (teams + solo per race day × that weekday’s yearly count)',rc.entriesYr),rT('Entries / year',rc.entriesYr)]);
  regDrill('c_wkAth','Athletes / year (badge base)',[rP('Σ (4×teams + solo per race day × yearly count)',rc.athletesYr),rT('Athletes / year',rc.athletesYr)]);
@@ -1061,7 +1063,7 @@ function update(){
  var vd=1+num('vatPct')/100;
  // 1 · Race days — per-day table + aggregates
  var rc=raceCompute();
- rc.rows.forEach(function(row,i){set('c_raceOcc'+i,fmt(row.occ));set('c_raceRev'+i,fmt(row.revYr));});
+ rc.rows.forEach(function(row,i){set('c_raceOcc'+i,fmt(row.occ));set('c_raceRev'+i,fmt(row.revYr));set('c_raceAth'+i,fmt(row.ath));});
  set('c_wkEnt',fmt(rc.entriesYr));set('c_wkAth',fmt(rc.athletesYr));
  var rdDays=rc.daysYr; set('c_eventsYr',fmt(rdDays));
  var heatRevYr=rc.heatYr; set('c_heatRevYr',fmt(heatRevYr));
