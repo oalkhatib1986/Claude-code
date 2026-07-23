@@ -383,7 +383,7 @@ var DEFAULTS={
  finales:2, finEvT:10, finElT:10, finEvS:14, finElS:16, finPctPass:0, finDJ:10000, finPrize:0,
  heatPct:10, heatPrice:99, trialPrice:99,
  trLanes:8, trPerLane:4, trAthDay:40,
- capacity:45, pricePerClass:105, creditPrice:120, trainerFee:700, seasons:2,
+ capacity:45, pricePerClass:105, creditPrice:120, classCreditPrice:105, trainerFee:700, seasons:2,
  benMedical:5000, benResidency:5000, benTickets:5000,
  oRent:600000, oLicense:40000, oAudit:7500,
  oAccounting:3500, oCleaning:6000, oDewa:6000, oEtisalat:3000, oMaintenance:3000, oSupplies:3000, oWater:1500, oMisc:3000,
@@ -581,7 +581,7 @@ function renderRaces(){var t=el('raceday-table');if(!t)return;
    h+='<tr class="subtot"><td>'+rc.label+' &mdash; net revenue / year</td><td></td><td></td><td id="c_raceRev'+i+'">—</td></tr>';
  });
  h+='<tr class="sec"><td colspan="4">REDLN credits &amp; race costs / year &mdash; across all race sessions</td></tr>'+
-    '<tr><td>REDLN credit price &middot; AED / credit (VAT incl.)</td><td class="inp">'+Iv('creditPrice','small')+'</td><td></td><td></td></tr>'+
+    '<tr><td>Race credit price &middot; AED / credit (VAT incl.)</td><td class="inp">'+Iv('creditPrice','small')+'</td><td></td><td></td></tr>'+
     '<tr><td>Entries / year &middot; teams + solo</td><td></td><td class="calc" id="c_wkEnt">—</td><td></td></tr>'+
     '<tr><td>Race credits / year &middot; 1 per athlete</td><td></td><td class="calc" id="c_wkAth">—</td><td></td></tr>'+
     '<tr class="subtot"><td>Race credit revenue / year (net)</td><td></td><td></td><td id="c_wkTicketYr">—</td></tr>'+
@@ -666,7 +666,7 @@ function compute(){
  // ---- Group classes — each attendee spends one REDLN credit (attendance × credit price) ----
  var classesYr=cal.classesYr;
  var clientMonth=(classesYr/12)*v('capacity');
- var classRevYr=classesYr*v('capacity')*v('creditPrice')/vd;   // class credits = classes × capacity, at the credit price
+ var classRevYr=classesYr*v('capacity')*v('classCreditPrice')/vd;   // class credits = classes × capacity, at the class credit price
  var trainerYr=classesYr*v('trainerFee');
  var prizesYr=v('prizePerEvent')*regRaceDays + v('finPrize')*finales;   // regular-race prize/day (default 0) + finale purse
  var pp=v('ppPct')/100;
@@ -827,7 +827,7 @@ function renderStatic(){
   '<tr class="calc"><td>Classes / year</td><td></td><td class="calc" id="c_classesYr">—</td></tr>'+
   '<tr class="subtot"><td>Classes / month (average)</td><td></td><td id="c_classesMonth">—</td></tr>'+
   '<tr><td>Capacity / class</td><td class="inp">'+I('capacity','small')+'</td><td></td></tr>'+
-  '<tr><td>Each attendee &middot; 1 REDLN credit</td><td class="calc" id="c_creditRef">—</td><td class="calc" style="text-transform:none;letter-spacing:0">credit price</td></tr>'+
+  '<tr><td>Class credit price &middot; AED / credit (VAT incl.)</td><td class="inp">'+I('classCreditPrice','small')+'</td><td class="calc" style="text-transform:none;letter-spacing:0">1 credit / attendee</td></tr>'+
   '<tr class="calc"><td>Gross class revenue (VAT incl.)</td><td></td><td class="calc" id="c_classInc">—</td></tr>'+
   '<tr><td>Less: VAT</td><td></td><td class="calc" id="c_classVat">—</td></tr>'+
   '<tr class="subtot"><td>Gross class revenue (net)</td><td></td><td id="c_classRevYr">—</td></tr>'+
@@ -912,7 +912,7 @@ function breakdown(line,i){
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
   case 'grossHeat':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var ent=(v('qEvT')+v('qElT')+v('qEvS')+v('qElS'))*fillv;var per=(v('heatPct')/100)*ent*v('heatPrice')/vd;var wk=per*ev;var finEnt=v('finEvT')+v('finElT')+v('finEvS')+v('finElS');var finH=(v('heatPct')/100)*finEnt*v('heatPrice')/vd*v('finales');return R([{l:'Entries / race day (filled)',x:ent},{l:'Pick-your-heat take-up',x:v('heatPct')/100,mult:1},{l:'Heat fee (VAT incl.)',x:v('heatPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per race day (net)',x:per,sub:1},{l:'Race-slot days / year',x:ev,mult:1},{l:'Weekly heat',x:wk,sub:1},{l:'+ Finale heat ('+finEnt+' × '+v('finales')+')',x:finH}],(wk+finH)*vg);}
   case 'grossTrial':{var cd=calDerive();return R([{l:'Athletes / trial day',x:v('trAthDay')},{l:'Trial days / year (from calendar)',x:cd.trialDaysYr,mult:1},{l:'Price / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],v('trAthDay')*cd.trialDaysYr*(v('trialPrice')/vd)*vg);}
-  case 'grossClass':{var cd=calDerive();return R([{l:'Classes / year (from calendar)',x:cd.classesYr},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'REDLN credit price (VAT incl.)',x:v('creditPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('capacity')*(v('creditPrice')/vd)*vg);}
+  case 'grossClass':{var cd=calDerive();return R([{l:'Classes / year (from calendar)',x:cd.classesYr},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Class credit price (VAT incl.)',x:v('classCreditPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('capacity')*(v('classCreditPrice')/vd)*vg);}
   case 'trainer':{var cd=calDerive();return R([{l:'Classes / year',x:cd.classesYr},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('trainerFee')*vg);}
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
   case 'prizes':{var wk=v('prizePerEvent')*ev,fin=v('finPrize')*v('finales');return R([{l:'Weekly prize / race day',x:v('prizePerEvent')},{l:'Race-slot days / year',x:ev,mult:1},{l:'Weekly prizes',x:wk,sub:1},{l:'Finale purse / finale',x:v('finPrize')},{l:'Finales / year',x:v('finales'),mult:1},{l:'+ Finale prizes',x:fin,sub:1},{l:'Inflation',x:inf,mult:1}],(wk+fin)*inf);}
@@ -953,7 +953,7 @@ function showDrill(id){var b=DRILLS[id];if(!b)return;el('drill-title').textConte
 function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  var rc=raceCompute(),hp=Math.max(0,num('heatPct'))/100;
  rc.rows.forEach(function(row,i){var lbl=row.label;
-   regDrill('c_raceRev'+i,lbl+' · net revenue / year',[rP('Athletes (credits) / session',row.credits),rM('Credit price (VAT incl.)',num('creditPrice')),rM('Remove VAT (÷ '+mfmt(1+num('vatPct')/100)+')',1/(1+num('vatPct')/100)),rM('Sessions / year',row.occ),rT('Net / year',row.revYr)]);
+   regDrill('c_raceRev'+i,lbl+' · net revenue / year',[rP('Athletes (credits) / session',row.credits),rM('Race credit price (VAT incl.)',num('creditPrice')),rM('Remove VAT (÷ '+mfmt(1+num('vatPct')/100)+')',1/(1+num('vatPct')/100)),rM('Sessions / year',row.occ),rT('Net / year',row.revYr)]);
    regDrill('c_raceAth'+i,lbl+' · athletes / session',[rP('Teams this session',row.teams),rM('× 4 athletes / team',4),rP('+ Solo athletes',row.solos),rT('Athletes / session',row.ath)]);});
  set('c_wkEnt',fmt(rc.entriesYr));set('c_wkAth',fmt(rc.athletesYr));
  regDrill('c_wkEnt','Entries / year (heat base)',[rP('Σ (teams + solo per race day × that weekday’s yearly count)',rc.entriesYr),rT('Entries / year',rc.entriesYr)]);
@@ -1004,14 +1004,14 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  regDrill('c_finaleNet','Net finale revenue / year',[rP('Ticket revenue (net)',finTix),rP('+ Pick-your-heat',finHeat),rP('− Production + prize',-finProdPrize),rP('− Finisher badges',-finBadge),rT('Net finale revenue',finTix+finHeat-finDir)]);
  // 3 · Classes — counted straight from the interactive calendar
  var classesYr=cd.classesYr;
- var classInc=classesYr*num('capacity')*num('creditPrice'),classNet=classInc/vd,trainerYr=classesYr*num('trainerFee');
+ var classInc=classesYr*num('capacity')*num('classCreditPrice'),classNet=classInc/vd,trainerYr=classesYr*num('trainerFee');
  set('c_classesYr',fmt(classesYr));set('c_classesMonth',fmt(classesYr/12));set('c_wkdayCls',fmt(cd.wkdayCls));set('c_raceWkndCls',fmt(cd.raceWkndCls));set('c_offWkndCls',fmt(cd.offWkndCls));set('c_wkdays',fmt(cd.weekdays));set('c_nonRaceWknd',fmt(cd.nonRaceWknd));
  regDrill('c_classesYr','Classes / year (from both calendars)',[rP('Weekday classes (both seasons × their yearly counts)',cd.wkdayCls),rP('In-season weekend classes ('+cd.raceDays+' days)',cd.raceWkndCls),rP('Off-season weekend classes ('+cd.nonRaceWknd+' days)',cd.offWkndCls),rT('Classes / year',classesYr)]);
  regDrill('c_wkdayCls','Weekday classes / year',[rP('Class cells across Mon–Fri in both calendars × each day’s yearly occurrences',cd.wkdayCls),rT('Weekday classes / year',cd.wkdayCls)]);
  regDrill('c_raceWkndCls','In-season weekend classes / year',[rP('Class cells on in-season Sat/Sun × in-season weekend days',cd.raceWkndCls),rT('In-season weekend classes / year',cd.raceWkndCls)]);
  regDrill('c_offWkndCls','Off-season weekend classes / year',[rP('Class cells on off-season Sat/Sun × off-season weekend days',cd.offWkndCls),rT('Off-season classes / year',cd.offWkndCls)]);
  regDrill('c_classesMonth','Classes / month (average)',[rP('Classes / year',classesYr),rM('÷ 12 months',1/12),rT('Classes / month',classesYr/12)]);
- regDrill('c_classInc','Gross class revenue (VAT incl.)',[rP('Classes / year',classesYr),rM('Capacity / class',num('capacity')),rM('REDLN credit price (VAT incl.)',num('creditPrice')),rT('Gross (VAT incl.)',classInc)]);
+ regDrill('c_classInc','Gross class revenue (VAT incl.)',[rP('Classes / year',classesYr),rM('Capacity / class',num('capacity')),rM('Class credit price (VAT incl.)',num('classCreditPrice')),rT('Gross (VAT incl.)',classInc)]);
  regDrill('c_classVat','VAT removed',[rP('Gross (VAT incl.)',classInc),rM('÷ '+mfmt(vd),1/vd),rT('VAT',-(classInc-classNet))]);
  regDrill('c_classRevYr','Gross class revenue (net)',[rP('Gross (VAT incl.)',classInc),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net',classNet)]);
  regDrill('c_trainerYr','Trainer fees / year',[rP('Classes / year',classesYr),rM('Trainer fee / class',num('trainerFee')),rT('Trainer fees',-trainerYr)]);
@@ -1099,8 +1099,8 @@ function update(){
  // 4 · F&B and 5 · Retail (standalone business units, net annual)
  set('c_fbRevYr',fmt(Y[0].grossFb));set('c_fbCogs',fmt(-(Y[0].grossFb-Y[0].netFb)));set('c_netFbYr',fmt(Y[0].netFb));set('rev-fb',aed(Y[0].netFb)+' net / yr');
  set('c_retRevYr',fmt(Y[0].grossRet));set('c_retCogs',fmt(-(Y[0].grossRet-Y[0].netRet)));set('c_netRetYr',fmt(Y[0].netRet));set('rev-ret',aed(Y[0].netRet)+' net / yr');
- var classInc=A.classesYr*num('capacity')*num('creditPrice');
- set('c_creditRef',fmt(num('creditPrice')));set('c_classInc',fmt(classInc));set('c_classVat',fmt(-(classInc-A.classRevYr)));
+ var classInc=A.classesYr*num('capacity')*num('classCreditPrice');
+ set('c_classInc',fmt(classInc));set('c_classVat',fmt(-(classInc-A.classRevYr)));
  set('c_classRevYr',fmt(A.classRevYr));set('c_trainerYr',fmt(-(A.classRevYr-Y[0].netClass)));set('c_netClassYr',fmt(Y[0].netClass));
  set('c_classesYr',fmt(A.classesYr));set('c_classesMonth',fmt(A.classesYr/12));set('c_wkdays',fmt(A.weekdaysYr));set('c_nonRaceWknd',fmt(A.nonRaceWknd));
  ROLES.forEach(function(r,i){set('c_role'+i,fmt(Math.max(0,r.heads||0)*Math.max(0,r.pay||0)*12));});
