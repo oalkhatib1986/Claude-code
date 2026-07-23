@@ -323,10 +323,10 @@
     <div class="asmsub2 on" id="s-rev">
       <p class="foot" style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;margin:0 0 6px">Six revenue segments, each built up from its own assumptions. All figures Year&nbsp;1, net of 5% VAT. The six nets, less payment fees, sum to net revenue.</p>
       <div class="card"><div class="ch">Weekly schedule &middot; tap cells to place sessions (class / trial / race)</div><div id="week-cal" style="margin-top:8px"></div></div>
-      <div class="card"><div class="ch">1 &middot; Race sessions <span class="csum" id="rev-raceday">—</span></div><div id="race-calendar" style="margin:2px 0 10px"></div><div class="scroll"><table class="mono" id="raceday-table"></table></div></div>
-      <div class="card"><div class="ch">2 &middot; Season Finale <span class="csum" id="rev-finale">—</span></div><div class="scroll"><table class="mono" id="finale-table"></table></div></div>
-      <div class="card"><div class="ch">3 &middot; Trial sessions <span class="csum" id="rev-trial">—</span></div><div class="scroll"><table class="mono" id="trial-table"></table></div></div>
-      <div class="card"><div class="ch">4 &middot; Normal (class) sessions <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
+      <div class="card"><div class="ch">1 &middot; Normal (class) sessions <span class="csum" id="rev-classyr">—</span></div><div class="scroll"><table class="mono" id="class-table"></table></div></div>
+      <div class="card"><div class="ch">2 &middot; Race sessions <span class="csum" id="rev-raceday">—</span></div><div id="race-calendar" style="margin:2px 0 10px"></div><div class="scroll"><table class="mono" id="raceday-table"></table></div></div>
+      <div class="card"><div class="ch">3 &middot; Season Finale <span class="csum" id="rev-finale">—</span></div><div class="scroll"><table class="mono" id="finale-table"></table></div></div>
+      <div class="card"><div class="ch">4 &middot; Trial sessions <span class="csum" id="rev-trial">—</span></div><div class="scroll"><table class="mono" id="trial-table"></table></div></div>
       <div class="grid2">
         <div class="card"><div class="ch">5 &middot; F&amp;B <span class="csum" id="rev-fb">—</span></div><div class="scroll"><table class="mono" id="fb-table"></table></div></div>
         <div class="card"><div class="ch">6 &middot; Retail <span class="csum" id="rev-ret">—</span></div><div class="scroll"><table class="mono" id="retail-table"></table></div></div>
@@ -502,7 +502,7 @@ function calDerive(){
      var days=counts[i],c=calCnt(col,'C'),tr=calCnt(col,'T');
      classesYr+=c*days;
      if(i<5){wkdayCls+=c*days;weekdays+=days;}else{weekends+=days;if(s[0]==='inS')inWkndCls+=c*days;else offWkndCls+=c*days;}
-     if(tr>0)trialDaysYr+=days;
+     trialDaysYr+=tr*days;   // per trial SESSION (each trial cell counts), so calendar totals add up
      if(tr>maxT)maxT=tr;
    });
  });
@@ -527,16 +527,16 @@ function calSetTime(t,val){calGuard();CAL.times[t]=val;calSortRows();renderCalen
 function calAddRow(){calGuard();CAL.times.push('12:00 PM');CAL.inS.forEach(function(c){c.push('');});CAL.offS.forEach(function(c){c.push('');});calSortRows();renderCalendar();update();}
 function calDelRow(t){calGuard();if(CAL.times.length<=1)return;CAL.times.splice(t,1);CAL.inS.forEach(function(c){c.splice(t,1);});CAL.offS.forEach(function(c){c.splice(t,1);});renderCalendar();update();}
 var CAL_DC=null;   // per-render cache of weekday occurrences (in/off season)
-// Clients (per session) and net revenue / year for a marked calendar cell, from the assumptions below
-function cellStats(col,t,v){if(!CAL_DC)return null;var vd=1+Math.max(0,num('vatPct'))/100;var occ=Math.max(0,(calMode==='inS'?CAL_DC.inS:CAL_DC.offS)[col]||0);
- if(v==='C'){var c=Math.max(0,num('capacity'));return {clients:c,revYr:c*(num('classCreditPrice')/vd)*occ};}
- if(v==='T'){var a=Math.max(0,num('trAthDay'));return {clients:a,revYr:a*(num('trialPrice')/vd)*occ};}
- if(v==='R'){var r=raceCfg(raceKey(calMode,col,t)),uT=r.fmt!=='solo',uS=r.fmt!=='teams';
+// Clients (per session) and net revenue / year for a marked cell of a given season, from the assumptions below
+function cellStats(season,col,t,v){if(!CAL_DC)return null;var vd=1+Math.max(0,num('vatPct'))/100;var occ=Math.max(0,(season==='inS'?CAL_DC.inS:CAL_DC.offS)[col]||0);
+ if(v==='C'){var c=Math.max(0,num('capacity'));return {clients:c,revYr:c*(num('classCreditPrice')/vd)*occ,occ:occ};}
+ if(v==='T'){var a=Math.max(0,num('trAthDay'));return {clients:a,revYr:a*(num('trialPrice')/vd)*occ,occ:occ};}
+ if(v==='R'){var r=raceCfg(raceKey(season,col,t)),uT=r.fmt!=='solo',uS=r.fmt!=='teams';
    var ath=4*((uT?Math.max(0,r.nEvT||0):0)+(uT?Math.max(0,r.nElT||0):0))+(uS?Math.max(0,r.nEvS||0):0)+(uS?Math.max(0,r.nElS||0):0);
-   return {clients:ath,revYr:ath*(num('creditPrice')/vd)*occ};}
+   return {clients:ath,revYr:ath*(num('creditPrice')/vd)*occ,occ:occ};}
  return null;}
 function calCellHTML(col,t){var v=CAL[calMode][col][t]||'';var lab={'C':'Class','T':'Trial','R':'Race'}[v]||'&middot;';var cl=v==='C'?'cCls':v==='T'?'cTr':v==='R'?'cRace':'cEmp';
- var st='';var s=cellStats(col,t,v);if(s){st='<div class="wcst">'+fmt(s.clients)+'p &middot; '+kf(s.revYr)+'</div>';}
+ var st='';var s=cellStats(calMode,col,t,v);if(s){st='<div class="wcst">'+fmt(s.clients)+'p &middot; '+kf(s.revYr)+'</div>';}
  return '<td class="wcx '+cl+'" onclick="calCycle('+col+','+t+')">'+lab+st+'</td>';}
 // 30-minute interval labels (12:00 AM … 11:30 PM) for the custom time picker
 function calTimeArr(){var a=[];for(var h=0;h<24;h++){for(var mi=0;mi<2;mi++){var mm=mi?'30':'00';var ap=h<12?'AM':'PM';var h12=(h%12)===0?12:h%12;a.push(h12+':'+mm+' '+ap);}}return a;}
@@ -562,7 +562,7 @@ function calUseTyped(){var v=el('ctinput').value.trim();if(v)calPickTime(v);}
 function renderCalendar(){var box=el('week-cal');if(!box)return;calGuard();
  var d=calDerive();
  CAL_DC=seasonDayCounts(Math.round(num('calYear'))||2027,MONTHS.map(function(m){return chk(m[0])?1:0;}));
- var h='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:0;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.05em;padding:5px 3px}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap;padding:2px 4px}.wctime{font-family:var(--mono);font-size:10px;width:94px;display:flex;align-items:center;justify-content:space-between;gap:4px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 6px;border-radius:4px;cursor:pointer;text-align:left}.wctime:hover,.wctime:focus{border-color:var(--red);outline:none}.wccaret{color:var(--red);font-size:9px}.wcdel{cursor:pointer;color:#c4c4c4;font-size:11px;padding:0 3px}.wcdel:hover{color:var(--red)}.wcx{cursor:pointer;user-select:none;padding:5px 3px;transition:background .1s;vertical-align:middle}.wcx:hover{outline:2px solid var(--red);outline-offset:-2px}.wcst{font-size:8px;font-weight:400;line-height:1.2;margin-top:2px;opacity:.75;letter-spacing:0;font-variant-numeric:tabular-nums}.wc .cEmp{color:#c4c4c4}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}.wmode{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px}.wmode.on{background:var(--red);color:#fff;border-color:var(--red)}.waddr{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 9px;border:1px dashed var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px;margin-top:6px}.waddr:hover{border-color:var(--red);color:var(--red)}</style>';
+ var h='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:0;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.05em;padding:5px 3px}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap;padding:2px 4px}.wctime{font-family:var(--mono);font-size:10px;width:94px;display:flex;align-items:center;justify-content:space-between;gap:4px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 6px;border-radius:4px;cursor:pointer;text-align:left}.wctime:hover,.wctime:focus{border-color:var(--red);outline:none}.wccaret{color:var(--red);font-size:9px}.wcdel{cursor:pointer;color:#c4c4c4;font-size:11px;padding:0 3px}.wcdel:hover{color:var(--red)}.wcx{cursor:pointer;user-select:none;padding:5px 3px;transition:background .1s;vertical-align:middle}.wcx:hover{outline:2px solid var(--red);outline-offset:-2px}.wcst{font-size:8px;font-weight:400;line-height:1.2;margin-top:2px;opacity:.75;letter-spacing:0;font-variant-numeric:tabular-nums}.wc tfoot td{border-top:2px solid var(--ink);font-weight:700;color:var(--ink);padding:6px 3px;font-variant-numeric:tabular-nums;background:rgba(13,16,19,.03)}.wc tfoot .tl{color:var(--muted);font-weight:400;text-transform:uppercase;letter-spacing:.06em;font-size:9px}.wc .cEmp{color:#c4c4c4}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}.wmode{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px}.wmode.on{background:var(--red);color:#fff;border-color:var(--red)}.waddr{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 9px;border:1px dashed var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px;margin-top:6px}.waddr:hover{border-color:var(--red);color:var(--red)}</style>';
  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Editing</span>'+
     '<button class="wmode'+(calMode==='inS'?' on':'')+'" onclick="setCalMode(\'inS\')">In-season week</button>'+
     '<button class="wmode'+(calMode==='offS'?' on':'')+'" onclick="setCalMode(\'offS\')">Off-season week ('+d.nonRaceWknd+' weekend days/yr)</button></div>';
@@ -572,8 +572,19 @@ function renderCalendar(){var box=el('week-cal');if(!box)return;calGuard();
    for(var c=0;c<7;c++)h+=calCellHTML(c,t);
    h+='<td><span class="wcdel" title="Remove this time slot" onclick="calDelRow('+t+')">✕</span></td></tr>';
  }
- h+='</tbody></table></div>';
+ // ---- per-day totals (displayed season) + full-year totals (both seasons) ----
+ var colCl=[0,0,0,0,0,0,0],colRv=[0,0,0,0,0,0,0];
+ for(var cc=0;cc<7;cc++)for(var tt=0;tt<CAL.times.length;tt++){var s=cellStats(calMode,cc,tt,CAL[calMode][cc][tt]);if(s){colCl[cc]+=s.clients;colRv[cc]+=s.revYr;}}
+ var rowCl='<tr class="wcfoot"><td class="tl">Clients / day</td>';for(var c1=0;c1<7;c1++)rowCl+='<td>'+(colCl[c1]?fmt(colCl[c1]):'·')+'</td>';rowCl+='<td></td></tr>';
+ var rowRv='<tr class="wcfoot"><td class="tl">Net rev / year</td>';for(var c2=0;c2<7;c2++)rowRv+='<td>'+(colRv[c2]?kf(colRv[c2]):'·')+'</td>';rowRv+='<td></td></tr>';
+ h+='<tfoot>'+rowCl+rowRv+'</tfoot></tbody></table></div>';
  h+='<button class="waddr" onclick="calAddRow()">+ add time slot</button>';
+ // full-year totals across BOTH seasons
+ var visYr=0,revYr=0;['inS','offS'].forEach(function(sea){for(var a=0;a<7;a++)for(var t2=0;t2<CAL.times.length;t2++){var s=cellStats(sea,a,t2,CAL[sea][a][t2]);if(s){visYr+=s.clients*s.occ;revYr+=s.revYr;}}});
+ h+='<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;margin-top:12px;padding:11px 14px;border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;background:rgba(255,23,23,0.04)">'+
+    '<span style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:700">Full year &middot; both seasons</span>'+
+    '<span style="font-family:var(--mono);font-size:12px;color:var(--ink)"><b>'+fmt(visYr)+'</b> <span style="color:var(--muted)">client-visits</span></span>'+
+    '<span style="font-family:var(--mono);font-size:12px;color:var(--ink)"><b>'+aed(revYr)+'</b> <span style="color:var(--muted)">net revenue</span></span></div>';
  h+='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">One product: the <b>REDLN credit</b>. Tap a cell to cycle <b>empty → class → trial → race</b>; each session type&rsquo;s assumptions fill in the tables below. Each marked cell shows <b>clients / session &middot; net revenue / year</b> (e.g. <b>45p · 234k</b>) from those assumptions. &nbsp;<span style="color:var(--red)">■</span> race &nbsp;<span style="color:#b35c00">■</span> trial &nbsp;<span style="color:#0d1013">■</span> class</div>';
  box.innerHTML=h;
 }
@@ -849,11 +860,11 @@ function renderStatic(){
  el('trial-table').innerHTML='<thead><tr><th>Item</th><th>Value</th><th>Y1 annual (net)</th></tr></thead><tbody>'+
   '<tr class="sec"><td colspan="3">Bookable trial-run lanes &mdash; slots &amp; days come from the calendar</td></tr>'+
   '<tr><td>Evening slots / trial day (from calendar)</td><td></td><td class="calc" id="c_trSlotsDay">—</td></tr>'+
-  '<tr><td>Trial days / year (from calendar)</td><td></td><td class="calc" id="c_trDaysYr">—</td></tr>'+
+  '<tr><td>Trial sessions / year (from calendar)</td><td></td><td class="calc" id="c_trDaysYr">—</td></tr>'+
   '<tr><td>Lanes</td><td class="inp">'+I('trLanes','small')+'</td><td></td></tr>'+
   '<tr><td>Athletes / lane (max)</td><td class="inp">'+I('trPerLane','small')+'</td><td></td></tr>'+
   '<tr class="calc"><td>Max capacity / trial day (slots &times; lanes &times; per-lane)</td><td></td><td class="calc" id="c_trCap">—</td></tr>'+
-  '<tr><td>Athletes / trial day (assumed turnout)</td><td class="inp">'+I('trAthDay','small')+'</td><td></td></tr>'+
+  '<tr><td>Athletes / trial session (assumed turnout)</td><td class="inp">'+I('trAthDay','small')+'</td><td></td></tr>'+
   '<tr><td>Price / athlete (VAT incl.)</td><td class="inp">'+I('trialPrice','small')+'</td><td></td></tr>'+
   '<tr class="calc"><td>Athletes / year</td><td></td><td class="calc" id="c_trBooked">—</td></tr>'+
   '<tr class="grand"><td>Net trial-runs revenue / year</td><td></td><td id="c_trialRevNet">—</td></tr></tbody>';
@@ -923,7 +934,7 @@ function breakdown(line,i){
   case 'netRet':return R([{l:'Retail revenue',x:Yi.grossRet},{l:'Less: retail COGS',x:-(Yi.grossRet-Yi.netRet)}],Yi.netRet);
   case 'netEvent':return R([{l:'Gross event revenue',x:Yi.grossEvent},{l:'Less: event direct costs',x:-(Yi.grossEvent-Yi.netEvent)}],Yi.netEvent);
   case 'grossHeat':{var fillv=Math.max(0,Math.min(100,v('fillPct')))/100;var ent=(v('qEvT')+v('qElT')+v('qEvS')+v('qElS'))*fillv;var per=(v('heatPct')/100)*ent*v('heatPrice')/vd;var wk=per*ev;var finEnt=v('finEvT')+v('finElT')+v('finEvS')+v('finElS');var finH=(v('heatPct')/100)*finEnt*v('heatPrice')/vd*v('finales');return R([{l:'Entries / race day (filled)',x:ent},{l:'Pick-your-heat take-up',x:v('heatPct')/100,mult:1},{l:'Heat fee (VAT incl.)',x:v('heatPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Per race day (net)',x:per,sub:1},{l:'Race-slot days / year',x:ev,mult:1},{l:'Weekly heat',x:wk,sub:1},{l:'+ Finale heat ('+finEnt+' × '+v('finales')+')',x:finH}],(wk+finH)*vg);}
-  case 'grossTrial':{var cd=calDerive();return R([{l:'Athletes / trial day',x:v('trAthDay')},{l:'Trial days / year (from calendar)',x:cd.trialDaysYr,mult:1},{l:'Price / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],v('trAthDay')*cd.trialDaysYr*(v('trialPrice')/vd)*vg);}
+  case 'grossTrial':{var cd=calDerive();return R([{l:'Athletes / trial session',x:v('trAthDay')},{l:'Trial sessions / year (from calendar)',x:cd.trialDaysYr,mult:1},{l:'Price / athlete (VAT incl.)',x:v('trialPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],v('trAthDay')*cd.trialDaysYr*(v('trialPrice')/vd)*vg);}
   case 'grossClass':{var cd=calDerive();return R([{l:'Classes / year (from calendar)',x:cd.classesYr},{l:'Capacity / class',x:v('capacity'),mult:1},{l:'Class credit price (VAT incl.)',x:v('classCreditPrice'),mult:1},{l:'Remove '+(vat*100)+'% VAT (÷ '+mfmt(vd)+')',x:1/vd,mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('capacity')*(v('classCreditPrice')/vd)*vg);}
   case 'trainer':{var cd=calDerive();return R([{l:'Classes / year',x:cd.classesYr},{l:'Trainer fee / class',x:v('trainerFee'),mult:1},{l:'Volume growth',x:vg,mult:1}],cd.classesYr*v('trainerFee')*vg);}
   case 'netClass':return R([{l:'Gross class revenue',x:Yi.grossClass},{l:'Less: trainer fees',x:-(Yi.grossClass-Yi.netClass)}],Yi.netClass);
@@ -982,10 +993,10 @@ function regRevenueDrills(){var vd=1+num('vatPct')/100,vp=(num('vatPct')||0);
  var trSlotsDay=Math.max(0,cd.trSlotsDay),trDaysYr=Math.max(0,cd.trialDaysYr);
  var trCap=trSlotsDay*Math.max(0,num('trLanes'))*Math.max(0,num('trPerLane')),trAthDay=Math.max(0,num('trAthDay')),trPrice=num('trialPrice');
  regDrill('c_trSlotsDay','Evening slots / trial day (from calendar)',[rP('Trial cells on the busiest day',trSlotsDay),rT('Slots / trial day',trSlotsDay)]);
- regDrill('c_trDaysYr','Trial days / year (from calendar)',[rP('Days with a trial slot × their yearly occurrences',trDaysYr),rT('Trial days / year',trDaysYr)]);
+ regDrill('c_trDaysYr','Trial sessions / year (from calendar)',[rP('Trial cells × their yearly occurrences',trDaysYr),rT('Trial sessions / year',trDaysYr)]);
  regDrill('c_trCap','Max capacity / trial day',[rP('Evening slots',trSlotsDay),rM('Lanes',num('trLanes')),rM('Athletes / lane',num('trPerLane')),rT('Max athletes / day',trCap)]);
- regDrill('c_trBooked','Athletes / year',[rP('Athletes / trial day',trAthDay),rM('Trial days / year',trDaysYr),rT('Athletes / year',trAthDay*trDaysYr)]);
- regDrill('c_trialRevNet','Trial-runs revenue / year (net)',[rP('Athletes / trial day',trAthDay),rM('Trial days / year',trDaysYr),rM('Price / athlete (VAT incl.)',trPrice),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / year',trAthDay*trDaysYr*(trPrice/vd))]);
+ regDrill('c_trBooked','Athletes / year',[rP('Athletes / trial session',trAthDay),rM('Trial sessions / year',trDaysYr),rT('Athletes / year',trAthDay*trDaysYr)]);
+ regDrill('c_trialRevNet','Trial-runs revenue / year (net)',[rP('Athletes / trial session',trAthDay),rM('Trial sessions / year',trDaysYr),rM('Price / athlete (VAT incl.)',trPrice),rM('Remove VAT (÷ '+mfmt(vd)+')',1/vd),rT('Net / year',trAthDay*trDaysYr*(trPrice/vd))]);
  var trNet=trAthDay*trDaysYr*(trPrice/vd);
  set('c_trSlotsDay',fmt(trSlotsDay));set('c_trDaysYr',fmt(trDaysYr));set('c_trCap',fmt(trCap));set('c_trBooked',fmt(trAthDay*trDaysYr));set('c_trialRevNet',fmt(trNet));set('rev-trial',aed(trNet)+' net / yr');
  var yr=Math.round(num('calYear'))||2027,mrows=[],tot=0;MONTHS.forEach(function(m,i){if(chk(m[0])){var w=weekendsInMonth(yr,i);mrows.push(rP(m[1]+' '+yr,w));tot+=w;}});mrows.push(rT('Weekend days / year',tot));
