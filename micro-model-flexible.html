@@ -526,7 +526,18 @@ function setCalMode(m){calMode=(m==='offS')?'offS':'inS';renderCalendar();update
 function calSetTime(t,val){calGuard();CAL.times[t]=val;calSortRows();renderCalendar();update();}
 function calAddRow(){calGuard();CAL.times.push('12:00 PM');CAL.inS.forEach(function(c){c.push('');});CAL.offS.forEach(function(c){c.push('');});calSortRows();renderCalendar();update();}
 function calDelRow(t){calGuard();if(CAL.times.length<=1)return;CAL.times.splice(t,1);CAL.inS.forEach(function(c){c.splice(t,1);});CAL.offS.forEach(function(c){c.splice(t,1);});renderCalendar();update();}
-function calCellHTML(col,t){var v=CAL[calMode][col][t]||'';var lab={'C':'Class','T':'Trial','R':'Race'}[v]||'&middot;';var cl=v==='C'?'cCls':v==='T'?'cTr':v==='R'?'cRace':'cEmp';return '<td class="wcx '+cl+'" onclick="calCycle('+col+','+t+')">'+lab+'</td>';}
+var CAL_DC=null;   // per-render cache of weekday occurrences (in/off season)
+// Clients (per session) and net revenue / year for a marked calendar cell, from the assumptions below
+function cellStats(col,t,v){if(!CAL_DC)return null;var vd=1+Math.max(0,num('vatPct'))/100;var occ=Math.max(0,(calMode==='inS'?CAL_DC.inS:CAL_DC.offS)[col]||0);
+ if(v==='C'){var c=Math.max(0,num('capacity'));return {clients:c,revYr:c*(num('classCreditPrice')/vd)*occ};}
+ if(v==='T'){var a=Math.max(0,num('trAthDay'));return {clients:a,revYr:a*(num('trialPrice')/vd)*occ};}
+ if(v==='R'){var r=raceCfg(raceKey(calMode,col,t)),uT=r.fmt!=='solo',uS=r.fmt!=='teams';
+   var ath=4*((uT?Math.max(0,r.nEvT||0):0)+(uT?Math.max(0,r.nElT||0):0))+(uS?Math.max(0,r.nEvS||0):0)+(uS?Math.max(0,r.nElS||0):0);
+   return {clients:ath,revYr:ath*(num('creditPrice')/vd)*occ};}
+ return null;}
+function calCellHTML(col,t){var v=CAL[calMode][col][t]||'';var lab={'C':'Class','T':'Trial','R':'Race'}[v]||'&middot;';var cl=v==='C'?'cCls':v==='T'?'cTr':v==='R'?'cRace':'cEmp';
+ var st='';var s=cellStats(col,t,v);if(s){st='<div class="wcst">'+fmt(s.clients)+'p &middot; '+kf(s.revYr)+'</div>';}
+ return '<td class="wcx '+cl+'" onclick="calCycle('+col+','+t+')">'+lab+st+'</td>';}
 // 30-minute interval labels (12:00 AM … 11:30 PM) for the custom time picker
 function calTimeArr(){var a=[];for(var h=0;h<24;h++){for(var mi=0;mi<2;mi++){var mm=mi?'30':'00';var ap=h<12?'AM':'PM';var h12=(h%12)===0?12:h%12;a.push(h12+':'+mm+' '+ap);}}return a;}
 function calEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -550,7 +561,8 @@ function calPickTime(val){if(_calTimeTarget<0)return;calSetTime(_calTimeTarget,v
 function calUseTyped(){var v=el('ctinput').value.trim();if(v)calPickTime(v);}
 function renderCalendar(){var box=el('week-cal');if(!box)return;calGuard();
  var d=calDerive();
- var h='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:0;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.05em;padding:5px 3px}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap;padding:2px 4px}.wctime{font-family:var(--mono);font-size:10px;width:94px;display:flex;align-items:center;justify-content:space-between;gap:4px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 6px;border-radius:4px;cursor:pointer;text-align:left}.wctime:hover,.wctime:focus{border-color:var(--red);outline:none}.wccaret{color:var(--red);font-size:9px}.wcdel{cursor:pointer;color:#c4c4c4;font-size:11px;padding:0 3px}.wcdel:hover{color:var(--red)}.wcx{cursor:pointer;user-select:none;padding:6px 3px;transition:background .1s}.wcx:hover{outline:2px solid var(--red);outline-offset:-2px}.wc .cEmp{color:#c4c4c4}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}.wmode{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px}.wmode.on{background:var(--red);color:#fff;border-color:var(--red)}.waddr{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 9px;border:1px dashed var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px;margin-top:6px}.waddr:hover{border-color:var(--red);color:var(--red)}</style>';
+ CAL_DC=seasonDayCounts(Math.round(num('calYear'))||2027,MONTHS.map(function(m){return chk(m[0])?1:0;}));
+ var h='<style>.wc{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:10px}.wc th,.wc td{border:1px solid var(--line);padding:0;text-align:center}.wc th{color:var(--muted);font-weight:400;letter-spacing:.05em;padding:5px 3px}.wc .tl{text-align:left;color:var(--muted);white-space:nowrap;padding:2px 4px}.wctime{font-family:var(--mono);font-size:10px;width:94px;display:flex;align-items:center;justify-content:space-between;gap:4px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 6px;border-radius:4px;cursor:pointer;text-align:left}.wctime:hover,.wctime:focus{border-color:var(--red);outline:none}.wccaret{color:var(--red);font-size:9px}.wcdel{cursor:pointer;color:#c4c4c4;font-size:11px;padding:0 3px}.wcdel:hover{color:var(--red)}.wcx{cursor:pointer;user-select:none;padding:5px 3px;transition:background .1s;vertical-align:middle}.wcx:hover{outline:2px solid var(--red);outline-offset:-2px}.wcst{font-size:8px;font-weight:400;line-height:1.2;margin-top:2px;opacity:.75;letter-spacing:0;font-variant-numeric:tabular-nums}.wc .cEmp{color:#c4c4c4}.wc .cCls{background:rgba(13,16,19,.07)}.wc .cRace{background:rgba(255,23,23,.16);color:var(--red);font-weight:700}.wc .cTr{background:rgba(200,110,0,.16);color:#b35c00;font-weight:700}.wmode{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px}.wmode.on{background:var(--red);color:#fff;border-color:var(--red)}.waddr{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 9px;border:1px dashed var(--line);background:#fff;color:var(--muted);cursor:pointer;border-radius:3px;margin-top:6px}.waddr:hover{border-color:var(--red);color:var(--red)}</style>';
  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Editing</span>'+
     '<button class="wmode'+(calMode==='inS'?' on':'')+'" onclick="setCalMode(\'inS\')">In-season week</button>'+
     '<button class="wmode'+(calMode==='offS'?' on':'')+'" onclick="setCalMode(\'offS\')">Off-season week ('+d.nonRaceWknd+' weekend days/yr)</button></div>';
@@ -562,7 +574,7 @@ function renderCalendar(){var box=el('week-cal');if(!box)return;calGuard();
  }
  h+='</tbody></table></div>';
  h+='<button class="waddr" onclick="calAddRow()">+ add time slot</button>';
- h+='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">One product: the <b>REDLN credit</b>. Tap a cell to cycle <b>empty → class → trial → race</b>; each session type&rsquo;s assumptions fill in the tables below. Two calendars (one per season); edit a <b>time</b> to rename a slot, ✕ removes it. &nbsp;<span style="color:var(--red)">■</span> race &nbsp;<span style="color:#b35c00">■</span> trial &nbsp;<span style="color:#0d1013">■</span> class</div>';
+ h+='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">One product: the <b>REDLN credit</b>. Tap a cell to cycle <b>empty → class → trial → race</b>; each session type&rsquo;s assumptions fill in the tables below. Each marked cell shows <b>clients / session &middot; net revenue / year</b> (e.g. <b>45p · 234k</b>) from those assumptions. &nbsp;<span style="color:var(--red)">■</span> race &nbsp;<span style="color:#b35c00">■</span> trial &nbsp;<span style="color:#0d1013">■</span> class</div>';
  box.innerHTML=h;
 }
 // Payroll roster — editable role rows (name/heads/salary), add & delete
@@ -1257,6 +1269,7 @@ function update(){
  lineChart('ch-cash',[{x:'Open',y:A.funding-A.capexTotal-A.preopBurn}].concat(Y.map(function(y,i){return {x:'Y'+(i+1),y:cumline[i]};})));
  regRevenueDrills();
  var ppb=breakdown('ppFees',0); if(ppb)regDrill('c_ppFeesYr','Payment-processing fees / year',ppb.rows);
+ renderCalendar();   // refresh per-cell clients & revenue from the latest assumptions
  save(); saveSummary(A,Y);
 }
 // Persist a computed summary so the business-plan brochure (same origin) can mirror these exact numbers.
