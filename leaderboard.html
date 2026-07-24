@@ -220,6 +220,14 @@
   .tb-pick button.sel{border-color:var(--accent);background:rgba(255,255,255,.08)}
   .tb-picklabel{text-align:center;font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.26em;color:var(--ink-dim);text-transform:uppercase;padding-top:6px}
   .tb-change{align-self:center;border:0;background:none;color:var(--ink-mute);font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .exlist{display:flex;flex-direction:column;gap:8px}
+  .exrow{display:grid;grid-template-columns:104px 1fr 140px 118px 44px 40px;gap:8px;align-items:center}
+  @media (max-width:760px){.exrow{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
+  .exsc{display:grid;place-items:center;width:44px;height:42px;border:1px solid var(--line);border-radius:10px;color:#3c4046;cursor:pointer;font-size:16px;transition:.14s;user-select:none}
+  .exsc:hover{border-color:rgba(255,255,255,.25)}
+  .exsc.on{color:var(--hot);border-color:rgba(255,45,45,.55);background:rgba(255,45,45,.08)}
+  .exl{padding:1px 0}
+  .exl i{color:var(--hot);font-style:normal;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-left:7px}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -414,12 +422,29 @@
     rotation:{
       workDur:720, scoreDur:240, metric:"calories", scorers:4,
       blocks:[
-        {name:"Block 1", machine:"Run",  desc:"Pair 1 — 600/500/400m run · Pair 2 — max DBall reverse lunge"},
-        {name:"Block 2", machine:"Row",  desc:"Pair 1 — 600/500/400m row · Pair 2 — max burpee box jump overs"},
-        {name:"Block 3", machine:"Bike", desc:"Pair 1 — 1,200/1,000/800m C2 bike · Pair 2 — max wall balls"},
-        {name:"Block 4", machine:"Ski",  desc:"Pair 1 — 600/500/400m ski · Pair 2 — max alternating DB snatch"},
+        {name:"Block 1", machine:"Run", exercises:[
+          {who:"Pair 1", name:"Run", qty:"600/500/400", unit:"m", scored:false},
+          {who:"Pair 2", name:"DBall Reverse Lunge", qty:"Max", unit:"reps", scored:false},
+          {who:"All 4", name:"Run", qty:"Max", unit:"cal", scored:true},
+        ]},
+        {name:"Block 2", machine:"Row", exercises:[
+          {who:"Pair 1", name:"Row", qty:"600/500/400", unit:"m", scored:false},
+          {who:"Pair 2", name:"Burpee Box Jump Over", qty:"Max", unit:"reps", scored:false},
+          {who:"All 4", name:"Row", qty:"Max", unit:"cal", scored:true},
+        ]},
+        {name:"Block 3", machine:"Bike", exercises:[
+          {who:"Pair 1", name:"C2 Bike", qty:"1,200/1,000/800", unit:"m", scored:false},
+          {who:"Pair 2", name:"Wall Ball", qty:"Max", unit:"reps", scored:false},
+          {who:"All 4", name:"C2 Bike", qty:"Max", unit:"cal", scored:true},
+        ]},
+        {name:"Block 4", machine:"Ski", exercises:[
+          {who:"Pair 1", name:"Ski", qty:"600/500/400", unit:"m", scored:false},
+          {who:"Pair 2", name:"Alternating DB Snatch", qty:"Max", unit:"reps", scored:false},
+          {who:"All 4", name:"Ski", qty:"Max", unit:"cal", scored:true},
+        ]},
       ],
     },
+    library:["Run","Row","Ski","C2 Bike","Assault Bike","DBall Reverse Lunge","Burpee Box Jump Over","Wall Ball","Alternating DB Snatch","KB Swing","Sled Push","Farmers Carry","Thruster","Burpee","Box Jump","Toes to Bar","Devil Press","Lunge","Deadlift","Push Press"],
     segments:[
       {name:"Row",  machine:"Row", format:"distance", target:1000, duration:240},
       {name:"5-min Run", machine:"Run", format:"time", target:1000, duration:300},
@@ -433,10 +458,12 @@
       {name:"Team 4", ath:"", color:"#9aa0a8"},
     ],
   };
-  const KEY="af_erg_cfg_v5";
+  const KEY="af_erg_cfg_v6";
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
+  if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
+  if(cfg.rotation) cfg.rotation.blocks.forEach(b=>{ if(!b.exercises) b.exercises=[]; });
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
 
@@ -554,6 +581,11 @@
     raf=requestAnimationFrame(frameRotation);
   }
 
+  const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
+  const exTxt=x=>`${x.who} — ${x.name} · ${x.qty}${exUnit(x.unit)}`;
+  const exLines=b=>(b.exercises&&b.exercises.length)
+      ? b.exercises.map(x=>`<div class="exl">${esc(exTxt(x))}${x.scored?` <i>scored</i>`:""}</div>`).join("")
+      : esc(b.desc||"—");
   function renderBlockCards(){
     if(cfg.mode!=="rotation") return;
     const hot=rot.phase==="score";
@@ -562,7 +594,7 @@
       const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
       return `<div class="blk ${hot?"scoring":""}">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${mInfo(b.machine).label}</span></div>
-        <div class="bd">${esc(b.desc)}</div>
+        <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(R().workDur)} work &rarr; <b>${fmtMS(R().scoreDur)} max ${R().metric==="calories"?"cal":"m"}</b> · trainer starts</div>
         <div class="teams">${team?`<span class="t"><span class="dot" style="background:${team.color};color:${team.color}"></span>${esc(team.name)}</span>`:`<span class="t" style="opacity:.55">station open — pick team on erg screen</span>`}</div>
       </div>`;
@@ -802,7 +834,7 @@
           <div><b>${team.split>0?Math.round(wattsFor(team.split)):0}</b><span>watts</span></div>
           <div><b>${team.split>0?Math.round(team.spm):0}</b><span>s/min</span></div>
         </div>`:""}
-        <div class="tb-work"><b>This block</b>${esc(b.desc)||"—"}</div>
+        <div class="tb-work"><b>This block</b>${exLines(b)}</div>
         ${team&&!showPicker&&!lastRound&&phase!=="done"?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${mInfo(nxBlock.machine).label}</b></div>`:""}
         ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}
         ${team&&!showPicker&&!finished?`<button class="tb-change" id="tbChange">change team</button>`:""}`;
@@ -859,6 +891,7 @@
   function buildBlocks(){
     const list=$("blkList"); list.innerHTML=""; $("blkCount").textContent=`${R().blocks.length} blocks`;
     R().blocks.forEach((b,i)=>{
+      if(!b.exercises) b.exercises=[];
       const box=document.createElement("div"); box.className="stn";
       const opts=Object.entries(MACHINE).map(([k,v])=>`<option value="${k}" ${b.machine===k?"selected":""}>${v.label}</option>`).join("");
       box.innerHTML=`
@@ -867,15 +900,53 @@
           <button class="iconbtn up" ${i===0?"disabled":""}>&#9650;</button>
           <button class="iconbtn down" ${i===R().blocks.length-1?"disabled":""}>&#9660;</button>
           <button class="iconbtn del" ${R().blocks.length<=2?"disabled":""}>&times;</button></div>
-        <div class="grid" style="grid-template-columns:1fr 2fr">
-          <div class="fld"><label>Scored erg</label><select class="mc">${opts}</select></div>
-          <div class="fld"><label>Work description (shown on the board)</label>
-            <input type="text" class="ds" placeholder="e.g. Pair 1 — 600m run · Pair 2 — max lunges" value="${esc(b.desc)}"></div>
-        </div>`;
-      const nm=box.querySelector('input[type=text]'), mc=box.querySelector('.mc'), ds=box.querySelector('.ds');
+        <div class="fld"><label>Station machine bank (the erg that streams live data)</label><select class="mc">${opts}</select></div>
+        <div class="fld"><label>Exercises — who · movement · amount · unit · scored</label><div class="exlist"></div>
+          <div class="addbtns"><button class="btn exadd" type="button">+ Add exercise</button></div></div>`;
+      const nm=box.querySelector('input[type=text]'), mc=box.querySelector('.mc');
       nm.oninput=()=>{b.name=nm.value;save();};
       mc.onchange=()=>{b.machine=mc.value;save();};
-      ds.oninput=()=>{b.desc=ds.value;save();};
+      const exlist=box.querySelector(".exlist");
+      const renderEx=()=>{
+        exlist.innerHTML="";
+        b.exercises.forEach((x,xi)=>{
+          const row=document.createElement("div"); row.className="exrow";
+          const libOpts=cfg.library.map(n=>`<option value="${esc(n)}" ${n===x.name?"selected":""}>${esc(n)}</option>`).join("")
+            +`<option value="__new">+ New exercise…</option>`;
+          row.innerHTML=`
+            <select class="who">${["All 4","Pair 1","Pair 2"].map(w=>`<option ${x.who===w?"selected":""}>${w}</option>`).join("")}</select>
+            <select class="exn">${libOpts}</select>
+            <input class="qty" type="text" placeholder="600/500/400 or Max" value="${esc(x.qty)}">
+            <select class="unit">
+              <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
+              <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
+              <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
+              <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select>
+            <span class="exsc ${x.scored?"on":""}" role="checkbox" aria-checked="${x.scored}" tabindex="0" title="Toggle: counts toward the leaderboard">&#9679;</span>
+            <button class="iconbtn exdel" title="Remove exercise">&times;</button>`;
+          row.querySelector(".who").onchange=e=>{x.who=e.target.value;save();};
+          const exn=row.querySelector(".exn");
+          exn.onchange=()=>{
+            if(exn.value==="__new"){
+              const n=prompt("New exercise name:");
+              if(n&&n.trim()){ const v=n.trim(); if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; }
+              save(); renderEx();
+            } else { x.name=exn.value; save(); }
+          };
+          row.querySelector(".qty").oninput=e=>{x.qty=e.target.value;save();};
+          row.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
+          const sc=row.querySelector(".exsc");
+          const flip=()=>{x.scored=!x.scored;save();renderEx();};
+          sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
+          row.querySelector(".exdel").onclick=()=>{b.exercises.splice(xi,1);save();renderEx();};
+          exlist.appendChild(row);
+        });
+      };
+      renderEx();
+      box.querySelector(".exadd").onclick=()=>{
+        b.exercises.push({who:"All 4",name:cfg.library[0]||"Run",qty:"Max",unit:"reps",scored:false});
+        save(); renderEx();
+      };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
       box.querySelector('.down').onclick=()=>{ if(i<R().blocks.length-1){[R().blocks[i+1],R().blocks[i]]=[R().blocks[i],R().blocks[i+1]];save();buildBlocks();} };
       box.querySelector('.del').onclick=()=>{ if(R().blocks.length>2){R().blocks.splice(i,1);save();buildBlocks();} };
@@ -883,7 +954,7 @@
     });
   }
   $("addBlk").onclick=()=>{ if(R().blocks.length>=6)return;
-    R().blocks.push({name:"Block "+(R().blocks.length+1),machine:"Row",desc:""}); save(); buildBlocks(); };
+    R().blocks.push({name:"Block "+(R().blocks.length+1),machine:"Row",exercises:[]}); save(); buildBlocks(); };
   function buildStations(){
     const list=$("stnList"); list.innerHTML=""; $("stnCount").textContent=`${cfg.segments.length} stations`;
     cfg.segments.forEach((s,i)=>{
