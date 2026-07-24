@@ -330,20 +330,22 @@
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .footer,body.bigscreen .controls{display:none}
-  body.bigscreen{--rowH:104px}
-  body.bigscreen .wrap{max-width:1560px}
-  body.bigscreen .tabs{opacity:.25;transition:opacity .2s}
-  body.bigscreen .tabs:hover{opacity:1}
-  body.bigscreen .badge{height:84px;width:84px}
-  body.bigscreen .lane{grid-template-columns:80px 1fr 240px}
-  body.bigscreen .rank{font-size:44px}
-  body.bigscreen .team{font-size:32px}
-  body.bigscreen .loc{font-size:15px}
-  body.bigscreen .hero{font-size:36px}
-  body.bigscreen .sub{font-size:13.5px}
-  body.bigscreen .track{max-width:none;height:6px}
-  body.bigscreen .clock b{font-size:64px}
-  body.bigscreen .subhead .ttl b{font-size:52px}
+  @media (min-width:900px){
+    body.bigscreen{--rowH:104px}
+    body.bigscreen .wrap{max-width:1560px}
+    body.bigscreen .tabs{opacity:.25;transition:opacity .2s}
+    body.bigscreen .tabs:hover{opacity:1}
+    body.bigscreen .badge{height:84px;width:84px}
+    body.bigscreen .lane{grid-template-columns:80px 1fr 240px}
+    body.bigscreen .rank{font-size:44px}
+    body.bigscreen .team{font-size:32px}
+    body.bigscreen .loc{font-size:15px}
+    body.bigscreen .hero{font-size:36px}
+    body.bigscreen .sub{font-size:13.5px}
+    body.bigscreen .track{max-width:none;height:6px}
+    body.bigscreen .clock b{font-size:64px}
+    body.bigscreen .subhead .ttl b{font-size:52px}
+  }
   @media (max-width:720px){
     :root{--rowH:78px}
     .lane{grid-template-columns:30px 1fr 104px;gap:9px;padding:0 4px}
