@@ -271,6 +271,10 @@
   .bc4{--bl:rgba(80,220,190,.6);--blbg:rgba(80,220,190,.05);--blchip:rgba(80,220,190,.25)}
   .bc5{--bl:rgba(250,220,100,.6);--blbg:rgba(250,220,100,.05);--blchip:rgba(250,220,100,.25)}
   .bdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+  .mtag{font-family:var(--mono);font-style:normal;font-size:10px;color:var(--ink-dim);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-left:7px}
+  .overcap{color:var(--hot)!important}
+  .invgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px}
+  .tb-teams{display:flex;flex-direction:column;gap:8px}
   .restins{display:flex;align-items:center;gap:10px;margin:0}
   .restins::before,.restins::after{content:"";flex:1;height:1px;background:var(--line-soft)}
   .restins button{border:1px dashed rgba(255,190,80,.35);background:none;color:rgba(255,190,80,.7);border-radius:999px;padding:3px 13px;
@@ -540,6 +544,20 @@
       </div>
 
       <div class="card wide">
+        <h3>Gym machines <span class="r">capacity checks &amp; auto-assignment</span></h3>
+        <div class="body">
+          <div class="invgrid">
+            <div class="fld"><label>Rowers</label><input type="number" id="inv_Row" min="0" max="40"></div>
+            <div class="fld"><label>SkiErgs</label><input type="number" id="inv_Ski" min="0" max="40"></div>
+            <div class="fld"><label>C2 Bikes</label><input type="number" id="inv_Bike" min="0" max="40"></div>
+            <div class="fld"><label>Assault Runners</label><input type="number" id="inv_Run" min="0" max="40"></div>
+            <div class="fld"><label>Echo Bikes</label><input type="number" id="inv_Echo" min="0" max="40"></div>
+          </div>
+          <div class="note" id="capReport"></div>
+        </div>
+      </div>
+
+      <div class="card wide">
         <h3>Teams</h3>
         <div class="body">
           <div id="crewList"></div>
@@ -547,7 +565,7 @@
             <button class="btn" id="addCrew">+ Add team</button>
             <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
           </div>
-          <div class="note">Team order sets starting blocks: Team 1 starts on Block 1, Team 2 on Block 2, and so on (wrapping around). 2–8 teams.</div>
+          <div class="note">Teams are <b>assigned automatically</b>: Team 1 starts on Block 1, Team 2 on Block 2, wrapping around — several teams share a block when you have more teams than blocks, each with its own machine numbers. Everyone rotates together; the screens tell every team where to go next. Nobody picks anything.</div>
         </div>
       </div>
 
@@ -676,6 +694,7 @@
         ]},
       ],
     },
+    inventory:{Row:5,Ski:5,Bike:5,Run:5,Echo:0},
     library:["Run","Row","Ski","C2 Bike","Assault Bike","DBall Reverse Lunge","Burpee Box Jump Over","Wall Ball","Alternating DB Snatch","KB Swing","Sled Push","Farmers Carry","Thruster","Burpee","Box Jump","Toes to Bar","Devil Press","Lunge","Deadlift","Push Press"],
     waves:{ waveSize:4, release:"auto" },
     segments:[
@@ -697,6 +716,7 @@
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
   if(cfg.rotation&&!cfg.rotation.laps) cfg.rotation.laps=1;
   if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
+  if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -769,19 +789,17 @@
   const rot={ round:0, phase:"pre", assign:[], elapsed:0, remain:0 };
   let restT0=0;
 
-  function prefillAssign(round){
-    const N=nBlocks(), a=new Array(N).fill(null);
-    if(round===0){ ergs.forEach(e=>{ if(e.id<N) a[e.id]=e.id; }); }
-    else { const prev=rot.assign; for(let s=0;s<N;s++) a[s]=prev[(s-1+N)%N]; }
-    rot.assign=a;
-  }
-  const stationOf=e=>rot.assign.indexOf(e.id);
-  function pickTeam(station, teamId){
-    const cur=rot.assign.indexOf(teamId);
-    if(cur>=0) rot.assign[cur]=null;
-    rot.assign[station]=teamId;
-    renderBlockCards(); renderLanesRot(); renderTablet();
-  }
+  const stationOf=e=>nBlocks()? (e.id+rot.round)%nBlocks() : -1;
+  const teamsAt=bi=>ergs.filter(e=>stationOf(e)===bi);
+  const invOf=m=>m?((cfg.inventory&&cfg.inventory[m])||0):0;
+  const machinesPerTeam=b=>{ const it=(b.items||[]).find(x=>x.scored&&!x.rest); return it?itemScorers(it):4; };
+  const allocAt=bi=>{ const b=R().blocks[bi]; const k=machinesPerTeam(b);
+    const ts=teamsAt(bi); const cap=invOf(blockMachine(b));
+    return { teams:ts.map((e,j)=>({e, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
+  const mrange=t=>t.from===t.to?`M${t.from}`:`M${t.from}\u2013${t.to}`;
+  const worstTeamsPerBlock=()=>nBlocks()?Math.ceil(cfg.crews.length/nBlocks()):0;
+  const overFor=b=>worstTeamsPerBlock()*machinesPerTeam(b)>invOf(blockMachine(b));
+  const anyOver=()=>R().blocks.some(b=>overFor(b));
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
     if(n.includes("assault bike")||n.includes("echo")) return "Echo";
@@ -824,7 +842,9 @@
     if(rot.phase==="pre"){
       $("phaseBanner").hidden=true; clockEl.parentElement.hidden=true;
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
-      startBtn.disabled=empty; startBtn.textContent=empty?"Build blocks first":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
+      const over=!empty&&anyOver();
+      startBtn.disabled=empty||over;
+      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Control Room":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
       clockState.textContent=k===0&&!sessionActive?"Block time · ready":"Teams rotating";
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
@@ -874,7 +894,7 @@
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; }
-      else { rot.round++; prefillAssign(rot.round);
+      else { rot.round++;
         if((R().blockRest||0)>0){ rot.phase="rest"; rot.remain=R().blockRest; restT0=now; raf=requestAnimationFrame(frameRest); }
         else rot.phase="pre"; }
       syncRotChrome(); renderLanesRot(); renderTablet();
@@ -922,15 +942,14 @@
       return;
     }
     $("blockCards").innerHTML=R().blocks.map((b,bi)=>{
-      const teamId=rot.assign[bi];
-      const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
+      const al=allocAt(bi);
       const seg=running?segAt(b,rot.elapsed):null;
-      const hot=!!(seg&&seg.it.scored);
+      const hot=!!(seg&&seg.it.scored&&!seg.it.rest);
       return `<div class="blk ${hot?"scoring":""} bc${bi%6}">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
-        <div class="teams">${team?`<span class="t"><span class="dot" style="background:${team.color};color:${team.color}"></span>${esc(team.name)}</span>`:`<span class="t" style="opacity:.55">station open — pick team on erg screen</span>`}</div>
+        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${mrange(t)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no teams this round</span>`}${al.over?`<span class="t overcap">&#9888; needs ${al.need} machines — ${al.cap} available</span>`:""}</div>
       </div>`;
     }).join("");
   }
@@ -949,10 +968,11 @@
       const last=rot.round>=totalRounds()-1;
       let loc;
       if(finished) loc=`<span class="tag">Complete</span>`;
-      else if(st<0) loc=`<span class="nx">Not on a station — pick your team on an erg screen</span>`;
+      else if(st<0) loc=`<span class="nx">—</span>`;
       else{
         const here=R().blocks[st], next=R().blocks[(st+1)%nBlocks()];
-        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
+        const mine=allocAt(st).teams.find(t=>t.e===e);
+        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}${mine?` · ${mrange(mine)}`:""}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
       }
       e.el.querySelector(".loc").innerHTML=loc;
       const st2=stationOf(e);
@@ -1216,7 +1236,7 @@
   function build(){
     finished=false; running=false; sessionActive=false;
     makeErgs();
-    rot.round=0; rot.phase="pre"; prefillAssign(0);
+    rot.round=0; rot.phase="pre";
     $("evName").textContent=cfg.name;
     lanesEl.innerHTML="";
     ergs.forEach(e=>{
@@ -1250,7 +1270,7 @@
       return;
     }
     if(running) return;
-    if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)) return; startBlock(); renderBlockCards(); return; }
+    if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)||anyOver()) return; startBlock(); renderBlockCards(); return; }
     // sequence: full auto run
     build(); running=true; sessionActive=true; finished=false; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent="Running…"; resetBtn.disabled=false;
@@ -1288,53 +1308,31 @@
     enhanceSelects(sel.closest(".fld")||document);
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
-  function teamPicker(station){
-    const cur=rot.assign[station];
-    return `<div class="tb-picklabel">Who's on this station?</div>
-      <div class="tb-pick">${ergs.map(e=>{
-        const taken=stationOf(e)>=0&&stationOf(e)!==station;
-        return `<button data-team="${e.id}" class="${cur===e.id?"sel":""}" ${finished?"disabled":""}>
-          <span class="dot" style="background:${e.color}"></span>${esc(e.name)}${taken?" ↺":""}</button>`;
-      }).join("")}</div>`;
-  }
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(cfg.mode==="rotation"){
       if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in the Control Room.</div>`; return; }
       const bi=clamp(tabletSel,0,nBlocks()-1), b=R().blocks[bi];
-      const teamId=rot.assign[bi];
-      const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
+      const al=allocAt(bi);
       const phase=rot.phase;
       const seg=running?segAt(b,rot.elapsed):null;
-      const hot=!!(seg&&seg.it.scored);
+      const hot=!!(seg&&seg.it.scored&&!seg.it.rest);
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
-      const showPicker = phase==="pre" || phase==="rest" || team==null || pickOpen;
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
-        ${team&&!showPicker?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><b>${esc(team.name)}</b><span>on this station</span></div>`:""}
-        ${showPicker?teamPicker(bi):""}
+        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><b>${esc(t.e.name)}</b><span>${mrange(t)} &middot; ${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
+        ${al.over?`<div class="tb-note" style="color:var(--hot);text-align:center">Needs ${al.need} machines &mdash; only ${al.cap} available. Fix in Control Room.</div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="rest"?"Rest — rotate stations":
           phase==="done"?"Session complete":
           seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
         <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
-        ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${scoreUnit()}</div>`:""}
-        ${team&&!showPicker?`<div class="tb-stats">
-          <div><b>${team.split>0?fmtSplit(team.split):"--:--"}</b><span>split /500m</span></div>
-          <div><b>${team.split>0?Math.round(wattsFor(team.split)):0}</b><span>watts</span></div>
-          <div><b>${team.split>0?Math.round(team.spm):0}</b><span>s/min</span></div>
-        </div>`:""}
         <div class="tb-work"><b>This block</b>${exLines(b)}</div>
-        ${team&&!showPicker&&!lastRound&&phase!=="done"?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
-        ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}
-        ${team&&!showPicker&&!finished?`<button class="tb-change" id="tbChange">change team</button>`:""}`;
-      scr.querySelectorAll(".tb-pick button").forEach(btn=>{
-        btn.onclick=()=>{ pickOpen=false; pickTeam(bi,+btn.dataset.team); };
-      });
-      const ch=scr.querySelector("#tbChange"); if(ch) ch.onclick=()=>{ pickOpen=true; renderTablet(); };
+        ${!lastRound&&phase!=="done"?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
+        ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}`;
     } else if(cfg.mode==="waves"){
       const si=clamp(tabletSel,0,cfg.segments.length-1), s=cfg.segments[si];
       const here=ergs.filter(e=>e.released&&e.finT==null&&e.stage===si);
@@ -1634,13 +1632,13 @@
       col.oninput=()=>{c.color=col.value;save();refresh();};
       nm.oninput=()=>{c.name=nm.value;save();refresh();};
       at.oninput=()=>{c.ath=at.value;save();refresh();};
-      del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
+      del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
       list.appendChild(row);
     });
   }
   $("addCrew").onclick=()=>{ if(cfg.crews.length>=20)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
-    cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
+    cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
 
   const PKEY="af_presets_v1";
@@ -1660,6 +1658,16 @@
     };
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
+  function updateCapReport(){
+    const el=$("capReport"); if(!el) return;
+    if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML="Capacity checks apply to rotating-block sessions."; return; }
+    const wt=worstTeamsPerBlock();
+    el.innerHTML=`With <b>${cfg.crews.length} teams</b> across <b>${nBlocks()} blocks</b>, up to <b>${wt}</b> team${wt>1?"s":""} share a block at once.<br>`+
+      R().blocks.map(b=>{
+        const k=machinesPerTeam(b), need=wt*k, cap=invOf(blockMachine(b)), bad=need>cap;
+        return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${esc(b.name)} · ${bmLabel(b)} — ${wt}×${k} = ${need} machines of ${cap}${bad?" — OVER</span>":" ✓"}`;
+      }).join("<br>");
+  }
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
@@ -1669,6 +1677,12 @@
     pillGroup("segRelease",W().release,v=>W().release=v);
     pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v,syncSeqScoring);
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
+    ["Row","Ski","Bike","Run","Echo"].forEach(k=>{
+      const el=$("inv_"+k); if(!el) return;
+      el.value=(cfg.inventory&&cfg.inventory[k])||0;
+      el.oninput=()=>{ cfg.inventory[k]=clamp(parseInt(el.value,10)||0,0,40); save(); updateCapReport(); if(!sessionActive&&!running) build(); };
+    });
+    updateCapReport();
     $("rBRest").value=String(R().blockRest||0);
     $("rBRest").onchange=e=>{R().blockRest=clamp(parseInt(e.target.value,10)||0,0,1800);save();};
     { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
