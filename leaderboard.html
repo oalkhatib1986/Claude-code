@@ -270,6 +270,7 @@
   .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px}
+  .exr1.slim.hasx2{grid-template-columns:118px 1fr 32px 32px}
   .psec-h{display:flex;align-items:baseline;gap:10px}
   .psec-h b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
   .psec-h span{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
@@ -331,6 +332,7 @@
     .psec-h{gap:8px}
     .psec-h .gname,.psec-h .gsingle{flex:1 1 100%;min-width:0}
     .exr1.slim{grid-template-columns:1fr 32px}
+    .exr1.slim.hasx2{grid-template-columns:1fr 32px 32px}
     .exr1.slim .mwrap:first-child{grid-column:1/-1}
     .exr2{gap:8px}
     .exr2 .dsel{width:100%;margin-left:0;min-width:0}
@@ -411,7 +413,7 @@
       <div class="card wide" id="rotCard">
         <h3>Blocks <span class="r" id="blkCount"></span></h3>
         <div class="body">
-          <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them.</div>
+          <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them. Added things separately? Use <b>&#10548;</b> on any item to merge it into the one above (making a group), and <b>&#10549;</b> on a grouped exercise to split it back out.</div>
 
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
@@ -1347,13 +1349,16 @@
       const newEx=()=>({who:"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
       const whoOpts=()=>["Everyone","All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
 
-      const exerciseRow=(it,x,onRemove)=>{
+      const exerciseRow=(it,x,onRemove,onSplit)=>{
         const row=document.createElement("div"); row.className="exwrap";
         const r1=document.createElement("div"); r1.className="exr1 slim";
         r1.appendChild(menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"}));
         r1.appendChild(menuField(()=>cfg.library, ()=>x.name, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, {addable:true, addLabel:"+ Add", searchPh:"Search or add exercise…"}));
         const del=document.createElement("button"); del.className="iconbtn exdel"; del.title="Remove exercise"; del.innerHTML="&times;"; del.onclick=onRemove;
         r1.appendChild(del);
+        if(onSplit){ r1.classList.add("hasx2");
+          const sp=document.createElement("button"); sp.className="iconbtn exsplit"; sp.title="Split out of group — becomes its own exercise";
+          sp.innerHTML="&#10549;"; sp.onclick=onSplit; r1.insertBefore(sp,del); }
         const r2=document.createElement("div"); r2.className="exr2";
         r2.innerHTML=`
           <button type="button" class="maxbtn ${x.max?"on":""}">Max</button>
@@ -1428,7 +1433,14 @@
           iup.onclick=()=>{ if(ii>0){[b.items[ii-1],b.items[ii]]=[b.items[ii],b.items[ii-1]];save();renderItems();} };
           idown.onclick=()=>{ if(ii<b.items.length-1){[b.items[ii+1],b.items[ii]]=[b.items[ii],b.items[ii+1]];save();renderItems();} };
           idel.onclick=()=>{ b.items.splice(ii,1); save(); renderItems(); };
-          head.append(iup,idown,idel);
+          const imerge=mkBtn("imerge","&#10548;","Merge into the item above (makes a group)",ii===0);
+          imerge.onclick=()=>{ if(ii===0) return;
+            const prev=b.items[ii-1];
+            prev.exercises=(prev.exercises||[]).concat(it.exercises);
+            prev.group=true; prev.name=prev.name||"Group";
+            if(it.scored&&!prev.scored){ prev.scored=true; prev.metric=it.metric||"calories"; prev.scorers=it.scorers||4; }
+            b.items.splice(ii,1); save(); renderItems(); };
+          head.append(iup,idown,imerge,idel);
           sec.appendChild(head);
           if(it.scored){
             const srow=document.createElement("div"); srow.className="scrow";
@@ -1449,7 +1461,12 @@
               it.exercises.splice(xi,1);
               if(!it.exercises.length) b.items.splice(ii,1);
               save(); renderItems();
-            }));
+            }, isGroup?()=>{
+              it.exercises.splice(xi,1);
+              b.items.splice(ii+1,0,{dur:it.dur,scored:false,exercises:[x]});
+              if(!it.exercises.length) b.items.splice(b.items.indexOf(it),1);
+              save(); renderItems();
+            }:null));
           });
           sec.appendChild(exlist);
           if(isGroup){
