@@ -252,7 +252,16 @@
   .exg{margin-top:7px}
   .exg:first-child{margin-top:0}
   .exg-h{display:block;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:3px}
-  .psec{border:0;border-left:2px solid var(--line);border-radius:0;padding:2px 0 4px 11px;display:flex;flex-direction:column;gap:8px}
+  .psec{border:0;border-left:3px solid var(--line);border-radius:10px;padding:9px 10px 10px 12px;display:flex;flex-direction:column;gap:8px}
+  .psec.one{border-left-color:rgba(96,160,255,.55);background:linear-gradient(90deg,rgba(96,160,255,.06),transparent 72%)}
+  .psec.grp{border-left-color:rgba(64,200,140,.55);background:linear-gradient(90deg,rgba(64,200,140,.06),transparent 72%)}
+  .psec.scoredit{border-left-color:rgba(255,45,45,.65);background:linear-gradient(90deg,rgba(255,45,45,.08),transparent 72%)}
+  .scrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .spill{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:6px 12px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
+  .spill.on{background:var(--hot);border-color:var(--hot);color:#fff}
+  .slab{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
+  .slab.hotlab{color:var(--hot)}
+  .scrow .mwrap.time{width:64px}
   .psec-h{flex-wrap:wrap}
   .psec-h .gname{flex:1;min-width:110px}
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -325,6 +334,8 @@
     .exr1.slim .mwrap:first-child{grid-column:1/-1}
     .exr2{gap:8px}
     .exr2 .dsel{width:100%;margin-left:0;min-width:0}
+    #segMode{flex-wrap:nowrap}
+    #segMode button{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tabs{margin-left:0;width:100%;justify-content:stretch}
     .tabs button{flex:1;padding:10px 6px;font-size:13px}
     .controls .hint{display:none}
@@ -401,15 +412,7 @@
         <h3>Blocks <span class="r" id="blkCount"></span></h3>
         <div class="body">
           <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them.</div>
-          <div class="row2">
-            <div class="fld"><label>What counts in the scored window</label>
-              <div class="pills" id="segMetric">
-                <button data-v="calories" aria-pressed="true">Max calories</button>
-                <button data-v="metres"   aria-pressed="false">Max metres</button>
-              </div>
-            </div>
-            <div class="fld"><label>Athletes on ergs in the window</label><input type="number" id="rScorers" min="1" max="8" step="1"></div>
-          </div>
+
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
           <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard. Each station is a <b>bank of machines</b> (e.g. your 5 rowers) — in scored work the whole team's ergs count at once.</div>
@@ -616,28 +619,28 @@
             {who:"Pair 1", name:"Run", amounts:[600,500,400], max:false, unit:"m"},
             {who:"Pair 2", name:"DBall Reverse Lunge", amounts:[], max:true, unit:"reps"},
           ]},
-          {dur:240, scored:true, exercises:[ {who:"All 4", name:"Run", amounts:[], max:true, unit:"cal"} ]},
+          {dur:240, scored:true, metric:"calories", scorers:4, exercises:[ {who:"All 4", name:"Run", amounts:[], max:true, unit:"cal"} ]},
         ]},
         {name:"Block 2", machine:"Row", items:[
           {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
             {who:"Pair 1", name:"Row", amounts:[600,500,400], max:false, unit:"m"},
             {who:"Pair 2", name:"Burpee Box Jump Over", amounts:[], max:true, unit:"reps"},
           ]},
-          {dur:240, scored:true, exercises:[ {who:"All 4", name:"Row", amounts:[], max:true, unit:"cal"} ]},
+          {dur:240, scored:true, metric:"calories", scorers:4, exercises:[ {who:"All 4", name:"Row", amounts:[], max:true, unit:"cal"} ]},
         ]},
         {name:"Block 3", machine:"Bike", items:[
           {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
             {who:"Pair 1", name:"C2 Bike", amounts:[1200,1000,800], max:false, unit:"m"},
             {who:"Pair 2", name:"Wall Ball", amounts:[], max:true, unit:"reps"},
           ]},
-          {dur:240, scored:true, exercises:[ {who:"All 4", name:"C2 Bike", amounts:[], max:true, unit:"cal"} ]},
+          {dur:240, scored:true, metric:"calories", scorers:4, exercises:[ {who:"All 4", name:"C2 Bike", amounts:[], max:true, unit:"cal"} ]},
         ]},
         {name:"Block 4", machine:"Ski", items:[
           {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
             {who:"Pair 1", name:"Ski", amounts:[600,500,400], max:false, unit:"m"},
             {who:"Pair 2", name:"Alternating DB Snatch", amounts:[], max:true, unit:"reps"},
           ]},
-          {dur:240, scored:true, exercises:[ {who:"All 4", name:"Ski", amounts:[], max:true, unit:"cal"} ]},
+          {dur:240, scored:true, metric:"calories", scorers:4, exercises:[ {who:"All 4", name:"Ski", amounts:[], max:true, unit:"cal"} ]},
         ]},
       ],
     },
@@ -673,7 +676,8 @@
       });
       delete cfg.rotation.parts;
     }
-    cfg.rotation.blocks.forEach(b=>{ if(!b.items) b.items=[]; });
+    cfg.rotation.blocks.forEach(b=>{ if(!b.items) b.items=[];
+      b.items.forEach(it=>{ if(it.scored){ if(!it.metric) it.metric=(cfg.rotation.metric||"calories"); if(!it.scorers) it.scorers=(cfg.rotation.scorers||4); } }); });
   }
   if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
   if(!cfg.waves) cfg.waves={waveSize:4,release:"auto"};
@@ -710,6 +714,9 @@
   const segAt=(b,t)=>{ let acc=0; const its=b.items||[];
     for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(t<acc) return {it:its[i], i, remain:acc-t}; }
     return null; };
+  const scoreUnit=()=>{ const ms=new Set();
+    R().blocks.forEach(b=>(b.items||[]).forEach(it=>{ if(it.scored) ms.add(it.metric||"calories"); }));
+    if(ms.size>1) return "pts"; return ms.has("metres")?"m":"cal"; };
   // rot.phase: "pre" (waiting for trainer) | "run" | "done"
   const rot={ round:0, phase:"pre", assign:[], elapsed:0 };
 
@@ -741,7 +748,7 @@
 
   function buildRotationBoard(){
     $("evSummary").textContent=`${nBlocks()} blocks · trainer-started · ${fmtMS(roundLen())} per block`;
-    $("scoreLabel").textContent=(R().metric==="calories"?"TOTAL MAX-CAL SCORE":"TOTAL SCORED METRES");
+    $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     syncRotChrome();
@@ -749,7 +756,8 @@
   function syncRotChrome(){
     const k=rot.round;
     if(rot.phase==="pre"){
-      startBtn.disabled=false; startBtn.textContent=`Start block ${k+1}`;
+      const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
+      startBtn.disabled=empty; startBtn.textContent=empty?"Build blocks first":`Start block ${k+1}`;
       clockState.textContent=k===0&&!sessionActive?"Ready":"Teams rotating";
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${k+1} up next`;
@@ -791,7 +799,7 @@
       const seg=segAt(R().blocks[st],t);
       if(!seg){ e.split=0; e.spm=0; e.hot=false; e.segName="done"; continue; }
       const hot=!!seg.it.scored;
-      e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain;
+      e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain; e.curMetric=seg.it.metric||"calories";
       let effort = hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12);
       e.phase+=0.12;
       if(effort>0.05){
@@ -801,7 +809,7 @@
         const w=wattsFor(e.split)*effort;
         const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
         e.m+=dm; e.cals+=dc;
-        if(hot) e.blockCals += (R().metric==="calories"? dc : dm) * clamp(R().scorers||1,1,8);
+        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc) * clamp(seg.it.scorers||1,1,8);
       } else { e.split=0; e.spm=0; }
     }
     const hotAny=ergs.some(e=>e.hot);
@@ -811,13 +819,18 @@
     clockState.textContent=`Block ${rot.round+1}/${nBlocks()}`;
     $("phaseBanner").classList.toggle("scoring",hotAny);
     $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:`Block ${rot.round+1} of ${nBlocks()} — working`;
-    $("phaseDesc").textContent = hotAny?`Every ${R().metric==="calories"?"calorie":"metre"} counts NOW`:"Follow your station's screen · scored parts turn red";
+    const hm=(ergs.find(e=>e.hot)||{}).curMetric||"calories";
+    $("phaseDesc").textContent = hotAny?`Every ${hm==="calories"?"calorie":"metre"} counts NOW`:"Follow your station's screen · scored parts turn red";
     renderBlockCards(); renderLanesRot(); renderTablet();
     raf=requestAnimationFrame(frameRotation);
   }
 
   function renderBlockCards(){
     if(cfg.mode!=="rotation") return;
+    if(!nBlocks()){
+      $("blockCards").innerHTML=`<div class="blk"><div class="bh"><b>No blocks yet</b></div><div class="bd">Open the Control Room and add blocks to build your workout from scratch.</div><div class="teams"></div></div>`;
+      return;
+    }
     $("blockCards").innerHTML=R().blocks.map((b,bi)=>{
       const teamId=rot.assign[bi];
       const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
@@ -858,7 +871,7 @@
       e.el.querySelector(".fill").style.width=pct+"%";
       e.el.querySelector(".fill").style.background = (running&&e.hot)?"var(--hot)":e.color;
       const val=e.score+e.blockCals;
-      e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${R().metric==="calories"?"cal":"m"}</small>`;
+      e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${scoreUnit()}</small>`;
       const bits=[];
       if(e.split>0){
         if(d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
@@ -866,7 +879,7 @@
         if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
       } else bits.push(`<em>erg idle</em>`);
       if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
-      if(d.cals&&R().metric!=="calories") bits.push(`<em>cal</em>${Math.round(e.cals)}`);
+      if(d.cals&&scoreUnit()==="m") bits.push(`<em>cal</em>${Math.round(e.cals)}`);
       e.el.querySelector(".sub").innerHTML=bits.join(" · ");
     });
   }
@@ -1145,7 +1158,7 @@
       return;
     }
     if(running) return;
-    if(cfg.mode==="rotation"){ startBlock(); renderBlockCards(); return; }
+    if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)) return; startBlock(); renderBlockCards(); return; }
     // sequence: full auto run
     build(); running=true; sessionActive=true; finished=false; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent="Running…"; resetBtn.disabled=false;
@@ -1171,11 +1184,12 @@
   let pickOpen=false;
   function buildTabletSel(){
     const sel=$("tabletSel");
-    const opts = cfg.mode==="rotation"
+    let opts = cfg.mode==="rotation"
       ? R().blocks.map((b,i)=>`<option value="${i}">${esc(b.name)} — ${mInfo(b.machine).label} bank</option>`)
       : cfg.mode==="waves"
       ? cfg.segments.map((s,i)=>`<option value="${i}">${esc(s.name)||("Station "+(i+1))} — ${mInfo(s.machine).label}</option>`)
       : cfg.crews.map((c,i)=>`<option value="${i}">${esc(c.name)}'s erg</option>`);
+    if(!opts.length) opts=['<option value="0">—</option>'];
     sel.innerHTML=opts.join("");
     sel.value=String(clamp(tabletSel,0,opts.length-1));
     sel.onchange=()=>{ tabletSel=+sel.value; pickOpen=false; try{localStorage.setItem(TKEY,sel.value);}catch(e){} renderTablet(); };
@@ -1194,6 +1208,7 @@
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(cfg.mode==="rotation"){
+      if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in the Control Room.</div>`; return; }
       const bi=clamp(tabletSel,0,nBlocks()-1), b=R().blocks[bi];
       const teamId=rot.assign[bi];
       const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
@@ -1213,7 +1228,7 @@
           phase==="done"?"Session complete":
           seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${rot.round+1}/${nBlocks()}`):"Block done — recover"}</span></div>
         <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":fmtMS(blockLen(b)))}</div>
-        ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${R().metric==="calories"?"cal":"m"}</div>`:""}
+        ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${scoreUnit()}</div>`:""}
         ${team&&!showPicker?`<div class="tb-stats">
           <div><b>${team.split>0?fmtSplit(team.split):"--:--"}</b><span>split /500m</span></div>
           <div><b>${team.split>0?Math.round(wattsFor(team.split)):0}</b><span>watts</span></div>
@@ -1307,7 +1322,7 @@
           <input type="text" placeholder="Block name" value="${esc(b.name)}">
           <button class="iconbtn up" ${i===0?"disabled":""}>&#9650;</button>
           <button class="iconbtn down" ${i===R().blocks.length-1?"disabled":""}>&#9660;</button>
-          <button class="iconbtn del" ${R().blocks.length<=1?"disabled":""}>&times;</button></div>
+          <button class="iconbtn del">&times;</button></div>
         <div class="fld"><label>Machine bank</label><select class="mc">${opts}</select></div>
         <div class="bparts"></div>
         <div class="addbtns">
@@ -1321,10 +1336,7 @@
       const partsEl=box.querySelector(".bparts");
 
       const newEx=()=>({who:"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
-      const whoOpts=()=>{
-        const n=clamp(R().scorers||4,1,8);
-        return [...new Set(["Everyone",`All ${n}`,"All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"])];
-      };
+      const whoOpts=()=>["Everyone","All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
 
       const exerciseRow=(it,x,onRemove)=>{
         const row=document.createElement("div"); row.className="exwrap";
@@ -1371,7 +1383,7 @@
         b.items.forEach((it,ii)=>{
           if(!it.exercises) it.exercises=[];
           const isGroup=it.exercises.length!==1||it.group;
-          const sec=document.createElement("div"); sec.className="psec";
+          const sec=document.createElement("div"); sec.className="psec "+(isGroup?"grp":"one")+(it.scored?" scoredit":"");
           const head=document.createElement("div"); head.className="psec-h";
           if(isGroup){
             const gn=document.createElement("input"); gn.className="gname"; gn.type="text"; gn.placeholder="Group name"; gn.value=it.name||"";
@@ -1395,7 +1407,9 @@
           head.appendChild(gt);
           const sc=document.createElement("span"); sc.className="exsc"+(it.scored?" on":""); sc.setAttribute("role","checkbox");
           sc.setAttribute("aria-checked",String(!!it.scored)); sc.tabIndex=0; sc.title="Toggle: counts toward the leaderboard"; sc.innerHTML="&#9679;";
-          const flip=()=>{it.scored=!it.scored;save();renderItems();};
+          const flip=()=>{ it.scored=!it.scored;
+            if(it.scored){ it.metric=it.metric||"calories"; it.scorers=it.scorers||4; }
+            save(); renderItems(); };
           sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
           head.appendChild(sc);
           const mkBtn=(cls,html,title,disabled)=>{ const bt=document.createElement("button"); bt.className="iconbtn "+cls; bt.innerHTML=html; bt.title=title; if(disabled) bt.disabled=true; return bt; };
@@ -1407,6 +1421,19 @@
           idel.onclick=()=>{ b.items.splice(ii,1); save(); renderItems(); };
           head.append(iup,idown,idel);
           sec.appendChild(head);
+          if(it.scored){
+            const srow=document.createElement("div"); srow.className="scrow";
+            const tag=document.createElement("i"); tag.className="slab hotlab"; tag.textContent="Scored:"; srow.appendChild(tag);
+            const mkPill=(v,label)=>{ const b2=document.createElement("button"); b2.type="button";
+              b2.className="spill"+(((it.metric||"calories")===v)?" on":""); b2.textContent=label;
+              b2.onclick=()=>{ it.metric=v; save(); renderItems(); }; return b2; };
+            srow.append(mkPill("calories","Max cal"), mkPill("metres","Max metres"));
+            const aw=menuField(()=>[1,2,3,4,5,6,7,8], ()=>String(it.scorers||4),
+              v=>{ it.scorers=clamp(parseInt(v,10)||4,1,8); save(); }, {numeric:true, cls:"time", searchPh:"Athletes…", addable:true, addLabel:"Use"});
+            const lab=document.createElement("i"); lab.className="slab"; lab.textContent="on ergs";
+            srow.append(aw,lab);
+            sec.appendChild(srow);
+          }
           const exlist=document.createElement("div"); exlist.className="exlist";
           it.exercises.forEach((x,xi)=>{
             exlist.appendChild(exerciseRow(it,x,()=>{
@@ -1430,7 +1457,7 @@
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
       box.querySelector('.down').onclick=()=>{ if(i<R().blocks.length-1){[R().blocks[i+1],R().blocks[i]]=[R().blocks[i],R().blocks[i+1]];save();buildBlocks();} };
-      box.querySelector('.del').onclick=()=>{ if(R().blocks.length>1){R().blocks.splice(i,1);save();buildBlocks();} };
+      box.querySelector('.del').onclick=()=>{ R().blocks.splice(i,1);save();buildBlocks(); if(!sessionActive&&!running) build(); };
       list.appendChild(box);
     });
   }
@@ -1521,18 +1548,15 @@
   }
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
-    $("rScorers").value=R().scorers||4;
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
     pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
     $("wSize").value=W().waveSize;
     $("wSize").oninput=e=>{W().waveSize=clamp(+e.target.value||1,1,10);save();};
     pillGroup("segRelease",W().release,v=>W().release=v);
-    pillGroup("segMetric",R().metric,v=>R().metric=v);
     pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v,syncSeqScoring);
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
     $("cSub").oninput=e=>{cfg.sub=e.target.value;save();};
-    $("rScorers").oninput=e=>{R().scorers=clamp(+e.target.value||1,1,8);save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
     $("cPerUnit").oninput=e=>{cfg.scoring.perUnit=clamp(+e.target.value||1,1,1e5);save();};
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
