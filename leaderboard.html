@@ -245,7 +245,11 @@
   .psec-h .gname{flex:1;min-width:110px}
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
-  .psec-h .gmin{width:72px;font-family:var(--mono)}
+  .psec-h .gmin,.psec-h .gsec{font-family:var(--mono)}
+  .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
+  .tcombo{width:80px}
+  .tcombo input{width:100%;padding:11px 28px 11px 12px;background-position:right 8px center}
+  .gtime .combo-list{min-width:80px;max-height:230px}
   .exr1.slim{grid-template-columns:132px 1fr 40px}
   .psec-h{display:flex;align-items:baseline;gap:10px}
   .psec-h b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
@@ -1329,7 +1333,7 @@
           sec.innerHTML=`
             <div class="psec-h">
               ${isGroup?`<input class="gname" type="text" placeholder="Group name" value="${esc(it.name||"")}">`:`<b class="gsingle">${esc((it.exercises[0]||{}).name||"Exercise")}</b>`}
-              <span class="gtime"><input class="gmin" type="number" min="0.1" step="0.5" value="${+(it.dur/60).toFixed(2)}"> min</span>
+              <span class="gtime"><span class="combo tcombo"><input class="gmin" type="text" inputmode="numeric" autocomplete="off" value="${Math.floor(it.dur/60)}"><div class="combo-list" hidden></div></span><i>min</i><span class="combo tcombo"><input class="gsec" type="text" inputmode="numeric" autocomplete="off" value="${String(Math.round(it.dur%60)).padStart(2,"0")}"><div class="combo-list" hidden></div></span><i>sec</i></span>
               <span class="exsc ${it.scored?"on":""}" role="checkbox" aria-checked="${it.scored}" tabindex="0" title="Toggle: this ${isGroup?"group":"exercise"} counts toward the leaderboard">&#9679;</span>
               <button class="iconbtn iup" ${ii===0?"disabled":""} title="Move up">&#9650;</button>
               <button class="iconbtn idown" ${ii===b.items.length-1?"disabled":""} title="Move down">&#9660;</button>
@@ -1348,8 +1352,25 @@
           enhanceSelects(exlist);
           const gname=sec.querySelector(".gname");
           if(gname) gname.oninput=()=>{it.name=gname.value;save();};
-          const gmin=sec.querySelector(".gmin");
-          gmin.oninput=()=>{it.dur=clamp(Math.round((+gmin.value||0.1)*60),6,7200);save();};
+          const minI=sec.querySelector(".gmin"), secI=sec.querySelector(".gsec");
+          const commitDur=(normalize)=>{
+            const m=Math.max(0,parseInt(minI.value,10)||0);
+            const s2=Math.max(0,Math.min(59,parseInt(secI.value,10)||0));
+            it.dur=clamp(m*60+s2,5,7200); save();
+            if(normalize){ minI.value=Math.floor(it.dur/60); secI.value=String(it.dur%60).padStart(2,"0"); }
+          };
+          const wireTime=(inp,opts)=>{
+            const list2=inp.parentElement.querySelector(".combo-list");
+            const open=()=>{ list2.innerHTML=opts.map(v=>`<div class="combo-item" data-v="${v}">${v}</div>`).join("");
+              list2.hidden=false;
+              list2.querySelectorAll("[data-v]").forEach(o=>{ o.onpointerdown=ev=>{ ev.preventDefault(); inp.value=o.dataset.v; commitDur(true); list2.hidden=true; }; }); };
+            inp.onfocus=()=>{ inp.select(); open(); };
+            inp.oninput=()=>commitDur(false);
+            inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); commitDur(true); list2.hidden=true; inp.blur(); } };
+            inp.onblur=()=>setTimeout(()=>{ list2.hidden=true; commitDur(true); },150);
+          };
+          wireTime(minI,[0,1,2,3,4,5,6,8,10,12,15,20,25,30,45,60]);
+          wireTime(secI,["00","05","10","15","20","30","40","45","50"]);
           const sc=sec.querySelector(".exsc");
           const flip=()=>{it.scored=!it.scored;save();renderItems();};
           sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
