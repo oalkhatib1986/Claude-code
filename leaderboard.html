@@ -240,6 +240,12 @@
   .exg:first-child{margin-top:0}
   .exg-h{display:block;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:3px}
   .psec{border:1px dashed var(--line);border-radius:12px;padding:11px;display:flex;flex-direction:column;gap:10px}
+  .psec-h{flex-wrap:wrap}
+  .psec-h .gname{flex:1;min-width:110px}
+  .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
+  .psec-h .gmin{width:72px;font-family:var(--mono)}
+  .exr1.slim{grid-template-columns:132px 1fr 40px}
   .psec-h{display:flex;align-items:baseline;gap:10px}
   .psec-h b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
   .psec-h span{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
@@ -337,11 +343,7 @@
       <div class="card wide" id="rotCard">
         <h3>Blocks <span class="r" id="blkCount"></span></h3>
         <div class="body">
-          <div class="fld"><label>Timed groups — name &amp; minutes · one clock shared by every block</label>
-            <div id="partList"></div>
-            <div class="addbtns"><button class="btn small" id="addPart" type="button">+ Add timed group</button></div>
-          </div>
-          <div class="note">Each block runs these groups in order on a shared clock — every station is on the same group at the same time, which is what lets teams rotate together. Put each block's exercises inside the groups below; mark with the red dot which exercises are <b>scored</b>.</div>
+          <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them.</div>
           <div class="row2">
             <div class="fld"><label>What counts in the scored window</label>
               <div class="pills" id="segMetric">
@@ -508,27 +510,34 @@
     mode:"rotation",
     rotation:{
       metric:"calories", scorers:4,
-      parts:[ {name:"Work", dur:720}, {name:"Max-cal window", dur:240} ],
       blocks:[
-        {name:"Block 1", machine:"Run", exercises:[
-          {part:0, who:"Pair 1", name:"Run", amounts:[600,500,400], max:false, unit:"m", scored:false},
-          {part:0, who:"Pair 2", name:"DBall Reverse Lunge", amounts:[], max:true, unit:"reps", scored:false},
-          {part:1, who:"All 4", name:"Run", amounts:[], max:true, unit:"cal", scored:true},
+        {name:"Block 1", machine:"Run", items:[
+          {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
+            {who:"Pair 1", name:"Run", amounts:[600,500,400], max:false, unit:"m"},
+            {who:"Pair 2", name:"DBall Reverse Lunge", amounts:[], max:true, unit:"reps"},
+          ]},
+          {dur:240, scored:true, exercises:[ {who:"All 4", name:"Run", amounts:[], max:true, unit:"cal"} ]},
         ]},
-        {name:"Block 2", machine:"Row", exercises:[
-          {part:0, who:"Pair 1", name:"Row", amounts:[600,500,400], max:false, unit:"m", scored:false},
-          {part:0, who:"Pair 2", name:"Burpee Box Jump Over", amounts:[], max:true, unit:"reps", scored:false},
-          {part:1, who:"All 4", name:"Row", amounts:[], max:true, unit:"cal", scored:true},
+        {name:"Block 2", machine:"Row", items:[
+          {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
+            {who:"Pair 1", name:"Row", amounts:[600,500,400], max:false, unit:"m"},
+            {who:"Pair 2", name:"Burpee Box Jump Over", amounts:[], max:true, unit:"reps"},
+          ]},
+          {dur:240, scored:true, exercises:[ {who:"All 4", name:"Row", amounts:[], max:true, unit:"cal"} ]},
         ]},
-        {name:"Block 3", machine:"Bike", exercises:[
-          {part:0, who:"Pair 1", name:"C2 Bike", amounts:[1200,1000,800], max:false, unit:"m", scored:false},
-          {part:0, who:"Pair 2", name:"Wall Ball", amounts:[], max:true, unit:"reps", scored:false},
-          {part:1, who:"All 4", name:"C2 Bike", amounts:[], max:true, unit:"cal", scored:true},
+        {name:"Block 3", machine:"Bike", items:[
+          {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
+            {who:"Pair 1", name:"C2 Bike", amounts:[1200,1000,800], max:false, unit:"m"},
+            {who:"Pair 2", name:"Wall Ball", amounts:[], max:true, unit:"reps"},
+          ]},
+          {dur:240, scored:true, exercises:[ {who:"All 4", name:"C2 Bike", amounts:[], max:true, unit:"cal"} ]},
         ]},
-        {name:"Block 4", machine:"Ski", exercises:[
-          {part:0, who:"Pair 1", name:"Ski", amounts:[600,500,400], max:false, unit:"m", scored:false},
-          {part:0, who:"Pair 2", name:"Alternating DB Snatch", amounts:[], max:true, unit:"reps", scored:false},
-          {part:1, who:"All 4", name:"Ski", amounts:[], max:true, unit:"cal", scored:true},
+        {name:"Block 4", machine:"Ski", items:[
+          {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
+            {who:"Pair 1", name:"Ski", amounts:[600,500,400], max:false, unit:"m"},
+            {who:"Pair 2", name:"Alternating DB Snatch", amounts:[], max:true, unit:"reps"},
+          ]},
+          {dur:240, scored:true, exercises:[ {who:"All 4", name:"Ski", amounts:[], max:true, unit:"cal"} ]},
         ]},
       ],
     },
@@ -547,22 +556,28 @@
       {name:"Team 4", ath:"", color:"#9aa0a8"},
     ],
   };
-  const KEY="af_erg_cfg_v7";
+  const KEY="af_erg_cfg_v8";
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
-  if(cfg.rotation&&!cfg.rotation.parts){
-    cfg.rotation.parts=[{name:"Work",dur:cfg.rotation.workDur||720},{name:"Score window",dur:cfg.rotation.scoreDur||240}];
-    delete cfg.rotation.workDur; delete cfg.rotation.scoreDur;
-    cfg.rotation.blocks.forEach(b=>(b.exercises||[]).forEach(x=>{ if(x.part===undefined) x.part=x.scored?1:0; }));
+  if(cfg.rotation){
+    if(cfg.rotation.parts){
+      cfg.rotation.blocks.forEach(b=>{
+        const parts=cfg.rotation.parts;
+        b.items=parts.map((pt,pi)=>({
+          name:pt.name, group:true, dur:pt.dur,
+          scored:(b.exercises||[]).some(x=>(x.part||0)===pi&&x.scored),
+          exercises:(b.exercises||[]).filter(x=>(x.part||0)===pi).map(x=>({who:x.who,name:x.name,amounts:x.amounts||[],max:!!x.max,unit:x.unit})),
+        })).filter(it=>it.exercises.length);
+        delete b.exercises;
+      });
+      delete cfg.rotation.parts;
+    }
+    cfg.rotation.blocks.forEach(b=>{ if(!b.items) b.items=[]; });
   }
   if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
   if(!cfg.waves) cfg.waves={waveSize:4,release:"auto"};
-  if(cfg.rotation) cfg.rotation.blocks.forEach(b=>{ if(!b.exercises) b.exercises=[];
-    b.exercises.forEach(x=>{ if(x.amounts===undefined){ const q=String(x.qty||"").trim();
-      if(/^max/i.test(q)||!q){ x.max=true; x.amounts=[]; }
-      else { x.max=false; x.amounts=q.split("/").map(s=>parseFloat(s.replace(/[^0-9.]/g,""))).filter(v=>isFinite(v)); }
-      delete x.qty; } }); });
+
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
 
@@ -587,16 +602,16 @@
     }));
   }
 
-  /* ================= ROTATION — trainer-paced blocks, timed groups ================= */
+  /* ================= ROTATION — trainer-paced blocks, per-item timing ================= */
   const R=()=>cfg.rotation;
   const nBlocks=()=>R().blocks.length;
-  const parts=()=>R().parts;
-  const blockLen=()=>parts().reduce((a,p)=>a+p.dur,0);
-  const partAt=t=>{ let acc=0; for(let i=0;i<parts().length;i++){ acc+=parts()[i].dur; if(t<acc) return {i, remain:acc-t}; } return {i:parts().length-1, remain:0}; };
-  const scoredNowFor=(b,pi)=>b.exercises&&b.exercises.some(x=>(x.part||0)===pi&&x.scored);
-  const anyScored=pi=>R().blocks.some(b=>scoredNowFor(b,pi));
+  const blockLen=b=>(b.items||[]).reduce((a,it)=>a+it.dur,0);
+  const roundLen=()=>Math.max(1,...R().blocks.map(blockLen));
+  const segAt=(b,t)=>{ let acc=0; const its=b.items||[];
+    for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(t<acc) return {it:its[i], i, remain:acc-t}; }
+    return null; };
   // rot.phase: "pre" (waiting for trainer) | "run" | "done"
-  const rot={ round:0, phase:"pre", assign:[], partIdx:0, remain:0, elapsed:0 };
+  const rot={ round:0, phase:"pre", assign:[], elapsed:0 };
 
   function prefillAssign(round){
     const N=nBlocks(), a=new Array(N).fill(null);
@@ -615,20 +630,20 @@
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
   const exTxt=x=>`${x.who} — ${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`;
   const exLines=b=>{
-    if(!b.exercises||!b.exercises.length) return esc(b.desc||"—");
-    return parts().map((pt,pi)=>{
-      const xs=b.exercises.filter(x=>(x.part||0)===pi);
-      if(!xs.length) return "";
-      return `<div class="exg"><span class="exg-h">${esc(pt.name)} · ${fmtMS(pt.dur)}</span>`
-        +xs.map(x=>`<div class="exl">${esc(exTxt(x))}${x.scored?` <i>scored</i>`:""}</div>`).join("")+`</div>`;
+    const its=b.items||[];
+    if(!its.length) return esc(b.desc||"—");
+    return its.map(it=>{
+      const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
+      const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
+      return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${fmtMS(it.dur)}${it.scored?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
 
   function buildRotationBoard(){
-    $("evSummary").textContent=`${nBlocks()} blocks · trainer-started · ${parts().map(p=>fmtMS(p.dur)+" "+p.name).join(" → ")}`;
+    $("evSummary").textContent=`${nBlocks()} blocks · trainer-started · ${fmtMS(roundLen())} per block`;
     $("scoreLabel").textContent=(R().metric==="calories"?"TOTAL MAX-CAL SCORE":"TOTAL SCORED METRES");
     $("phaseBanner").hidden=false;
-    clockEl.textContent=fmtMS(parts()[0]?parts()[0].dur:0); clockEl.classList.remove("hot");
+    clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     syncRotChrome();
   }
   function syncRotChrome(){
@@ -639,7 +654,7 @@
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${k+1} up next`;
       $("phaseDesc").textContent = "Athletes pick their team on the erg screen · trainer starts the block";
-      clockEl.textContent=fmtMS(parts()[0]?parts()[0].dur:0); clockEl.classList.remove("hot");
+      clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="done"){
       startBtn.disabled=true; startBtn.textContent="Session complete";
       clockState.textContent="Final";
@@ -661,23 +676,22 @@
 
   function frameRotation(now){
     const t=(now-t0)/1000;
-    if(t>=blockLen()){
-      for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; }
+    if(t>=roundLen()){
+      for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=nBlocks()-1){ rot.phase="done"; finished=true; }
       else { rot.round++; rot.phase="pre"; prefillAssign(rot.round); }
       syncRotChrome(); renderLanesRot(); renderTablet();
       return;
     }
-    const pa=partAt(t);
-    rot.partIdx=pa.i; rot.remain=pa.remain; rot.elapsed=t;
-    const pt=parts()[pa.i];
-    const hotAny=anyScored(pa.i);
+    rot.elapsed=t;
     for(const e of ergs){
       const st=stationOf(e);
-      if(st<0){ e.split=0; e.spm=0; e.hot=false; continue; }
-      const hot=scoredNowFor(R().blocks[st],pa.i);
-      e.hot=hot;
+      if(st<0){ e.split=0; e.spm=0; e.hot=false; e.segName=""; continue; }
+      const seg=segAt(R().blocks[st],t);
+      if(!seg){ e.split=0; e.spm=0; e.hot=false; e.segName="done"; continue; }
+      const hot=!!seg.it.scored;
+      e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain;
       let effort = hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12);
       e.phase+=0.12;
       if(effort>0.05){
@@ -690,12 +704,14 @@
         if(hot) e.blockCals += (R().metric==="calories"? dc : dm) * clamp(R().scorers||1,1,8);
       } else { e.split=0; e.spm=0; }
     }
-    clockEl.textContent=fmtMS(rot.remain);
+    const hotAny=ergs.some(e=>e.hot);
+    const hotName=(ergs.find(e=>e.hot)||{}).segName||"Score";
+    clockEl.textContent=fmtMS(roundLen()-t);
     clockEl.classList.toggle("hot",hotAny);
-    clockState.textContent = `Block ${rot.round+1}/${nBlocks()} · ${pt.name}`;
+    clockState.textContent=`Block ${rot.round+1}/${nBlocks()}`;
     $("phaseBanner").classList.toggle("scoring",hotAny);
-    $("phaseLabel").textContent = hotAny?`${pt.name.toUpperCase()} — SCORING`:`Block ${rot.round+1} of ${nBlocks()} — ${pt.name}`;
-    $("phaseDesc").textContent = hotAny?`Every ${R().metric==="calories"?"calorie":"metre"} counts NOW`:`Group ${pa.i+1} of ${parts().length} · not scored`;
+    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:`Block ${rot.round+1} of ${nBlocks()} — working`;
+    $("phaseDesc").textContent = hotAny?`Every ${R().metric==="calories"?"calorie":"metre"} counts NOW`:"Follow your station's screen · scored parts turn red";
     renderBlockCards(); renderLanesRot(); renderTablet();
     raf=requestAnimationFrame(frameRotation);
   }
@@ -705,11 +721,12 @@
     $("blockCards").innerHTML=R().blocks.map((b,bi)=>{
       const teamId=rot.assign[bi];
       const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
-      const hot=running&&scoredNowFor(b,rot.partIdx);
+      const seg=running?segAt(b,rot.elapsed):null;
+      const hot=!!(seg&&seg.it.scored);
       return `<div class="blk ${hot?"scoring":""}">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${mInfo(b.machine).label}</span></div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${parts().map((p,pi)=>`${fmtMS(p.dur)} ${esc(p.name)}${scoredNowFor(b,pi)?" <b>·scored</b>":""}`).join(" &rarr; ")} · trainer starts</div>
+        <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
         <div class="teams">${team?`<span class="t"><span class="dot" style="background:${team.color};color:${team.color}"></span>${esc(team.name)}</span>`:`<span class="t" style="opacity:.55">station open — pick team on erg screen</span>`}</div>
       </div>`;
     }).join("");
@@ -735,7 +752,9 @@
         loc=`On <b>${esc(here.name)} · ${mInfo(here.machine).short}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
       }
       e.el.querySelector(".loc").innerHTML=loc;
-      const pct = running ? clamp(rot.elapsed/blockLen()*100,0,100) : (finished?100:0);
+      const st2=stationOf(e);
+      const bl=st2>=0?blockLen(R().blocks[st2]):roundLen();
+      const pct = running ? clamp(rot.elapsed/Math.max(1,bl)*100,0,100) : (finished?100:0);
       e.el.querySelector(".fill").style.width=pct+"%";
       e.el.querySelector(".fill").style.background = (running&&e.hot)?"var(--hot)":e.color;
       const val=e.score+e.blockCals;
@@ -1079,9 +1098,9 @@
       const teamId=rot.assign[bi];
       const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
       const phase=rot.phase;
-      const pi=running?rot.partIdx:0;
-      const pt=parts()[pi]||{name:"",dur:0};
-      const hot=running&&scoredNowFor(b,pi);
+      const seg=running?segAt(b,rot.elapsed):null;
+      const hot=!!(seg&&seg.it.scored);
+      const segLabel=seg?(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working"):"";
       const showPicker = phase==="pre" || team==null || pickOpen;
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=nBlocks()-1;
@@ -1092,8 +1111,8 @@
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${rot.round+1} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="done"?"Session complete":
-          hot?`${esc(pt.name)} — SCORING NOW`:`${esc(pt.name)} · block ${rot.round+1}/${nBlocks()}`}</span></div>
-        <div class="tb-clock ${hot?"hot":""}">${running?fmtMS(rot.remain):(phase==="done"?"0:00":fmtMS(pt.dur))}</div>
+          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${rot.round+1}/${nBlocks()}`):"Block done — recover"}</span></div>
+        <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":fmtMS(blockLen(b)))}</div>
         ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${R().metric==="calories"?"cal":"m"}</div>`:""}
         ${team&&!showPicker?`<div class="tb-stats">
           <div><b>${team.split>0?fmtSplit(team.split):"--:--"}</b><span>split /500m</span></div>
@@ -1177,29 +1196,10 @@
       perUnit:"Convert each station's result into points (e.g. 1pt / 10m) and sum.",
     }[cfg.scoring.mode];
   }
-  function buildParts(){
-    const list=$("partList"); list.innerHTML="";
-    R().parts.forEach((pt,pi)=>{
-      const row=document.createElement("div"); row.className="prow";
-      row.innerHTML=`<input type="text" placeholder="Group name" value="${esc(pt.name)}">
-        <input type="number" min="0.1" step="0.5" title="minutes" value="${+(pt.dur/60).toFixed(2)}">
-        <button class="iconbtn" ${R().parts.length<=1?"disabled":""} title="Remove group">&times;</button>`;
-      const ins=row.querySelectorAll("input");
-      ins[0].oninput=()=>{pt.name=ins[0].value;save();buildBlocks();};
-      ins[1].oninput=()=>{pt.dur=clamp(Math.round((+ins[1].value||0.1)*60),6,7200);save();buildBlocks();};
-      row.querySelector("button").onclick=()=>{ if(R().parts.length<=1)return;
-        R().parts.splice(pi,1);
-        R().blocks.forEach(b=>(b.exercises||[]).forEach(x=>{ if((x.part||0)>=R().parts.length) x.part=R().parts.length-1; }));
-        save(); buildParts(); buildBlocks(); };
-      list.appendChild(row);
-    });
-  }
-  $("addPart").onclick=()=>{ if(R().parts.length>=6)return; R().parts.push({name:"Group "+(R().parts.length+1),dur:300}); save(); buildParts(); buildBlocks(); };
-
   function buildBlocks(){
     const list=$("blkList"); list.innerHTML=""; $("blkCount").textContent=`${R().blocks.length} blocks`;
     R().blocks.forEach((b,i)=>{
-      if(!b.exercises) b.exercises=[];
+      if(!b.items) b.items=[];
       const box=document.createElement("div"); box.className="stn";
       const opts=Object.entries(MACHINE).map(([k,v])=>`<option value="${k}" ${b.machine===k?"selected":""}>${v.label}</option>`).join("");
       box.innerHTML=`
@@ -1209,106 +1209,134 @@
           <button class="iconbtn down" ${i===R().blocks.length-1?"disabled":""}>&#9660;</button>
           <button class="iconbtn del" ${R().blocks.length<=2?"disabled":""}>&times;</button></div>
         <div class="fld"><label>Station machine bank (the erg that streams live data)</label><select class="mc">${opts}</select></div>
-        <div class="bparts"></div>`;
+        <div class="bparts"></div>
+        <div class="addbtns">
+          <button class="btn small addex" type="button">+ Add exercise</button>
+          <button class="btn small addgrp" type="button">+ Group exercises</button>
+        </div>`;
       const nm=box.querySelector('input[type=text]'), mc=box.querySelector('.mc');
       nm.oninput=()=>{b.name=nm.value;save();};
       mc.onchange=()=>{b.machine=mc.value;save();};
       enhanceSelects(box);
       const partsEl=box.querySelector(".bparts");
-      const renderEx=()=>{
+
+      const newEx=()=>({who:"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
+
+      const exerciseRow=(it,x,onRemove)=>{
+        const row=document.createElement("div"); row.className="exwrap";
+        row.innerHTML=`
+          <div class="exr1 slim">
+            <div class="combo"><input class="whoin" type="text" autocomplete="off" spellcheck="false" placeholder="Who" value="${esc(x.who)}"><div class="combo-list" hidden></div></div>
+            <div class="combo"><input class="exn" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type or pick exercise" value="${esc(x.name)}"><div class="combo-list" hidden></div></div>
+            <button class="iconbtn exdel" title="Remove exercise">&times;</button>
+          </div>
+          <div class="exr2">
+            <button type="button" class="maxbtn ${x.max?"on":""}">Max</button>
+            <span class="amtchips"></span>
+            <button type="button" class="iconbtn amtadd" title="Add another option" ${x.max?"disabled":""}>+</button>
+            <select class="unit">
+              <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
+              <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
+              <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
+              <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select>
+          </div>`;
+        row.querySelector(".exdel").onclick=onRemove;
+        row.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
+        const wireCombo=(inp,list2,getOpts,commitVal,addLabel)=>{
+          const openList=(all)=>{
+            const q=all?"":inp.value.trim().toLowerCase();
+            const opts2=getOpts();
+            const matches=opts2.filter(n=>n.toLowerCase().includes(q));
+            const exact=opts2.some(n=>n.toLowerCase()===q);
+            let items="";
+            if(q&&!exact&&!all) items+=`<div class="combo-item add" data-add="1">${addLabel} &ldquo;${esc(inp.value.trim())}&rdquo;</div>`;
+            items+=matches.map(n=>`<div class="combo-item" data-v="${esc(n)}">${esc(n)}</div>`).join("");
+            if(!items) items=`<div class="combo-item hint">Type anything&hellip;</div>`;
+            list2.innerHTML=items; list2.hidden=false;
+            list2.querySelectorAll("[data-v],[data-add]").forEach(it2=>{
+              it2.onpointerdown=ev=>{ ev.preventDefault();
+                const v=it2.dataset.add? inp.value.trim() : it2.dataset.v;
+                commitVal(v); inp.value=v; list2.hidden=true; };
+            });
+          };
+          inp.onfocus=()=>{ inp.select(); openList(true); };
+          inp.oninput=()=>openList(false);
+          inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=inp.value.trim(); if(v) commitVal(v); list2.hidden=true; inp.blur(); } };
+          inp.onblur=()=>{ setTimeout(()=>{ list2.hidden=true; const v=inp.value.trim(); if(v) commitVal(v); },150); };
+        };
+        const whoOpts=()=>{
+          const n=clamp(R().scorers||4,1,8);
+          const base=["Everyone",`All ${n}`,"All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
+          return [...new Set(base)];
+        };
+        wireCombo(row.querySelector(".whoin"), row.querySelectorAll(".combo-list")[0],
+          whoOpts, v=>{x.who=v;save();}, "Use");
+        wireCombo(row.querySelector(".exn"), row.querySelectorAll(".combo-list")[1],
+          ()=>cfg.library, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, "+ Add");
+        const chips=row.querySelector(".amtchips");
+        const renderAmts=()=>{
+          chips.innerHTML="";
+          if(x.max) return;
+          x.amounts.forEach((a,ai)=>{
+            const chip=document.createElement("span"); chip.className="amtchip";
+            chip.innerHTML=`<input type="number" class="amt" inputmode="numeric" value="${a}" min="0" step="1"><button type="button" class="amtdel" title="Remove option">&times;</button>`;
+            const inp=chip.querySelector(".amt");
+            inp.oninput=()=>{ const v=parseFloat(inp.value); if(isFinite(v)){ x.amounts[ai]=v; save(); } };
+            chip.querySelector(".amtdel").onclick=()=>{ x.amounts.splice(ai,1); save(); renderAmts(); };
+            chips.appendChild(chip);
+          });
+          if(!x.amounts.length){ const h=document.createElement("span"); h.className="amthint"; h.textContent="add an amount →"; chips.appendChild(h); }
+        };
+        renderAmts();
+        row.querySelector(".amtadd").onclick=()=>{ x.amounts.push(x.amounts.length?x.amounts[x.amounts.length-1]:100); save(); renderAmts(); };
+        row.querySelector(".maxbtn").onclick=()=>{ x.max=!x.max; save(); renderItems(); };
+        return row;
+      };
+
+      const renderItems=()=>{
         partsEl.innerHTML="";
-        R().parts.forEach((pt,pi)=>{
+        b.items.forEach((it,ii)=>{
+          if(!it.exercises) it.exercises=[];
+          const isGroup=it.exercises.length!==1||it.group;
           const sec=document.createElement("div"); sec.className="psec";
-          const scHere=b.exercises.some(x=>(x.part||0)===pi&&x.scored);
-          sec.innerHTML=`<div class="psec-h"><b>${esc(pt.name)}</b><span>${fmtMS(pt.dur)}</span>${scHere?`<span class="schint">&#9679; scored</span>`:""}</div>
+          sec.innerHTML=`
+            <div class="psec-h">
+              ${isGroup?`<input class="gname" type="text" placeholder="Group name" value="${esc(it.name||"")}">`:`<b class="gsingle">${esc((it.exercises[0]||{}).name||"Exercise")}</b>`}
+              <span class="gtime"><input class="gmin" type="number" min="0.1" step="0.5" value="${+(it.dur/60).toFixed(2)}"> min</span>
+              <span class="exsc ${it.scored?"on":""}" role="checkbox" aria-checked="${it.scored}" tabindex="0" title="Toggle: this ${isGroup?"group":"exercise"} counts toward the leaderboard">&#9679;</span>
+              <button class="iconbtn iup" ${ii===0?"disabled":""} title="Move up">&#9650;</button>
+              <button class="iconbtn idown" ${ii===b.items.length-1?"disabled":""} title="Move down">&#9660;</button>
+              <button class="iconbtn idel" title="Remove">&times;</button>
+            </div>
             <div class="exlist"></div>
-            <div class="addbtns"><button class="btn small exadd" type="button">+ Add exercise</button></div>`;
+            ${isGroup?`<div class="addbtns"><button class="btn small gadd" type="button">+ Add exercise to group</button></div>`:""}`;
           const exlist=sec.querySelector(".exlist");
-          b.exercises.forEach((x,xi)=>{
-            if((x.part||0)!==pi) return;
-            if(!x.amounts) x.amounts=[];
-            const row=document.createElement("div"); row.className="exwrap";
-            row.innerHTML=`
-              <div class="exr1">
-                <div class="combo"><input class="whoin" type="text" autocomplete="off" spellcheck="false" placeholder="Who" value="${esc(x.who)}"><div class="combo-list" hidden></div></div>
-                <div class="combo"><input class="exn" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type or pick exercise" value="${esc(x.name)}"><div class="combo-list" hidden></div></div>
-                <span class="exsc ${x.scored?"on":""}" role="checkbox" aria-checked="${x.scored}" tabindex="0" title="Toggle: counts toward the leaderboard">&#9679;</span>
-                <button class="iconbtn exdel" title="Remove exercise">&times;</button>
-              </div>
-              <div class="exr2">
-                <button type="button" class="maxbtn ${x.max?"on":""}">Max</button>
-                <span class="amtchips"></span>
-                <button type="button" class="iconbtn amtadd" title="Add another option" ${x.max?"disabled":""}>+</button>
-                <select class="unit">
-                  <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
-                  <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
-                  <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
-                  <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select>
-              </div>`;
-            const sc=row.querySelector(".exsc");
-            const flip=()=>{x.scored=!x.scored;save();renderEx();};
-            sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
-            row.querySelector(".exdel").onclick=()=>{b.exercises.splice(xi,1);save();renderEx();};
-            row.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
-            const wireCombo=(inp,list2,getOpts,commitVal,addLabel)=>{
-              const openList=(all)=>{
-                const q=all?"":inp.value.trim().toLowerCase();
-                const opts2=getOpts();
-                const matches=opts2.filter(n=>n.toLowerCase().includes(q));
-                const exact=opts2.some(n=>n.toLowerCase()===q);
-                let items="";
-                if(q&&!exact&&!all) items+=`<div class="combo-item add" data-add="1">${addLabel} &ldquo;${esc(inp.value.trim())}&rdquo;</div>`;
-                items+=matches.map(n=>`<div class="combo-item" data-v="${esc(n)}">${esc(n)}</div>`).join("");
-                if(!items) items=`<div class="combo-item hint">Type anything&hellip;</div>`;
-                list2.innerHTML=items; list2.hidden=false;
-                list2.querySelectorAll("[data-v],[data-add]").forEach(it=>{
-                  it.onpointerdown=ev=>{ ev.preventDefault();
-                    const v=it.dataset.add? inp.value.trim() : it.dataset.v;
-                    commitVal(v); inp.value=v; list2.hidden=true; };
-                });
-              };
-              inp.onfocus=()=>{ inp.select(); openList(true); };
-              inp.oninput=()=>openList(false);
-              inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=inp.value.trim(); if(v) commitVal(v); list2.hidden=true; inp.blur(); } };
-              inp.onblur=()=>{ setTimeout(()=>{ list2.hidden=true; const v=inp.value.trim(); if(v) commitVal(v); },150); };
-            };
-            const whoOpts=()=>{
-              const n=clamp(R().scorers||4,1,8);
-              const base=["Everyone",`All ${n}`,"All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
-              return [...new Set(base)];
-            };
-            wireCombo(row.querySelector(".whoin"), row.querySelectorAll(".combo-list")[0],
-              whoOpts, v=>{x.who=v;save();}, "Use");
-            wireCombo(row.querySelector(".exn"), row.querySelectorAll(".combo-list")[1],
-              ()=>cfg.library, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, "+ Add");
-            const chips=row.querySelector(".amtchips");
-            const renderAmts=()=>{
-              chips.innerHTML="";
-              if(x.max) return;
-              x.amounts.forEach((a,ai)=>{
-                const chip=document.createElement("span"); chip.className="amtchip";
-                chip.innerHTML=`<input type="number" class="amt" inputmode="numeric" value="${a}" min="0" step="1"><button type="button" class="amtdel" title="Remove option">&times;</button>`;
-                const inp=chip.querySelector(".amt");
-                inp.oninput=()=>{ const v=parseFloat(inp.value); if(isFinite(v)){ x.amounts[ai]=v; save(); } };
-                chip.querySelector(".amtdel").onclick=()=>{ x.amounts.splice(ai,1); save(); renderAmts(); };
-                chips.appendChild(chip);
-              });
-              if(!x.amounts.length){ const h=document.createElement("span"); h.className="amthint"; h.textContent="add an amount →"; chips.appendChild(h); }
-            };
-            renderAmts();
-            row.querySelector(".amtadd").onclick=()=>{ x.amounts.push(x.amounts.length?x.amounts[x.amounts.length-1]:100); save(); renderAmts(); };
-            row.querySelector(".maxbtn").onclick=()=>{ x.max=!x.max; save(); renderEx(); };
-            exlist.appendChild(row);
+          it.exercises.forEach((x,xi)=>{
+            exlist.appendChild(exerciseRow(it,x,()=>{
+              it.exercises.splice(xi,1);
+              if(!it.exercises.length) b.items.splice(ii,1);
+              save(); renderItems();
+            }));
           });
           enhanceSelects(exlist);
-          sec.querySelector(".exadd").onclick=()=>{
-            b.exercises.push({part:pi,who:"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps",scored:false});
-            save(); renderEx();
-          };
+          const gname=sec.querySelector(".gname");
+          if(gname) gname.oninput=()=>{it.name=gname.value;save();};
+          const gmin=sec.querySelector(".gmin");
+          gmin.oninput=()=>{it.dur=clamp(Math.round((+gmin.value||0.1)*60),6,7200);save();};
+          const sc=sec.querySelector(".exsc");
+          const flip=()=>{it.scored=!it.scored;save();renderItems();};
+          sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
+          sec.querySelector(".iup").onclick=()=>{ if(ii>0){[b.items[ii-1],b.items[ii]]=[b.items[ii],b.items[ii-1]];save();renderItems();} };
+          sec.querySelector(".idown").onclick=()=>{ if(ii<b.items.length-1){[b.items[ii+1],b.items[ii]]=[b.items[ii],b.items[ii+1]];save();renderItems();} };
+          sec.querySelector(".idel").onclick=()=>{ b.items.splice(ii,1); save(); renderItems(); };
+          const gadd=sec.querySelector(".gadd");
+          if(gadd) gadd.onclick=()=>{ it.exercises.push(newEx()); save(); renderItems(); };
           partsEl.appendChild(sec);
         });
       };
-      renderEx();
+      renderItems();
+      box.querySelector(".addex").onclick=()=>{ b.items.push({dur:300,scored:false,exercises:[newEx()]}); save(); renderItems(); };
+      box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
       box.querySelector('.down').onclick=()=>{ if(i<R().blocks.length-1){[R().blocks[i+1],R().blocks[i]]=[R().blocks[i],R().blocks[i+1]];save();buildBlocks();} };
       box.querySelector('.del').onclick=()=>{ if(R().blocks.length>2){R().blocks.splice(i,1);save();buildBlocks();} };
@@ -1316,7 +1344,7 @@
     });
   }
   $("addBlk").onclick=()=>{ if(R().blocks.length>=6)return;
-    R().blocks.push({name:"Block "+(R().blocks.length+1),machine:"Row",exercises:[]}); save(); buildBlocks(); };
+    R().blocks.push({name:"Block "+(R().blocks.length+1),machine:"Row",items:[]}); save(); buildBlocks(); };
   function buildStations(){
     const list=$("stnList"); list.innerHTML=""; $("stnCount").textContent=`${cfg.segments.length} stations`;
     cfg.segments.forEach((s,i)=>{
@@ -1402,7 +1430,7 @@
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
     document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
       c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();}; });
-    buildParts(); buildBlocks(); buildStations(); buildRankGrid(); buildCrews(); syncMode(); syncSeqScoring();
+    buildBlocks(); buildStations(); buildRankGrid(); buildCrews(); syncMode(); syncSeqScoring();
     enhanceSelects();
   }
 
