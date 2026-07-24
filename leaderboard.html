@@ -220,6 +220,13 @@
   .tb-pick button.sel{border-color:var(--accent);background:rgba(255,255,255,.08)}
   .tb-picklabel{text-align:center;font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.26em;color:var(--ink-dim);text-transform:uppercase;padding-top:6px}
   .tb-change{align-self:center;border:0;background:none;color:var(--ink-mute);font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .combo{position:relative}
+  .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;background:#141518;border:1px solid var(--line);
+    border-radius:12px;max-height:280px;overflow:auto;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:6px}
+  .combo-item{padding:11px 14px;border-radius:9px;font-size:15px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px}
+  .combo-item:hover{background:rgba(255,255,255,.08);color:var(--ink)}
+  .combo-item.add{color:var(--accent);font-family:var(--disp);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13.5px}
+  .combo-item.hint{cursor:default;color:var(--ink-mute)}
   .exlist{display:flex;flex-direction:column;gap:8px}
   .exrow{display:grid;grid-template-columns:104px 1fr 140px 118px 44px 40px;gap:8px;align-items:center}
   @media (max-width:760px){.exrow{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
@@ -912,11 +919,9 @@
         exlist.innerHTML="";
         b.exercises.forEach((x,xi)=>{
           const row=document.createElement("div"); row.className="exrow";
-          const libOpts=cfg.library.map(n=>`<option value="${esc(n)}" ${n===x.name?"selected":""}>${esc(n)}</option>`).join("")
-            +`<option value="__new">+ New exercise…</option>`;
           row.innerHTML=`
             <select class="who">${["All 4","Pair 1","Pair 2"].map(w=>`<option ${x.who===w?"selected":""}>${w}</option>`).join("")}</select>
-            <select class="exn">${libOpts}</select>
+            <div class="combo"><input class="exn" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type or pick exercise" value="${esc(x.name)}"><div class="combo-list" hidden></div></div>
             <input class="qty" type="text" placeholder="600/500/400 or Max" value="${esc(x.qty)}">
             <select class="unit">
               <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
@@ -926,14 +931,29 @@
             <span class="exsc ${x.scored?"on":""}" role="checkbox" aria-checked="${x.scored}" tabindex="0" title="Toggle: counts toward the leaderboard">&#9679;</span>
             <button class="iconbtn exdel" title="Remove exercise">&times;</button>`;
           row.querySelector(".who").onchange=e=>{x.who=e.target.value;save();};
-          const exn=row.querySelector(".exn");
-          exn.onchange=()=>{
-            if(exn.value==="__new"){
-              const n=prompt("New exercise name:");
-              if(n&&n.trim()){ const v=n.trim(); if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; }
-              save(); renderEx();
-            } else { x.name=exn.value; save(); }
+          const exn=row.querySelector(".exn"), clist=row.querySelector(".combo-list");
+          const commit=v=>{ v=(v||"").trim(); if(!v) { exn.value=x.name; return; }
+            if(!cfg.library.includes(v)) cfg.library.push(v);
+            x.name=v; exn.value=v; save(); };
+          const openList=()=>{
+            const q=exn.value.trim().toLowerCase();
+            const matches=cfg.library.filter(n=>n.toLowerCase().includes(q));
+            const exact=cfg.library.some(n=>n.toLowerCase()===q);
+            let items="";
+            if(q&&!exact) items+=`<div class="combo-item add" data-add="1">+ Add “${esc(exn.value.trim())}” to library</div>`;
+            items+=matches.map(n=>`<div class="combo-item" data-v="${esc(n)}">${esc(n)}</div>`).join("");
+            if(!items) items=`<div class="combo-item hint">Type a name to add a new exercise…</div>`;
+            clist.innerHTML=items; clist.hidden=false;
+            clist.querySelectorAll("[data-v],[data-add]").forEach(it=>{
+              it.onpointerdown=ev=>{ ev.preventDefault();
+                commit(it.dataset.add ? exn.value : it.dataset.v);
+                clist.hidden=true; };
+            });
           };
+          exn.onfocus=()=>{ exn.select(); openList(); };
+          exn.oninput=openList;
+          exn.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(exn.value); clist.hidden=true; exn.blur(); } };
+          exn.onblur=()=>{ setTimeout(()=>{ clist.hidden=true; commit(exn.value); },150); };
           row.querySelector(".qty").oninput=e=>{x.qty=e.target.value;save();};
           row.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
           const sc=row.querySelector(".exsc");
