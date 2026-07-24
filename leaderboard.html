@@ -288,11 +288,11 @@
   .maxbtn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:7px 13px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .maxbtn.on{background:var(--accent);color:#000;border-color:var(--accent)}
   .amtchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .amtchip{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:2px 2px 2px 6px;background:var(--field)}
-  .amtchip .amt{width:70px;border:0;background:transparent;padding:8px 2px;font-family:var(--mono);font-size:16px;color:var(--ink)}
+  .amtchip{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;padding:2px 1px 2px 5px;background:var(--field)}
+  .amtchip .amt{width:52px;border:0;background:transparent;padding:8px 0 8px 2px;font-family:var(--mono);font-size:16px;color:var(--ink)}
   .amtchip .amt:focus{outline:none}
   .amt::-webkit-inner-spin-button,.amt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-  .amtchip .amtdel{border:0;background:none;color:var(--ink-mute);font-size:14px;cursor:pointer;width:22px;height:26px}
+  .amtchip .amtdel{border:0;background:none;color:var(--ink-mute);font-size:13px;cursor:pointer;width:20px;height:26px;padding:0}
   .amtchip .amtdel:hover{color:#fff}
   .amthint{font-size:12px;color:var(--ink-mute)}
   .exsc{display:grid;place-items:center;width:36px;height:34px;border:1px solid var(--line);border-radius:9px;color:#3c4046;cursor:pointer;font-size:14px;transition:.14s;user-select:none;flex:none}
@@ -334,7 +334,10 @@
     .exr1.slim{grid-template-columns:1fr 32px}
     .exr1.slim.hasx2{grid-template-columns:1fr 32px 32px}
     .exr1.slim .mwrap:first-child{grid-column:1/-1}
-    .exr2{gap:8px}
+    .exr2{gap:6px}
+    .amtchips{gap:5px}
+    .amtchip .amt{width:46px}
+    .maxbtn{padding:7px 11px}
     .exr2 .dsel{width:100%;margin-left:0;min-width:0}
     #segMode{flex-wrap:nowrap}
     #segMode button{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
