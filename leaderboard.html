@@ -227,9 +227,22 @@
   .combo-item:hover{background:rgba(255,255,255,.08);color:var(--ink)}
   .combo-item.add{color:var(--accent);font-family:var(--disp);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13.5px}
   .combo-item.hint{cursor:default;color:var(--ink-mute)}
-  .exlist{display:flex;flex-direction:column;gap:8px}
-  .exrow{display:grid;grid-template-columns:104px 1fr 140px 118px 44px 40px;gap:8px;align-items:center}
-  @media (max-width:760px){.exrow{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
+  .exlist{display:flex;flex-direction:column;gap:10px}
+  .exwrap{border:1px solid var(--line-soft);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,.015)}
+  .exr1{display:grid;grid-template-columns:132px 1fr 44px 40px;gap:8px;align-items:center}
+  @media (max-width:640px){.exr1{grid-template-columns:110px 1fr 44px 40px}}
+  .exr2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .exr2 .unit{width:auto;min-width:120px;margin-left:auto}
+  .maxbtn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:9px 16px;font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
+  .maxbtn.on{background:var(--accent);color:#000;border-color:var(--accent)}
+  .amtchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .amtchip{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:2px 2px 2px 6px;background:var(--field)}
+  .amtchip .amt{width:64px;border:0;background:transparent;padding:7px 2px;font-family:var(--mono);font-size:14px;color:var(--ink)}
+  .amtchip .amt:focus{outline:none}
+  .amt::-webkit-inner-spin-button,.amt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  .amtchip .amtdel{border:0;background:none;color:var(--ink-mute);font-size:14px;cursor:pointer;width:22px;height:26px}
+  .amtchip .amtdel:hover{color:#fff}
+  .amthint{font-size:12px;color:var(--ink-mute)}
   .exsc{display:grid;place-items:center;width:44px;height:42px;border:1px solid var(--line);border-radius:10px;color:#3c4046;cursor:pointer;font-size:16px;transition:.14s;user-select:none}
   .exsc:hover{border-color:rgba(255,255,255,.25)}
   .exsc.on{color:var(--hot);border-color:rgba(255,45,45,.55);background:rgba(255,45,45,.08)}
@@ -431,24 +444,24 @@
       workDur:720, scoreDur:240, metric:"calories", scorers:4,
       blocks:[
         {name:"Block 1", machine:"Run", exercises:[
-          {who:"Pair 1", name:"Run", qty:"600/500/400", unit:"m", scored:false},
-          {who:"Pair 2", name:"DBall Reverse Lunge", qty:"Max", unit:"reps", scored:false},
-          {who:"All 4", name:"Run", qty:"Max", unit:"cal", scored:true},
+          {who:"Pair 1", name:"Run", amounts:[600,500,400], max:false, unit:"m", scored:false},
+          {who:"Pair 2", name:"DBall Reverse Lunge", amounts:[], max:true, unit:"reps", scored:false},
+          {who:"All 4", name:"Run", amounts:[], max:true, unit:"cal", scored:true},
         ]},
         {name:"Block 2", machine:"Row", exercises:[
-          {who:"Pair 1", name:"Row", qty:"600/500/400", unit:"m", scored:false},
-          {who:"Pair 2", name:"Burpee Box Jump Over", qty:"Max", unit:"reps", scored:false},
-          {who:"All 4", name:"Row", qty:"Max", unit:"cal", scored:true},
+          {who:"Pair 1", name:"Row", amounts:[600,500,400], max:false, unit:"m", scored:false},
+          {who:"Pair 2", name:"Burpee Box Jump Over", amounts:[], max:true, unit:"reps", scored:false},
+          {who:"All 4", name:"Row", amounts:[], max:true, unit:"cal", scored:true},
         ]},
         {name:"Block 3", machine:"Bike", exercises:[
-          {who:"Pair 1", name:"C2 Bike", qty:"1,200/1,000/800", unit:"m", scored:false},
-          {who:"Pair 2", name:"Wall Ball", qty:"Max", unit:"reps", scored:false},
-          {who:"All 4", name:"C2 Bike", qty:"Max", unit:"cal", scored:true},
+          {who:"Pair 1", name:"C2 Bike", amounts:[1200,1000,800], max:false, unit:"m", scored:false},
+          {who:"Pair 2", name:"Wall Ball", amounts:[], max:true, unit:"reps", scored:false},
+          {who:"All 4", name:"C2 Bike", amounts:[], max:true, unit:"cal", scored:true},
         ]},
         {name:"Block 4", machine:"Ski", exercises:[
-          {who:"Pair 1", name:"Ski", qty:"600/500/400", unit:"m", scored:false},
-          {who:"Pair 2", name:"Alternating DB Snatch", qty:"Max", unit:"reps", scored:false},
-          {who:"All 4", name:"Ski", qty:"Max", unit:"cal", scored:true},
+          {who:"Pair 1", name:"Ski", amounts:[600,500,400], max:false, unit:"m", scored:false},
+          {who:"Pair 2", name:"Alternating DB Snatch", amounts:[], max:true, unit:"reps", scored:false},
+          {who:"All 4", name:"Ski", amounts:[], max:true, unit:"cal", scored:true},
         ]},
       ],
     },
@@ -471,7 +484,11 @@
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
   if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
-  if(cfg.rotation) cfg.rotation.blocks.forEach(b=>{ if(!b.exercises) b.exercises=[]; });
+  if(cfg.rotation) cfg.rotation.blocks.forEach(b=>{ if(!b.exercises) b.exercises=[];
+    b.exercises.forEach(x=>{ if(x.amounts===undefined){ const q=String(x.qty||"").trim();
+      if(/^max/i.test(q)||!q){ x.max=true; x.amounts=[]; }
+      else { x.max=false; x.amounts=q.split("/").map(s=>parseFloat(s.replace(/[^0-9.]/g,""))).filter(v=>isFinite(v)); }
+      delete x.qty; } }); });
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
 
@@ -590,7 +607,7 @@
   }
 
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
-  const exTxt=x=>`${x.who} — ${x.name} · ${x.qty}${exUnit(x.unit)}`;
+  const exTxt=x=>`${x.who} — ${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`;
   const exLines=b=>(b.exercises&&b.exercises.length)
       ? b.exercises.map(x=>`<div class="exl">${esc(exTxt(x))}${x.scored?` <i>scored</i>`:""}</div>`).join("")
       : esc(b.desc||"—");
@@ -918,54 +935,84 @@
       const renderEx=()=>{
         exlist.innerHTML="";
         b.exercises.forEach((x,xi)=>{
-          const row=document.createElement("div"); row.className="exrow";
+          if(!x.amounts) x.amounts=[];
+          const row=document.createElement("div"); row.className="exwrap";
           row.innerHTML=`
-            <select class="who">${["All 4","Pair 1","Pair 2"].map(w=>`<option ${x.who===w?"selected":""}>${w}</option>`).join("")}</select>
-            <div class="combo"><input class="exn" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type or pick exercise" value="${esc(x.name)}"><div class="combo-list" hidden></div></div>
-            <input class="qty" type="text" placeholder="600/500/400 or Max" value="${esc(x.qty)}">
-            <select class="unit">
-              <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
-              <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
-              <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
-              <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select>
-            <span class="exsc ${x.scored?"on":""}" role="checkbox" aria-checked="${x.scored}" tabindex="0" title="Toggle: counts toward the leaderboard">&#9679;</span>
-            <button class="iconbtn exdel" title="Remove exercise">&times;</button>`;
-          row.querySelector(".who").onchange=e=>{x.who=e.target.value;save();};
-          const exn=row.querySelector(".exn"), clist=row.querySelector(".combo-list");
-          const commit=v=>{ v=(v||"").trim(); if(!v) { exn.value=x.name; return; }
-            if(!cfg.library.includes(v)) cfg.library.push(v);
-            x.name=v; exn.value=v; save(); };
-          const openList=()=>{
-            const q=exn.value.trim().toLowerCase();
-            const matches=cfg.library.filter(n=>n.toLowerCase().includes(q));
-            const exact=cfg.library.some(n=>n.toLowerCase()===q);
-            let items="";
-            if(q&&!exact) items+=`<div class="combo-item add" data-add="1">+ Add “${esc(exn.value.trim())}” to library</div>`;
-            items+=matches.map(n=>`<div class="combo-item" data-v="${esc(n)}">${esc(n)}</div>`).join("");
-            if(!items) items=`<div class="combo-item hint">Type a name to add a new exercise…</div>`;
-            clist.innerHTML=items; clist.hidden=false;
-            clist.querySelectorAll("[data-v],[data-add]").forEach(it=>{
-              it.onpointerdown=ev=>{ ev.preventDefault();
-                commit(it.dataset.add ? exn.value : it.dataset.v);
-                clist.hidden=true; };
-            });
-          };
-          exn.onfocus=()=>{ exn.select(); openList(); };
-          exn.oninput=openList;
-          exn.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(exn.value); clist.hidden=true; exn.blur(); } };
-          exn.onblur=()=>{ setTimeout(()=>{ clist.hidden=true; commit(exn.value); },150); };
-          row.querySelector(".qty").oninput=e=>{x.qty=e.target.value;save();};
-          row.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
+            <div class="exr1">
+              <div class="combo"><input class="whoin" type="text" autocomplete="off" spellcheck="false" placeholder="Who" value="${esc(x.who)}"><div class="combo-list" hidden></div></div>
+              <div class="combo"><input class="exn" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type or pick exercise" value="${esc(x.name)}"><div class="combo-list" hidden></div></div>
+              <span class="exsc ${x.scored?"on":""}" role="checkbox" aria-checked="${x.scored}" tabindex="0" title="Toggle: counts toward the leaderboard">&#9679;</span>
+              <button class="iconbtn exdel" title="Remove exercise">&times;</button>
+            </div>
+            <div class="exr2">
+              <button type="button" class="maxbtn ${x.max?"on":""}">Max</button>
+              <span class="amtchips"></span>
+              <button type="button" class="iconbtn amtadd" title="Add another option" ${x.max?"disabled":""}>+</button>
+              <select class="unit">
+                <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
+                <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
+                <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
+                <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select>
+            </div>`;
           const sc=row.querySelector(".exsc");
           const flip=()=>{x.scored=!x.scored;save();renderEx();};
           sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
           row.querySelector(".exdel").onclick=()=>{b.exercises.splice(xi,1);save();renderEx();};
+          row.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
+          const wireCombo=(inp,list,getOpts,commitVal,addLabel)=>{
+            const openList=(all)=>{
+              const q=all?"":inp.value.trim().toLowerCase();
+              const opts=getOpts();
+              const matches=opts.filter(n=>n.toLowerCase().includes(q));
+              const exact=opts.some(n=>n.toLowerCase()===q);
+              let items="";
+              if(q&&!exact) items+=`<div class="combo-item add" data-add="1">${addLabel} &ldquo;${esc(inp.value.trim())}&rdquo;</div>`;
+              items+=matches.map(n=>`<div class="combo-item" data-v="${esc(n)}">${esc(n)}</div>`).join("");
+              if(!items) items=`<div class="combo-item hint">Type anything&hellip;</div>`;
+              list.innerHTML=items; list.hidden=false;
+              list.querySelectorAll("[data-v],[data-add]").forEach(it=>{
+                it.onpointerdown=ev=>{ ev.preventDefault();
+                  const v=it.dataset.add? inp.value.trim() : it.dataset.v;
+                  commitVal(v); inp.value=v; list.hidden=true; };
+              });
+            };
+            inp.onfocus=()=>{ inp.select(); openList(true); };
+            inp.oninput=()=>openList(false);
+            inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=inp.value.trim(); if(v) commitVal(v); list.hidden=true; inp.blur(); } };
+            inp.onblur=()=>{ setTimeout(()=>{ list.hidden=true; const v=inp.value.trim(); if(v) commitVal(v); },150); };
+          };
+          const whoOpts=()=>{
+            const n=clamp(R().scorers||4,1,8);
+            const base=["Everyone",`All ${n}`,"All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
+            return [...new Set(base)];
+          };
+          wireCombo(row.querySelector(".whoin"), row.querySelectorAll(".combo-list")[0],
+            whoOpts, v=>{x.who=v;save();}, "Use");
+          wireCombo(row.querySelector(".exn"), row.querySelectorAll(".combo-list")[1],
+            ()=>cfg.library, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, "+ Add");
+          const chips=row.querySelector(".amtchips");
+          const renderAmts=()=>{
+            chips.innerHTML="";
+            if(x.max) return;
+            x.amounts.forEach((a,ai)=>{
+              const chip=document.createElement("span"); chip.className="amtchip";
+              chip.innerHTML=`<input type="number" class="amt" inputmode="numeric" value="${a}" min="0" step="1"><button type="button" class="amtdel" title="Remove option">&times;</button>`;
+              const inp=chip.querySelector(".amt");
+              inp.oninput=()=>{ const v=parseFloat(inp.value); if(isFinite(v)){ x.amounts[ai]=v; save(); } };
+              chip.querySelector(".amtdel").onclick=()=>{ x.amounts.splice(ai,1); save(); renderAmts(); };
+              chips.appendChild(chip);
+            });
+            if(!x.amounts.length){ const h=document.createElement("span"); h.className="amthint"; h.textContent="add an amount →"; chips.appendChild(h); }
+          };
+          renderAmts();
+          row.querySelector(".amtadd").onclick=()=>{ x.amounts.push(x.amounts.length?x.amounts[x.amounts.length-1]:100); save(); renderAmts(); };
+          row.querySelector(".maxbtn").onclick=()=>{ x.max=!x.max; save(); renderEx(); };
           exlist.appendChild(row);
         });
       };
       renderEx();
       box.querySelector(".exadd").onclick=()=>{
-        b.exercises.push({who:"All 4",name:cfg.library[0]||"Run",qty:"Max",unit:"reps",scored:false});
+        b.exercises.push({who:"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps",scored:false});
         save(); renderEx();
       };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
@@ -1028,16 +1075,17 @@
         <input type="text" placeholder="Members / note" value="${esc(c.ath)}">
         <button class="del">&times;</button>`;
       const [col,nm,at]=row.querySelectorAll("input"); const del=row.querySelector(".del");
-      col.oninput=()=>{c.color=col.value;save();};
-      nm.oninput=()=>{c.name=nm.value;save();};
-      at.oninput=()=>{c.ath=at.value;save();};
-      del.onclick=()=>{ if(cfg.crews.length<=2)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); };
+      const refresh=()=>{ if(!sessionActive&&!running) build(); };
+      col.oninput=()=>{c.color=col.value;save();refresh();};
+      nm.oninput=()=>{c.name=nm.value;save();refresh();};
+      at.oninput=()=>{c.ath=at.value;save();refresh();};
+      del.onclick=()=>{ if(cfg.crews.length<=2)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
       list.appendChild(row);
     });
   }
   $("addCrew").onclick=()=>{ if(cfg.crews.length>=8)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
-    cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); };
+    cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
 
   function updateTimingNote(){
