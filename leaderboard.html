@@ -257,6 +257,11 @@
   .psec.grp{border-left-color:rgba(64,200,140,.55);background:linear-gradient(90deg,rgba(64,200,140,.06),transparent 72%)}
   .psec.scoredit{border-left-color:rgba(255,45,45,.65);background:linear-gradient(90deg,rgba(255,45,45,.08),transparent 72%)}
   .psec.rest{border-left-color:rgba(255,190,80,.55);background:linear-gradient(90deg,rgba(255,190,80,.06),transparent 72%)}
+  .restins{display:flex;align-items:center;gap:10px;margin:0}
+  .restins::before,.restins::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+  .restins button{border:1px dashed rgba(255,190,80,.35);background:none;color:rgba(255,190,80,.7);border-radius:999px;padding:3px 13px;
+    font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:.14s}
+  .restins button:hover{border-color:rgba(255,190,80,.8);color:#ffd394}
   .scrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .spill{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:6px 12px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .spill.on{background:var(--hot);border-color:var(--hot);color:#fff}
@@ -1356,7 +1361,6 @@
         <div class="addbtns">
           <button class="btn small addex" type="button">+ Exercise</button>
           <button class="btn small addgrp" type="button">+ Group</button>
-          <button class="btn small addrest" type="button">+ Rest</button>
         </div>`;
       const nm=box.querySelector('input[type=text]');
       nm.oninput=()=>{b.name=nm.value;save();};
@@ -1496,12 +1500,17 @@
           }
           }
           partsEl.appendChild(sec);
+          if(!isRest && !(b.items[ii+1]&&b.items[ii+1].rest)){
+            const ri=document.createElement("div"); ri.className="restins";
+            const rb=document.createElement("button"); rb.type="button"; rb.textContent="+ rest"; rb.title="Insert rest here";
+            rb.onclick=()=>{ b.items.splice(ii+1,0,{rest:true,dur:60,scored:false,exercises:[]}); save(); renderItems(); };
+            ri.appendChild(rb); partsEl.appendChild(ri);
+          }
         });
       };
       renderItems();
       box.querySelector(".addex").onclick=()=>{ b.items.push({dur:300,scored:false,exercises:[newEx()]}); save(); renderItems(); };
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
-      box.querySelector(".addrest").onclick=()=>{ b.items.push({rest:true,dur:120,scored:false,exercises:[]}); save(); renderItems(); };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
       box.querySelector('.down').onclick=()=>{ if(i<R().blocks.length-1){[R().blocks[i+1],R().blocks[i]]=[R().blocks[i],R().blocks[i+1]];save();buildBlocks();} };
       box.querySelector('.del').onclick=()=>{ R().blocks.splice(i,1);save();buildBlocks(); if(!sessionActive&&!running) build(); };
