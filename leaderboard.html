@@ -220,6 +220,15 @@
   .tb-pick button.sel{border-color:var(--accent);background:rgba(255,255,255,.08)}
   .tb-picklabel{text-align:center;font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.26em;color:var(--ink-dim);text-transform:uppercase;padding-top:6px}
   .tb-change{align-self:center;border:0;background:none;color:var(--ink-mute);font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .dsel{position:relative;width:100%}
+  .dsel select{display:none}
+  .dsel-btn{width:100%;text-align:left;font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--field);
+    border:1px solid var(--line);border-radius:12px;padding:11px 38px 11px 14px;cursor:pointer;transition:border-color .15s;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 15px center}
+  .dsel-btn:hover{border-color:rgba(255,255,255,.2)}
+  .combo-item.sel{background:rgba(255,255,255,.07);color:var(--ink)}
+  .exr2 .dsel{margin-left:auto;width:auto;min-width:130px}
   .combo{position:relative}
   .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;background:#141518;border:1px solid var(--line);
     border-radius:12px;max-height:280px;overflow:auto;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:6px}
@@ -307,6 +316,7 @@
           <div class="pills" id="segMode">
             <button data-v="rotation" aria-pressed="true">Rotating blocks</button>
             <button data-v="sequence" aria-pressed="false">Everyone together</button>
+            <button data-v="waves" aria-pressed="false">Waves</button>
           </div>
           <div class="note" id="modeExplain"></div>
         </div>
@@ -333,6 +343,23 @@
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
           <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set — there is no automatic rotation timer. Each block runs its work phase (not scored) then the scored window, then stops and waits for the trainer again. Each station is a <b>bank of machines</b> (e.g. your 5 rowers); in the scored window the whole team's ergs count at once — set how many above.</div>
+        </div>
+      </div>
+
+      <!-- waves settings -->
+      <div class="card wide" id="wavCard" hidden>
+        <h3>Waves</h3>
+        <div class="body">
+          <div class="row2">
+            <div class="fld"><label>Athletes per wave</label><input type="number" id="wSize" min="1" max="10" step="1"></div>
+            <div class="fld"><label>Next wave starts</label>
+              <div class="pills" id="segRelease">
+                <button data-v="auto" aria-pressed="true">Auto — when station 1 clears</button>
+                <button data-v="trainer" aria-pressed="false">Trainer's button</button>
+              </div>
+            </div>
+          </div>
+          <div class="note">Athletes are grouped into waves by their order in the Teams list (first N = wave 1, next N = wave 2 …). Every wave races the same stations below, and each athlete's clock starts when <b>their wave</b> is released — so the leaderboard (fastest total time) is fair across waves.</div>
         </div>
       </div>
 
@@ -437,6 +464,34 @@
   };
   const mInfo=m=>MACHINE[m]||MACHINE.Row;
 
+  // Replace every native <select> with a branded dropdown (same panel style as the comboboxes)
+  function styleSelect(sel){
+    if(sel.dataset.styled) return;
+    sel.dataset.styled="1";
+    const wrap=document.createElement("div"); wrap.className="dsel";
+    sel.parentNode.insertBefore(wrap,sel); wrap.appendChild(sel);
+    const btn=document.createElement("button"); btn.type="button"; btn.className="dsel-btn";
+    const list=document.createElement("div"); list.className="combo-list"; list.hidden=true;
+    wrap.append(btn,list);
+    const label=()=>{ const o=sel.options[sel.selectedIndex]; btn.textContent=o?o.textContent:"—"; };
+    label();
+    sel.addEventListener("change",label);
+    btn.onclick=e=>{
+      e.preventDefault();
+      if(!list.hidden){ list.hidden=true; return; }
+      list.innerHTML=[...sel.options].map((o,i)=>`<div class="combo-item ${i===sel.selectedIndex?"sel":""}" data-i="${i}">${o.textContent}</div>`).join("");
+      list.hidden=false;
+      list.querySelectorAll(".combo-item").forEach(it=>{
+        it.onpointerdown=ev=>{ ev.preventDefault();
+          sel.selectedIndex=+it.dataset.i; list.hidden=true; label();
+          sel.dispatchEvent(new Event("change")); };
+      });
+      const close=ev=>{ if(!wrap.contains(ev.target)){ list.hidden=true; document.removeEventListener("pointerdown",close,true); } };
+      document.addEventListener("pointerdown",close,true);
+    };
+  }
+  function enhanceSelects(root){ ((root&&root.querySelectorAll)?root:document).querySelectorAll("select:not([data-styled])").forEach(styleSelect); }
+
   const DEFAULTS = {
     accent:"#ffffff", name:"Send It Saturday", sub:"Teams of 4",
     mode:"rotation",
@@ -466,6 +521,7 @@
       ],
     },
     library:["Run","Row","Ski","C2 Bike","Assault Bike","DBall Reverse Lunge","Burpee Box Jump Over","Wall Ball","Alternating DB Snatch","KB Swing","Sled Push","Farmers Carry","Thruster","Burpee","Box Jump","Toes to Bar","Devil Press","Lunge","Deadlift","Push Press"],
+    waves:{ waveSize:4, release:"auto" },
     segments:[
       {name:"Row",  machine:"Row", format:"distance", target:1000, duration:240},
       {name:"5-min Run", machine:"Run", format:"time", target:1000, duration:300},
@@ -484,6 +540,7 @@
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
   if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
+  if(!cfg.waves) cfg.waves={waveSize:4,release:"auto"};
   if(cfg.rotation) cfg.rotation.blocks.forEach(b=>{ if(!b.exercises) b.exercises=[];
     b.exercises.forEach(x=>{ if(x.amounts===undefined){ const q=String(x.qty||"").trim();
       if(/^max/i.test(q)||!q){ x.max=true; x.amounts=[]; }
@@ -508,6 +565,7 @@
       name:c.name, ath:c.ath, color:c.color, id:i,
       split:0, spm:0, phase:Math.random()*6.28, drift:0.92+Math.random()*0.16,
       score:0, m:0, cals:0, blockCals:0,
+      released:false, relT:0, stage:0, stageM:0, stageT0:0, elapsed:0, finT:null,
       tot:{m:0,cals:0,time:0,pts:0}, cur:{m:0,cals:0,elapsed:0,done:false,finT:null},
     }));
   }
@@ -767,6 +825,139 @@
     });
   }
 
+  /* ================= WAVES — staggered heats through stations ================= */
+  const W=()=>cfg.waves;
+  const waveOf=e=>Math.floor(e.id/Math.max(1,W().waveSize));
+  const numWaves=()=>Math.ceil(ergs.length/Math.max(1,W().waveSize));
+  let wavesReleased=0, wavesT0=0;
+
+  function buildWavesBoard(){
+    $("evSummary").textContent=`${cfg.segments.length} stations · waves of ${W().waveSize} · fastest total time`;
+    $("scoreLabel").textContent="TOTAL TIME";
+    $("phaseBanner").hidden=false;
+    $("phaseBanner").classList.remove("scoring");
+    $("phaseLabel").textContent="Waves — ready";
+    $("phaseDesc").textContent=`wave 1 starts on the trainer's go · next wave ${W().release==="auto"?"releases when station 1 clears":"on the trainer's button"}`;
+    $("blockCards").innerHTML=cfg.segments.map((s,i)=>`<div class="blk">
+      <div class="bh"><b>${esc(s.name)||("Station "+(i+1))}</b><span class="mc">${mInfo(s.machine).label}</span></div>
+      <div class="bd">${s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</div>
+      <div class="teams" data-st="${i}"></div></div>`).join("");
+    clockEl.textContent="0:00.0"; clockEl.classList.remove("hot");
+    clockState.textContent="On the line";
+    startBtn.textContent="Start wave 1"; startBtn.disabled=false;
+  }
+  function wavesSyncBtn(){
+    if(finished){ startBtn.textContent="Session complete"; startBtn.disabled=true; return; }
+    if(wavesReleased>=numWaves()){ startBtn.textContent="All waves out"; startBtn.disabled=true; return; }
+    if(W().release==="trainer"||wavesReleased===0){ startBtn.textContent=`Release wave ${wavesReleased+1}`; startBtn.disabled=false; }
+    else { startBtn.textContent="Running — auto release"; startBtn.disabled=true; }
+  }
+  function releaseWave(now){
+    if(wavesReleased>=numWaves()) return;
+    const w=wavesReleased;
+    ergs.forEach(e=>{ if(waveOf(e)===w){ e.released=true; e.relT=now; e.stageT0=now; } });
+    wavesReleased++;
+    wavesSyncBtn();
+  }
+  function frameWaves(now){
+    const dt=1/60;
+    // auto release: wave w goes when every released athlete of wave w-1 has cleared station 1
+    if(W().release==="auto"&&wavesReleased>0&&wavesReleased<numWaves()){
+      const prev=ergs.filter(e=>waveOf(e)===wavesReleased-1);
+      if(prev.length&&prev.every(e=>e.stage>0||e.finT!=null)) releaseWave(now);
+    }
+    let allDone=true;
+    for(const e of ergs){
+      if(e.finT!=null) continue;
+      if(!e.released){ allDone=false; e.split=0; e.spm=0; continue; }
+      allDone=false;
+      e.elapsed=(now-e.relT)/1000;
+      const s=cfg.segments[e.stage];
+      const stageT=(now-e.stageT0)/1000;
+      const frac=s.format==="time"?stageT/s.duration:e.stageM/s.target;
+      let tgt=105*e.drift; if(frac>0.85)tgt*=0.94; else if(frac<0.1)tgt*=0.97;
+      e.phase+=0.12;
+      e.split=Math.max(80,tgt+Math.sin(e.phase)*1.4+(Math.random()-0.5)*1.2);
+      e.spm=24+(0.90-e.split/140)*14;
+      e.stageM+=(500/e.split)*dt; e.m+=(500/e.split)*dt; e.cals+=calRate(wattsFor(e.split))*dt;
+      const done = s.format==="time" ? stageT>=s.duration : e.stageM>=s.target;
+      if(done){
+        e.stage++; e.stageM=0; e.stageT0=now;
+        if(e.stage>=cfg.segments.length){ e.finT=e.elapsed; e.split=0; e.spm=0; }
+      }
+    }
+    renderLanesWav(); renderWaveCards(); renderTablet();
+    clockEl.textContent=fmtT((now-wavesT0)/1000);
+    const out=Math.min(wavesReleased,numWaves());
+    clockState.textContent=`${out}/${numWaves()} waves out`;
+    $("phaseLabel").textContent=`Waves on course`;
+    $("phaseDesc").textContent=`${ergs.filter(e=>e.finT!=null).length}/${ergs.length} finished · ${W().release==="auto"?"auto release":"trainer release"}`;
+    if(allDone&&ergs.every(e=>e.finT!=null)){
+      running=false; finished=true;
+      clockState.textContent="Final";
+      $("phaseLabel").textContent="Session complete"; $("phaseDesc").textContent="Fastest total time wins";
+      wavesSyncBtn(); renderLanesWav(); renderTablet();
+      return;
+    }
+    raf=requestAnimationFrame(frameWaves);
+  }
+  function renderWaveCards(){
+    if(cfg.mode!=="waves") return;
+    cfg.segments.forEach((s,i)=>{
+      const slot=$("blockCards").querySelector(`[data-st="${i}"]`);
+      if(!slot) return;
+      const here=ergs.filter(e=>e.released&&e.finT==null&&e.stage===i);
+      slot.innerHTML=here.length?here.map(e=>`<span class="t"><span class="dot" style="background:${e.color};color:${e.color}"></span>${esc(e.name)}</span>`).join(""):`<span class="t" style="opacity:.45">clear</span>`;
+    });
+  }
+  function renderLanesWav(){
+    if(cfg.mode!=="waves") return;
+    const orderArr=[...ergs].sort((a,b)=>{
+      if(a.finT!=null&&b.finT!=null) return a.finT-b.finT;
+      if(a.finT!=null) return -1;
+      if(b.finT!=null) return 1;
+      if(a.released!==b.released) return a.released?-1:1;
+      if(a.stage!==b.stage) return b.stage-a.stage;
+      return b.stageM-a.stageM;
+    });
+    orderArr.forEach((e,idx)=>{
+      e.el.style.transform=`translateY(${idx*ROW}px)`;
+      e.el.classList.toggle("leader", idx===0&&sessionActive);
+      e.el.classList.remove("scoring");
+      const rs=e.el.querySelector(".rank span");
+      rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
+      const w=waveOf(e)+1;
+      let loc;
+      if(e.finT!=null) loc=`<span class="tag">Fin ${fmtT(e.finT)}</span> <span class="nx">Wave ${w}</span>`;
+      else if(!e.released) loc=`<span class="nx">Wave ${w} — waiting to start</span>`;
+      else{
+        const s=cfg.segments[e.stage], nxt=cfg.segments[e.stage+1];
+        loc=`Wave ${w} · On <b>${esc(s.name)||("Station "+(e.stage+1))} · ${mInfo(s.machine).short}</b>${nxt?` <span class="nx">&rarr; next ${esc(nxt.name)||("Station "+(e.stage+2))}</span>`:""}`;
+      }
+      e.el.querySelector(".loc").innerHTML=loc;
+      let pct=0;
+      if(e.finT!=null) pct=100;
+      else if(e.released){
+        const s=cfg.segments[e.stage];
+        const stageFrac = s.format==="time" ? clamp(((performance.now()-e.stageT0)/1000)/s.duration,0,1) : clamp(e.stageM/s.target,0,1);
+        pct=(e.stage+stageFrac)/cfg.segments.length*100;
+      }
+      e.el.querySelector(".fill").style.width=pct+"%";
+      e.el.querySelector(".fill").style.background=e.color;
+      const v = e.finT!=null?e.finT:(e.released?e.elapsed:0);
+      e.el.querySelector(".hero").innerHTML=`${v>0?fmtT(v):"--:--"}<small> time</small>`;
+      const d=cfg.display, bits=[];
+      if(e.split>0){
+        if(d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
+        if(d.watts) bits.push(`<span class="w">${Math.round(wattsFor(e.split))}</span>w`);
+        if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
+      } else bits.push(`<em>${e.finT!=null?"done":"standing by"}</em>`);
+      if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
+      if(d.cals)  bits.push(`<em>cal</em>${Math.round(e.cals)}`);
+      e.el.querySelector(".sub").innerHTML=bits.join(" · ");
+    });
+  }
+
   /* ================= build / start / reset ================= */
   function build(){
     finished=false; running=false; sessionActive=false;
@@ -786,11 +977,24 @@
     });
     lanesEl.style.height=ROW*ergs.length+"px";
     resetBtn.disabled=true;
+    wavesReleased=0;
     if(cfg.mode==="rotation"){ buildRotationBoard(); renderLanesRot(); }
+    else if(cfg.mode==="waves"){ buildWavesBoard(); renderLanesWav(); }
     else { buildSequenceBoard(); renderLanesSeq(); }
     buildTabletSel(); renderTablet();
   }
   function start(){
+    if(cfg.mode==="waves"){
+      const now=performance.now();
+      if(!running&&!sessionActive){
+        build(); sessionActive=true; running=true; finished=false;
+        wavesT0=now; resetBtn.disabled=false;
+        releaseWave(now);
+        if(reduce){ const loop=()=>{ if(!running)return; frameWaves(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
+        else raf=requestAnimationFrame(frameWaves);
+      } else if(running){ releaseWave(now); }
+      return;
+    }
     if(running) return;
     if(cfg.mode==="rotation"){ startBlock(); renderBlockCards(); return; }
     // sequence: full auto run
@@ -820,10 +1024,14 @@
     const sel=$("tabletSel");
     const opts = cfg.mode==="rotation"
       ? R().blocks.map((b,i)=>`<option value="${i}">${esc(b.name)} — ${mInfo(b.machine).label} bank</option>`)
+      : cfg.mode==="waves"
+      ? cfg.segments.map((s,i)=>`<option value="${i}">${esc(s.name)||("Station "+(i+1))} — ${mInfo(s.machine).label}</option>`)
       : cfg.crews.map((c,i)=>`<option value="${i}">${esc(c.name)}'s erg</option>`);
     sel.innerHTML=opts.join("");
     sel.value=String(clamp(tabletSel,0,opts.length-1));
     sel.onchange=()=>{ tabletSel=+sel.value; pickOpen=false; try{localStorage.setItem(TKEY,sel.value);}catch(e){} renderTablet(); };
+    enhanceSelects(sel.closest(".fld")||document);
+    const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
   function teamPicker(station){
     const cur=rot.assign[station];
@@ -867,6 +1075,24 @@
         btn.onclick=()=>{ pickOpen=false; pickTeam(bi,+btn.dataset.team); };
       });
       const ch=scr.querySelector("#tbChange"); if(ch) ch.onclick=()=>{ pickOpen=true; renderTablet(); };
+    } else if(cfg.mode==="waves"){
+      const si=clamp(tabletSel,0,cfg.segments.length-1), s=cfg.segments[si];
+      const here=ergs.filter(e=>e.released&&e.finT==null&&e.stage===si);
+      const e=here[0];
+      const nxt=cfg.segments[si+1];
+      scr.innerHTML=`
+        <div class="tb-top"><span class="bname">${esc(s.name)||("Station "+(si+1))}</span><span class="bmach">${mInfo(s.machine).label}</span></div>
+        ${e?`<div class="tb-team"><span class="dot" style="background:${e.color}"></span><b>${esc(e.name)}</b><span>wave ${waveOf(e)+1}</span></div>`
+           :`<div class="tb-team"><b>Station clear</b><span>next wave incoming</span></div>`}
+        <div class="tb-phase"><span class="pl">${finished?"Session complete":s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</span></div>
+        <div class="tb-clock">${e?fmtT(e.elapsed):"--:--"}</div>
+        ${e?`<div class="tb-stats">
+          <div><b>${e.split>0?fmtSplit(e.split):"--:--"}</b><span>split /500m</span></div>
+          <div><b>${e.split>0?Math.round(wattsFor(e.split)):0}</b><span>watts</span></div>
+          <div><b>${Math.round(e.stageM)}</b><span>metres here</span></div>
+        </div>`:""}
+        <div class="tb-work"><b>Course</b>${cfg.segments.map((x,i)=>`${i===si?"&#9654; ":""}${esc(x.name)||("Station "+(i+1))}`).join(" · ")}</div>
+        ${nxt?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     } else {
       const ti=clamp(tabletSel,0,ergs.length-1), e=ergs[ti];
       if(!e){ scr.innerHTML=""; return; }
@@ -896,10 +1122,15 @@
     });
   };
   function syncMode(){
-    const rotOn=cfg.mode==="rotation";
-    $("rotCard").hidden=!rotOn; $("seqCard").hidden=rotOn; $("seqScoreCard").hidden=rotOn;
-    $("modeExplain").innerHTML = rotOn
+    const m=cfg.mode;
+    $("rotCard").hidden=m!=="rotation";
+    $("wavCard").hidden=m!=="waves";
+    $("seqCard").hidden=m==="rotation";
+    $("seqScoreCard").hidden=m!=="sequence";
+    $("modeExplain").innerHTML = m==="rotation"
       ? `<b>Rotating blocks</b> — teams pick their station on the erg screens, the trainer starts each block, and only the scored window counts. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
+      : m==="waves"
+      ? `<b>Waves</b> — wave 1 starts on the trainer's go and races through the stations in order. The next wave is released when the wave ahead clears station 1 (or by the trainer). Leaderboard = fastest total time from your own wave's release.`
       : `<b>Everyone together</b> — the whole class does the same station at the same time, station after station, with its own scoring rules.`;
   }
   function syncSeqScoring(){
@@ -1009,6 +1240,7 @@
           row.querySelector(".maxbtn").onclick=()=>{ x.max=!x.max; save(); renderEx(); };
           exlist.appendChild(row);
         });
+        enhanceSelects(exlist);
       };
       renderEx();
       box.querySelector(".exadd").onclick=()=>{
@@ -1020,6 +1252,7 @@
       box.querySelector('.del').onclick=()=>{ if(R().blocks.length>2){R().blocks.splice(i,1);save();buildBlocks();} };
       list.appendChild(box);
     });
+    enhanceSelects(list);
   }
   $("addBlk").onclick=()=>{ if(R().blocks.length>=6)return;
     R().blocks.push({name:"Block "+(R().blocks.length+1),machine:"Row",exercises:[]}); save(); buildBlocks(); };
@@ -1053,6 +1286,7 @@
       box.querySelector('.del').onclick=()=>{ if(cfg.segments.length>1){cfg.segments.splice(i,1);save();buildStations();} };
       list.appendChild(box);
     });
+    enhanceSelects(list);
   }
   $("addStn").onclick=()=>{ if(cfg.segments.length>=6)return;
     cfg.segments.push({name:"New station",machine:"Row",format:"distance",target:500,duration:180}); save(); buildStations(); };
@@ -1083,7 +1317,7 @@
       list.appendChild(row);
     });
   }
-  $("addCrew").onclick=()=>{ if(cfg.crews.length>=8)return;
+  $("addCrew").onclick=()=>{ if(cfg.crews.length>=20)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
     cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
@@ -1097,6 +1331,9 @@
     updateTimingNote();
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
     pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
+    $("wSize").value=W().waveSize;
+    $("wSize").oninput=e=>{W().waveSize=clamp(+e.target.value||1,1,10);save();};
+    pillGroup("segRelease",W().release,v=>W().release=v);
     pillGroup("segMetric",R().metric,v=>R().metric=v);
     pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v,syncSeqScoring);
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
