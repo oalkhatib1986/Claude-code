@@ -413,7 +413,7 @@
       <div class="card wide" id="rotCard">
         <h3>Blocks <span class="r" id="blkCount"></span></h3>
         <div class="body">
-          <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them. Added things separately? Use <b>&#10548;</b> on any item to merge it into the one above (making a group), and <b>&#10549;</b> on a grouped exercise to split it back out.</div>
+          <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them. Added things separately? Use <b>&#10548;</b> on any item to <b>group</b> it with the one above, and <b>&#10549;</b> on a grouped exercise to <b>ungroup</b> it.</div>
 
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
@@ -1357,7 +1357,7 @@
         const del=document.createElement("button"); del.className="iconbtn exdel"; del.title="Remove exercise"; del.innerHTML="&times;"; del.onclick=onRemove;
         r1.appendChild(del);
         if(onSplit){ r1.classList.add("hasx2");
-          const sp=document.createElement("button"); sp.className="iconbtn exsplit"; sp.title="Split out of group — becomes its own exercise";
+          const sp=document.createElement("button"); sp.className="iconbtn exsplit"; sp.title="Ungroup — becomes its own exercise";
           sp.innerHTML="&#10549;"; sp.onclick=onSplit; r1.insertBefore(sp,del); }
         const r2=document.createElement("div"); r2.className="exr2";
         r2.innerHTML=`
@@ -1433,7 +1433,7 @@
           iup.onclick=()=>{ if(ii>0){[b.items[ii-1],b.items[ii]]=[b.items[ii],b.items[ii-1]];save();renderItems();} };
           idown.onclick=()=>{ if(ii<b.items.length-1){[b.items[ii+1],b.items[ii]]=[b.items[ii],b.items[ii+1]];save();renderItems();} };
           idel.onclick=()=>{ b.items.splice(ii,1); save(); renderItems(); };
-          const imerge=mkBtn("imerge","&#10548;","Merge into the item above (makes a group)",ii===0);
+          const imerge=mkBtn("imerge","&#10548;","Group with the item above",ii===0);
           imerge.onclick=()=>{ if(ii===0) return;
             const prev=b.items[ii-1];
             prev.exercises=(prev.exercises||[]).concat(it.exercises);
