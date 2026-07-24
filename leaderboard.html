@@ -109,6 +109,10 @@
   .seg button{flex:1;background:transparent;color:var(--ink-dim);border:0;padding:9px 6px;font:inherit;font-size:13px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-transform:uppercase}
   .seg button[aria-pressed="true"]{background:var(--accent);color:#141100}
   .seg button+button{border-left:1px solid var(--line)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pills button{border:1px solid var(--line);background:var(--field);color:var(--ink-dim);border-radius:8px;padding:9px 13px;font:inherit;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:.12s}
+  .pills button:hover{border-color:#3a3d43}
+  .pills button[aria-pressed="true"]{background:var(--accent);color:#141100;border-color:var(--accent)}
   .checks{display:flex;flex-wrap:wrap;gap:10px 18px}
   .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-dim);letter-spacing:.4px;cursor:pointer;text-transform:uppercase}
   .chk input{width:17px;height:17px;accent-color:var(--accent)}
@@ -175,11 +179,14 @@
         <h3>Workout</h3>
         <div class="body">
           <div class="fld"><label>Machine</label>
-            <div class="seg" id="segMachine">
+            <div class="pills" id="segMachine">
               <button data-v="Row"  aria-pressed="true">Rower</button>
               <button data-v="Ski"  aria-pressed="false">SkiErg</button>
               <button data-v="Bike" aria-pressed="false">BikeErg</button>
+              <button data-v="Run"  aria-pressed="false">Assault Runner</button>
+              <button data-v="Echo" aria-pressed="false">Echo Bike</button>
             </div>
+            <div class="note" id="machineNote" style="margin-top:2px"></div>
           </div>
           <div class="fld"><label>Format</label>
             <div class="seg" id="segFormat">
@@ -300,6 +307,15 @@
   const lanesEl=$("lanes"), clockEl=$("clock"), clockState=$("clockState"),
         startBtn=$("startBtn"), resetBtn=$("resetBtn"), colLabel=$("colLabel");
 
+  const MACHINE = {
+    Row: {verb:"row",  splitU:"/500m", live:"Concept2 PM5 — streams distance, split, watts & rate live over Bluetooth. Plug-and-play."},
+    Ski: {verb:"ski",  splitU:"/500m", live:"Concept2 PM5 — same monitor as the rower. Streams live over Bluetooth. Plug-and-play."},
+    Bike:{verb:"bike", splitU:"/500m", live:"Concept2 BikeErg (PM5) — streams live over Bluetooth. Plug-and-play."},
+    Run: {verb:"run",  splitU:"pace",  live:"Assault Runner — newer AssaultRunner Elite consoles broadcast speed / distance / watts over Bluetooth; older units have no live feed and need manual entry."},
+    Echo:{verb:"ride", splitU:"/500m", live:"Echo Bike (Rogue) — no open live protocol; needs a compatible power/cadence sensor to read live, otherwise scores are entered by hand."},
+  };
+  const mInfo = () => MACHINE[cfg.machine] || MACHINE.Row;
+
   const fmtT = s => Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
   const fmtSplit = s => (!isFinite(s)||s<=0)?"--:--":fmtT(s);
   const wattsFor = sp => 2.80/Math.pow(sp/500,3);              // Concept2 power
@@ -314,7 +330,7 @@
   }
 
   function summary(){
-    const m = cfg.machine==="Ski"?"ski":cfg.machine==="Bike"?"bike":"row";
+    const m = mInfo().verb;
     const piece = cfg.format==="time" ? `${fmtT(cfg.duration)} ${m}` : `${cfg.target}m ${m}`;
     const sc = cfg.scoring.mode==="rank" ? "placing points"
             : cfg.scoring.mode==="metres" ? `${cfg.scoring.perValue}pt / ${cfg.scoring.perUnit}m`
@@ -368,7 +384,7 @@
         lanesEl.appendChild(el); e.el=el;
       });
     }
-    const d=cfg.display;
+    const d=cfg.display; const su=mInfo().splitU;
     order().forEach((e,idx)=>{
       e.el.style.transform=`translateY(${idx*ROW}px)`;
       e.el.classList.toggle("leader", idx===0 && (running||finished));
@@ -389,13 +405,13 @@
       if(d.points){
         hero.innerHTML=`<span class="pts">${pts}</span><small> pts</small>`;
       }else if(d.split){
-        hero.innerHTML=`${fmtSplit(e.split)}<small> /500</small>`;
+        hero.innerHTML=`${fmtSplit(e.split)}<small> ${su}</small>`;
       }else{
         hero.innerHTML=`${Math.round(e.m)}<small> m</small>`;
       }
       // sub line
       const bits=[];
-      if(d.points && d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
+      if(d.points && d.split) bits.push(`${fmtSplit(e.split)}<em>${su}</em>`);
       if(d.watts) bits.push(`<span class="w">${Math.round(wattsFor(e.split))}</span>w`);
       if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
       if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
@@ -473,6 +489,7 @@
     });
   };
   function syncCond(){
+    $("machineNote").innerHTML = `<b style="color:var(--ink-dim)">Live data:</b> ${mInfo().live}`;
     $("fTarget").classList.toggle("on", cfg.format==="distance");
     $("fDuration").classList.toggle("on", cfg.format==="time");
     $("scRank").classList.toggle("on", cfg.scoring.mode==="rank");
