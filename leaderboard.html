@@ -1,0 +1,384 @@
+<title>Athlete Fitness — Live Erg Race Board</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<style>
+  /* ============================================================
+     ATHLETE FITNESS — live erg leaderboard
+     Industrial / monochrome. Black + graphite + steel, one accent.
+     >>> Brand color lives in ONE place: change --accent below. <<<
+     ============================================================ */
+  :root{
+    --accent:#e7b84a;           /* <-- swap for your brand color */
+    --accent-dim:#8a6d24;
+
+    --bg:#09090a; --bg-2:#0c0d0e; --panel:#131416; --panel-2:#191a1d;
+    --line:#26282c; --line-soft:#1c1e21;
+    --ink:#f4f4f5; --ink-dim:#a7abb1; --ink-mute:#6a6e75;
+    --steel:#c8ccd2;
+    --gold:#e7b84a; --silver:#c2c8d0; --bronze:#b07a45;
+
+    --rowH:76px;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --cond:"Arial Narrow","Roboto Condensed",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1100px 560px at 50% -12%, #131416 0%, var(--bg) 62%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--cond);
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:.2px;
+    min-height:100vh;
+    padding:clamp(12px,2.2vw,26px);
+  }
+  .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+  /* ---- Header ---- */
+  header{
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    padding:15px 18px;border:1px solid var(--line);border-radius:12px;
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    position:relative;overflow:hidden;
+  }
+  header::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .mark{display:flex;flex-direction:column;line-height:1}
+  .mark b{font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase}
+  .mark small{font-size:10px;letter-spacing:4px;color:var(--ink-mute);text-transform:uppercase;margin-top:4px}
+  .divider{width:1px;height:38px;background:var(--line)}
+  .title{display:flex;flex-direction:column;line-height:1.05}
+  .title b{font-size:18px;text-transform:uppercase;letter-spacing:1.5px}
+  .title span{font-size:11px;color:var(--ink-mute);letter-spacing:2px;text-transform:uppercase;margin-top:3px}
+  .clock{margin-left:auto;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .clock b{font-size:clamp(30px,5vw,44px);font-weight:600;letter-spacing:1px;display:block;line-height:1}
+  .clock span{font-size:10px;color:var(--ink-mute);letter-spacing:2.5px;text-transform:uppercase}
+
+  /* ---- Controls ---- */
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{background:transparent;color:var(--ink-dim);border:0;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-transform:uppercase}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#0a0a0a}
+  .seg button+button{border-left:1px solid var(--line)}
+  .machine{color:var(--ink-mute);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding-left:2px}
+  .btn{border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font:inherit;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:10px 20px;border-radius:9px;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:#3a3d43}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#141100}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .spacer{flex:1}
+  .hint{font-size:12px;color:var(--ink-mute);letter-spacing:.3px}
+
+  main{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+
+  /* ---- Board / lanes ---- */
+  .board{border:1px solid var(--line);border-radius:12px;background:var(--bg-2);padding:12px 12px 8px}
+  .board-head{display:flex;justify-content:space-between;align-items:center;padding:2px 6px 10px;color:var(--ink-mute);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+  .lanes{position:relative;transition:height .4s}
+  .lane{
+    position:absolute;left:0;right:0;top:0;height:var(--rowH);
+    display:grid;grid-template-columns:50px 1fr 132px;align-items:center;gap:12px;
+    padding:0 8px;border-radius:9px;
+    transition:transform .55s cubic-bezier(.4,1.05,.4,1),background .3s;
+    will-change:transform;
+  }
+  .lane::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:1px;background:var(--line-soft)}
+  .lane.leader{background:linear-gradient(90deg,rgba(231,184,74,.10),transparent 55%)}
+  .lane.done{background:linear-gradient(90deg,rgba(200,204,210,.06),transparent 60%)}
+
+  .rank{font-family:var(--mono);font-size:27px;font-weight:600;text-align:center;color:var(--ink-mute)}
+  .lane.leader .rank{color:var(--accent)}
+  .rank .p1{color:var(--gold)} .rank .p2{color:var(--silver)} .rank .p3{color:var(--bronze)}
+
+  .who{min-width:0}
+  .team{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.05}
+  .ath{font-size:10px;color:var(--ink-mute);letter-spacing:1px;text-transform:uppercase}
+  .track{margin-top:7px;height:8px;border-radius:5px;background:#0a0b0c;border:1px solid var(--line-soft);position:relative;overflow:hidden}
+  .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:5px;transition:width .25s linear;opacity:.85}
+  .boat{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);transition:left .25s linear;box-shadow:0 0 0 2px #0a0b0c}
+  .finishline{position:absolute;right:0;top:-3px;bottom:-3px;width:2px;background:repeating-linear-gradient(0deg,var(--ink) 0 3px,transparent 3px 6px);opacity:.45}
+
+  .data{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .split{font-size:22px;font-weight:600;line-height:1}
+  .split small{font-size:10px;color:var(--ink-mute);font-family:var(--cond);letter-spacing:1px}
+  .sub{font-size:11px;color:var(--ink-dim);margin-top:3px;letter-spacing:.3px}
+  .sub .w{color:var(--ink)} .sub em{color:var(--ink-mute);font-style:normal}
+
+  .tag{display:inline-block;font-family:var(--cond);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:2px}
+  .tag.fin{background:var(--gold);color:#161100;font-weight:700}
+
+  /* ---- Side: tablet POV + how-it-works ---- */
+  aside{display:flex;flex-direction:column;gap:16px;position:sticky;top:16px}
+  .card{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--panel-2),var(--panel));overflow:hidden}
+  .card h3{margin:0;padding:12px 14px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-mute);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .card h3::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+  .tablet{padding:14px}
+  .device{border:1px solid #2c2f34;border-radius:15px;background:#000;padding:10px;box-shadow:inset 0 0 0 2px #050607, 0 10px 30px -12px #000}
+  .screen{border-radius:8px;background:radial-gradient(120% 90% at 50% 0%,#121316,#050607);min-height:220px;padding:14px;position:relative;overflow:hidden;font-family:var(--mono)}
+  .scr-label{font-family:var(--cond);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-mute)}
+  .pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .pick button{font:inherit;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:14px;padding:12px 6px;border-radius:8px;border:1px solid #2c2f34;background:#0d0e10;color:var(--ink);cursor:pointer}
+  .pov-team{font-family:var(--cond);font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .pov-big{font-size:50px;font-weight:600;letter-spacing:1px;line-height:1;margin:6px 0 2px}
+  .pov-big small{font-size:13px;color:var(--ink-mute);font-family:var(--cond);letter-spacing:1px}
+  .pov-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center}
+  .pov-grid div b{display:block;font-size:21px}
+  .pov-grid div span{font-size:9px;letter-spacing:1px;color:var(--ink-mute);text-transform:uppercase;font-family:var(--cond)}
+  .pov-bar{height:6px;background:#0a0b0c;border-radius:4px;margin-top:12px;overflow:hidden;border:1px solid var(--line-soft)}
+  .pov-bar i{display:block;height:100%;width:0;transition:width .25s linear}
+
+  ol.steps{list-style:none;margin:0;padding:8px 14px 16px;counter-reset:s}
+  ol.steps li{counter-increment:s;position:relative;padding:10px 0 10px 40px;border-bottom:1px solid var(--line-soft);font-size:13px;color:var(--ink-dim);line-height:1.45}
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:9px;width:26px;height:26px;border-radius:7px;background:var(--panel);border:1px solid var(--line);color:var(--accent);font-family:var(--mono);font-weight:600;font-size:13px;display:grid;place-items:center}
+  ol.steps li b{color:var(--ink);font-weight:700}
+  ol.steps li code{font-family:var(--mono);font-size:11px;color:var(--accent);background:#1a150533;padding:1px 4px;border-radius:4px}
+
+  footer{color:var(--ink-mute);font-size:11px;text-align:center;letter-spacing:.4px;padding:6px 0 2px;line-height:1.6}
+  footer b{color:var(--ink-dim)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark"><b>Athlete&nbsp;Fitness</b><small>Mind › Body › Performance</small></div>
+    <div class="divider"></div>
+    <div class="title">
+      <b>Saturday Class</b>
+      <span id="raceLabel">2000m row · 6 crews</span>
+    </div>
+    <div class="clock">
+      <b id="clock">0:00.0</b>
+      <span id="clockState">On the line</span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Machine">
+      <button data-machine="Row" aria-pressed="true">Rower</button>
+      <button data-machine="Ski" aria-pressed="false">SkiErg</button>
+    </div>
+    <span class="machine">·</span>
+    <div class="seg" role="group" aria-label="Distance">
+      <button data-dist="500" aria-pressed="false">500m</button>
+      <button data-dist="1000" aria-pressed="false">1000m</button>
+      <button data-dist="2000" aria-pressed="true">2000m</button>
+    </div>
+    <button class="btn primary" id="startBtn">Start race</button>
+    <button class="btn" id="resetBtn" disabled>Reset</button>
+    <span class="spacer"></span>
+    <span class="hint">Simulated ergs — real PM5s stream the same fields over Bluetooth.</span>
+  </div>
+
+  <main>
+    <section class="board" aria-label="Live leaderboard">
+      <div class="board-head">
+        <span>Rank · Crew · Progress</span>
+        <span>Split /500m · Watts · Rate</span>
+      </div>
+      <div class="lanes" id="lanes"></div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h3>Erg Tablet — athlete view</h3>
+        <div class="tablet">
+          <div class="device"><div class="screen" id="screen">
+            <div class="scr-label">Concept2 PM5 · linked to crew</div>
+            <div id="povInner"></div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>How it works on real hardware</h3>
+        <ol class="steps">
+          <li>Mount a cheap <b>Android tablet</b> on each rower / SkiErg. It pairs to the <b>PM5 over Bluetooth</b> — no wires, always on.</li>
+          <li>Athlete taps their <b>crew</b>, hits start. The tablet reads <code>distance · split · watts · rate</code> straight off the monitor.</li>
+          <li>Every tablet pushes to one <b>shared board</b>. This screen re-sorts live and calls the finish.</li>
+        </ol>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <b>Athlete Fitness</b> · prototype leaderboard with simulated data — swap in Web Bluetooth to go live.<br/>
+    Crew names, machine, distance and roster are placeholders. Brand color = the <b>--accent</b> variable (one line).
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+  const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#e7b84a";
+
+  // --- Crews (placeholder roster — rename freely) ---
+  const CREWS = [
+    {team:"Engine Room", ath:"Crew 1", color:accent,    base:112, you:true},
+    {team:"Afterburners",ath:"Crew 2", color:"#c2c8d0", base:110},
+    {team:"Dark Horse",  ath:"Crew 3", color:"#8fb0c9", base:114},
+    {team:"Full Send",   ath:"Crew 4", color:"#9aa0a8", base:111},
+    {team:"Big Dogs",    ath:"Crew 5", color:"#b6bcc4", base:113},
+    {team:"Grip It",     ath:"Crew 6", color:"#7f858d", base:115},
+  ];
+  const ROW = 76;
+  let dist = 2000, machine = "Row", running = false, finished = false, t0 = 0, raf = 0, ticker = 0;
+  let ergs = [];
+
+  const $ = id => document.getElementById(id);
+  const lanesEl=$("lanes"), clockEl=$("clock"), clockState=$("clockState"),
+        raceLabel=$("raceLabel"), startBtn=$("startBtn"), resetBtn=$("resetBtn"), povInner=$("povInner");
+
+  const fmtSplit = s => (!isFinite(s)||s<=0) ? "--:--" :
+    Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
+  const fmtClock = s => Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
+  // Concept2 power model: watts = 2.80 / (pace_sec_per_metre)^3
+  const wattsFor = split500 => 2.80 / Math.pow(split500/500,3);
+
+  function build(){
+    finished=false; running=false; t0=0;
+    ergs = CREWS.map((c,i)=>({
+      ...c, id:i, m:0, split:c.base, spm:26+(i%3),
+      phase:Math.random()*6.28, finishT:null, rank:i, drift:0.9+Math.random()*0.25,
+    }));
+    raceLabel.textContent = `${dist}m ${machine==="Ski"?"ski":"row"} · ${CREWS.length} crews`;
+    clockEl.textContent="0:00.0"; clockState.textContent="On the line";
+    renderLanes(true); renderPOV();
+    lanesEl.style.height = ROW*CREWS.length+"px";
+  }
+
+  const byId = () => [...ergs].sort((a,b)=>a.id-b.id);
+
+  function renderLanes(first){
+    if(first){
+      lanesEl.innerHTML="";
+      byId().forEach(e=>{
+        const el=document.createElement("div");
+        el.className="lane"; el.dataset.id=e.id;
+        el.innerHTML=`
+          <div class="rank"><span></span></div>
+          <div class="who">
+            <div class="team">${e.team}</div>
+            <div class="ath">${e.ath}</div>
+            <div class="track"><div class="fill"></div><div class="finishline"></div><div class="boat"></div></div>
+          </div>
+          <div class="data">
+            <div class="split">--:--<small> /500</small></div>
+            <div class="sub"><span class="w">0</span>w · <em>r</em>0</div>
+          </div>`;
+        el.querySelector(".fill").style.background=e.color;
+        el.querySelector(".boat").style.background=e.color;
+        lanesEl.appendChild(el); e.el=el;
+      });
+    }
+    const order=[...ergs].sort((a,b)=>{
+      if(a.finishT!=null&&b.finishT!=null) return a.finishT-b.finishT;
+      if(a.finishT!=null) return -1;
+      if(b.finishT!=null) return 1;
+      return b.m-a.m;
+    });
+    order.forEach((e,idx)=>{
+      e.rank=idx;
+      e.el.style.transform=`translateY(${idx*ROW}px)`;
+      e.el.classList.toggle("leader", idx===0 && (running||finished));
+      e.el.classList.toggle("done", e.finishT!=null);
+      const rankSpan=e.el.querySelector(".rank span");
+      rankSpan.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":"";
+      rankSpan.textContent=idx+1;
+      const pct=Math.min(100, e.m/dist*100);
+      e.el.querySelector(".fill").style.width=pct+"%";
+      e.el.querySelector(".boat").style.left=pct+"%";
+      const finTag = e.finishT!=null ? ` <span class="tag fin">Fin ${fmtClock(e.finishT)}</span>`:"";
+      e.el.querySelector(".team").innerHTML = e.team + finTag;
+      e.el.querySelector(".split").innerHTML=`${fmtSplit(e.split)}<small> /500</small>`;
+      e.el.querySelector(".sub").innerHTML=`<span class="w">${Math.round(wattsFor(e.split))}</span>w · <em>r</em>${Math.round(e.spm)} · <em>m</em>${Math.round(e.m)}`;
+    });
+  }
+
+  function renderPOV(){
+    const you = ergs.find(e=>e.you) || ergs[0];
+    if(!running && !finished){
+      povInner.innerHTML=`
+        <div style="margin-top:14px" class="scr-label">Choose your crew</div>
+        <div class="pick">
+          ${CREWS.map(c=>`<button ${c.you?`style="border-color:${accent};color:#fff"`:''} disabled>${c.team}</button>`).join("")}
+        </div>
+        <div style="margin-top:14px;color:var(--ink-mute);font-family:var(--cond);font-size:12px;text-align:center">Press <b style="color:#fff">Start race</b> to begin</div>`;
+      return;
+    }
+    const pct=Math.min(100,you.m/dist*100);
+    povInner.innerHTML=`
+      <div style="margin-top:4px">
+        <div class="pov-team" style="color:${you.color}">${you.team} <span style="color:var(--ink-mute);font-size:11px">· lane 1</span></div>
+        <div class="pov-big">${fmtSplit(you.split)}<small> /500m</small></div>
+        <div class="pov-grid">
+          <div><b>${Math.round(you.m)}</b><span>metres</span></div>
+          <div><b>${Math.round(wattsFor(you.split))}</b><span>watts</span></div>
+          <div><b>${Math.round(you.spm)}</b><span>${machine==="Ski"?"strokes":"s/min"}</span></div>
+        </div>
+        <div class="pov-bar"><i style="width:${pct}%;background:${you.color}"></i></div>
+        <div class="scr-label" style="margin-top:10px;text-align:center">
+          ${you.finishT!=null?`Finished · ${fmtClock(you.finishT)}`:`${Math.max(0,Math.round(dist-you.m))}m to go`}
+        </div>
+      </div>`;
+  }
+
+  function frame(now){
+    const t=(now-t0)/1000;
+    for(const e of ergs){
+      if(e.finishT!=null) continue;
+      const frac=e.m/dist;
+      let target=e.base*e.drift;
+      if(frac>0.85) target*=0.94; else if(frac<0.1) target*=0.97;
+      e.phase+=0.12;
+      const noise=Math.sin(e.phase)*1.4 + (Math.random()-0.5)*1.2;
+      e.split=Math.max(80, target+noise);
+      e.spm=24 + (0.90-e.split/140)*14 + Math.sin(e.phase*0.7)*1.2;
+      e.m += (500/e.split)*(1/60);
+      if(e.m>=dist){ e.m=dist; e.finishT=t; }
+    }
+    renderLanes(false); renderPOV();
+    clockEl.textContent=fmtClock(t);
+    if(ergs.every(e=>e.finishT!=null)){
+      running=false; finished=true;
+      clockState.textContent="Race complete";
+      startBtn.textContent="Start race"; startBtn.disabled=false;
+      clockEl.textContent=fmtClock([...ergs].sort((a,b)=>a.finishT-b.finishT)[0].finishT);
+      return;
+    }
+    raf=requestAnimationFrame(frame);
+  }
+
+  function start(){
+    if(running) return;
+    build();
+    running=true; finished=false; t0=performance.now();
+    startBtn.disabled=true; startBtn.textContent="Racing…"; resetBtn.disabled=false;
+    clockState.textContent="Racing";
+    if(reduce){ const loop=()=>{ if(!running) return; frame(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
+    else raf=requestAnimationFrame(frame);
+  }
+  function reset(){
+    running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
+    startBtn.disabled=false; startBtn.textContent="Start race"; resetBtn.disabled=true;
+    build();
+  }
+
+  startBtn.onclick=start; resetBtn.onclick=reset;
+  document.querySelectorAll(".seg button").forEach(b=>{
+    b.onclick=()=>{
+      if(running) return;
+      const grp=b.parentElement;
+      grp.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+      if(b.dataset.dist) dist=+b.dataset.dist;
+      if(b.dataset.machine) machine=b.dataset.machine;
+      reset();
+    };
+  });
+
+  build();
+})();
+</script>
