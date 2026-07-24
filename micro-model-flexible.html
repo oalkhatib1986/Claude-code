@@ -692,6 +692,12 @@ function compute(){
  var classRevYr=classesYr*v('capacity')*v('classCreditPrice')/vd;   // class credits = classes × capacity, at the class credit price
  var trainerYr=classesYr*v('trainerFee');
  var prizesYr=v('prizePerEvent')*regRaceDays + v('finPrize')*finales;   // regular-race prize/day (default 0) + finale purse
+ // ---- split racing into race sessions vs season finale for the income statement ----
+ var raceRevYr=wkTicketYr;                                   // race-session credit revenue (net)
+ var raceDirectYr=evFix*regRaceDays+wkBadgeYr;               // race DJ + finisher badges
+ var racePrizeYr=v('prizePerEvent')*regRaceDays;            // race-session prizes
+ var finRevYr=finTicketYr+finHeatYr;                        // finale tickets + pick-your-heat (net)
+ var finPrizeYr=v('finPrize')*finales;                     // finale prize purse
  var pp=v('ppPct')/100;
  rolesGuard();
  var salaries=0,staff=0;                   // roster: Σ heads × monthly salary; headcount = Σ heads
@@ -720,6 +726,10 @@ function compute(){
    var grossFb=fbRevYr*vg, fbCogs=fbCogsYr*vg, netFb=grossFb-fbCogs;
    var grossRet=retRevYr*vg, retCogs=retCogsYr*vg, netRet=grossRet-retCogs;
    var prizes=prizesYr*inf;
+   // racing split: race sessions
+   var raceRev=raceRevYr*vg, raceDirect=raceDirectYr*inf, racePrize=racePrizeYr*inf, netRace=raceRev-raceDirect-racePrize;
+   // racing split: season finale
+   var finRev=finRevYr*vg, finDirect=finDirectYr*inf, finBadge=finBadgeYr*inf, finPrize=finPrizeYr*inf, netFin=finRev-finDirect-finBadge-finPrize;
    var ppFees=pp*(grossEvent+grossHeat+grossTrial+grossClass+grossFb+grossRet);
    var netRev=netEvent+grossHeat+grossTrial+netClass+netFb+netRet-prizes-ppFees;
    var payroll=payrollYr*inf, overhead=ovYr*inf;
@@ -733,6 +743,7 @@ function compute(){
    var tax=Math.max(0,ebit-ctThreshold)*ctRate;      // 9% on taxable profit above the threshold
    var netProfit=ebit-tax;
    return {yr:i+1,grossEvent:grossEvent,netEvent:netEvent,grossHeat:grossHeat,grossTrial:grossTrial,grossClass:grossClass,netClass:netClass,grossFb:grossFb,netFb:netFb,grossRet:grossRet,netRet:netRet,prizes:prizes,ppFees:ppFees,netRev:netRev,
+     raceRev:raceRev,raceDirect:raceDirect,racePrize:racePrize,netRace:netRace,finRev:finRev,finDirect:finDirect,finBadge:finBadge,finPrize:finPrize,netFin:netFin,
      payroll:payroll,overhead:overhead,mgmtFee:mgmtFee,mgmtBase:mgmtBase,ebitdaPre:ebitdaPre,eos:eos,ebitda:ebitda,dep:dep,ebit:ebit,tax:tax,netProfit:netProfit,opcash:ebitdaPre-tax};
  }
  var NPB=10;
@@ -913,8 +924,8 @@ function row3(label,vals,neg,klass,line){var s='<tr'+(klass?' class="'+klass+'"'
         :('<td class="'+(neg?'neg':'')+'">'+nn(neg?-t:t)+'</td>');
  return s+'</tr>';}
 function pctRow(label,nums,dens,klass){var s='<tr'+(klass?' class="'+klass+'"':'')+'><td>'+label+'</td>';var tn=0,td=0;nums.forEach(function(n,i){var d=dens[i]||0;tn+=n;td+=d;var pc=d?n/d*100:0;s+='<td class="calc">'+pc.toFixed(1)+'%</td>';});var tp=td?tn/td*100:0;return s+'<td class="calc">'+tp.toFixed(1)+'%</td></tr>';}
-var LBL={grossEvent:'Race & finale credits / tickets',eventDirect:'Race & finale direct costs',netEvent:'Net race & finale (before prizes)',grossHeat:'Season-finale pick-your-heat',grossTrial:'Trial revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',mgmtFee:'Management fee',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
-function LVAL(y,line){return {grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,grossHeat:y.grossHeat,grossTrial:y.grossTrial,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,mgmtFee:y.mgmtFee,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
+var LBL={netRace:'Net race sessions',netFin:'Net season finale',grossEvent:'Race & finale credits / tickets',eventDirect:'Race & finale direct costs',netEvent:'Net race & finale (before prizes)',grossHeat:'Season-finale pick-your-heat',grossTrial:'Trial revenue',grossClass:'Gross class revenue',trainer:'Trainer fees',netClass:'Net class revenue',grossFb:'F&B revenue',fbCogs:'F&B COGS',netFb:'Net F&B',grossRet:'Retail revenue',retCogs:'Retail COGS',netRet:'Net retail',prizes:'Prizes',ppFees:'Payment-processing fees',netRev:'Net revenue',payroll:'Payroll',overhead:'Overheads',mgmtFee:'Management fee',ebitdaPre:'EBITDA (pre end-of-service)',eos:'End-of-service provision',ebitda:'EBITDA',dep:'Depreciation',ebit:'EBIT',tax:'Corporate tax',netProfit:'Net profit (after tax)'};
+function LVAL(y,line){return {netRace:y.netRace,netFin:y.netFin,grossEvent:y.grossEvent,eventDirect:y.grossEvent-y.netEvent,netEvent:y.netEvent,grossClass:y.grossClass,trainer:y.grossClass-y.netClass,netClass:y.netClass,grossFb:y.grossFb,fbCogs:y.grossFb-y.netFb,netFb:y.netFb,grossRet:y.grossRet,retCogs:y.grossRet-y.netRet,netRet:y.netRet,grossHeat:y.grossHeat,grossTrial:y.grossTrial,prizes:y.prizes,ppFees:y.ppFees,netRev:y.netRev,payroll:y.payroll,overhead:y.overhead,mgmtFee:y.mgmtFee,ebitdaPre:y.ebitdaPre,eos:y.eos,ebitda:y.ebitda,dep:y.dep,ebit:y.ebit,tax:y.tax,netProfit:y.netProfit}[line];}
 function breakdown(line,i){
  var A=compute();
  if(i==='T'){var vs=A.Y.map(function(y){return LVAL(y,line);});return {title:LBL[line]+' · 3-year total',rows:[{l:'Year 1',x:vs[0]},{l:'Year 2',x:vs[1]},{l:'Year 3',x:vs[2]},{l:'Total',x:vs[0]+vs[1]+vs[2],tot:1}]};}
@@ -946,6 +957,8 @@ function breakdown(line,i){
   case 'mgmtFee':{var comps=[];if(chk('mfEvent'))comps.push({l:'Net racing revenue',x:Yi.netEvent});if(chk('mfAddon'))comps.push({l:'Finale heat + trials',x:Yi.grossHeat+Yi.grossTrial});if(chk('mfClass'))comps.push({l:'Net class revenue',x:Yi.netClass});if(chk('mfFb'))comps.push({l:'Net F&B',x:Yi.netFb});if(chk('mfRet'))comps.push({l:'Net retail',x:Yi.netRet});comps.push({l:'Fee base',x:Yi.mgmtBase,sub:1},{l:'Management fee rate',x:v('mgmtFeePct')/100,mult:1});return R(comps,Yi.mgmtFee);}
   case 'ebitdaPre':return R([{l:'Net revenue',x:Yi.netRev},{l:'Less: payroll',x:-Yi.payroll},{l:'Less: overheads',x:-Yi.overhead},{l:'Less: management fee',x:-Yi.mgmtFee}],Yi.ebitdaPre);
   case 'eos':{rolesGuard();var sal=0;ROLES.forEach(function(r){sal+=Math.max(0,r.heads||0)*Math.max(0,r.pay||0);});var bm=sal*(v('basicPct')/100);return R([{l:'Monthly salaries',x:sal},{l:'Basic %',x:v('basicPct')/100,mult:1},{l:'Monthly basic',x:bm,sub:1},{l:'21 / 30 (21 days per year)',x:21/30,mult:1},{l:'Inflation',x:inf,mult:1}],bm*(21/30)*inf);}
+  case 'netRace':return R([{l:'Race session credits',x:Yi.raceRev},{l:'Less: resident DJ + finisher badges',x:-Yi.raceDirect},{l:'Less: race prizes',x:-Yi.racePrize}],Yi.netRace);
+  case 'netFin':return R([{l:'Finale tickets + pick-your-heat',x:Yi.finRev},{l:'Less: finale production (DJ, vol, permits)',x:-Yi.finDirect},{l:'Less: finale finisher badges',x:-Yi.finBadge},{l:'Less: finale prize purse',x:-Yi.finPrize}],Yi.netFin);
   case 'ebitda':return R([{l:'EBITDA (pre end-of-service)',x:Yi.ebitdaPre},{l:'Less: end-of-service',x:-Yi.eos}],Yi.ebitda);
   case 'dep':return R([{l:'Total CapEx',x:A.capexTotal},{l:'Useful life (years)',x:A.depLife,mult:1,op:'÷'}],Yi.dep);
   case 'ebit':return R([{l:'EBITDA',x:Yi.ebitda},{l:'Less: depreciation',x:-Yi.dep}],Yi.ebit);
@@ -1145,12 +1158,18 @@ function update(){
  ih+=row3('Gross class revenue (credits)',Y.map(function(y){return y.grossClass;}),false,'','grossClass');
  ih+=row3('Less: trainer fees',Y.map(function(y){return y.grossClass-y.netClass;}),true,'','trainer');
  ih+=row3('Net class revenue',Y.map(function(y){return y.netClass;}),false,'subtot','netClass');
- ih+='<tr class="sec"><td colspan="5">Racing revenue (race sessions + season finale)</td></tr>';
- ih+=row3('Race &amp; finale credits / tickets',Y.map(function(y){return y.grossEvent;}),false,'','grossEvent');
- ih+=row3('Season-finale pick-your-heat',Y.map(function(y){return y.grossHeat;}),false,'','grossHeat');
- ih+=row3('Less: race &amp; finale direct costs (DJ, badges, production)',Y.map(function(y){return y.grossEvent-y.netEvent;}),true,'','eventDirect');
- ih+=row3('Less: prizes',Y.map(function(y){return y.prizes;}),true,'','prizes');
- ih+=row3('Net racing revenue',Y.map(function(y){return y.netEvent+y.grossHeat-y.prizes;}),false,'subtot');
+ ih+='<tr class="sec"><td colspan="5">Racing revenue &mdash; race sessions</td></tr>';
+ ih+=row3('Race session credits',Y.map(function(y){return y.raceRev;}),false,'');
+ ih+=row3('Less: resident DJ + finisher badges',Y.map(function(y){return y.raceDirect;}),true,'');
+ ih+=row3('Less: race prizes',Y.map(function(y){return y.racePrize;}),true,'');
+ ih+=row3('Net race sessions',Y.map(function(y){return y.netRace;}),false,'subtot','netRace');
+ ih+='<tr class="sec"><td colspan="5">Racing revenue &mdash; season finale</td></tr>';
+ ih+=row3('Finale tickets + pick-your-heat',Y.map(function(y){return y.finRev;}),false,'');
+ ih+=row3('Less: finale production (DJ, volunteers, permits)',Y.map(function(y){return y.finDirect;}),true,'');
+ ih+=row3('Less: finale finisher badges',Y.map(function(y){return y.finBadge;}),true,'');
+ ih+=row3('Less: finale prize purse',Y.map(function(y){return y.finPrize;}),true,'');
+ ih+=row3('Net season finale',Y.map(function(y){return y.netFin;}),false,'subtot','netFin');
+ ih+=row3('Net racing revenue (race + finale)',Y.map(function(y){return y.netRace+y.netFin;}),false,'subtot');
  ih+='<tr class="sec"><td colspan="5">Trial sessions</td></tr>';
  ih+=row3('Net trial revenue',Y.map(function(y){return y.grossTrial;}),false,'subtot','grossTrial');
  ih+='<tr class="sec"><td colspan="5">F&amp;B</td></tr>';
