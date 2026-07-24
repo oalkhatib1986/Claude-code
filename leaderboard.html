@@ -240,10 +240,10 @@
     background:#141518;border:1px solid var(--line);border-radius:12px;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:8px}
   .mwrap.time .mpanel{min-width:110px}
   .mpanel .msearch{width:100%;margin-bottom:6px;background:var(--bg-2)}
-  .mitems{max-height:230px;overflow:auto}
+  .mitems{max-height:230px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .combo{position:relative}
   .combo input{padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
-  .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;background:#141518;border:1px solid var(--line);
+  .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#141518;border:1px solid var(--line);
     border-radius:12px;max-height:280px;overflow:auto;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:6px}
   .combo-item{padding:12px 14px;border-radius:9px;font-size:16px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px}
   .combo-item:hover{background:rgba(255,255,255,.08);color:var(--ink)}
@@ -564,7 +564,7 @@
       list.innerHTML=[...sel.options].map((o,i)=>`<div class="combo-item ${i===sel.selectedIndex?"sel":""}" data-i="${i}">${o.textContent}</div>`).join("");
       list.hidden=false;
       list.querySelectorAll(".combo-item").forEach(it=>{
-        it.onpointerdown=ev=>{ ev.preventDefault();
+        it.onclick=()=>{
           sel.selectedIndex=+it.dataset.i; list.hidden=true; label();
           sel.dispatchEvent(new Event("change")); };
       });
@@ -599,7 +599,7 @@
       if(!out) out=`<div class="combo-item hint">${o.addable?"Type to add new\u2026":"No match"}</div>`;
       itemsEl.innerHTML=out;
       itemsEl.querySelectorAll("[data-v],[data-add]").forEach(it=>{
-        it.onpointerdown=ev=>{ ev.preventDefault(); commit(it.dataset.add?search.value:it.dataset.v); };
+        it.onclick=()=>commit(it.dataset.add?search.value:it.dataset.v);
       });
     };
     btn.onclick=()=>{ if(!panel.hidden){ close(); return; }
