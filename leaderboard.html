@@ -172,11 +172,11 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
   @media (max-width:560px){.row3{grid-template-columns:1fr}}
-  input[type=text],input[type=number],select{font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--field);
+  input[type=text],input[type=number],select{font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:12px;padding:11px 14px;width:100%;transition:border-color .15s}
   input[type=text]:hover,input[type=number]:hover,select:hover{border-color:rgba(255,255,255,.16)}
   input:focus,select:focus{outline:none;border-color:rgba(255,255,255,.4)}
-  input[type=number]{font-family:var(--mono);font-size:14.5px}
+  input[type=number]{font-family:var(--mono);font-size:16px}
   select{appearance:none;-webkit-appearance:none;padding-right:38px;cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 15px center}
@@ -222,7 +222,7 @@
   .tb-change{align-self:center;border:0;background:none;color:var(--ink-mute);font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
   .dsel{position:relative;width:100%}
   .dsel select{display:none}
-  .dsel-btn{width:100%;text-align:left;font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--field);
+  .dsel-btn{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:12px;padding:11px 38px 11px 14px;cursor:pointer;transition:border-color .15s;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 15px center}
@@ -230,9 +230,10 @@
   .combo-item.sel{background:rgba(255,255,255,.07);color:var(--ink)}
   .exr2 .dsel{margin-left:auto;width:auto;min-width:130px}
   .combo{position:relative}
+  .combo input{padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
   .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;background:#141518;border:1px solid var(--line);
     border-radius:12px;max-height:280px;overflow:auto;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:6px}
-  .combo-item{padding:11px 14px;border-radius:9px;font-size:15px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px}
+  .combo-item{padding:12px 14px;border-radius:9px;font-size:16px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px}
   .combo-item:hover{background:rgba(255,255,255,.08);color:var(--ink)}
   .combo-item.add{color:var(--accent);font-family:var(--disp);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13.5px}
   .combo-item.hint{cursor:default;color:var(--ink-mute)}
@@ -263,7 +264,7 @@
   .maxbtn.on{background:var(--accent);color:#000;border-color:var(--accent)}
   .amtchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .amtchip{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:2px 2px 2px 6px;background:var(--field)}
-  .amtchip .amt{width:64px;border:0;background:transparent;padding:7px 2px;font-family:var(--mono);font-size:14px;color:var(--ink)}
+  .amtchip .amt{width:70px;border:0;background:transparent;padding:8px 2px;font-family:var(--mono);font-size:16px;color:var(--ink)}
   .amtchip .amt:focus{outline:none}
   .amt::-webkit-inner-spin-button,.amt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
   .amtchip .amtdel{border:0;background:none;color:var(--ink-mute);font-size:14px;cursor:pointer;width:22px;height:26px}
@@ -276,6 +277,25 @@
   .exl i{color:var(--hot);font-style:normal;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-left:7px}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
+  @media (max-width:680px){
+    body{padding:10px}
+    .card .body{padding:14px 12px 16px}
+    .stn{padding:12px 10px}
+    .psec{padding:10px 9px}
+    .psec-h{gap:8px}
+    .psec-h .gname,.psec-h .gsingle{flex:1 1 100%;min-width:0}
+    .exr1.slim{grid-template-columns:1fr 44px}
+    .exr1.slim .combo:first-child{grid-column:1/-1}
+    .exr2{gap:8px}
+    .exr2 .dsel{width:100%;margin-left:0;min-width:0}
+    .tabs{margin-left:0;width:100%;justify-content:stretch}
+    .tabs button{flex:1;padding:10px 6px;font-size:13px}
+    .controls .hint{display:none}
+    .row2,.row3{grid-template-columns:1fr}
+    .crew{grid-template-columns:40px 1fr 44px;grid-auto-rows:auto}
+    .crew input[type=text]:nth-of-type(2){grid-column:2/4}
+    .blocks{grid-template-columns:1fr}
+  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -355,7 +375,7 @@
           </div>
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
-          <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set — there is no automatic rotation timer. Each block runs its work phase (not scored) then the scored window, then stops and waits for the trainer again. Each station is a <b>bank of machines</b> (e.g. your 5 rowers); in the scored window the whole team's ergs count at once — set how many above.</div>
+          <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard. Each station is a <b>bank of machines</b> (e.g. your 5 rowers) — in scored work the whole team's ergs count at once.</div>
         </div>
       </div>
 
@@ -417,10 +437,17 @@
       </div>
 
       <div class="card">
-        <h3>Event</h3>
+        <h3>Event · Saved workouts</h3>
         <div class="body">
           <div class="fld"><label>Session name</label><input type="text" id="cName" maxlength="40"></div>
           <div class="fld"><label>Subtitle</label><input type="text" id="cSub" maxlength="40"></div>
+          <div class="fld"><label>Saved workouts</label>
+            <div class="row2" style="grid-template-columns:1fr auto;align-items:center">
+              <select id="presetSel"><option value="">— pick a saved workout —</option></select>
+              <button class="btn small" id="savePreset" type="button">Save current</button>
+            </div>
+          </div>
+          <div class="note">Build a workout once, hit <b>Save current</b>, and from then on just pick it from the dropdown — session type, blocks, exercises, scoring, teams, everything.</div>
         </div>
       </div>
 
@@ -1411,6 +1438,23 @@
     cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
 
+  const PKEY="af_presets_v1";
+  let presets; try{ presets=JSON.parse(localStorage.getItem(PKEY))||[]; }catch(e){ presets=[]; }
+  const savePresets=()=>{ try{ localStorage.setItem(PKEY,JSON.stringify(presets)); }catch(e){} };
+  function buildPresetSel(){
+    const sel=$("presetSel");
+    sel.innerHTML='<option value="">— pick a saved workout —</option>'+presets.map((p,i)=>`<option value="${i}">${esc(p.name)}</option>`).join("");
+    sel.value="";
+    sel.onchange=()=>{
+      if(sel.value==="") return;
+      const p=presets[+sel.value];
+      if(!p) return;
+      cfg=structuredClone(p.cfg); save(); applyAccent();
+      buildControlRoom();
+      if(!running&&!sessionActive) build();
+    };
+    const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
+  }
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
     $("rScorers").value=R().scorers||4;
@@ -1430,8 +1474,17 @@
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
     document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
       c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();}; });
+    $("savePreset").onclick=()=>{
+      const n=prompt("Name this workout:", cfg.name);
+      if(!n||!n.trim()) return;
+      const entry={name:n.trim(), cfg:structuredClone(cfg)};
+      const i=presets.findIndex(p=>p.name===entry.name);
+      if(i>=0) presets[i]=entry; else presets.push(entry);
+      savePresets(); buildPresetSel();
+    };
     buildBlocks(); buildStations(); buildRankGrid(); buildCrews(); syncMode(); syncSeqScoring();
     enhanceSelects();
+    buildPresetSel();
   }
 
   applyAccent(); buildControlRoom(); build();
