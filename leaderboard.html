@@ -2,17 +2,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <style>
   /* ============================================================
-     ATHLETE FITNESS — flexible workout leaderboard + Control Room
-     Build any session: N stations, any machine, any scoring rule.
-     >>> Brand color lives in ONE place: change --accent below. <<<
+     ATHL3TE — flexible workout leaderboard + Control Room
+     Two session types:
+       · Rotating blocks (Send It Saturday style): teams start on
+         different blocks, rotate through all; only the scored
+         window (e.g. min 12-16 max cal) counts.
+       · One station at a time: everyone races the same piece.
      ============================================================ */
   :root{
-    --accent:#ffffff;           /* ATHL3TE is white-on-black */
+    --accent:#ffffff;
     --bg:#050505; --bg-2:#0a0a0b; --panel:#101012; --panel-2:#161618; --field:#0c0c0e;
     --line:#26282c; --line-soft:#1c1e21;
     --ink:#f4f4f5; --ink-dim:#a7abb1; --ink-mute:#6a6e75;
     --gold:#e7b84a; --silver:#c2c8d0; --bronze:#b07a45;
-    --rowH:76px;
+    --hot:#ff3b3b;
+    --rowH:80px;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --cond:"Arial Narrow","Roboto Condensed",Arial,sans-serif;
   }
@@ -21,9 +25,9 @@
   body{background:radial-gradient(1100px 560px at 50% -12%, #131416 0%, var(--bg) 62%),var(--bg);
     color:var(--ink);font-family:var(--cond);-webkit-font-smoothing:antialiased;
     letter-spacing:.2px;min-height:100vh;padding:clamp(12px,2.2vw,26px)}
-  .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+  .wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 
-  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 18px;
     border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--panel-2),var(--panel));position:relative;overflow:hidden}
   header::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
   .mark{display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:6px}
@@ -39,18 +43,33 @@
   /* ---- Board ---- */
   .subhead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:2px 4px 0}
   .subhead .ttl{display:flex;flex-direction:column;line-height:1.05}
-  .subhead .ttl b{font-size:18px;text-transform:uppercase;letter-spacing:1.5px}
+  .subhead .ttl b{font-size:20px;text-transform:uppercase;letter-spacing:1.5px}
   .subhead .ttl span{font-size:11px;color:var(--ink-mute);letter-spacing:2px;text-transform:uppercase;margin-top:3px}
   .clock{margin-left:auto;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
   .clock b{font-size:clamp(28px,4.6vw,42px);font-weight:600;letter-spacing:1px;display:block;line-height:1}
+  .clock b.hot{color:var(--hot)}
   .clock span{font-size:10px;color:var(--ink-mute);letter-spacing:2.5px;text-transform:uppercase}
 
-  .stations{display:flex;gap:8px;flex-wrap:wrap;margin:12px 4px 0}
-  .stnchip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 11px;background:var(--panel);font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-mute)}
-  .stnchip .n{font-family:var(--mono);font-size:11px;width:16px;height:16px;border-radius:4px;display:grid;place-items:center;background:var(--field);border:1px solid var(--line)}
-  .stnchip.active{color:var(--ink);border-color:var(--accent)}
-  .stnchip.active .n{background:var(--accent);color:#000;border-color:var(--accent)}
-  .stnchip.past{color:var(--ink-dim);opacity:.7}
+  /* phase banner */
+  .phase{margin:12px 0 0;border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:14px;background:var(--panel);text-transform:uppercase}
+  .phase .plabel{font-weight:700;font-size:15px;letter-spacing:1.5px}
+  .phase .pdesc{color:var(--ink-mute);font-size:12px;letter-spacing:1px}
+  .phase.scoring{border-color:var(--hot);background:linear-gradient(90deg,rgba(255,59,59,.12),transparent 60%)}
+  .phase.scoring .plabel{color:var(--hot)}
+
+  /* workout block cards */
+  .blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px}
+  .blk{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden}
+  .blk.scoring{border-color:var(--hot)}
+  .blk .bh{display:flex;align-items:center;gap:8px}
+  .blk .bh b{font-size:13px;letter-spacing:1px;text-transform:uppercase}
+  .blk .bh .mc{margin-left:auto;font-size:10px;color:var(--ink-mute);letter-spacing:1px;text-transform:uppercase}
+  .blk .bd{font-size:11px;color:var(--ink-dim);line-height:1.45;letter-spacing:.3px;min-height:28px}
+  .blk .teams{display:flex;gap:6px;align-items:center;min-height:16px;flex-wrap:wrap}
+  .blk .teams .t{display:flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-dim)}
+  .blk .teams .dot{width:9px;height:9px;border-radius:50%}
+  .blk .win{font-size:10px;letter-spacing:1px;color:var(--ink-mute);text-transform:uppercase}
+  .blk .win b{color:var(--hot)}
 
   .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 4px}
   .btn{border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font:inherit;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:10px 20px;border-radius:9px;cursor:pointer;transition:.15s}
@@ -66,22 +85,51 @@
   .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;grid-template-columns:50px 1fr 160px;align-items:center;gap:12px;padding:0 8px;border-radius:9px;transition:transform .55s cubic-bezier(.4,1.05,.4,1),background .3s;will-change:transform}
   .lane::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:1px;background:var(--line-soft)}
   .lane.leader{background:linear-gradient(90deg,rgba(255,255,255,.07),transparent 55%)}
-  .lane.done{background:linear-gradient(90deg,rgba(200,204,210,.06),transparent 60%)}
+  .lane.scoring{background:linear-gradient(90deg,rgba(255,59,59,.09),transparent 55%)}
   .rank{font-family:var(--mono);font-size:27px;font-weight:600;text-align:center;color:var(--ink-mute)}
   .lane.leader .rank{color:var(--accent)}
   .rank .p1{color:var(--gold)} .rank .p2{color:var(--silver)} .rank .p3{color:var(--bronze)}
   .who{min-width:0}
   .team{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.05}
-  .ath{font-size:10px;color:var(--ink-mute);letter-spacing:1px;text-transform:uppercase;min-height:12px}
-  .track{margin-top:7px;height:8px;border-radius:5px;background:#0a0b0c;border:1px solid var(--line-soft);position:relative;overflow:hidden}
+  .loc{font-size:11px;color:var(--ink-mute);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+  .loc b{color:var(--ink-dim)} .loc .nx{color:var(--ink-mute)}
+  .track{margin-top:6px;height:8px;border-radius:5px;background:#0a0b0c;border:1px solid var(--line-soft);position:relative;overflow:hidden}
   .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:5px;transition:width .25s linear;opacity:.85}
-  .boat{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);transition:left .25s linear;box-shadow:0 0 0 2px #0a0b0c}
   .data{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
-  .hero{font-size:22px;font-weight:600;line-height:1;color:var(--accent)}
+  .hero{font-size:24px;font-weight:600;line-height:1;color:var(--accent)}
   .hero small{font-size:10px;color:var(--ink-mute);font-family:var(--cond);letter-spacing:1px}
   .sub{font-size:11px;color:var(--ink-dim);margin-top:3px;letter-spacing:.3px}
   .sub .w{color:var(--ink)} .sub em{color:var(--ink-mute);font-style:normal}
   .tag{display:inline-block;font-family:var(--cond);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:2px;background:var(--gold);color:#161100;font-weight:700}
+
+  /* ---- Erg Tablet view ---- */
+  .tb-wrap{max-width:560px;margin:6px auto 0;display:flex;flex-direction:column;gap:12px}
+  .tb-note{font-size:12px;color:var(--ink-mute);letter-spacing:.3px;line-height:1.5}
+  .tb-note b{color:var(--ink-dim)}
+  .tb-device{border:1px solid #2c2f34;border-radius:20px;background:#000;padding:12px;box-shadow:inset 0 0 0 2px #050607,0 14px 40px -16px #000}
+  .tb-screen{border-radius:12px;background:radial-gradient(130% 100% at 50% 0%,#121316,#050607);min-height:520px;padding:20px 18px;display:flex;flex-direction:column;gap:16px}
+  .tb-top{display:flex;align-items:center;gap:10px}
+  .tb-top .bname{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .tb-top .bmach{margin-left:auto;font-size:11px;color:var(--ink-mute);letter-spacing:1.5px;text-transform:uppercase}
+  .tb-team{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--panel)}
+  .tb-team .dot{width:14px;height:14px;border-radius:50%}
+  .tb-team b{font-size:18px;letter-spacing:.6px;text-transform:uppercase}
+  .tb-team span{margin-left:auto;font-size:11px;color:var(--ink-mute);letter-spacing:1px;text-transform:uppercase}
+  .tb-phase{text-align:center;padding:6px 0 2px}
+  .tb-phase .pl{font-size:13px;letter-spacing:2.5px;text-transform:uppercase;color:var(--ink-dim)}
+  .tb-phase .pl.hot{color:var(--hot);font-weight:700}
+  .tb-clock{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:76px;font-weight:600;line-height:1;text-align:center;letter-spacing:2px}
+  .tb-clock.hot{color:var(--hot)}
+  .tb-score{text-align:center;font-family:var(--mono);font-size:15px;color:var(--ink-dim)}
+  .tb-score b{color:var(--accent);font-size:26px}
+  .tb-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center}
+  .tb-stats>div{border:1px solid var(--line-soft);border-radius:10px;padding:10px 4px;background:var(--field)}
+  .tb-stats b{display:block;font-family:var(--mono);font-size:26px;font-weight:600}
+  .tb-stats span{font-size:9px;letter-spacing:1.5px;color:var(--ink-mute);text-transform:uppercase}
+  .tb-work{border:1px solid var(--line-soft);border-radius:10px;padding:11px 13px;background:var(--field);font-size:13px;line-height:1.5;color:var(--ink-dim);letter-spacing:.3px}
+  .tb-work b{color:var(--ink);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;display:block;margin-bottom:4px}
+  .tb-next{text-align:center;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-mute)}
+  .tb-next b{color:var(--ink-dim)}
 
   /* ---- Control Room ---- */
   .cr{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:6px}
@@ -95,6 +143,8 @@
   .fld{display:flex;flex-direction:column;gap:6px}
   .fld>label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-mute)}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media (max-width:560px){.row3{grid-template-columns:1fr}}
   input[type=text],input[type=number],select{font:inherit;font-family:var(--cond);font-size:15px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;letter-spacing:.3px}
   input:focus,select:focus{outline:none;border-color:var(--accent)}
   input[type=number]{font-family:var(--mono)}
@@ -108,12 +158,10 @@
   .note{font-size:12px;color:var(--ink-mute);letter-spacing:.3px;line-height:1.5}
   .note b{color:var(--ink-dim)}
   .cond{display:none} .cond.on{display:flex}
-
   .ptsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
   .pcell{display:flex;flex-direction:column;gap:5px}
   .pcell span{font-size:10px;letter-spacing:1px;color:var(--ink-mute);text-transform:uppercase}
 
-  /* station builder */
   .stn{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:11px;background:var(--field)}
   .stn+.stn{margin-top:10px}
   .stn .top{display:flex;gap:9px;align-items:center}
@@ -144,6 +192,7 @@
     </div>
     <div class="tabs" role="tablist">
       <button id="tabBoard" role="tab" aria-selected="true">Board</button>
+      <button id="tabTablet" role="tab" aria-selected="false">Erg Tablet</button>
       <button id="tabCtrl"  role="tab" aria-selected="false">Control Room</button>
     </div>
   </header>
@@ -151,18 +200,31 @@
   <!-- ============ BOARD ============ -->
   <section class="view active" id="viewBoard">
     <div class="subhead">
-      <div class="ttl"><b id="evName">Saturday Class</b><span id="evSummary"></span></div>
-      <div class="clock"><b id="clock">0:00.0</b><span id="clockState">On the line</span></div>
+      <div class="ttl"><b id="evName"></b><span id="evSummary"></span></div>
+      <div class="clock"><b id="clock">0:00</b><span id="clockState">On the line</span></div>
     </div>
-    <div class="stations" id="stationStrip"></div>
+    <div class="phase" id="phaseBanner" hidden>
+      <span class="plabel" id="phaseLabel"></span>
+      <span class="pdesc" id="phaseDesc"></span>
+    </div>
+    <div class="blocks" id="blockCards"></div>
     <div class="controls">
       <button class="btn primary" id="startBtn">Start session</button>
       <button class="btn" id="resetBtn" disabled>Reset</button>
       <span class="hint">Simulated ergs — real PM5s stream the same fields over Bluetooth.</span>
     </div>
     <div class="board">
-      <div class="board-head"><span id="stnLabel">Rank · Crew · Current station</span><span id="scoreLabel">Score</span></div>
+      <div class="board-head"><span>Rank · Team · Where they are</span><span id="scoreLabel">Score</span></div>
       <div class="lanes" id="lanes"></div>
+    </div>
+  </section>
+
+  <!-- ============ ERG TABLET (what each athlete sees) ============ -->
+  <section class="view" id="viewTablet">
+    <div class="tb-wrap">
+      <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. In the gym, every tablet is set once to its own station below — athletes never touch settings. Start the session from the Board tab and watch this update live.</div>
+      <div class="fld" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
+      <div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div>
     </div>
   </section>
 
@@ -171,15 +233,46 @@
     <div class="cr">
 
       <div class="card wide">
-        <h3>Workout builder <span class="r" id="stnCount"></span></h3>
+        <h3>Session type</h3>
         <div class="body">
-          <div id="stnList"></div>
-          <div class="addbtns"><button class="btn" id="addStn">+ Add station</button></div>
-          <div class="note" id="liveNote"></div>
+          <div class="pills" id="segMode">
+            <button data-v="rotation" aria-pressed="true">Rotating blocks</button>
+            <button data-v="sequence" aria-pressed="false">Everyone together</button>
+          </div>
+          <div class="note" id="modeExplain"></div>
         </div>
       </div>
 
-      <div class="card wide">
+      <!-- rotation editor -->
+      <div class="card wide" id="rotCard">
+        <h3>Blocks <span class="r" id="blkCount"></span></h3>
+        <div class="body">
+          <div class="row3">
+            <div class="fld"><label>Work phase — seconds (AMRAP)</label><input type="number" id="rWork" min="60" step="30"></div>
+            <div class="fld"><label>Scored window — seconds</label><input type="number" id="rScore" min="30" step="30"></div>
+            <div class="fld"><label>Rotate / rest — seconds</label><input type="number" id="rRest" min="0" step="15"></div>
+          </div>
+          <div class="fld"><label>What counts in the scored window</label>
+            <div class="pills" id="segMetric">
+              <button data-v="calories" aria-pressed="true">Max calories</button>
+              <button data-v="metres"   aria-pressed="false">Max metres</button>
+            </div>
+          </div>
+          <div id="blkList"></div>
+          <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
+          <div class="note">Teams start spread across the blocks (Team 1 → Block 1, Team 2 → Block 2 …) and everyone rotates together when the block time ends. Only the <b>scored window</b> counts toward the leaderboard — the AMRAP work shows on screen but scores nothing, exactly like your Send It Saturday card.</div>
+        </div>
+      </div>
+
+      <!-- sequence editor -->
+      <div class="card wide" id="seqCard" hidden>
+        <h3>Stations <span class="r" id="stnCount"></span></h3>
+        <div class="body">
+          <div id="stnList"></div>
+          <div class="addbtns"><button class="btn" id="addStn">+ Add station</button></div>
+        </div>
+      </div>
+      <div class="card wide" id="seqScoreCard" hidden>
         <h3>Session scoring</h3>
         <div class="body">
           <div class="fld"><label>What decides the leaderboard</label>
@@ -192,12 +285,10 @@
             </div>
           </div>
           <div class="note" id="scoreExplain"></div>
-
           <div class="cond" id="scPlacing" style="flex-direction:column;gap:8px">
-            <label style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-mute)">Points by finishing place — awarded every station, then summed</label>
+            <label style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-mute)">Points by place — every station, then summed</label>
             <div class="ptsgrid" id="rankGrid"></div>
           </div>
-
           <div class="cond" id="scPer" style="flex-direction:column;gap:12px">
             <div class="row2">
               <div class="fld"><label>Award this many points</label><input type="number" id="cPerValue" min="1" step="1"></div>
@@ -224,13 +315,13 @@
       <div class="card">
         <h3>Board display · Brand</h3>
         <div class="body">
-          <div class="fld"><label>Show under each crew's score</label>
+          <div class="fld"><label>Show under each team's score</label>
             <div class="checks" id="dispChecks">
               <label class="chk"><input type="checkbox" data-d="split"  checked> Split</label>
               <label class="chk"><input type="checkbox" data-d="watts"  checked> Watts</label>
               <label class="chk"><input type="checkbox" data-d="rate"   checked> Rate</label>
-              <label class="chk"><input type="checkbox" data-d="metres" checked> Metres</label>
-              <label class="chk"><input type="checkbox" data-d="cals"> Calories</label>
+              <label class="chk"><input type="checkbox" data-d="metres"> Metres</label>
+              <label class="chk"><input type="checkbox" data-d="cals" checked> Calories</label>
             </div>
           </div>
           <div class="fld"><label>Accent colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"></div>
@@ -238,14 +329,14 @@
       </div>
 
       <div class="card wide">
-        <h3>Crews</h3>
+        <h3>Teams</h3>
         <div class="body">
           <div id="crewList"></div>
           <div class="addbtns">
-            <button class="btn" id="addCrew">+ Add crew</button>
+            <button class="btn" id="addCrew">+ Add team</button>
             <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
           </div>
-          <div class="note">Rename to your teams or individual athletes (2–8 lanes). Everything here saves automatically and drives the board.</div>
+          <div class="note">Team order sets starting blocks: Team 1 starts on Block 1, Team 2 on Block 2, and so on (wrapping around). 2–8 teams.</div>
         </div>
       </div>
 
@@ -263,154 +354,282 @@
   const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
   const $ = id => document.getElementById(id);
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const esc = s => (s||"").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+  const esc = s => (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 
   const MACHINE = {
-    Row: {label:"Rower",   verb:"row",  splitU:"/500m", live:true},
-    Ski: {label:"SkiErg",  verb:"ski",  splitU:"/500m", live:true},
-    Bike:{label:"BikeErg", verb:"bike", splitU:"/500m", live:true},
-    Run: {label:"Assault Runner", verb:"run", splitU:"pace", live:false,
-          liveNote:"newer AssaultRunner Elite consoles stream over Bluetooth; older units need manual entry"},
-    Echo:{label:"Echo Bike", verb:"ride", splitU:"/500m", live:false,
-          liveNote:"no open live protocol — needs a power/cadence sensor or manual entry"},
+    Row: {label:"Rower", short:"Row", live:true},
+    Ski: {label:"SkiErg", short:"Ski", live:true},
+    Bike:{label:"C2 Bike", short:"Bike", live:true},
+    Run: {label:"Assault Runner", short:"Run", live:false},
+    Echo:{label:"Echo Bike", short:"Echo", live:false},
   };
+  const mInfo=m=>MACHINE[m]||MACHINE.Row;
 
   // ---------- config ----------
   const DEFAULTS = {
-    accent:"#ffffff", name:"Saturday Class", sub:"Mind ››› Body ››› Performance",
+    accent:"#ffffff", name:"Send It Saturday", sub:"Teams of 4",
+    mode:"rotation",
+    rotation:{
+      workDur:720, scoreDur:240, rest:60, metric:"calories",
+      blocks:[
+        {name:"Block 1", machine:"Run",  desc:"Pair 1 — 600/500/400m run · Pair 2 — max DBall reverse lunge"},
+        {name:"Block 2", machine:"Row",  desc:"Pair 1 — 600/500/400m row · Pair 2 — max burpee box jump overs"},
+        {name:"Block 3", machine:"Bike", desc:"Pair 1 — 1,200/1,000/800m C2 bike · Pair 2 — max wall balls"},
+        {name:"Block 4", machine:"Ski",  desc:"Pair 1 — 600/500/400m ski · Pair 2 — max alternating DB snatch"},
+      ],
+    },
     segments:[
       {name:"Row",  machine:"Row", format:"distance", target:1000, duration:240},
       {name:"5-min Run", machine:"Run", format:"time", target:1000, duration:300},
     ],
     scoring:{ mode:"distance", rankPoints:[12,9,7,5,3,1,1,1], perValue:1, perUnit:10, perBasis:"metres" },
-    display:{ split:true, watts:true, rate:true, metres:true, cals:false },
+    display:{ split:true, watts:true, rate:true, metres:false, cals:true },
     crews:[
-      {name:"Engine Room", ath:"Crew 1", color:"#ffffff"},
-      {name:"Afterburners",ath:"Crew 2", color:"#c2c8d0"},
-      {name:"Dark Horse",  ath:"Crew 3", color:"#8fb0c9"},
-      {name:"Full Send",   ath:"Crew 4", color:"#9aa0a8"},
-      {name:"Big Dogs",    ath:"Crew 5", color:"#b6bcc4"},
-      {name:"Grip It",     ath:"Crew 6", color:"#7f858d"},
+      {name:"Team 1", ath:"", color:"#ffffff"},
+      {name:"Team 2", ath:"", color:"#c2c8d0"},
+      {name:"Team 3", ath:"", color:"#8fb0c9"},
+      {name:"Team 4", ath:"", color:"#9aa0a8"},
     ],
   };
-  const KEY="af_erg_cfg_v3";
+  const KEY="af_erg_cfg_v4";
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
-  if(!cfg||!cfg.segments) cfg=structuredClone(DEFAULTS);
+  if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
 
-  // ---------- helpers ----------
+  const fmtMS=s=>{ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); };
   const fmtT=s=>Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
   const fmtSplit=s=>(!isFinite(s)||s<=0)?"--:--":fmtT(s);
   const wattsFor=sp=>2.80/Math.pow(sp/500,3);
   const calRate=w=>(4*w*0.8604+300)/3600;
-  const mInfo=m=>MACHINE[m]||MACHINE.Row;
 
-  const SCORE = {
-    distance:{unit:"m",   lowBest:false, label:"total distance"},
-    calories:{unit:"cal", lowBest:false, label:"total calories"},
-    time:    {unit:"total",lowBest:true, label:"fastest total time"},
-    placing: {unit:"pts", lowBest:false, label:"placing points"},
-    perUnit: {unit:"pts", lowBest:false, label:"points per unit"},
-  };
-  function scLabel(){
-    const s=cfg.scoring;
-    if(s.mode==="perUnit") return `${s.perValue}pt / ${s.perUnit}${s.perBasis==="calories"?"cal":"m"}`;
-    return SCORE[s.mode].label;
-  }
-
-  // ---------- board state ----------
-  const ROW=76;
-  let running=false, finished=false, t0=0, raf=0, ticker=0, segIdx=0, ergs=[];
+  // ---------- shared board state ----------
+  const ROW=80;
+  let running=false, finished=false, t0=0, raf=0, ticker=0, ergs=[];
   const lanesEl=$("lanes"), clockEl=$("clock"), clockState=$("clockState"),
-        startBtn=$("startBtn"), resetBtn=$("resetBtn"), stripEl=$("stationStrip");
+        startBtn=$("startBtn"), resetBtn=$("resetBtn");
 
-  function build(){
-    finished=false; running=false; segIdx=0;
+  function makeErgs(){
     ergs=cfg.crews.map((c,i)=>({
       name:c.name, ath:c.ath, color:c.color, id:i,
-      split:106+i*1.4, split0:106+i*1.4, spm:26+(i%3), phase:Math.random()*6.28, drift:0.9+Math.random()*0.25,
-      tot:{m:0,cals:0,time:0,pts:0}, cur:{m:0,cals:0,elapsed:0,done:false,finT:null},
+      split:104+i*1.6, spm:26, phase:Math.random()*6.28, drift:0.92+Math.random()*0.16,
+      score:0, m:0, cals:0, blockCals:0,
+      // sequence-mode extras
+      tot:{m:0,cals:0,time:0,pts:0}, cur:{m:0,cals:0,elapsed:0,done:false,finT:null}, segIdx:0,
     }));
-    $("evName").textContent=cfg.name;
-    $("evSummary").textContent=`${cfg.segments.length} station${cfg.segments.length>1?"s":""} · ${scLabel()}`;
-    $("scoreLabel").textContent=scLabel().toUpperCase();
-    const seg0=cfg.segments[0];
-    clockEl.textContent = seg0.format==="time" ? fmtT(seg0.duration) : "0:00.0";
-    clockState.textContent="On the line";
-    lanesEl.style.height=ROW*cfg.crews.length+"px";
-    buildStrip(); renderLanes(true); updateStrip();
   }
 
-  function buildStrip(){
-    stripEl.innerHTML=cfg.segments.map((s,i)=>{
-      const piece=s.format==="time"?`${fmtT(s.duration)} ${mInfo(s.machine).verb}`:`${s.target}m ${mInfo(s.machine).verb}`;
-      return `<div class="stnchip" data-i="${i}"><span class="n">${i+1}</span>${esc(s.name)||piece}</div>`;
-    }).join("");
+  // ================= ROTATION ENGINE =================
+  const R = () => cfg.rotation;
+  const nBlocks = () => R().blocks.length;
+  const roundLen = () => R().workDur + R().scoreDur + R().rest;
+  const totalLen = () => nBlocks()*roundLen() - R().rest;   // no rest after final block
+  const crewBlock=(e,round)=>(e.id+round)%nBlocks();
+
+  function rotPhase(t){
+    const r=Math.min(nBlocks()-1, Math.floor(t/roundLen()));
+    const tin=t-r*roundLen();
+    if(tin < R().workDur) return {round:r, phase:"work",  remain:R().workDur-tin};
+    if(tin < R().workDur+R().scoreDur) return {round:r, phase:"score", remain:R().workDur+R().scoreDur-tin};
+    return {round:r, phase:"rest", remain:roundLen()-tin};
   }
-  function updateStrip(){
-    [...stripEl.children].forEach((c,i)=>{
-      c.classList.toggle("active", i===segIdx && (running||finished));
-      c.classList.toggle("past", i<segIdx || (finished && i<=segIdx));
+
+  function buildRotationBoard(){
+    $("evSummary").textContent=`${nBlocks()} blocks · rotate · scored: ${fmtMS(R().workDur/1)}–${fmtMS((R().workDur+R().scoreDur)/1)} max ${R().metric==="calories"?"cal":"metres"} each block`;
+    $("scoreLabel").textContent=(R().metric==="calories"?"TOTAL MAX-CAL SCORE":"TOTAL SCORED METRES");
+    $("phaseBanner").hidden=false;
+    renderBlockCards(-1,"idle");
+    setPhaseBanner("idle");
+  }
+  function renderBlockCards(round, phase){
+    const cards=R().blocks.map((b,bi)=>{
+      const teams=(running||finished)&&round>=0 ? ergs.filter(e=>crewBlock(e,round)===bi) : ergs.filter(e=>e.id%nBlocks()===bi);
+      const scoring=phase==="score";
+      return `<div class="blk ${scoring?"scoring":""}">
+        <div class="bh"><b>${esc(b.name)}</b><span class="mc">${mInfo(b.machine).label}</span></div>
+        <div class="bd">${esc(b.desc)}</div>
+        <div class="win">${fmtMS(R().workDur)} work &rarr; <b>${fmtMS(R().scoreDur)} max ${R().metric==="calories"?"cal":"m"}</b>${R().rest?` &rarr; ${fmtMS(R().rest)} rotate`:""}</div>
+        <div class="teams">${teams.map(e=>`<span class="t"><span class="dot" style="background:${e.color}"></span>${esc(e.name)}</span>`).join("")}</div>
+      </div>`;
+    }).join("");
+    $("blockCards").innerHTML=cards;
+  }
+  function setPhaseBanner(phase, info){
+    const el=$("phaseBanner"), lbl=$("phaseLabel"), d=$("phaseDesc");
+    el.classList.toggle("scoring", phase==="score");
+    if(phase==="idle"){ lbl.textContent="Ready"; d.textContent="Teams take their starting blocks — press Start session"; }
+    else if(phase==="work"){ lbl.textContent=`Round ${info.round+1} of ${nBlocks()} — AMRAP work`; d.textContent="Pairs working · erg not scored yet"; }
+    else if(phase==="score"){ lbl.textContent=`SCORE WINDOW — MAX ${R().metric==="calories"?"CALORIES":"METRES"}`; d.textContent="All 4 on the erg — every "+(R().metric==="calories"?"calorie":"metre")+" counts NOW"; }
+    else if(phase==="rest"){ lbl.textContent="ROTATE"; d.textContent="Move to your next block"; }
+    else if(phase==="done"){ lbl.textContent="Session complete"; d.textContent="Final scores locked"; }
+  }
+
+  function frameRotation(now){
+    const t=(now-t0)/1000;
+    if(t>=totalLen()){
+      for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; }
+      running=false; finished=true;
+      startBtn.disabled=false; startBtn.textContent="Start session";
+      clockEl.textContent="0:00"; clockEl.classList.remove("hot"); clockState.textContent="Final";
+      setPhaseBanner("done"); renderBlockCards(nBlocks()-1,"done"); renderLanesRot(null);
+      lastP=null; renderTablet(null);
+      return;
+    }
+    const P=rotPhase(t);
+    // bank the block score when leaving the score window
+    if(P.phase!=="score" && ergs[0] && ergs[0]._wasScore){ for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; } }
+    for(const e of ergs){
+      e._wasScore = P.phase==="score";
+      // effort model: work = intervals on/off, score = all-out, rest = off
+      let effort = P.phase==="score" ? 1 : P.phase==="work" ? (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12) : 0;
+      e.phase+=0.12;
+      if(effort>0.05){
+        const base=e.split*1; const target=(P.phase==="score"? 96*e.drift : 118*e.drift);
+        e.split=Math.max(78, target + Math.sin(e.phase)*1.6 + (Math.random()-0.5)*1.4);
+        e.spm=24+(0.92-e.split/150)*16;
+        const w=wattsFor(e.split)*effort;
+        const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
+        e.m+=dm; e.cals+=dc;
+        if(P.phase==="score") e.blockCals += (R().metric==="calories"? dc : dm);
+      } else { e.split=0; e.spm=0; }
+    }
+    renderLanesRot(P);
+    clockEl.textContent=fmtMS(P.remain);
+    clockEl.classList.toggle("hot", P.phase==="score");
+    clockState.textContent = P.phase==="work"?`Round ${P.round+1}/${nBlocks()} · AMRAP`
+      : P.phase==="score"?`SCORING · Round ${P.round+1}/${nBlocks()}`:"Rotate";
+    setPhaseBanner(P.phase,P);
+    renderBlockCards(P.round,P.phase);
+    lastP=P; renderTablet(P);
+    raf=requestAnimationFrame(frameRotation);
+  }
+
+  function renderLanesRot(P){
+    const d=cfg.display;
+    const orderArr=[...ergs].sort((a,b)=>(b.score+b.blockCals)-(a.score+a.blockCals));
+    orderArr.forEach((e,idx)=>{
+      e.el.style.transform=`translateY(${idx*ROW}px)`;
+      e.el.classList.toggle("leader", idx===0&&(running||finished));
+      e.el.classList.toggle("scoring", !!P && P.phase==="score");
+      const rs=e.el.querySelector(".rank span");
+      rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
+      const bi=P?crewBlock(e,P.round):(e.id%nBlocks());
+      const nx=(bi+1)%nBlocks();
+      const here=R().blocks[bi], next=R().blocks[nx];
+      const last = P ? P.round>=nBlocks()-1 : false;
+      e.el.querySelector(".loc").innerHTML = finished ? `<span class="tag">Complete</span>`
+        : `On <b>${esc(here.name)} · ${mInfo(here.machine).short}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
+      const pct = P ? clamp((P.phase==="work" ? (1-P.remain/R().workDur)*100 : P.phase==="score" ? (1-P.remain/R().scoreDur)*100 : 100),0,100) : 0;
+      e.el.querySelector(".fill").style.width=pct+"%";
+      e.el.querySelector(".fill").style.background = (P&&P.phase==="score")?"var(--hot)":e.color;
+      const val=e.score+e.blockCals;
+      e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${R().metric==="calories"?"cal":"m"}</small>`;
+      const bits=[];
+      if(e.split>0){
+        if(d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
+        if(d.watts) bits.push(`<span class="w">${Math.round(wattsFor(e.split))}</span>w`);
+        if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
+      } else bits.push(`<em>erg idle</em>`);
+      if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
+      if(d.cals&&R().metric!=="calories") bits.push(`<em>cal</em>${Math.round(e.cals)}`);
+      e.el.querySelector(".sub").innerHTML=bits.join(" · ");
     });
   }
 
-  const seg = () => cfg.segments[clamp(segIdx,0,cfg.segments.length-1)];
-
-  function scoreOf(e){
+  // ================= SEQUENCE ENGINE (everyone together) =================
+  const SCORE = {
+    distance:{unit:"m",lowBest:false}, calories:{unit:"cal",lowBest:false},
+    time:{unit:"total",lowBest:true}, placing:{unit:"pts",lowBest:false}, perUnit:{unit:"pts",lowBest:false},
+  };
+  const seg=()=>cfg.segments[clamp(seqIdx,0,cfg.segments.length-1)];
+  let seqIdx=0;
+  function seqScoreOf(e){
     const s=cfg.scoring;
     if(s.mode==="distance") return e.tot.m+e.cur.m;
     if(s.mode==="calories") return e.tot.cals+e.cur.cals;
     if(s.mode==="time")     return e.tot.time+e.cur.elapsed;
     if(s.mode==="placing")  return e.tot.pts;
-    if(s.mode==="perUnit"){
-      const v=s.perBasis==="calories"?e.cur.cals:e.cur.m;
-      return e.tot.pts+Math.floor(v/Math.max(1,s.perUnit))*s.perValue;
-    }
+    if(s.mode==="perUnit"){ const v=s.perBasis==="calories"?e.cur.cals:e.cur.m;
+      return e.tot.pts+Math.floor(v/Math.max(1,s.perUnit))*s.perValue; }
     return 0;
   }
-  function fmtScore(v){
-    const m=cfg.scoring.mode;
-    if(m==="time") return v>0?fmtT(v):"0:00.0";
-    if(m==="distance") return Math.round(v).toLocaleString();
-    return Math.round(v).toString();
+  function buildSequenceBoard(){
+    seqIdx=0;
+    const sc=cfg.scoring;
+    const scTxt= sc.mode==="perUnit"?`${sc.perValue}pt / ${sc.perUnit}${sc.perBasis==="calories"?"cal":"m"}`
+      : sc.mode==="distance"?"total distance": sc.mode==="calories"?"total calories"
+      : sc.mode==="time"?"fastest total time":"placing points";
+    $("evSummary").textContent=`${cfg.segments.length} station${cfg.segments.length>1?"s":""} · everyone together · ${scTxt}`;
+    $("scoreLabel").textContent=scTxt.toUpperCase();
+    $("phaseBanner").hidden=false; setSeqBanner();
+    $("blockCards").innerHTML=cfg.segments.map((s,i)=>`<div class="blk">
+      <div class="bh"><b>${esc(s.name)||("Station "+(i+1))}</b><span class="mc">${mInfo(s.machine).label}</span></div>
+      <div class="bd">${s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</div>
+      <div class="teams"></div></div>`).join("");
+    const s0=cfg.segments[0];
+    clockEl.textContent = s0.format==="time"?fmtMS(s0.duration):"0:00.0";
   }
-  function order(){
-    const dir=SCORE[cfg.scoring.mode].lowBest?1:-1;
-    return [...ergs].sort((a,b)=>(scoreOf(a)-scoreOf(b))*dir);
+  function setSeqBanner(){
+    $("phaseBanner").classList.remove("scoring");
+    $("phaseLabel").textContent = finished?"Session complete":`Station ${seqIdx+1} of ${cfg.segments.length} — ${esc(seg().name)}`;
+    $("phaseDesc").textContent = finished?"Final scores locked": (seg().format==="time"?`fixed time ${fmtMS(seg().duration)}`:`race to ${seg().target}m`);
   }
-
-  function renderLanes(first){
-    if(first){
-      lanesEl.innerHTML="";
-      [...ergs].sort((a,b)=>a.id-b.id).forEach(e=>{
-        const el=document.createElement("div"); el.className="lane";
-        el.innerHTML=`<div class="rank"><span></span></div>
-          <div class="who"><div class="team"></div><div class="ath"></div>
-            <div class="track"><div class="fill"></div><div class="boat"></div></div></div>
-          <div class="data"><div class="hero"></div><div class="sub"></div></div>`;
-        el.querySelector(".fill").style.background=e.color;
-        el.querySelector(".boat").style.background=e.color;
-        el.querySelector(".team").textContent=e.name;
-        el.querySelector(".ath").textContent=e.ath;
-        lanesEl.appendChild(el); e.el=el;
-      });
+  function frameSequence(now){
+    const s=seg(), t=(now-t0)/1000, timeUp=s.format==="time"&&t>=s.duration;
+    for(const e of ergs){
+      if(e.cur.done) continue;
+      const frac=s.format==="time"?t/s.duration:e.cur.m/s.target;
+      let tgt=105*e.drift; if(frac>0.85)tgt*=0.94; else if(frac<0.1)tgt*=0.97;
+      e.phase+=0.12;
+      e.split=Math.max(80,tgt+Math.sin(e.phase)*1.4+(Math.random()-0.5)*1.2);
+      e.spm=24+(0.90-e.split/140)*14;
+      e.cur.m+=(500/e.split)*(1/60); e.cur.cals+=calRate(wattsFor(e.split))*(1/60); e.cur.elapsed=t;
+      if(s.format==="distance"&&e.cur.m>=s.target){ e.cur.m=s.target; e.cur.done=true; e.cur.finT=t; }
+      if(timeUp){ e.cur.done=true; e.cur.finT=s.duration; }
     }
-    const d=cfg.display, s=seg(), su=mInfo(s.machine).splitU, unit=SCORE[cfg.scoring.mode].unit;
-    order().forEach((e,idx)=>{
+    renderLanesSeq();
+    clockEl.textContent=s.format==="time"?fmtMS(Math.max(0,s.duration-t)):fmtT(t);
+    if(ergs.every(e=>e.cur.done)){
+      // bank the station
+      const res={}; for(const e of ergs) res[e.id]={m:e.cur.m,cals:e.cur.cals,finT:e.cur.finT??s.duration};
+      for(const e of ergs){ e.tot.m+=res[e.id].m; e.tot.cals+=res[e.id].cals;
+        e.tot.time += s.format==="distance"?res[e.id].finT:s.duration; }
+      if(cfg.scoring.mode==="placing"){
+        const ids=ergs.map(e=>e.id).sort((a,b)=> s.format==="distance"?res[a].finT-res[b].finT:res[b].m-res[a].m);
+        ids.forEach((id,p)=>{ ergs.find(e=>e.id===id).tot.pts += (cfg.scoring.rankPoints[p]??0); });
+      }
+      if(cfg.scoring.mode==="perUnit"){
+        for(const e of ergs){ const v=cfg.scoring.perBasis==="calories"?res[e.id].cals:res[e.id].m;
+          e.tot.pts+=Math.floor(v/Math.max(1,cfg.scoring.perUnit))*cfg.scoring.perValue; }
+      }
+      for(const e of ergs) e.cur={m:0,cals:0,elapsed:0,done:false,finT:null};
+      if(seqIdx>=cfg.segments.length-1){
+        running=false; finished=true; startBtn.disabled=false; startBtn.textContent="Start session";
+        clockState.textContent="Complete"; setSeqBanner(); renderLanesSeq(); renderTablet(null); return;
+      }
+      seqIdx++; t0=now; setSeqBanner();
+    }
+    clockState.textContent=`Station ${seqIdx+1}/${cfg.segments.length}`;
+    renderTablet(null);
+    raf=requestAnimationFrame(frameSequence);
+  }
+  function renderLanesSeq(){
+    const d=cfg.display, s=seg(), dir=SCORE[cfg.scoring.mode].lowBest?1:-1, unit=SCORE[cfg.scoring.mode].unit;
+    [...ergs].sort((a,b)=>(seqScoreOf(a)-seqScoreOf(b))*dir).forEach((e,idx)=>{
       e.el.style.transform=`translateY(${idx*ROW}px)`;
-      e.el.classList.toggle("leader", idx===0 && (running||finished));
-      e.el.classList.toggle("done", finished || e.cur.done);
+      e.el.classList.toggle("leader",idx===0&&(running||finished));
       const rs=e.el.querySelector(".rank span");
       rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
-      const pct = finished ? 100 : (s.format==="time" ? clamp(e.cur.elapsed/s.duration*100,0,100) : clamp(e.cur.m/s.target*100,0,100));
-      e.el.querySelector(".fill").style.width=pct+"%";
-      e.el.querySelector(".boat").style.left=pct+"%";
-      const finTag = finished ? ` <span class="tag">Done</span>` : "";
-      e.el.querySelector(".team").innerHTML=e.name+finTag;
-      e.el.querySelector(".hero").innerHTML=`${fmtScore(scoreOf(e))}<small> ${unit}</small>`;
+      const nxt=cfg.segments[seqIdx+1];
+      e.el.querySelector(".loc").innerHTML = finished?`<span class="tag">Complete</span>`
+        :`On <b>${esc(s.name)||("Station "+(seqIdx+1))}</b>${nxt?` <span class="nx">&rarr; next ${esc(nxt.name)||("Station "+(seqIdx+2))}</span>`:""}`;
+      const pct=s.format==="time"? (running? clamp(e.cur.elapsed/s.duration*100,0,100):0) : clamp(e.cur.m/s.target*100,0,100);
+      e.el.querySelector(".fill").style.width=(finished?100:pct)+"%";
+      e.el.querySelector(".fill").style.background=e.color;
+      const v=seqScoreOf(e);
+      e.el.querySelector(".hero").innerHTML = cfg.scoring.mode==="time" ? `${fmtT(v)}<small> total</small>` : `${Math.round(v).toLocaleString()}<small> ${unit}</small>`;
       const bits=[];
-      if(d.split) bits.push(`${fmtSplit(e.split)}<em>${su}</em>`);
+      if(d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
       if(d.watts) bits.push(`<span class="w">${Math.round(wattsFor(e.split))}</span>w`);
       if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
       if(d.metres)bits.push(`<em>m</em>${Math.round(e.tot.m+e.cur.m)}`);
@@ -419,141 +638,200 @@
     });
   }
 
-  function finalizeSegment(){
-    const s=seg(), res={};
-    for(const e of ergs) res[e.id]={m:e.cur.m, cals:e.cur.cals, finT:e.cur.finT ?? s.duration};
-    for(const e of ergs){
-      e.tot.m+=res[e.id].m; e.tot.cals+=res[e.id].cals;
-      e.tot.time += s.format==="distance" ? res[e.id].finT : s.duration;
-    }
-    if(cfg.scoring.mode==="placing"){
-      const ids=ergs.map(e=>e.id).sort((a,b)=> s.format==="distance" ? res[a].finT-res[b].finT : res[b].m-res[a].m);
-      ids.forEach((id,place)=>{ ergs.find(e=>e.id===id).tot.pts += (cfg.scoring.rankPoints[place] ?? 0); });
-    }
-    if(cfg.scoring.mode==="perUnit"){
-      for(const e of ergs){ const v=cfg.scoring.perBasis==="calories"?res[e.id].cals:res[e.id].m;
-        e.tot.pts += Math.floor(v/Math.max(1,cfg.scoring.perUnit))*cfg.scoring.perValue; }
-    }
-    for(const e of ergs) e.cur={m:0,cals:0,elapsed:0,done:false,finT:null};
+  // ================= shared build/start/reset =================
+  function build(){
+    finished=false; running=false;
+    makeErgs();
+    $("evName").textContent=cfg.name;
+    lanesEl.innerHTML="";
+    ergs.forEach(e=>{
+      const el=document.createElement("div"); el.className="lane";
+      el.innerHTML=`<div class="rank"><span></span></div>
+        <div class="who"><div class="team"></div><div class="loc"></div>
+          <div class="track"><div class="fill"></div></div></div>
+        <div class="data"><div class="hero"></div><div class="sub"></div></div>`;
+      el.querySelector(".team").textContent=e.name;
+      el.querySelector(".fill").style.background=e.color;
+      lanesEl.appendChild(el); e.el=el;
+    });
+    lanesEl.style.height=ROW*ergs.length+"px";
+    clockState.textContent="On the line";
+    if(cfg.mode==="rotation"){ buildRotationBoard(); renderLanesRot(null); }
+    else { buildSequenceBoard(); renderLanesSeq(); }
+    lastP=null; buildTabletSel(); renderTablet(null);
   }
-
-  function endSession(){
-    running=false; finished=true; segIdx=cfg.segments.length-1;
-    startBtn.disabled=false; startBtn.textContent="Start session"; clockState.textContent="Session complete";
-    updateStrip(); renderLanes(false);
-  }
-
-  function frame(now){
-    const s=seg(), dt=1/60, tNow=(now-t0)/1000;
-    let allDone=true;
-    for(const e of ergs){
-      if(e.cur.done) continue;
-      allDone=false;
-      const frac = s.format==="time" ? tNow/s.duration : e.cur.m/s.target;
-      let tgt=e.split0*e.drift; if(frac>0.85)tgt*=0.94; else if(frac<0.1)tgt*=0.97;
-      e.phase+=0.12; const noise=Math.sin(e.phase)*1.4+(Math.random()-0.5)*1.2;
-      e.split=Math.max(80,tgt+noise);
-      e.spm=24+(0.90-e.split/140)*14+Math.sin(e.phase*0.7)*1.2;
-      e.cur.m+=(500/e.split)*dt; e.cur.cals+=calRate(wattsFor(e.split))*dt; e.cur.elapsed=tNow;
-      if(s.format==="distance" && e.cur.m>=s.target){ e.cur.m=s.target; e.cur.done=true; e.cur.finT=tNow; }
-      if(s.format==="time" && tNow>=s.duration){ e.cur.elapsed=s.duration; e.cur.done=true; e.cur.finT=s.duration; }
-    }
-    renderLanes(false);
-    clockEl.textContent = s.format==="time" ? fmtT(Math.max(0,s.duration-tNow)) : fmtT(tNow);
-    if(allDone){
-      finalizeSegment();
-      if(segIdx>=cfg.segments.length-1){ endSession(); return; }
-      segIdx++; t0=now; updateStrip();
-      const ns=seg(); clockState.textContent=`Station ${segIdx+1} — ${ns.format==="time"?"clock":"race"}`;
-    }
-    raf=requestAnimationFrame(frame);
-  }
-
   function start(){
     if(running) return;
     build(); running=true; finished=false; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent="Running…"; resetBtn.disabled=false;
-    clockState.textContent=`Station 1 — ${seg().format==="time"?"clock":"race"}`;
-    updateStrip();
-    if(reduce){ const loop=()=>{ if(!running)return; frame(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
-    else raf=requestAnimationFrame(frame);
+    const engine = cfg.mode==="rotation"?frameRotation:frameSequence;
+    if(reduce){ const loop=()=>{ if(!running)return; engine(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
+    else raf=requestAnimationFrame(engine);
   }
   function reset(){ running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
     startBtn.disabled=false; startBtn.textContent="Start session"; resetBtn.disabled=true; build(); }
   startBtn.onclick=start; resetBtn.onclick=reset;
 
   // ---------- tabs ----------
-  const tabBoard=$("tabBoard"), tabCtrl=$("tabCtrl");
-  function show(b){
-    tabBoard.setAttribute("aria-selected",b); tabCtrl.setAttribute("aria-selected",!b);
-    $("viewBoard").classList.toggle("active",b); $("viewCtrl").classList.toggle("active",!b);
-    if(b) reset();
+  const TABS={board:["tabBoard","viewBoard"],tablet:["tabTablet","viewTablet"],ctrl:["tabCtrl","viewCtrl"]};
+  function show(which){
+    for(const k in TABS){ $(TABS[k][0]).setAttribute("aria-selected",k===which); $(TABS[k][1]).classList.toggle("active",k===which); }
+    if(which==="board"&&!running) build();
+    if(which==="tablet"){ buildTabletSel(); renderTablet(lastP); }
   }
-  tabBoard.onclick=()=>show(true); tabCtrl.onclick=()=>show(false);
+  $("tabBoard").onclick=()=>show("board"); $("tabTablet").onclick=()=>show("tablet"); $("tabCtrl").onclick=()=>show("ctrl");
+
+  // ---------- Erg Tablet view ----------
+  const TKEY="af_tablet_sel";
+  let tabletSel=0; try{ tabletSel=+localStorage.getItem(TKEY)||0; }catch(e){}
+  let lastP=null;
+  function buildTabletSel(){
+    const sel=$("tabletSel");
+    const opts = cfg.mode==="rotation"
+      ? R().blocks.map((b,i)=>`<option value="${i}">${esc(b.name)} — ${mInfo(b.machine).label}</option>`)
+      : cfg.crews.map((c,i)=>`<option value="${i}">${esc(c.name)}'s erg</option>`);
+    sel.innerHTML=opts.join("");
+    sel.value=String(clamp(tabletSel,0,opts.length-1));
+    sel.onchange=()=>{ tabletSel=+sel.value; try{localStorage.setItem(TKEY,sel.value);}catch(e){} renderTablet(lastP); };
+  }
+  function renderTablet(P){
+    const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
+    if(cfg.mode==="rotation"){
+      const bi=clamp(tabletSel,0,nBlocks()-1), b=R().blocks[bi];
+      const round=P?P.round:0;
+      const here=ergs.filter(e=>crewBlock(e,round)===bi);
+      const team=here[0];
+      const phase=P?P.phase:(finished?"done":"idle");
+      const hot=phase==="score";
+      const nxBlock=team?R().blocks[(bi+1)%nBlocks()]:null;
+      const lastRound=P?P.round>=nBlocks()-1:false;
+      scr.innerHTML=`
+        <div class="tb-top"><span class="bname">${esc(b.name)}</span><span class="bmach">${mInfo(b.machine).label}</span></div>
+        ${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><b>${esc(team.name)}</b><span>on this station</span></div>`:`<div class="tb-team"><b>—</b><span>no team here</span></div>`}
+        <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
+          phase==="idle"?"Waiting for start":phase==="work"?`AMRAP work · round ${round+1}/${nBlocks()}`:
+          phase==="score"?`MAX ${R().metric==="calories"?"CAL":"METRES"} — SCORING NOW`:
+          phase==="rest"?"Rotate to next station":"Session complete"}</span></div>
+        <div class="tb-clock ${hot?"hot":""}">${P?fmtMS(P.remain):(phase==="done"?"0:00":fmtMS(R().workDur))}</div>
+        ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${R().metric==="calories"?"cal":"m"}</div>`:""}
+        ${team?`<div class="tb-stats">
+          <div><b>${team.split>0?fmtSplit(team.split):"--:--"}</b><span>split /500m</span></div>
+          <div><b>${team.split>0?Math.round(wattsFor(team.split)):0}</b><span>watts</span></div>
+          <div><b>${team.split>0?Math.round(team.spm):0}</b><span>s/min</span></div>
+        </div>`:""}
+        <div class="tb-work"><b>This block</b>${esc(b.desc)||"—"}</div>
+        ${team&&!lastRound&&phase!=="done"?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${mInfo(nxBlock.machine).label}</b></div>`:
+          phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:
+          team?`<div class="tb-next"><b>Final block — finish strong</b></div>`:""}`;
+    } else {
+      const ti=clamp(tabletSel,0,ergs.length-1), e=ergs[ti];
+      if(!e){ scr.innerHTML=""; return; }
+      const s=cfg.segments[clamp(seqIdx,0,cfg.segments.length-1)], nxt=cfg.segments[seqIdx+1];
+      scr.innerHTML=`
+        <div class="tb-top"><span class="bname">${esc(s.name)||("Station "+(seqIdx+1))}</span><span class="bmach">${mInfo(s.machine).label}</span></div>
+        <div class="tb-team"><span class="dot" style="background:${e.color}"></span><b>${esc(e.name)}</b><span>this erg</span></div>
+        <div class="tb-phase"><span class="pl">${finished?"Session complete":s.format==="time"?"Fixed time":"Race to "+s.target+"m"}</span></div>
+        <div class="tb-clock">${finished?"0:00":s.format==="time"?fmtMS(Math.max(0,s.duration-e.cur.elapsed)):fmtT(e.cur.elapsed)}</div>
+        <div class="tb-score">score <b>${cfg.scoring.mode==="time"?fmtT(seqScoreOf(e)):Math.round(seqScoreOf(e)).toLocaleString()}</b></div>
+        <div class="tb-stats">
+          <div><b>${e.split>0?fmtSplit(e.split):"--:--"}</b><span>split /500m</span></div>
+          <div><b>${e.split>0?Math.round(wattsFor(e.split)):0}</b><span>watts</span></div>
+          <div><b>${Math.round(e.cur.m)}</b><span>metres</span></div>
+        </div>
+        <div class="tb-work"><b>Session</b>${cfg.segments.map((x,i)=>`${i===seqIdx?"&#9654; ":""}${esc(x.name)||("Station "+(i+1))}`).join(" · ")}</div>
+        ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
+    }
+  }
 
   // ---------- Control Room ----------
-  const pillGroup=(elId,val,setter)=>{
+  const pillGroup=(elId,val,setter,after)=>{
     const box=$(elId);
     box.querySelectorAll("button").forEach(btn=>{
       btn.setAttribute("aria-pressed",btn.dataset.v===val);
-      btn.onclick=()=>{ setter(btn.dataset.v); box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===btn)); save(); syncScoring(); };
+      btn.onclick=()=>{ setter(btn.dataset.v); box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===btn)); save(); if(after)after(); };
     });
   };
-  function syncScoring(){
-    $("scPlacing").classList.toggle("on", cfg.scoring.mode==="placing");
-    $("scPer").classList.toggle("on", cfg.scoring.mode==="perUnit");
-    const ex={
-      distance:"Leaderboard = <b>metres summed across every station</b>. A 1000 m row + a 5-min run add together. This is your \"sum of distance for all the workouts\" mode.",
-      calories:"Leaderboard = <b>calories summed across every station</b>. Best when stations are time-capped.",
-      time:"Leaderboard = <b>total time to finish all stations</b>, lowest wins. Pair with race-to-distance stations.",
-      placing:"Each station is ranked and awards <b>placing points</b>; the board shows the running total. Great for mixed formats.",
-      perUnit:"Convert each station's result into points — e.g. <b>1 pt per 10 m</b>, or <b>1 pt per calorie</b> — then sum. Fully custom.",
+  function syncMode(){
+    const rot=cfg.mode==="rotation";
+    $("rotCard").hidden=!rot; $("seqCard").hidden=rot; $("seqScoreCard").hidden=rot;
+    $("modeExplain").innerHTML = rot
+      ? `<b>Rotating blocks</b> — teams start spread across the blocks and rotate through all of them. Each block: work phase (not scored) then a scored window. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
+      : `<b>Everyone together</b> — the whole class does the same station at the same time, station after station, with its own scoring rules (distance, calories, time, placing points, or points-per-unit).`;
+  }
+  function syncSeqScoring(){
+    $("scPlacing").classList.toggle("on",cfg.scoring.mode==="placing");
+    $("scPer").classList.toggle("on",cfg.scoring.mode==="perUnit");
+    $("scoreExplain").innerHTML={
+      distance:"Leaderboard = <b>metres summed across every station</b>.",
+      calories:"Leaderboard = <b>calories summed across every station</b>.",
+      time:"Leaderboard = <b>total time to finish all stations</b>, lowest wins.",
+      placing:"Each station is ranked and awards <b>placing points</b>; the board totals them.",
+      perUnit:"Convert each station's result into points (e.g. 1pt / 10m) and sum.",
     }[cfg.scoring.mode];
-    $("scoreExplain").innerHTML=ex;
   }
 
+  function buildBlocks(){
+    const list=$("blkList"); list.innerHTML=""; $("blkCount").textContent=`${R().blocks.length} blocks`;
+    R().blocks.forEach((b,i)=>{
+      const box=document.createElement("div"); box.className="stn";
+      const opts=Object.entries(MACHINE).map(([k,v])=>`<option value="${k}" ${b.machine===k?"selected":""}>${v.label}</option>`).join("");
+      box.innerHTML=`
+        <div class="top"><span class="num">${i+1}</span>
+          <input type="text" placeholder="Block name" value="${esc(b.name)}">
+          <button class="iconbtn up" ${i===0?"disabled":""}>&#9650;</button>
+          <button class="iconbtn down" ${i===R().blocks.length-1?"disabled":""}>&#9660;</button>
+          <button class="iconbtn del" ${R().blocks.length<=2?"disabled":""}>&times;</button></div>
+        <div class="grid" style="grid-template-columns:1fr 2fr">
+          <div class="fld"><label>Scored erg</label><select class="mc">${opts}</select></div>
+          <div class="fld"><label>Work description (shown on the board)</label>
+            <input type="text" class="ds" placeholder="e.g. Pair 1 — 600m run · Pair 2 — max lunges" value="${esc(b.desc)}"></div>
+        </div>`;
+      const nm=box.querySelector('input[type=text]'), mc=box.querySelector('.mc'), ds=box.querySelector('.ds');
+      nm.oninput=()=>{b.name=nm.value;save();};
+      mc.onchange=()=>{b.machine=mc.value;save();};
+      ds.oninput=()=>{b.desc=ds.value;save();};
+      box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
+      box.querySelector('.down').onclick=()=>{ if(i<R().blocks.length-1){[R().blocks[i+1],R().blocks[i]]=[R().blocks[i],R().blocks[i+1]];save();buildBlocks();} };
+      box.querySelector('.del').onclick=()=>{ if(R().blocks.length>2){R().blocks.splice(i,1);save();buildBlocks();} };
+      list.appendChild(box);
+    });
+  }
+  $("addBlk").onclick=()=>{ if(R().blocks.length>=6)return;
+    R().blocks.push({name:"Block "+(R().blocks.length+1),machine:"Row",desc:""}); save(); buildBlocks(); };
+
   function buildStations(){
-    const list=$("stnList"); list.innerHTML=""; $("stnCount").textContent=`${cfg.segments.length} station${cfg.segments.length>1?"s":""}`;
+    const list=$("stnList"); list.innerHTML=""; $("stnCount").textContent=`${cfg.segments.length} stations`;
     cfg.segments.forEach((s,i)=>{
       const box=document.createElement("div"); box.className="stn";
-      const machineOpts=Object.entries(MACHINE).map(([k,v])=>`<option value="${k}" ${s.machine===k?"selected":""}>${v.label}</option>`).join("");
+      const opts=Object.entries(MACHINE).map(([k,v])=>`<option value="${k}" ${s.machine===k?"selected":""}>${v.label}</option>`).join("");
       box.innerHTML=`
-        <div class="top">
-          <span class="num">${i+1}</span>
+        <div class="top"><span class="num">${i+1}</span>
           <input type="text" placeholder="Station name" value="${esc(s.name)}">
-          <button class="iconbtn up"   title="Move up"   ${i===0?"disabled":""}>&#9650;</button>
-          <button class="iconbtn down" title="Move down" ${i===cfg.segments.length-1?"disabled":""}>&#9660;</button>
-          <button class="iconbtn del"  title="Remove"    ${cfg.segments.length<=1?"disabled":""}>&times;</button>
-        </div>
+          <button class="iconbtn up" ${i===0?"disabled":""}>&#9650;</button>
+          <button class="iconbtn down" ${i===cfg.segments.length-1?"disabled":""}>&#9660;</button>
+          <button class="iconbtn del" ${cfg.segments.length<=1?"disabled":""}>&times;</button></div>
         <div class="grid">
-          <div class="fld"><label>Machine</label><select class="mc">${machineOpts}</select></div>
+          <div class="fld"><label>Machine</label><select class="mc">${opts}</select></div>
           <div class="fld"><label>Format</label><select class="fmt">
             <option value="distance" ${s.format==="distance"?"selected":""}>Race to distance</option>
-            <option value="time" ${s.format==="time"?"selected":""}>Fixed time</option>
-          </select></div>
+            <option value="time" ${s.format==="time"?"selected":""}>Fixed time</option></select></div>
           <div class="fld"><label class="tlabel">${s.format==="time"?"Duration — seconds":"Distance — metres"}</label>
             <input type="number" class="tgt" min="10" step="10" value="${s.format==="time"?s.duration:s.target}"></div>
         </div>`;
       const nm=box.querySelector('input[type=text]'), mc=box.querySelector('.mc'), fmt=box.querySelector('.fmt'),
             tgt=box.querySelector('.tgt'), tlabel=box.querySelector('.tlabel');
-      nm.oninput=()=>{s.name=nm.value;save();buildStrip();};
-      mc.onchange=()=>{s.machine=mc.value;save();buildStrip();updateLiveNote();};
-      fmt.onchange=()=>{s.format=fmt.value; tlabel.textContent=s.format==="time"?"Duration — seconds":"Distance — metres"; tgt.value=s.format==="time"?s.duration:s.target; save();buildStrip();};
-      tgt.oninput=()=>{ const v=clamp(+tgt.value||10,10,1e5); if(s.format==="time")s.duration=v; else s.target=v; save();buildStrip(); };
-      box.querySelector('.up').onclick=()=>{ if(i>0){ [cfg.segments[i-1],cfg.segments[i]]=[cfg.segments[i],cfg.segments[i-1]]; save(); buildStations(); buildStrip(); } };
-      box.querySelector('.down').onclick=()=>{ if(i<cfg.segments.length-1){ [cfg.segments[i+1],cfg.segments[i]]=[cfg.segments[i],cfg.segments[i+1]]; save(); buildStations(); buildStrip(); } };
-      box.querySelector('.del').onclick=()=>{ if(cfg.segments.length>1){ cfg.segments.splice(i,1); save(); buildStations(); buildStrip(); } };
+      nm.oninput=()=>{s.name=nm.value;save();};
+      mc.onchange=()=>{s.machine=mc.value;save();};
+      fmt.onchange=()=>{s.format=fmt.value;tlabel.textContent=s.format==="time"?"Duration — seconds":"Distance — metres";tgt.value=s.format==="time"?s.duration:s.target;save();};
+      tgt.oninput=()=>{const v=clamp(+tgt.value||10,10,1e5); if(s.format==="time")s.duration=v; else s.target=v; save();};
+      box.querySelector('.up').onclick=()=>{ if(i>0){[cfg.segments[i-1],cfg.segments[i]]=[cfg.segments[i],cfg.segments[i-1]];save();buildStations();} };
+      box.querySelector('.down').onclick=()=>{ if(i<cfg.segments.length-1){[cfg.segments[i+1],cfg.segments[i]]=[cfg.segments[i],cfg.segments[i+1]];save();buildStations();} };
+      box.querySelector('.del').onclick=()=>{ if(cfg.segments.length>1){cfg.segments.splice(i,1);save();buildStations();} };
       list.appendChild(box);
     });
-    updateLiveNote();
   }
-  function updateLiveNote(){
-    const used=[...new Set(cfg.segments.map(s=>s.machine))];
-    const notLive=used.filter(m=>!mInfo(m).live);
-    if(!notLive.length){ $("liveNote").innerHTML=`<b>Live data:</b> every machine here is a Concept2 PM5 — plug-and-play Bluetooth, no manual entry.`; return; }
-    $("liveNote").innerHTML=`<b>Live data note:</b> `+notLive.map(m=>`${mInfo(m).label} — ${mInfo(m).liveNote}`).join("; ")+`. Concept2 ergs stream automatically.`;
-  }
-  $("addStn").onclick=()=>{ if(cfg.segments.length>=6)return; cfg.segments.push({name:"New station",machine:"Row",format:"distance",target:500,duration:180}); save(); buildStations(); buildStrip(); };
+  $("addStn").onclick=()=>{ if(cfg.segments.length>=6)return;
+    cfg.segments.push({name:"New station",machine:"Row",format:"distance",target:500,duration:180}); save(); buildStations(); };
 
   function buildRankGrid(){
     const g=$("rankGrid"); g.innerHTML="";
@@ -570,9 +848,9 @@
     cfg.crews.forEach((c,i)=>{
       const row=document.createElement("div"); row.className="crew";
       row.innerHTML=`<input type="color" value="${c.color}">
-        <input type="text" placeholder="Crew name" value="${esc(c.name)}">
-        <input type="text" placeholder="Athlete / note" value="${esc(c.ath)}">
-        <button class="del" title="Remove">&times;</button>`;
+        <input type="text" placeholder="Team name" value="${esc(c.name)}">
+        <input type="text" placeholder="Members / note" value="${esc(c.ath)}">
+        <button class="del">&times;</button>`;
       const [col,nm,at]=row.querySelectorAll("input"); const del=row.querySelector(".del");
       col.oninput=()=>{c.color=col.value;save();};
       nm.oninput=()=>{c.name=nm.value;save();};
@@ -583,22 +861,28 @@
   }
   $("addCrew").onclick=()=>{ if(cfg.crews.length>=8)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
-    cfg.crews.push({name:"New Crew",ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); };
+    cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
 
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
+    $("rWork").value=R().workDur; $("rScore").value=R().scoreDur; $("rRest").value=R().rest;
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
-    pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v);
+    pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
+    pillGroup("segMetric",R().metric,v=>R().metric=v);
+    pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v,syncSeqScoring);
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
     $("cSub").oninput=e=>{cfg.sub=e.target.value;save();};
+    $("rWork").oninput=e=>{R().workDur=clamp(+e.target.value||60,60,7200);save();};
+    $("rScore").oninput=e=>{R().scoreDur=clamp(+e.target.value||30,30,3600);save();};
+    $("rRest").oninput=e=>{R().rest=clamp(+e.target.value||0,0,1800);save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
     $("cPerUnit").oninput=e=>{cfg.scoring.perUnit=clamp(+e.target.value||1,1,1e5);save();};
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
     document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
       c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();}; });
-    buildStations(); buildRankGrid(); buildCrews(); syncScoring();
+    buildBlocks(); buildStations(); buildRankGrid(); buildCrews(); syncMode(); syncSeqScoring();
   }
 
   applyAccent(); buildControlRoom(); build();
