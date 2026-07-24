@@ -61,10 +61,12 @@
   .subhead .ttl{display:flex;flex-direction:column;gap:6px}
   .subhead .ttl b{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,44px);letter-spacing:.045em;text-transform:uppercase;line-height:.95;text-wrap:balance}
   .subhead .ttl span{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.22em;text-transform:uppercase}
-  #evSummary{display:flex;gap:8px;flex-wrap:wrap;align-items:center;letter-spacing:normal}
-  .schip{border:1px solid var(--line);border-radius:999px;padding:5px 14px;background:rgba(255,255,255,.035);
-    font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
-  .schip b{color:var(--ink);font-weight:700;margin-right:6px;font-size:14px;letter-spacing:.04em}
+  #evSummary{display:flex;align-items:stretch;letter-spacing:normal;margin-top:2px}
+  .schip{display:flex;flex-direction:column;gap:4px;padding:0 20px;border-left:1px solid var(--line)}
+  .schip:first-child{padding-left:0;border-left:0}
+  .schip b{font-family:var(--disp);font-weight:700;font-size:24px;line-height:1;color:var(--ink);letter-spacing:.03em}
+  .schip i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase}
+  .clock[hidden]{display:none}
   .clock{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
   .clock b{font-family:var(--mono);font-size:clamp(34px,5vw,54px);font-weight:700;letter-spacing:-.01em;display:block;line-height:1}
   .clock b.hot{color:var(--hot);text-shadow:0 0 34px rgba(255,45,45,.45)}
@@ -809,9 +811,9 @@
   };
 
   function buildRotationBoard(){
-    $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b>blocks</span>`
-      +(laps()>1?`<span class="schip"><b>${laps()}</b>rounds</span>`:"")
-      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b>total</span>`;
+    $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>blocks</i></span>`
+      +(laps()>1?`<span class="schip"><b>${laps()}</b><i>rounds</i></span>`:"")
+      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
@@ -820,7 +822,7 @@
   function syncRotChrome(){
     const k=rot.round;
     if(rot.phase==="pre"){
-      $("phaseBanner").hidden=true;
+      $("phaseBanner").hidden=true; clockEl.parentElement.hidden=true;
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
       startBtn.disabled=empty; startBtn.textContent=empty?"Build blocks first":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
       clockState.textContent=k===0&&!sessionActive?"Block time · ready":"Teams rotating";
@@ -829,14 +831,14 @@
       $("phaseDesc").textContent = "Athletes pick their team on the erg screen · trainer starts the block";
       clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="rest"){
-      $("phaseBanner").hidden=false;
+      $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
       startBtn.disabled=false; startBtn.textContent=`Start block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} early`;
       clockState.textContent="Rest & rotate";
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent=`Rest & rotate — Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} next`;
       $("phaseDesc").textContent="Move to your next station · the clock counts down the rest";
     } else if(rot.phase==="done"){
-      $("phaseBanner").hidden=false;
+      $("phaseBanner").hidden=false; clockEl.parentElement.hidden=true;
       startBtn.disabled=true; startBtn.textContent="Session complete";
       clockState.textContent="Final";
       $("phaseBanner").classList.remove("scoring");
@@ -904,7 +906,7 @@
     clockEl.textContent=fmtMS(roundLen()-t);
     clockEl.classList.toggle("hot",hotAny);
     clockState.textContent=`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`;
-    $("phaseBanner").hidden=false;
+    $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
     $("phaseBanner").classList.toggle("scoring",hotAny);
     $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:`Block ${blockIdxOf(rot.round)+1} of ${nBlocks()}${roundTag(rot.round)} — working`;
     const hm=(ergs.find(e=>e.hot)||{}).curMetric||"calories";
@@ -1003,6 +1005,7 @@
       <div class="bd">${s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</div>
       <div class="teams"></div></div>`).join("");
     const s0=cfg.segments[0];
+    clockEl.parentElement.hidden=false;
     clockEl.textContent = s0.format==="time"?fmtMS(s0.duration):"0:00.0";
     startBtn.disabled=false; startBtn.textContent="Start session";
   }
@@ -1092,6 +1095,7 @@
       <div class="bh"><b>${esc(s.name)||("Station "+(i+1))}</b><span class="mc">${mInfo(s.machine).label}</span></div>
       <div class="bd">${s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</div>
       <div class="teams" data-st="${i}"></div></div>`).join("");
+    clockEl.parentElement.hidden=false;
     clockEl.textContent="0:00.0"; clockEl.classList.remove("hot");
     clockState.textContent="On the line";
     startBtn.textContent="Start wave 1"; startBtn.disabled=false;
