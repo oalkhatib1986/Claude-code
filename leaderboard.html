@@ -435,6 +435,8 @@
 
           <div class="fld" style="max-width:240px"><label>Rounds — laps through all blocks</label>
             <select id="rRounds"><option value="1">1 round</option><option value="2">2 rounds</option><option value="3">3 rounds</option><option value="4">4 rounds</option><option value="5">5 rounds</option><option value="6">6 rounds</option></select></div>
+          <div class="fld" style="max-width:240px"><label>Rest between blocks</label>
+            <select id="rBRest"><option value="0">Off — trainer decides</option><option value="30">0:30</option><option value="60">1:00</option><option value="90">1:30</option><option value="120">2:00</option><option value="180">3:00</option><option value="300">5:00</option></select></div>
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
           <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard. Each station is a <b>bank of machines</b> (e.g. your 5 rowers) — in scored work the whole team's ergs count at once.</div>
@@ -507,6 +509,10 @@
             <div class="row2" style="grid-template-columns:1fr auto;align-items:center">
               <select id="presetSel"><option value="">— pick a saved workout —</option></select>
               <button class="btn small" id="savePreset" type="button">Save current</button>
+            </div>
+            <div class="addbtns" style="margin-top:8px">
+              <button class="btn small" id="exportCfg" type="button">Export code</button>
+              <button class="btn small" id="importCfg" type="button">Import code</button>
             </div>
           </div>
           <div class="note">Build a workout once, hit <b>Save current</b>, and from then on just pick it from the dropdown — session type, blocks, exercises, scoring, teams, everything.</div>
@@ -686,6 +692,7 @@
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
   if(cfg.rotation&&!cfg.rotation.laps) cfg.rotation.laps=1;
+  if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -753,7 +760,8 @@
     R().blocks.forEach(b=>(b.items||[]).forEach(it=>{ if(it.scored) ms.add(it.metric||"calories"); }));
     if(ms.size>1) return "pts"; return ms.has("metres")?"m":"cal"; };
   // rot.phase: "pre" (waiting for trainer) | "run" | "done"
-  const rot={ round:0, phase:"pre", assign:[], elapsed:0 };
+  const rot={ round:0, phase:"pre", assign:[], elapsed:0, remain:0 };
+  let restT0=0;
 
   function prefillAssign(round){
     const N=nBlocks(), a=new Array(N).fill(null);
@@ -813,6 +821,12 @@
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
       $("phaseDesc").textContent = "Athletes pick their team on the erg screen · trainer starts the block";
       clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
+    } else if(rot.phase==="rest"){
+      startBtn.disabled=false; startBtn.textContent=`Start block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} early`;
+      clockState.textContent="Rest & rotate";
+      $("phaseBanner").classList.remove("scoring");
+      $("phaseLabel").textContent=`Rest & rotate — Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} next`;
+      $("phaseDesc").textContent="Move to your next station · the clock counts down the rest";
     } else if(rot.phase==="done"){
       startBtn.disabled=true; startBtn.textContent="Session complete";
       clockState.textContent="Final";
@@ -823,7 +837,18 @@
     renderBlockCards();
   }
 
+  function frameRest(now){
+    if(rot.phase!=="rest") return;
+    const remain=(R().blockRest||0)-(now-restT0)/1000;
+    if(remain<=0){ rot.phase="pre"; syncRotChrome(); renderLanesRot(); renderTablet(); return; }
+    rot.remain=remain;
+    clockEl.textContent=fmtMS(remain); clockEl.classList.remove("hot");
+    renderTablet();
+    raf=requestAnimationFrame(frameRest);
+  }
+
   function startBlock(){
+    cancelAnimationFrame(raf); clearTimeout(ticker);
     running=true; sessionActive=true; finished=false;
     rot.phase="run"; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
@@ -838,7 +863,9 @@
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; }
-      else { rot.round++; rot.phase="pre"; prefillAssign(rot.round); }
+      else { rot.round++; prefillAssign(rot.round);
+        if((R().blockRest||0)>0){ rot.phase="rest"; rot.remain=R().blockRest; restT0=now; raf=requestAnimationFrame(frameRest); }
+        else rot.phase="pre"; }
       syncRotChrome(); renderLanesRot(); renderTablet();
       return;
     }
@@ -1267,7 +1294,7 @@
       const seg=running?segAt(b,rot.elapsed):null;
       const hot=!!(seg&&seg.it.scored);
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
-      const showPicker = phase==="pre" || team==null || pickOpen;
+      const showPicker = phase==="pre" || phase==="rest" || team==null || pickOpen;
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
@@ -1276,9 +1303,10 @@
         ${showPicker?teamPicker(bi):""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
+          phase==="rest"?"Rest — rotate stations":
           phase==="done"?"Session complete":
           seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
-        <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":fmtMS(blockLen(b)))}</div>
+        <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
         ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${scoreUnit()}</div>`:""}
         ${team&&!showPicker?`<div class="tb-stats">
           <div><b>${team.split>0?fmtSplit(team.split):"--:--"}</b><span>split /500m</span></div>
@@ -1627,6 +1655,9 @@
     pillGroup("segRelease",W().release,v=>W().release=v);
     pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v,syncSeqScoring);
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
+    $("rBRest").value=String(R().blockRest||0);
+    $("rBRest").onchange=e=>{R().blockRest=clamp(parseInt(e.target.value,10)||0,0,1800);save();};
+    { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
     $("rRounds").value=String(R().laps||1);
     $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
     { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
@@ -1637,6 +1668,24 @@
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
     document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
       c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();}; });
+    $("exportCfg").onclick=async()=>{
+      const code=JSON.stringify(cfg);
+      let copied=false;
+      try{ await navigator.clipboard.writeText(code); copied=true; }catch(e){}
+      if(copied) alert("Workout code copied to clipboard.\n\nPaste it somewhere safe (Notes, WhatsApp yourself) — it is a full backup of this workout.");
+      else prompt("Copy this workout code and keep it somewhere safe:", code);
+    };
+    $("importCfg").onclick=()=>{
+      const code=prompt("Paste a workout code:");
+      if(!code||!code.trim()) return;
+      try{
+        const c=JSON.parse(code.trim());
+        if(!c||!c.mode||!c.crews) throw 0;
+        cfg=c; save(); applyAccent(); buildControlRoom();
+        if(!sessionActive&&!running) build();
+        alert("Workout imported.");
+      }catch(e){ alert("That code could not be read — make sure you pasted the whole thing."); }
+    };
     $("savePreset").onclick=()=>{
       const n=prompt("Name this workout:", cfg.name);
       if(!n||!n.trim()) return;
