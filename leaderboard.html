@@ -340,8 +340,8 @@
     .tabs button{flex:1;padding:10px 6px;font-size:13px}
     .controls .hint{display:none}
     .row2,.row3{grid-template-columns:1fr}
-    .crew{grid-template-columns:40px 1fr 44px;grid-auto-rows:auto}
-    .crew input[type=text]:nth-of-type(2){grid-column:2/4}
+    .crew{grid-template-columns:40px 1fr 40px;grid-auto-rows:auto;row-gap:8px}
+    .crew .cnote{grid-column:1/-1}
     .blocks{grid-template-columns:1fr}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -1521,8 +1521,8 @@
     cfg.crews.forEach((c,i)=>{
       const row=document.createElement("div"); row.className="crew";
       row.innerHTML=`<input type="color" value="${c.color}">
-        <input type="text" placeholder="Team name" value="${esc(c.name)}">
-        <input type="text" placeholder="Members / note" value="${esc(c.ath)}">
+        <input type="text" class="cname" placeholder="Team name" value="${esc(c.name)}">
+        <input type="text" class="cnote" placeholder="Members (optional)" value="${esc(c.ath)}">
         <button class="del">&times;</button>`;
       const [col,nm,at]=row.querySelectorAll("input"); const del=row.querySelector(".del");
       const refresh=()=>{ if(!sessionActive&&!running) build(); };
