@@ -1234,7 +1234,7 @@
           <input type="text" placeholder="Block name" value="${esc(b.name)}">
           <button class="iconbtn up" ${i===0?"disabled":""}>&#9650;</button>
           <button class="iconbtn down" ${i===R().blocks.length-1?"disabled":""}>&#9660;</button>
-          <button class="iconbtn del" ${R().blocks.length<=2?"disabled":""}>&times;</button></div>
+          <button class="iconbtn del" ${R().blocks.length<=1?"disabled":""}>&times;</button></div>
         <div class="fld"><label>Station machine bank (the erg that streams live data)</label><select class="mc">${opts}</select></div>
         <div class="bparts"></div>
         <div class="addbtns">
@@ -1366,7 +1366,7 @@
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
       box.querySelector('.down').onclick=()=>{ if(i<R().blocks.length-1){[R().blocks[i+1],R().blocks[i]]=[R().blocks[i],R().blocks[i+1]];save();buildBlocks();} };
-      box.querySelector('.del').onclick=()=>{ if(R().blocks.length>2){R().blocks.splice(i,1);save();buildBlocks();} };
+      box.querySelector('.del').onclick=()=>{ if(R().blocks.length>1){R().blocks.splice(i,1);save();buildBlocks();} };
       list.appendChild(box);
     });
   }
@@ -1429,7 +1429,7 @@
       col.oninput=()=>{c.color=col.value;save();refresh();};
       nm.oninput=()=>{c.name=nm.value;save();refresh();};
       at.oninput=()=>{c.ath=at.value;save();refresh();};
-      del.onclick=()=>{ if(cfg.crews.length<=2)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
+      del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); if(!sessionActive&&!running) build(); };
       list.appendChild(row);
     });
   }
