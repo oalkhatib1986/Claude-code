@@ -297,9 +297,10 @@
         <h3>Blocks <span class="r" id="blkCount"></span></h3>
         <div class="body">
           <div class="row2">
-            <div class="fld"><label>Work phase — seconds (AMRAP)</label><input type="number" id="rWork" min="60" step="30"></div>
-            <div class="fld"><label>Scored window — seconds</label><input type="number" id="rScore" min="30" step="30"></div>
+            <div class="fld"><label>Work phase — minutes (not scored)</label><input type="number" id="rWork" min="1" step="0.5"></div>
+            <div class="fld"><label>Scored window — minutes (counts!)</label><input type="number" id="rScore" min="0.5" step="0.5"></div>
           </div>
+          <div class="note" id="timingNote"></div>
           <div class="row2">
             <div class="fld"><label>What counts in the scored window</label>
               <div class="pills" id="segMetric">
@@ -1019,9 +1020,13 @@
     cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
 
+  function updateTimingNote(){
+    $("timingNote").innerHTML=`Each block: <b>${fmtMS(R().workDur)} of work</b> (pairs grinding — nothing scored yet) &rarr; <b style="color:var(--hot)">${fmtMS(R().scoreDur)} scored window</b> where the whole team hits the ergs and every ${R().metric==="calories"?"calorie":"metre"} counts. The trainer starts each block; the clock stops after the window.`;
+  }
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
-    $("rWork").value=R().workDur; $("rScore").value=R().scoreDur; $("rScorers").value=R().scorers||4;
+    $("rWork").value=+(R().workDur/60).toFixed(2); $("rScore").value=+(R().scoreDur/60).toFixed(2); $("rScorers").value=R().scorers||4;
+    updateTimingNote();
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
     pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
     pillGroup("segMetric",R().metric,v=>R().metric=v);
@@ -1029,8 +1034,8 @@
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
     $("cSub").oninput=e=>{cfg.sub=e.target.value;save();};
-    $("rWork").oninput=e=>{R().workDur=clamp(+e.target.value||60,60,7200);save();};
-    $("rScore").oninput=e=>{R().scoreDur=clamp(+e.target.value||30,30,3600);save();};
+    $("rWork").oninput=e=>{R().workDur=clamp(Math.round((+e.target.value||1)*60),60,7200);save();updateTimingNote();};
+    $("rScore").oninput=e=>{R().scoreDur=clamp(Math.round((+e.target.value||0.5)*60),30,3600);save();updateTimingNote();};
     $("rScorers").oninput=e=>{R().scorers=clamp(+e.target.value||1,1,8);save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
     $("cPerUnit").oninput=e=>{cfg.scoring.perUnit=clamp(+e.target.value||1,1,1e5);save();};
