@@ -426,6 +426,8 @@
         <div class="body">
           <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them. Added things separately? Use <b>&#10548;</b> on any item to <b>group</b> it with the one above, and <b>&#10549;</b> on a grouped exercise to <b>ungroup</b> it.</div>
 
+          <div class="fld" style="max-width:240px"><label>Rounds — laps through all blocks</label>
+            <select id="rRounds"><option value="1">1 round</option><option value="2">2 rounds</option><option value="3">3 rounds</option><option value="4">4 rounds</option><option value="5">5 rounds</option><option value="6">6 rounds</option></select></div>
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
           <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard. Each station is a <b>bank of machines</b> (e.g. your 5 rowers) — in scored work the whole team's ergs count at once.</div>
@@ -676,6 +678,7 @@
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
+  if(cfg.rotation&&!cfg.rotation.laps) cfg.rotation.laps=1;
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -722,6 +725,11 @@
   /* ================= ROTATION — trainer-paced blocks, per-item timing ================= */
   const R=()=>cfg.rotation;
   const nBlocks=()=>R().blocks.length;
+  const laps=()=>clamp(R().laps||1,1,6);
+  const totalRounds=()=>nBlocks()*laps();
+  const blockIdxOf=r=>nBlocks()? r%nBlocks() : 0;
+  const lapOf=r=>nBlocks()? Math.floor(r/nBlocks()) : 0;
+  const roundTag=r=>laps()>1?` · round ${lapOf(r)+1}/${laps()}`:"";
   const blockLen=b=>(b.items||[]).reduce((a,it)=>a+it.dur,0);
   const roundLen=()=>Math.max(1,...R().blocks.map(blockLen));
   const segAt=(b,t)=>{ let acc=0; const its=b.items||[];
@@ -781,7 +789,7 @@
   };
 
   function buildRotationBoard(){
-    $("evSummary").textContent=`${nBlocks()} blocks · trainer-started · ${fmtMS(roundLen())} per block`;
+    $("evSummary").textContent=`${nBlocks()} blocks${laps()>1?` × ${laps()} rounds`:""} · trainer-started · ${fmtMS(roundLen())} per block`;
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
@@ -791,10 +799,10 @@
     const k=rot.round;
     if(rot.phase==="pre"){
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
-      startBtn.disabled=empty; startBtn.textContent=empty?"Build blocks first":`Start block ${k+1}`;
+      startBtn.disabled=empty; startBtn.textContent=empty?"Build blocks first":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
       clockState.textContent=k===0&&!sessionActive?"Ready":"Teams rotating";
       $("phaseBanner").classList.remove("scoring");
-      $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${k+1} up next`;
+      $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
       $("phaseDesc").textContent = "Athletes pick their team on the erg screen · trainer starts the block";
       clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="done"){
@@ -810,7 +818,7 @@
   function startBlock(){
     running=true; sessionActive=true; finished=false;
     rot.phase="run"; t0=performance.now();
-    startBtn.disabled=true; startBtn.textContent=`Block ${rot.round+1} running…`;
+    startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
     resetBtn.disabled=false;
     if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
     else raf=requestAnimationFrame(frameRotation);
@@ -821,7 +829,7 @@
     if(t>=roundLen()){
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
-      if(rot.round>=nBlocks()-1){ rot.phase="done"; finished=true; }
+      if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; }
       else { rot.round++; rot.phase="pre"; prefillAssign(rot.round); }
       syncRotChrome(); renderLanesRot(); renderTablet();
       return;
@@ -851,9 +859,9 @@
     const hotName=(ergs.find(e=>e.hot)||{}).segName||"Score";
     clockEl.textContent=fmtMS(roundLen()-t);
     clockEl.classList.toggle("hot",hotAny);
-    clockState.textContent=`Block ${rot.round+1}/${nBlocks()}`;
+    clockState.textContent=`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`;
     $("phaseBanner").classList.toggle("scoring",hotAny);
-    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:`Block ${rot.round+1} of ${nBlocks()} — working`;
+    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:`Block ${blockIdxOf(rot.round)+1} of ${nBlocks()}${roundTag(rot.round)} — working`;
     const hm=(ergs.find(e=>e.hot)||{}).curMetric||"calories";
     $("phaseDesc").textContent = hotAny?`Every ${hm==="calories"?"calorie":"metre"} counts NOW`:"Follow your station's screen · scored parts turn red";
     renderBlockCards(); renderLanesRot(); renderTablet();
@@ -891,7 +899,7 @@
       const rs=e.el.querySelector(".rank span");
       rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
       const st=stationOf(e);
-      const last=rot.round>=nBlocks()-1;
+      const last=rot.round>=totalRounds()-1;
       let loc;
       if(finished) loc=`<span class="tag">Complete</span>`;
       else if(st<0) loc=`<span class="nx">Not on a station — pick your team on an erg screen</span>`;
@@ -1253,15 +1261,15 @@
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
       const showPicker = phase==="pre" || team==null || pickOpen;
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
-      const lastRound=rot.round>=nBlocks()-1;
+      const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
         <div class="tb-top"><span class="bname">${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
         ${team&&!showPicker?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><b>${esc(team.name)}</b><span>on this station</span></div>`:""}
         ${showPicker?teamPicker(bi):""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
-          phase==="pre"?(sessionActive?`Block ${rot.round+1} — waiting for trainer`:"Waiting for trainer to start"):
+          phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="done"?"Session complete":
-          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${rot.round+1}/${nBlocks()}`):"Block done — recover"}</span></div>
+          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
         <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":fmtMS(blockLen(b)))}</div>
         ${team?`<div class="tb-score">this window <b>${Math.round(team.blockCals)}</b> · team total <b>${Math.round(team.score+team.blockCals)}</b> ${scoreUnit()}</div>`:""}
         ${team&&!showPicker?`<div class="tb-stats">
@@ -1611,6 +1619,9 @@
     pillGroup("segRelease",W().release,v=>W().release=v);
     pillGroup("segScore",cfg.scoring.mode,v=>cfg.scoring.mode=v,syncSeqScoring);
     pillGroup("segBasis",cfg.scoring.perBasis,v=>cfg.scoring.perBasis=v);
+    $("rRounds").value=String(R().laps||1);
+    $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
+    { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
     $("cSub").oninput=e=>{cfg.sub=e.target.value;save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
