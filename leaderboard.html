@@ -61,11 +61,11 @@
   .subhead .ttl{display:flex;flex-direction:column;gap:2px}
   .subhead .ttl b{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,44px);letter-spacing:.045em;text-transform:uppercase;line-height:.95;text-wrap:balance}
   .subhead .ttl span{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.22em;text-transform:uppercase}
-  #evSummary{display:flex;align-items:flex-start;gap:34px;letter-spacing:normal;margin-top:12px;flex-wrap:wrap}
-  .schip{display:flex;flex-direction:column;gap:7px;padding:0}
-  .schip::before{content:"";width:26px;height:3px;background:var(--accent);border-radius:2px}
-  .schip b{font-family:var(--disp);font-weight:700;font-size:32px;line-height:1;color:var(--ink);letter-spacing:.02em;font-variant-numeric:tabular-nums}
-  .schip i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.28em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
+  #evSummary{display:flex;align-items:baseline;gap:0;letter-spacing:normal;margin-top:8px;flex-wrap:wrap}
+  .schip{display:inline-flex;align-items:baseline;gap:7px}
+  .schip+.schip::before{content:"·";color:var(--ink-mute);margin:0 14px;font-size:14px}
+  .schip b{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1;color:var(--ink);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+  .schip i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
   .clock[hidden]{display:none}
   .clock{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
   .clock b{font-family:var(--mono);font-size:clamp(34px,5vw,54px);font-weight:700;letter-spacing:-.01em;display:block;line-height:1}
@@ -384,7 +384,7 @@
     #segMode{flex-wrap:nowrap}
     #segMode button{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tabs{margin-left:0;width:100%;justify-content:stretch;padding:4px;gap:2px}
-    .tabs button{flex:1 1 0;min-width:0;padding:9px 2px;font-size:11px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tabs button{flex:1 1 0;min-width:0;padding:9px 1px;font-size:10px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .controls .hint{display:none}
     .row2,.row3{grid-template-columns:1fr}
     .crew{grid-template-columns:40px 1fr 40px;grid-auto-rows:auto;row-gap:8px}
@@ -400,6 +400,7 @@
     <div class="tabs" role="tablist">
       <button id="tabBoard" role="tab" aria-selected="true">Board</button>
       <button id="tabScreen" role="tab" aria-selected="false">Big Screen</button>
+      <button id="tabTrainer" role="tab" aria-selected="false">Trainer</button>
       <button id="tabTablet" role="tab" aria-selected="false">Erg Tablet</button>
       <button id="tabCtrl"  role="tab" aria-selected="false">Control Room</button>
     </div>
@@ -416,14 +417,25 @@
       <span class="pdesc" id="phaseDesc"></span>
     </div>
     <div class="blocks" id="blockCards"></div>
-    <div class="controls">
-      <button class="btn primary" id="startBtn">Start session</button>
-      <button class="btn" id="resetBtn" disabled>Reset</button>
-      <span class="hint">Simulated ergs — real PM5s stream the same fields over Bluetooth.</span>
-    </div>
+
     <div class="board">
       <div class="board-head"><span>Rank · Team · Where they are</span><span id="scoreLabel">Score</span></div>
       <div class="lanes" id="lanes"></div>
+    </div>
+  </section>
+
+  <!-- ============ TRAINER (the only page with controls) ============ -->
+  <section class="view" id="viewTrainer">
+    <div class="card" style="max-width:560px;margin:6px auto 0">
+      <h3>Trainer controls</h3>
+      <div class="body">
+        <div class="clock" style="margin-left:0;text-align:left"><b id="tClock">—</b><span id="tState"></span></div>
+        <div class="controls" style="margin:0">
+          <button class="btn primary" id="startBtn">Start session</button>
+          <button class="btn" id="resetBtn" disabled>Reset</button>
+        </div>
+        <div class="note">Run the class from here. The Board shows the workout, the Big Screen shows live results — this is the only page with controls.</div>
+      </div>
     </div>
   </section>
 
@@ -1299,17 +1311,17 @@
   startBtn.onclick=start; resetBtn.onclick=reset;
 
   /* ================= tabs ================= */
-  const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],tablet:["tabTablet","viewTablet"],ctrl:["tabCtrl","viewCtrl"]};
+  const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"],ctrl:["tabCtrl","viewCtrl"]};
   function show(which){
     document.body.classList.toggle("bigscreen",which==="screen");
     for(const k in TABS) $(TABS[k][0]).setAttribute("aria-selected",k===which);
     const active=TABS[which][1];
-    ["viewBoard","viewTablet","viewCtrl"].forEach(v=>$(v).classList.toggle("active",v===active));
+    ["viewBoard","viewTrainer","viewTablet","viewCtrl"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
     try{ history.replaceState(null,"",which==="screen"?"#screen":location.pathname+location.search); }catch(e){}
   }
-  $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen");
+  $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet"); $("tabCtrl").onclick=()=>show("ctrl");
 
   /* ================= erg tablet ================= */
@@ -1749,6 +1761,10 @@
     buildPresetSel();
   }
 
+  setInterval(()=>{ const a=$("tClock"); if(!a) return;
+    a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
+    a.classList.toggle("hot",clockEl.classList.contains("hot"));
+    $("tState").textContent=clockState.textContent; },400);
   applyAccent(); buildControlRoom(); build();
   if(location.hash==="#screen") show("screen");
 })();
