@@ -257,7 +257,7 @@
   .psec.grp{border-left-color:rgba(64,200,140,.55);background:linear-gradient(90deg,rgba(64,200,140,.06),transparent 72%)}
   .psec.scoredit{border-left-color:rgba(255,45,45,.65);background:linear-gradient(90deg,rgba(255,45,45,.08),transparent 72%)}
   .psec.rest{border-left-color:rgba(255,190,80,.55);background:linear-gradient(90deg,rgba(255,190,80,.06),transparent 72%)}
-  .bc0{--bl:rgba(167,139,250,.6);--blbg:rgba(167,139,250,.05);--blchip:rgba(167,139,250,.25)}
+  .bc0{--bl:rgba(255,255,255,.6);--blbg:rgba(255,255,255,.045);--blchip:rgba(255,255,255,.25)}
   .bc1{--bl:rgba(94,203,255,.6);--blbg:rgba(94,203,255,.05);--blchip:rgba(94,203,255,.25)}
   .bc2{--bl:rgba(255,159,67,.6);--blbg:rgba(255,159,67,.05);--blchip:rgba(255,159,67,.25)}
   .bc3{--bl:rgba(255,121,198,.6);--blbg:rgba(255,121,198,.05);--blchip:rgba(255,121,198,.25)}
@@ -782,7 +782,7 @@
     return scored||first; };
   const bmLabel=b=>{ const m=blockMachine(b); return m?mInfo(m).label:"Station"; };
   const bmShort=b=>{ const m=blockMachine(b); return m?mInfo(m).short:"\u2014"; };
-  const BLKCOL=["167,139,250","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
+  const BLKCOL=["255,255,255","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
   const exTxt=x=>`${x.who} — ${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`;
   const exLines=b=>{
