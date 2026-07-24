@@ -263,7 +263,9 @@
   .slab.hotlab{color:var(--hot)}
   .scrow .mwrap.time{width:64px}
   .psec-h{flex-wrap:wrap}
-  .psec-h .gname{flex:1;min-width:110px}
+  .psec-h .gname{flex:1;min-width:110px;background:transparent;border:0;border-bottom:1px dashed var(--line);border-radius:0;padding:8px 2px;font-family:var(--disp);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .psec-h .gname::placeholder{text-transform:none;letter-spacing:0;font-family:var(--ui);font-weight:400}
+  .psec-h .gname:focus{border-bottom-color:rgba(255,255,255,.4)}
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px}
@@ -1410,7 +1412,7 @@
           const sec=document.createElement("div"); sec.className="psec "+(isGroup?"grp":"one")+(it.scored?" scoredit":"");
           const head=document.createElement("div"); head.className="psec-h";
           if(isGroup){
-            const gn=document.createElement("input"); gn.className="gname"; gn.type="text"; gn.placeholder="Group name"; gn.value=it.name||"";
+            const gn=document.createElement("input"); gn.className="gname"; gn.type="text"; gn.placeholder="Name shown on screens (optional)"; gn.value=it.name||"";
             gn.oninput=()=>{it.name=gn.value;save();};
             head.appendChild(gn);
           } else {
