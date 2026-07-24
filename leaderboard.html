@@ -58,14 +58,14 @@
 
   /* ---------- board head ---------- */
   .subhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:2px 2px 0}
-  .subhead .ttl{display:flex;flex-direction:column;gap:6px}
+  .subhead .ttl{display:flex;flex-direction:column;gap:2px}
   .subhead .ttl b{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,44px);letter-spacing:.045em;text-transform:uppercase;line-height:.95;text-wrap:balance}
   .subhead .ttl span{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.22em;text-transform:uppercase}
-  #evSummary{display:flex;align-items:stretch;letter-spacing:normal;margin-top:2px}
-  .schip{display:flex;flex-direction:column;gap:4px;padding:0 20px;border-left:1px solid var(--line)}
-  .schip:first-child{padding-left:0;border-left:0}
-  .schip b{font-family:var(--disp);font-weight:700;font-size:24px;line-height:1;color:var(--ink);letter-spacing:.03em}
-  .schip i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase}
+  #evSummary{display:flex;align-items:flex-start;gap:34px;letter-spacing:normal;margin-top:12px;flex-wrap:wrap}
+  .schip{display:flex;flex-direction:column;gap:7px;padding:0}
+  .schip::before{content:"";width:26px;height:3px;background:var(--accent);border-radius:2px}
+  .schip b{font-family:var(--disp);font-weight:700;font-size:32px;line-height:1;color:var(--ink);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+  .schip i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.28em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
   .clock[hidden]{display:none}
   .clock{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
   .clock b{font-family:var(--mono);font-size:clamp(34px,5vw,54px);font-weight:700;letter-spacing:-.01em;display:block;line-height:1}
@@ -829,9 +829,9 @@
   };
 
   function buildRotationBoard(){
-    $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>blocks</i></span>`
-      +(laps()>1?`<span class="schip"><b>${laps()}</b><i>rounds</i></span>`:"")
-      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
+    $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
+      +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
+      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total time</i></span>`;
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
