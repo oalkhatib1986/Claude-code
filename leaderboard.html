@@ -719,6 +719,13 @@
   const segAt=(b,t)=>{ let acc=0; const its=b.items||[];
     for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(t<acc) return {it:its[i], i, remain:acc-t}; }
     return null; };
+  const whoCount=w=>{ w=(w||"").toLowerCase(); const m=w.match(/(\d+)/);
+    if(w.includes("pair")) return 2;
+    if(w.includes("single")||w.includes("solo")) return 1;
+    if(m&&!w.includes("athlete")) return clamp(parseInt(m[1],10),1,8);
+    if(w.includes("athlete")) return 1;
+    return 4; };
+  const itemScorers=it=>whoCount((((it.exercises||[])[0])||{}).who);
   const scoreUnit=()=>{ const ms=new Set();
     R().blocks.forEach(b=>(b.items||[]).forEach(it=>{ if(it.scored) ms.add(it.metric||"calories"); }));
     if(ms.size>1) return "pts"; return ms.has("metres")?"m":"cal"; };
@@ -827,7 +834,7 @@
         const w=wattsFor(e.split)*effort;
         const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
         e.m+=dm; e.cals+=dc;
-        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc) * clamp(seg.it.scorers||1,1,8);
+        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc) * itemScorers(seg.it);
       } else { e.split=0; e.spm=0; }
     }
     const hotAny=ergs.some(e=>e.hot);
@@ -1425,7 +1432,7 @@
           const sc=document.createElement("span"); sc.className="exsc"+(it.scored?" on":""); sc.setAttribute("role","checkbox");
           sc.setAttribute("aria-checked",String(!!it.scored)); sc.tabIndex=0; sc.title="Toggle: counts toward the leaderboard"; sc.innerHTML="&#9679;";
           const flip=()=>{ it.scored=!it.scored;
-            if(it.scored){ it.metric=it.metric||"calories"; it.scorers=it.scorers||4; }
+            if(it.scored){ it.metric=it.metric||"calories"; }
             save(); renderItems(); };
           sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
           head.appendChild(sc);
@@ -1452,10 +1459,6 @@
               b2.className="spill"+(((it.metric||"calories")===v)?" on":""); b2.textContent=label;
               b2.onclick=()=>{ it.metric=v; save(); renderItems(); }; return b2; };
             srow.append(mkPill("calories","Max cal"), mkPill("metres","Max metres"));
-            const aw=menuField(()=>[1,2,3,4,5,6,7,8], ()=>String(it.scorers||4),
-              v=>{ it.scorers=clamp(parseInt(v,10)||4,1,8); save(); }, {numeric:true, cls:"time", searchPh:"Athletes…", addable:true, addLabel:"Use"});
-            const lab=document.createElement("i"); lab.className="slab"; lab.textContent="on ergs";
-            srow.append(aw,lab);
             sec.appendChild(srow);
           }
           const exlist=document.createElement("div"); exlist.className="exlist";
