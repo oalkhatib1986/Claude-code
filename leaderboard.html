@@ -275,6 +275,11 @@
   .overcap{color:var(--hot)!important}
   .invgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px}
   .tb-teams{display:flex;flex-direction:column;gap:8px}
+  .tb-tinfo{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+  .tb-tinfo b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-tinfo i{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+  .tb-team span{text-align:right;line-height:1.5}
+  .tb-sc{font-family:var(--mono);font-size:14px;color:var(--ink)}
   .restins{display:flex;align-items:center;gap:10px;margin:0}
   .restins::before,.restins::after{content:"";flex:1;height:1px;background:var(--line-soft)}
   .restins button{border:1px dashed rgba(255,190,80,.35);background:none;color:rgba(255,190,80,.7);border-radius:999px;padding:3px 13px;
@@ -1358,7 +1363,7 @@
       const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
-        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><b>${esc(t.e.name)}</b><span>${mrange(t)} &middot; ${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
+        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><div class="tb-tinfo"><b>${esc(t.e.name)}</b><i>${running&&t.e.split>0?`${fmtSplit(t.e.split)}/500 &middot; ${Math.round(wattsFor(t.e.split))}w &middot; r${Math.round(t.e.spm)}`:running?"erg idle":"&nbsp;"}</i></div><span>Machines ${t.from===t.to?t.from:t.from+"&ndash;"+t.to}<br><b class="tb-sc">${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</b></span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
         ${al.over?`<div class="tb-note" style="color:var(--hot);text-align:center">Needs ${al.need} machines &mdash; only ${al.cap} available. Fix in Control Room.</div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
