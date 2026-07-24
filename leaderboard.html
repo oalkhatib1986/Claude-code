@@ -76,7 +76,7 @@
 
   /* ---------- block cards ---------- */
   .blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
-  .blk{border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s}
+  .blk{border:1px solid var(--line);border-left:3px solid var(--bl,var(--line));border-radius:16px;background:linear-gradient(90deg,var(--blbg,transparent),transparent 55%),var(--card);box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s}
   .blk.scoring{border-color:rgba(255,45,45,.55);box-shadow:0 0 34px -10px rgba(255,45,45,.3),var(--shadow)}
   .blk .bh{display:flex;align-items:center;gap:10px}
   .blk .bh b{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase}
@@ -195,10 +195,10 @@
   .pcell{display:flex;flex-direction:column;gap:6px}
   .pcell span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.16em;color:var(--ink-mute);text-transform:uppercase}
 
-  .stn{border:1px solid var(--line-soft);border-radius:13px;padding:12px 13px;display:flex;flex-direction:column;gap:11px;background:rgba(255,255,255,.015)}
+  .stn{border:1px solid var(--line-soft);border-left:3px solid var(--bl,var(--line-soft));border-radius:13px;padding:12px 13px;display:flex;flex-direction:column;gap:11px;background:linear-gradient(90deg,var(--blbg,transparent),transparent 55%),rgba(255,255,255,.015)}
   .stn+.stn{margin-top:12px}
   .stn .top{display:flex;gap:10px;align-items:center}
-  .stn .top .num{font-family:var(--disp);font-weight:700;color:var(--ink);font-size:15px;width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);display:grid;place-items:center;flex:none}
+  .stn .top .num{font-family:var(--disp);font-weight:700;color:var(--ink);font-size:15px;width:26px;height:26px;border-radius:8px;background:var(--blchip,rgba(255,255,255,.07));display:grid;place-items:center;flex:none}
   .stn .top input{flex:1}
   .stn .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
   @media (max-width:560px){.stn .grid{grid-template-columns:1fr}}
@@ -257,6 +257,13 @@
   .psec.grp{border-left-color:rgba(64,200,140,.55);background:linear-gradient(90deg,rgba(64,200,140,.06),transparent 72%)}
   .psec.scoredit{border-left-color:rgba(255,45,45,.65);background:linear-gradient(90deg,rgba(255,45,45,.08),transparent 72%)}
   .psec.rest{border-left-color:rgba(255,190,80,.55);background:linear-gradient(90deg,rgba(255,190,80,.06),transparent 72%)}
+  .bc0{--bl:rgba(167,139,250,.6);--blbg:rgba(167,139,250,.05);--blchip:rgba(167,139,250,.25)}
+  .bc1{--bl:rgba(94,203,255,.6);--blbg:rgba(94,203,255,.05);--blchip:rgba(94,203,255,.25)}
+  .bc2{--bl:rgba(255,159,67,.6);--blbg:rgba(255,159,67,.05);--blchip:rgba(255,159,67,.25)}
+  .bc3{--bl:rgba(255,121,198,.6);--blbg:rgba(255,121,198,.05);--blchip:rgba(255,121,198,.25)}
+  .bc4{--bl:rgba(80,220,190,.6);--blbg:rgba(80,220,190,.05);--blchip:rgba(80,220,190,.25)}
+  .bc5{--bl:rgba(250,220,100,.6);--blbg:rgba(250,220,100,.05);--blchip:rgba(250,220,100,.25)}
+  .bdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
   .restins{display:flex;align-items:center;gap:10px;margin:0}
   .restins::before,.restins::after{content:"";flex:1;height:1px;background:var(--line-soft)}
   .restins button{border:1px dashed rgba(255,190,80,.35);background:none;color:rgba(255,190,80,.7);border-radius:999px;padding:3px 13px;
@@ -775,6 +782,7 @@
     return scored||first; };
   const bmLabel=b=>{ const m=blockMachine(b); return m?mInfo(m).label:"Station"; };
   const bmShort=b=>{ const m=blockMachine(b); return m?mInfo(m).short:"\u2014"; };
+  const BLKCOL=["167,139,250","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
   const exTxt=x=>`${x.who} — ${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`;
   const exLines=b=>{
@@ -879,7 +887,7 @@
       const team=teamId!=null?ergs.find(e=>e.id===teamId):null;
       const seg=running?segAt(b,rot.elapsed):null;
       const hot=!!(seg&&seg.it.scored);
-      return `<div class="blk ${hot?"scoring":""}">
+      return `<div class="blk ${hot?"scoring":""} bc${bi%6}">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
@@ -905,7 +913,7 @@
       else if(st<0) loc=`<span class="nx">Not on a station — pick your team on an erg screen</span>`;
       else{
         const here=R().blocks[st], next=R().blocks[(st+1)%nBlocks()];
-        loc=`On <b>${esc(here.name)} · ${bmShort(here)}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
+        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
       }
       e.el.querySelector(".loc").innerHTML=loc;
       const st2=stationOf(e);
@@ -953,7 +961,7 @@
     $("evSummary").textContent=`${cfg.segments.length} station${cfg.segments.length>1?"s":""} · everyone together · ${scTxt}`;
     $("scoreLabel").textContent=scTxt.toUpperCase();
     $("phaseBanner").hidden=false; setSeqBanner();
-    $("blockCards").innerHTML=cfg.segments.map((s,i)=>`<div class="blk">
+    $("blockCards").innerHTML=cfg.segments.map((s,i)=>`<div class="blk bc${i%6}">
       <div class="bh"><b>${esc(s.name)||("Station "+(i+1))}</b><span class="mc">${mInfo(s.machine).label}</span></div>
       <div class="bd">${s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</div>
       <div class="teams"></div></div>`).join("");
@@ -1043,7 +1051,7 @@
     $("phaseBanner").classList.remove("scoring");
     $("phaseLabel").textContent="Waves — ready";
     $("phaseDesc").textContent=`wave 1 starts on the trainer's go · next wave ${W().release==="auto"?"releases when station 1 clears":"on the trainer's button"}`;
-    $("blockCards").innerHTML=cfg.segments.map((s,i)=>`<div class="blk">
+    $("blockCards").innerHTML=cfg.segments.map((s,i)=>`<div class="blk bc${i%6}">
       <div class="bh"><b>${esc(s.name)||("Station "+(i+1))}</b><span class="mc">${mInfo(s.machine).label}</span></div>
       <div class="bd">${s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</div>
       <div class="teams" data-st="${i}"></div></div>`).join("");
@@ -1263,7 +1271,7 @@
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
-        <div class="tb-top"><span class="bname">${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
+        <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
         ${team&&!showPicker?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><b>${esc(team.name)}</b><span>on this station</span></div>`:""}
         ${showPicker?teamPicker(bi):""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
@@ -1358,7 +1366,7 @@
     const list=$("blkList"); list.innerHTML=""; $("blkCount").textContent=`${R().blocks.length} blocks`;
     R().blocks.forEach((b,i)=>{
       if(!b.items) b.items=[];
-      const box=document.createElement("div"); box.className="stn";
+      const box=document.createElement("div"); box.className="stn bc"+(i%6);
       box.innerHTML=`
         <div class="top"><span class="num">${i+1}</span>
           <input type="text" placeholder="Block name" value="${esc(b.name)}">
