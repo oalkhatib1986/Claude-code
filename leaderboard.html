@@ -285,15 +285,18 @@
             <div class="fld"><label>Scored window — seconds</label><input type="number" id="rScore" min="30" step="30"></div>
             <div class="fld"><label>Rotate / rest — seconds</label><input type="number" id="rRest" min="0" step="15"></div>
           </div>
-          <div class="fld"><label>What counts in the scored window</label>
-            <div class="pills" id="segMetric">
-              <button data-v="calories" aria-pressed="true">Max calories</button>
-              <button data-v="metres"   aria-pressed="false">Max metres</button>
+          <div class="row2">
+            <div class="fld"><label>What counts in the scored window</label>
+              <div class="pills" id="segMetric">
+                <button data-v="calories" aria-pressed="true">Max calories</button>
+                <button data-v="metres"   aria-pressed="false">Max metres</button>
+              </div>
             </div>
+            <div class="fld"><label>Athletes on ergs in the window</label><input type="number" id="rScorers" min="1" max="8" step="1"></div>
           </div>
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
-          <div class="note">Teams start spread across the blocks (Team 1 → Block 1, Team 2 → Block 2 …) and everyone rotates together when the block time ends. Only the <b>scored window</b> counts toward the leaderboard — the AMRAP work shows on screen but scores nothing, exactly like your Send It Saturday card.</div>
+          <div class="note">Teams start spread across the blocks (Team 1 → Block 1, Team 2 → Block 2 …) and everyone rotates together when the block time ends. Each station is a <b>bank of machines</b> (e.g. your 5 rowers), and in the scored window the whole team’s ergs count at once — set how many above. Only the <b>scored window</b> counts toward the leaderboard — the AMRAP work shows on screen but scores nothing, exactly like your Send It Saturday card.</div>
         </div>
       </div>
 
@@ -403,7 +406,7 @@
     accent:"#ffffff", name:"Send It Saturday", sub:"Teams of 4",
     mode:"rotation",
     rotation:{
-      workDur:720, scoreDur:240, rest:60, metric:"calories",
+      workDur:720, scoreDur:240, rest:60, metric:"calories", scorers:4,
       blocks:[
         {name:"Block 1", machine:"Run",  desc:"Pair 1 — 600/500/400m run · Pair 2 — max DBall reverse lunge"},
         {name:"Block 2", machine:"Row",  desc:"Pair 1 — 600/500/400m row · Pair 2 — max burpee box jump overs"},
@@ -427,6 +430,7 @@
   const KEY="af_erg_cfg_v4";
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
+  if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
 
@@ -523,7 +527,7 @@
         const w=wattsFor(e.split)*effort;
         const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
         e.m+=dm; e.cals+=dc;
-        if(P.phase==="score") e.blockCals += (R().metric==="calories"? dc : dm);
+        if(P.phase==="score") e.blockCals += (R().metric==="calories"? dc : dm) * clamp(R().scorers||1,1,8);
       } else { e.split=0; e.spm=0; }
     }
     renderLanesRot(P);
@@ -899,7 +903,7 @@
 
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
-    $("rWork").value=R().workDur; $("rScore").value=R().scoreDur; $("rRest").value=R().rest;
+    $("rWork").value=R().workDur; $("rScore").value=R().scoreDur; $("rRest").value=R().rest; $("rScorers").value=R().scorers||4;
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
     pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
     pillGroup("segMetric",R().metric,v=>R().metric=v);
@@ -910,6 +914,7 @@
     $("rWork").oninput=e=>{R().workDur=clamp(+e.target.value||60,60,7200);save();};
     $("rScore").oninput=e=>{R().scoreDur=clamp(+e.target.value||30,30,3600);save();};
     $("rRest").oninput=e=>{R().rest=clamp(+e.target.value||0,0,1800);save();};
+    $("rScorers").oninput=e=>{R().scorers=clamp(+e.target.value||1,1,8);save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
     $("cPerUnit").oninput=e=>{cfg.scoring.perUnit=clamp(+e.target.value||1,1,1e5);save();};
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
