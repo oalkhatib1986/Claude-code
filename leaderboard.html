@@ -423,6 +423,11 @@
   .subtabs button:hover{border-color:rgba(255,255,255,.35)}
   .subtabs button.on{background:var(--ink);color:#0a0a0a;border-color:var(--ink)}
   body.bigscreen .subtabs{display:none}
+  #scrTabs{display:none}
+  body.bigscreen #scrTabs{display:flex;opacity:.25;transition:opacity .2s}
+  body.bigscreen #scrTabs:hover{opacity:1}
+  body.wkscreen .board{display:none!important}
+  body.wkscreen .blocks{display:grid!important}
   .ctl-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
   .teamsfld{max-width:170px;flex:1}
   .fmtrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:4px}
@@ -465,6 +470,19 @@
     body.bigscreen .track{max-width:none;height:6px}
     body.bigscreen .clock b{font-size:64px}
     body.bigscreen .subhead .ttl b{font-size:52px}
+    body.wkscreen .blocks{grid-template-columns:repeat(2,1fr);gap:26px;margin-top:26px}
+    body.wkscreen .blk{padding:28px 32px;gap:16px}
+    body.wkscreen .blk .bh b{font-size:36px}
+    body.wkscreen .blk .bh .mc{font-size:17px;padding:6px 16px}
+    body.wkscreen .blk .bd{font-size:24px;line-height:1.6}
+    body.wkscreen .blk .win{font-size:17px}
+    body.wkscreen .blk .teams .t{font-size:19px}
+    body.wkscreen .blk .teams .dot{width:13px;height:13px}
+    body.wkscreen .blk .teams .mtag{font-size:15px;padding:2px 9px}
+    body.wkscreen .clock b{font-size:110px}
+    body.wkscreen .clock span{font-size:15px;letter-spacing:.3em}
+    body.wkscreen .phase .plabel{font-size:26px}
+    body.wkscreen .phase .pdesc{font-size:18px}
   }
   @media (max-width:720px){
     :root{--rowH:78px}
@@ -528,6 +546,10 @@
   </header>
 
   <!-- ============ BOARD ============ -->
+  <div class="subtabs" id="scrTabs">
+    <button id="smLead" class="on" type="button">Leaderboard</button>
+    <button id="smWork" type="button">Workout + Timer</button>
+  </div>
   <div class="subtabs" id="subTabs">
     <button id="stWorkout" class="on" type="button">Workout</button>
     <button id="stSetup" type="button">Setup</button>
@@ -1567,8 +1589,13 @@
   /* ================= tabs ================= */
   const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"]};
   let subTab="workout";
+  let scrMode="lead";
   function show(which){
     document.body.classList.toggle("bigscreen",which==="screen");
+    document.body.classList.toggle("wkscreen",which==="screen"&&scrMode==="work");
+    $("scrTabs").hidden=which!=="screen";
+    $("smLead").classList.toggle("on",scrMode==="lead");
+    $("smWork").classList.toggle("on",scrMode==="work");
     for(const k in TABS) $(TABS[k][0]).setAttribute("aria-selected",k===which);
     let active=TABS[which][1];
     if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":"viewBoard";
@@ -1577,12 +1604,14 @@
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
-    try{ history.replaceState(null,"",which==="screen"?"#screen":location.pathname+location.search); }catch(e){}
+    try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet");
   [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
+  $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
+  $("smWork").onclick=()=>{ scrMode="work"; show("screen"); };
 
   /* ================= erg tablet ================= */
   const TKEY="af_tablet_sel";
@@ -2245,7 +2274,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=114;
+  const BUILD=115;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -2259,5 +2288,9 @@
   checkUpdate(); setInterval(checkUpdate,120000);
   applyAccent(); buildControlRoom(); build();
   if(location.hash==="#screen") show("screen");
+  else if(location.hash==="#workout"){ scrMode="work"; show("screen"); }
+  window.addEventListener("hashchange",()=>{
+    if(location.hash==="#screen"){ scrMode="lead"; show("screen"); }
+    else if(location.hash==="#workout"){ scrMode="work"; show("screen"); } });
 })();
 </script>
