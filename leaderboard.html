@@ -830,7 +830,7 @@
   const stationOf=e=>nBlocks()? (e.id+rot.round)%nBlocks() : -1;
   const teamsAt=bi=>ergs.filter(e=>stationOf(e)===bi);
   const invOf=m=>m?((cfg.inventory&&cfg.inventory[m])||0):0;
-  const machinesPerTeam=b=>{ const it=(b.items||[]).find(x=>x.scored&&!x.rest); return it?itemScorers(it):4; };
+  const machinesPerTeam=b=>1; // a team shares one erg and alternates on it
   const allocAt=bi=>{ const b=R().blocks[bi]; const k=machinesPerTeam(b);
     const ts=teamsAt(bi); const cap=invOf(blockMachine(b));
     return { teams:ts.map((e,j)=>({e, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
@@ -956,7 +956,7 @@
         const w=wattsFor(e.split)*effort;
         const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
         e.m+=dm; e.cals+=dc;
-        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc) * itemScorers(seg.it);
+        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc);
       } else { e.split=0; e.spm=0; }
     }
     const hotAny=ergs.some(e=>e.hot);
@@ -1365,7 +1365,7 @@
       const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
-        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><div class="tb-tinfo"><b>${esc(t.e.name)}</b><i>${running&&t.e.split>0?`${fmtSplit(t.e.split)}/500 &middot; ${Math.round(wattsFor(t.e.split))}w &middot; r${Math.round(t.e.spm)}`:running?"erg idle":"&nbsp;"}</i></div><span>Machines ${t.from===t.to?t.from:t.from+"&ndash;"+t.to}<br><b class="tb-sc">${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</b></span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
+        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><div class="tb-tinfo"><b>${esc(t.e.name)}</b><i>${running&&t.e.split>0?`${fmtSplit(t.e.split)}/500 &middot; ${Math.round(wattsFor(t.e.split))}w &middot; r${Math.round(t.e.spm)}`:running?"erg idle":"&nbsp;"}</i></div><span>Machine${t.from===t.to?"":"s"} ${t.from===t.to?t.from:t.from+"&ndash;"+t.to}<br><b class="tb-sc">${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</b></span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
         ${al.over?`<div class="tb-note" style="color:var(--hot);text-align:center">Needs ${al.need} machines &mdash; only ${al.cap} available. Fix in Control Room.</div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
@@ -1719,10 +1719,10 @@
     const el=$("capReport"); if(!el) return;
     if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML="Capacity checks apply to rotating-block sessions."; return; }
     const wt=worstTeamsPerBlock();
-    el.innerHTML=`With <b>${cfg.crews.length} teams</b> across <b>${nBlocks()} blocks</b>, up to <b>${wt}</b> team${wt>1?"s":""} share a block at once.<br>`+
+    el.innerHTML=`Each team shares <b>one machine</b> (athletes alternate). With <b>${cfg.crews.length} teams</b> across <b>${nBlocks()} blocks</b>, up to <b>${wt}</b> team${wt>1?"s":""} on a block at once — so each block needs ${wt} machine${wt>1?"s":""}.<br>`+
       R().blocks.map(b=>{
-        const k=machinesPerTeam(b), need=wt*k, cap=invOf(blockMachine(b)), bad=need>cap;
-        return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${esc(b.name)} · ${bmLabel(b)} — ${wt}×${k} = ${need} machines of ${cap}${bad?" — OVER</span>":" ✓"}`;
+        const need=wt*machinesPerTeam(b), cap=invOf(blockMachine(b)), bad=need>cap;
+        return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${esc(b.name)} · ${bmLabel(b)} — ${need} of ${cap} machines${bad?" — OVER</span>":" ✓"}`;
       }).join("<br>");
   }
   function buildControlRoom(){
