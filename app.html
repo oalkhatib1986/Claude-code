@@ -200,8 +200,8 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 15px center}
   .pills{display:flex;flex-wrap:wrap;gap:9px}
-  .pills button{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:10px 19px;
-    font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
+  .pills button{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:9px 16px;
+    font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.14s;white-space:nowrap}
   .pills button:hover{border-color:rgba(255,255,255,.25);color:var(--ink)}
   .pills button[aria-pressed="true"]{background:var(--accent);color:#0a0a0a;border-color:var(--accent)}
   .checks{display:flex;flex-wrap:wrap;gap:12px 22px}
@@ -232,7 +232,7 @@
   .crew .del:hover{color:#fff;border-color:rgba(255,255,255,.3)}
   .crew.solo{grid-template-columns:40px 1fr 44px}
   .crew .mtog{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:10px;height:40px;padding:0 14px;cursor:pointer;
-    font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;transition:.14s}
+    font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;transition:.14s}
   .crew .mtog:hover{border-color:rgba(255,255,255,.3);color:var(--ink)}
   .crew .mtog i{font-style:normal;color:var(--ink-mute);margin-left:5px}
   .crew .marea{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:2px 0 4px}
@@ -567,7 +567,7 @@
     .maxbtn{padding:7px 11px}
     .exr2 .dsel{width:100%;margin-left:0;min-width:0}
     #segMode{flex-wrap:nowrap}
-    #segMode button{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #segMode button{flex:1 1 0;min-width:0;padding:9px 4px;overflow:hidden;text-overflow:ellipsis}
     .tabs{margin-left:0;width:100%;justify-content:stretch;padding:4px;gap:2px}
     .tabs button{flex:1 1 0;min-width:0;padding:8px 2px;font-size:11px;letter-spacing:.16em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .controls .hint{display:none}
@@ -1185,7 +1185,10 @@
   const bmShort=b=>{ const m=blockMachine(b); return m?mInfo(m).short:"\u2014"; };
   const BLKCOL=["255,255,255","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
-  const exTxt=x=>`${x.who} — ${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`;
+  const whoShown=x=>{ const w=(x.who||"").trim(); if(!w) return "";
+    if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|athlete ?\d+)$/i.test(w)) return "";
+    return w; };
+  const exTxt=x=>{ const w=whoShown(x); return `${w?w+" — ":""}${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`; };
   const exLines=b=>{
     const its=b.items||[];
     if(!its.length) return esc(b.desc||"—");
@@ -1875,13 +1878,13 @@
       nm.oninput=()=>{b.name=nm.value;save();};
       const partsEl=box.querySelector(".bparts");
 
-      const newEx=()=>({who:"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
+      const newEx=()=>({who:cfg.teamKind==="solo"?"":"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
       const whoOpts=()=>["Everyone","All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
 
       const exerciseRow=(it,x,onRemove,onSplit)=>{
         const row=document.createElement("div"); row.className="exwrap";
         const r1=document.createElement("div"); r1.className="exr1 slim";
-        r1.appendChild(menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"}));
+        if(cfg.teamKind!=="solo") r1.appendChild(menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"}));
         r1.appendChild(menuField(()=>cfg.library, ()=>x.name, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, {addable:true, addLabel:"+ Add", searchPh:"Search or add exercise…"}));
         const del=document.createElement("button"); del.className="iconbtn exdel"; del.title="Remove exercise"; del.innerHTML="&times;"; del.onclick=onRemove;
         r1.appendChild(del);
@@ -2248,7 +2251,7 @@
     [...$("fmtKind").children].forEach(b=>b.onclick=()=>{ if(cfg.teamKind===b.dataset.v) return;
       cfg.teamKind=b.dataset.v;
       cfg.crews.forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c.name)) c.name=crewPrefix()+" "+(i+1); });
-      save(); syncFmt(); buildCrews(); if(!sessionActive&&!running) build(); });
+      save(); syncFmt(); buildCrews(); buildBlocks(); if(!sessionActive&&!running) build(); });
     [...$("fmtScore").children].forEach(b=>b.onclick=()=>{ cfg.noScore=b.dataset.v==="off"; save();
       [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
       buildBlocks(); if(!sessionActive&&!running) build(); });
@@ -2502,7 +2505,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=142;
+  const BUILD=144;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
