@@ -341,6 +341,34 @@
     font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
     box-shadow:0 12px 40px -8px rgba(0,0,0,.8)}
   #updBar[hidden]{display:none}
+  .transport{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  #rlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .rrow{border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:opacity .3s,border-color .15s}
+  .rrow .rh{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
+  .rrow .rh span{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.18em;color:var(--ink-mute)}
+  .rrow.done{opacity:.3;pointer-events:none}
+  .rrow.cur{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.035)}
+  .rrow.next{cursor:pointer}
+  .rrow.next:hover{border-color:rgba(255,255,255,.3)}
+  .prt{display:flex;align-items:center;gap:9px;padding:9px 2px 9px 8px;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-dim);transition:opacity .3s}
+  .prt i{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--ink-mute);margin-left:auto}
+  .prt.done{opacity:.3;pointer-events:none}
+  .prt.cur{color:var(--ink)} .prt.cur.scored{color:var(--hot)}
+  .prt.cur i{color:var(--ink)}
+  .prt.nextp{cursor:pointer}
+  .prt.nextp:hover{color:var(--ink)}
+  .prt .pd{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+  .prt.cur .pd{background:var(--accent)} .prt.cur.scored .pd{background:var(--hot)}
+  #bdock{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:wrap;background:rgba(10,10,10,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:15px;padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom));box-shadow:0 10px 34px rgba(0,0,0,.6);max-width:calc(100vw - 14px)}
+  #bdock b{font-family:var(--mono);font-size:15px;padding:0 4px}
+  #bdock b.hot{color:var(--hot)}
+  #bdock b:empty{display:none}
+  body.bigscreen #bdock{display:none}
+  #viewBoard{padding-bottom:86px}
+  .tb-namer{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.03)}
+  .tb-namer label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
+  .tb-namer div{display:flex;gap:8px}
+  .tb-namer input{flex:1;min-width:0;background:#0f0f0f;border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 12px;font-size:16px}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -440,6 +468,16 @@
       <div class="board-head"><span>Rank · Team · Where they are</span><span id="scoreLabel">Score</span></div>
       <div class="lanes" id="lanes"></div>
     </div>
+
+    <div id="bdock">
+      <b id="bdInfo"></b>
+      <button class="btn small" id="bdb10" type="button">&minus;10s</button>
+      <button class="btn small" id="bdb5" type="button">&minus;5s</button>
+      <button class="btn small" id="bdPause" type="button">Pause</button>
+      <button class="btn small" id="bdf5" type="button">+5s</button>
+      <button class="btn small" id="bdf10" type="button">+10s</button>
+      <button class="btn small primary" id="bdStart" type="button">Start</button>
+    </div>
   </section>
 
   <!-- ============ TRAINER (the only page with controls) ============ -->
@@ -452,7 +490,15 @@
           <button class="btn primary" id="startBtn">Start session</button>
           <button class="btn" id="resetBtn" disabled>Reset</button>
         </div>
-        <div class="note">Run the class from here. The Board shows the workout, the Big Screen shows live results — this is the only page with controls.</div>
+        <div class="transport">
+          <button class="btn small" id="tkb10" type="button">&minus;10s</button>
+          <button class="btn small" id="tkb5" type="button">&minus;5s</button>
+          <button class="btn" id="tkpause" type="button">Pause</button>
+          <button class="btn small" id="tkf5" type="button">+5s</button>
+          <button class="btn small" id="tkf10" type="button">+10s</button>
+        </div>
+        <div id="rlist"></div>
+        <div class="note">Run the class from here — or straight from the Board, which has the same start / pause / skip controls in a bar at the bottom. The Big Screen stays display-only.</div>
       </div>
     </div>
   </section>
@@ -460,7 +506,7 @@
   <!-- ============ ERG TABLET (what each athlete sees) ============ -->
   <section class="view" id="viewTablet">
     <div class="tb-wrap">
-      <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. In the gym, every tablet is set once to its own station below — athletes never touch settings. Start the session from the Board tab and watch this update live.</div>
+      <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows the team assigned to this machine, and new teams type their name right here at their first station.</div>
       <div class="fld" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
       <div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div>
     </div>
@@ -846,7 +892,7 @@
   const machinesPerTeam=b=>1; // a team shares one erg and alternates on it
   const allocAt=bi=>{ const b=R().blocks[bi]; const k=machinesPerTeam(b);
     const ts=teamsAt(bi); const cap=invOf(blockMachine(b));
-    return { teams:ts.map((e,j)=>({e, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
+    return { teams:ts.map((e,j)=>({e, j, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
   const mrange=t=>t.from===t.to?`M${t.from}`:`M${t.from}\u2013${t.to}`;
   const worstTeamsPerBlock=()=>nBlocks()?Math.ceil(cfg.crews.length/nBlocks()):0;
   const itemTypes=it=>{ const s=new Set(); (it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) s.add(m); }); return [...s]; };
@@ -865,10 +911,17 @@
     return peaks;
   };
   const anyOver=()=>{ const p=typePeaks(); return Object.keys(p).some(m=>p[m]>invOf(m)); };
-  const teamMachLabel=(e,j,verbose)=>{ const n=j+1;
-    const ts=(running&&e.curTypes&&e.curTypes.length)?e.curTypes:null;
-    if(ts&&ts.length>1) return ts.map(m=>mInfo(m).short+" M"+n).join(" + ");
-    return (verbose?"Machine ":"M")+n; };
+  // fixed machine numbering: every block slot gets real machine numbers per type,
+  // counted across blocks in order — so "Rower 3" means the same physical erg all session
+  const machSlots=()=>{ const ctr={}, byKey={}, byBlock=[]; const wt=worstTeamsPerBlock();
+    R().blocks.forEach((b,bi)=>{ const types=[...blockUsesTypes(b)]; const slots=[];
+      for(let j=0;j<wt;j++){ const mm={}; types.forEach(tp=>{ ctr[tp]=(ctr[tp]||0)+1; mm[tp]=ctr[tp]; byKey[tp+":"+ctr[tp]]={bi,j}; }); slots.push(mm); }
+      byBlock.push(slots); });
+    return {byKey,byBlock}; };
+  const slotLabel=(bi,j,types)=>{ const mm=(machSlots().byBlock[bi]||[])[j]||{};
+    let ks=Object.keys(mm); if(types&&types.length){ const f=types.filter(t=>mm[t]!=null); if(f.length) ks=f; }
+    if(!ks.length) return "M"+(j+1);
+    return ks.map(t=>mInfo(t).short+" "+mm[t]).join(" + "); };
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
     if(n.includes("assault bike")||n.includes("echo")) return "Echo";
@@ -939,6 +992,7 @@
 
   function frameRest(now){
     if(rot.phase!=="rest") return;
+    if(paused) return;
     const remain=(R().blockRest||0)-(now-restT0)/1000;
     if(remain<=0){ rot.phase="pre"; syncRotChrome(); renderLanesRot(); renderTablet(); return; }
     rot.remain=remain;
@@ -949,6 +1003,7 @@
 
   function startBlock(){
     cancelAnimationFrame(raf); clearTimeout(ticker);
+    paused=false; { const pb=$("tkpause"); if(pb) pb.textContent="Pause"; }
     running=true; sessionActive=true; finished=false;
     rot.phase="run"; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
@@ -958,6 +1013,7 @@
   }
 
   function frameRotation(now){
+    if(paused) return;
     const t=(now-t0)/1000;
     if(t>=roundLen()){
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
@@ -1029,7 +1085,7 @@
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
-        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${mrange(t)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no teams this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no teams this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
   }
@@ -1052,7 +1108,7 @@
       else{
         const here=R().blocks[st], next=R().blocks[(st+1)%nBlocks()];
         const mi=allocAt(st).teams.findIndex(t=>t.e===e);
-        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}${mi>=0?` · ${teamMachLabel(e,mi)}`:""}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
+        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}${mi>=0?` · ${slotLabel(st,mi,running?e.curTypes:null)}`:""}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
       }
       e.el.querySelector(".loc").innerHTML=loc;
       const st2=stationOf(e);
@@ -1115,6 +1171,7 @@
     $("phaseDesc").textContent = finished?"Final scores locked": (seg().format==="time"?`fixed time ${fmtMS(seg().duration)}`:`race to ${seg().target}m`);
   }
   function frameSequence(now){
+    if(paused) return;
     const s=seg(), t=(now-t0)/1000, timeUp=s.format==="time"&&t>=s.duration;
     for(const e of ergs){
       if(e.cur.done) continue;
@@ -1357,7 +1414,7 @@
     if(reduce){ const loop=()=>{ if(!running)return; frameSequence(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
     else raf=requestAnimationFrame(frameSequence);
   }
-  function reset(){ running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
+  function reset(){ running=false; paused=false; { const pb=$("tkpause"); if(pb) pb.textContent="Pause"; } cancelAnimationFrame(raf); clearTimeout(ticker);
     startBtn.disabled=false; resetBtn.disabled=true; build(); }
   startBtn.onclick=start; resetBtn.onclick=reset;
 
@@ -1377,38 +1434,45 @@
 
   /* ================= erg tablet ================= */
   const TKEY="af_tablet_sel";
-  let tabletSel=0; try{ tabletSel=+localStorage.getItem(TKEY)||0; }catch(e){}
+  let tabletSel="0"; try{ tabletSel=localStorage.getItem(TKEY)||"0"; }catch(e){}
   let pickOpen=false;
   function buildTabletSel(){
     const sel=$("tabletSel");
     let opts = cfg.mode==="rotation"
-      ? R().blocks.map((b,i)=>`<option value="${i}">${esc(b.name)} — ${bmLabel(b)} bank</option>`)
+      ? ["Row","Ski","Bike","Run","Echo"].flatMap(tp=>Array.from({length:invOf(tp)},(_,n)=>`<option value="${tp}:${n+1}">${mInfo(tp).label} ${n+1}</option>`))
       : cfg.mode==="waves"
       ? cfg.segments.map((s,i)=>`<option value="${i}">${esc(s.name)||("Station "+(i+1))} — ${mInfo(s.machine).label}</option>`)
       : cfg.crews.map((c,i)=>`<option value="${i}">${esc(c.name)}'s erg</option>`);
     if(!opts.length) opts=['<option value="0">—</option>'];
     sel.innerHTML=opts.join("");
-    sel.value=String(clamp(tabletSel,0,opts.length-1));
-    sel.onchange=()=>{ tabletSel=+sel.value; pickOpen=false; try{localStorage.setItem(TKEY,sel.value);}catch(e){} renderTablet(); };
+    if([...sel.options].some(o=>o.value===String(tabletSel))) sel.value=String(tabletSel);
+    else { sel.selectedIndex=0; tabletSel=sel.value; }
+    sel.onchange=()=>{ tabletSel=sel.value; pickOpen=false; try{localStorage.setItem(TKEY,sel.value);}catch(e){} renderTablet(); };
     enhanceSelects(sel.closest(".fld")||document);
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(cfg.mode==="rotation"){
+      const ni0=scr.querySelector("#tbName"); if(ni0&&(ni0===document.activeElement||ni0.value)) return;
       if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in the Control Room.</div>`; return; }
-      const bi=clamp(tabletSel,0,nBlocks()-1), b=R().blocks[bi];
-      const al=allocAt(bi);
+      const sv=String(tabletSel), mtype=sv.includes(":")?sv.split(":")[0]:null, mnum=sv.includes(":")?+sv.split(":")[1]:0;
+      const mLabel=mtype?`${mInfo(mtype).label} ${mnum}`:"\u2014";
+      const hit=mtype?machSlots().byKey[mtype+":"+mnum]:null;
+      if(!hit){ scr.innerHTML=`<div class="tb-top"><span class="bname">${mLabel}</span><span class="bmach">idle</span></div><div class="tb-note" style="padding:38px 12px;text-align:center">This machine isn&rsquo;t used in today&rsquo;s workout &mdash; nothing to do here.</div>`; return; }
+      const bi=hit.bi, b=R().blocks[bi];
+      const team=teamsAt(bi)[hit.j]||null;
       const phase=rot.phase;
       const seg=running?segAt(b,rot.elapsed):null;
       const hot=!!(seg&&seg.it.scored&&!seg.it.rest);
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
+      const needName=!!(team&&/^Team \d+$/.test(team.name));
       scr.innerHTML=`
-        <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
-        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><div class="tb-tinfo"><b>${esc(t.e.name)}</b><i>${running&&t.e.split>0?`${fmtSplit(t.e.split)}/500 &middot; ${Math.round(wattsFor(t.e.split))}w &middot; r${Math.round(t.e.spm)}`:running?"erg idle":"&nbsp;"}</i></div><span>${teamMachLabel(t.e,t.from-1,true)}<br><b class="tb-sc">${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</b></span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
-        ${al.over?`<div class="tb-note" style="color:var(--hot);text-align:center">Needs ${al.need} machines &mdash; only ${al.cap} available. Fix in Control Room.</div>`:""}
+        <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
+        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No team on this machine this round</b><span>&nbsp;</span></div>`}</div>
+        ${needName?`<div class="tb-namer"><label>Your team &mdash; type your team name</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="rest"?"Rest — rotate stations":
@@ -1416,10 +1480,16 @@
           seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
         <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
         <div class="tb-work"><b>This block</b>${exLines(b)}</div>
-        ${!lastRound&&phase!=="done"?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
+        ${!lastRound&&phase!=="done"&&team?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
         ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}`;
+      const gi=$("tbNameGo");
+      if(gi){ const commit=()=>{ const inp=$("tbName"); const v=(inp.value||"").trim(); if(!v||!team) return;
+          cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
+          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(); };
+        gi.onclick=commit;
+        $("tbName").onkeydown=ev=>{ if(ev.key==="Enter") commit(); }; }
     } else if(cfg.mode==="waves"){
-      const si=clamp(tabletSel,0,cfg.segments.length-1), s=cfg.segments[si];
+      const si=clamp(+tabletSel||0,0,cfg.segments.length-1), s=cfg.segments[si];
       const here=ergs.filter(e=>e.released&&e.finT==null&&e.stage===si);
       const e=here[0];
       const nxt=cfg.segments[si+1];
@@ -1437,7 +1507,7 @@
         <div class="tb-work"><b>Course</b>${cfg.segments.map((x,i)=>`${i===si?"&#9654; ":""}${esc(x.name)||("Station "+(i+1))}`).join(" · ")}</div>
         ${nxt?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     } else {
-      const ti=clamp(tabletSel,0,ergs.length-1), e=ergs[ti];
+      const ti=clamp(+tabletSel||0,0,ergs.length-1), e=ergs[ti];
       if(!e){ scr.innerHTML=""; return; }
       const s=cfg.segments[clamp(seqIdx,0,cfg.segments.length-1)], nxt=cfg.segments[seqIdx+1];
       scr.innerHTML=`
@@ -1829,11 +1899,89 @@
     buildPresetSel();
   }
 
+  let paused=false, pauseMark=0, rlSig="";
+  function enginePump(){
+    if(cfg.mode==="rotation") raf=requestAnimationFrame(rot.phase==="rest"?frameRest:frameRotation);
+    else if(cfg.mode==="sequence") raf=requestAnimationFrame(frameSequence);
+  }
+  function setPaused(v){
+    if(cfg.mode==="waves") return;
+    const active=running||(cfg.mode==="rotation"&&rot.phase==="rest"&&sessionActive);
+    if(!active||v===paused) return;
+    paused=v;
+    const btn=$("tkpause");
+    if(v){ pauseMark=performance.now(); cancelAnimationFrame(raf); clearTimeout(ticker);
+      btn.textContent="Resume"; clockState.textContent="Paused"; }
+    else { const d=performance.now()-pauseMark; t0+=d; restT0+=d; btn.textContent="Pause"; enginePump(); }
+  }
+  function seek(ds){
+    if(paused||cfg.mode==="waves") return;
+    const now=performance.now();
+    if(cfg.mode==="rotation"&&rot.phase==="rest"){ restT0-=ds*1000; if(restT0>now) restT0=now; return; }
+    if(!running) return;
+    t0-=ds*1000; if(t0>now) t0=now;
+  }
+  $("tkpause").onclick=()=>setPaused(!paused);
+  $("tkb10").onclick=()=>seek(-10); $("tkb5").onclick=()=>seek(-5);
+  $("tkf5").onclick=()=>seek(5); $("tkf10").onclick=()=>seek(10);
+  $("bdStart").onclick=()=>startBtn.click();
+  $("bdPause").onclick=()=>setPaused(!paused);
+  $("bdb10").onclick=()=>seek(-10); $("bdb5").onclick=()=>seek(-5);
+  $("bdf5").onclick=()=>seek(5); $("bdf10").onclick=()=>seek(10);
+
+  function buildTrainerList(){
+    const el=$("rlist"); if(!el) return;
+    if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML=""; rlSig="x"; return; }
+    let curIdx=-1;
+    if(running){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); curIdx=sg?sg.i:99; }
+    const sig=[rot.round,rot.phase,running,paused,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]})].join("|");
+    if(sig===rlSig){
+      if(running){ const t=el.querySelector(".prt.cur i");
+        if(t){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); if(sg) t.textContent=fmtMS(sg.remain); } }
+      return;
+    }
+    rlSig=sig;
+    let out="";
+    for(let r=0;r<totalRounds();r++){
+      const bi=blockIdxOf(r), b=R().blocks[bi];
+      const isDone=finished||r<rot.round;
+      const isCur=!finished&&r===rot.round;
+      const cls=isDone?"done":isCur?"cur":"next";
+      const status=isDone?"Done":isCur?(running?(paused?"Paused":"Running"):rot.phase==="rest"?"Rest":"Up next"):"Queued";
+      out+=`<div class="rrow ${cls}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span></div>`;
+      if(isCur){
+        let acc=0;
+        (b.items||[]).forEach((it,ii)=>{
+          const st=acc; acc+=it.dur;
+          const es=!running?"":(rot.elapsed>=acc?"done":rot.elapsed>=st?"cur":"nextp");
+          const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(ii+1)));
+          out+=`<div class="prt ${es} ${it.scored?"scored":""}" data-seek="${st}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(acc-rot.elapsed):fmtMS(it.dur)}</i></div>`;
+        });
+      }
+      out+=`</div>`;
+    }
+    el.innerHTML=out;
+    el.querySelectorAll(".rrow.next").forEach(row=>{
+      row.onclick=()=>{ if(running||paused) return; rot.round=+row.dataset.r; rot.phase="pre"; syncRotChrome(); startBlock(); };
+    });
+    const curRow=el.querySelector(".rrow.cur");
+    if(curRow&&!running&&rot.phase==="pre"){ curRow.style.cursor="pointer"; curRow.onclick=()=>startBlock(); }
+    el.querySelectorAll(".prt.nextp").forEach(pr=>{
+      pr.onclick=ev=>{ ev.stopPropagation(); if(!running||paused) return; t0=performance.now()-(+pr.dataset.seek)*1000; };
+    });
+  }
+
   setInterval(()=>{ const a=$("tClock"); if(!a) return;
+    const noTk=cfg.mode==="waves";
+    ["tkpause","tkb10","tkb5","tkf5","tkf10","bdPause","bdb10","bdb5","bdf5","bdf10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk; });
+    buildTrainerList();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
-    $("tState").textContent=clockState.textContent; },400);
-  const BUILD=103;
+    $("tState").textContent=clockState.textContent;
+    const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
+    const bp=$("bdPause"); if(bp&&cfg.mode!=="waves") bp.textContent=$("tkpause").textContent;
+    const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); } },400);
+  const BUILD=104;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
