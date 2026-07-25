@@ -450,7 +450,6 @@
   #wkPick{display:block}
   #wkPick .mwrap{display:block}
   #wkPick .mfield{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left}
-  #wkPick .mfield::after{content:"\25BE";color:var(--ink-mute);margin-left:10px}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -645,7 +644,15 @@
             <button class="btn small" id="wkSave" type="button">Save</button>
             <button class="btn small" id="wkNew" type="button">New</button>
           </div>
-          <div class="note">Pick a saved workout to load it &mdash; or type a new name in the search box to <b>save the current one under that name</b>. <b>Save</b> updates the loaded workout with your edits; <b>New</b> starts a blank one (teams, machines and branding stay).</div>
+          <div class="row2">
+            <div class="fld"><label>Board title</label><input type="text" id="cName" maxlength="40"></div>
+            <div class="fld"><label>Subtitle</label><input type="text" id="cSub" maxlength="40"></div>
+          </div>
+          <div class="addbtns">
+            <button class="btn small" id="exportCfg" type="button">Export code</button>
+            <button class="btn small" id="importCfg" type="button">Import code</button>
+          </div>
+          <div class="note">Pick a saved workout to load it &mdash; or type a new name in the search box to <b>save the current one under that name</b>. <b>Save</b> updates the loaded workout; <b>New</b> starts a blank one (teams, machines and branding stay). Export / Import moves a workout between phones as a text code.</div>
         </div>
       </div>
 
@@ -745,18 +752,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <h3>Event</h3>
-        <div class="body">
-          <div class="fld"><label>Session name</label><input type="text" id="cName" maxlength="40"></div>
-          <div class="fld"><label>Subtitle</label><input type="text" id="cSub" maxlength="40"></div>
-          <div class="addbtns">
-            <button class="btn small" id="exportCfg" type="button">Export code</button>
-            <button class="btn small" id="importCfg" type="button">Import code</button>
-          </div>
-          <div class="note">Export / Import moves a complete workout between phones as a text code.</div>
-        </div>
-      </div>
 
       <div class="card">
         <h3>Board display · Brand</h3>
@@ -2274,7 +2269,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=115;
+  const BUILD=116;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
