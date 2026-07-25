@@ -1170,6 +1170,7 @@
     return ks.map(t=>mInfo(t).short+" "+mm[t]).join(" + "); };
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
+    if(n.includes("gorilla")||n.includes("bent over")||n.includes("dumbbell row")||n.includes("db row")||n.includes("barbell row")||n.includes("kb row")||n.includes("ring row")) return null;
     if(n.includes("assault bike")||n.includes("echo")) return "Echo";
     if(n.includes("bike")) return "Bike";
     if(n.includes("row")) return "Row";
@@ -2162,6 +2163,34 @@
   const PKEY="af_presets_v1";
   let presets; try{ presets=JSON.parse(localStorage.getItem(PKEY))||[]; }catch(e){ presets=[]; }
   const savePresets=()=>{ try{ localStorage.setItem(PKEY,JSON.stringify(presets)); }catch(e){} };
+  (function seedPresets(){
+    if(presets.some(p=>p.name==="Full Body")) return;
+    const c=structuredClone(DEFAULTS);
+    c.name="Full Body"; c.wkName="Full Body"; c.noScore=true;
+    c.rotation={laps:1,blockRest:0,blocks:[
+      {name:"Part A",machine:"Row",items:[
+        {dur:600,scored:false,exercises:[{who:"Everyone",name:"Deadlift @ 80% of 3RM \u00b7 every 2:00",amounts:[5],unit:"reps",max:false}]}
+      ]},
+      {name:"Part B",machine:"Row",items:[
+        {name:"3 Rounds for Quality \u00b7 rest between rounds",group:true,dur:720,scored:false,exercises:[
+          {who:"All",name:"BBell Hip Thrusts",amounts:[10],unit:"reps",max:false},
+          {who:"All",name:"KB Gorilla Row (each side)",amounts:[8],unit:"reps",max:false},
+          {who:"All",name:"Weighted Plank",amounts:[30,45],unit:"sec",max:false}
+        ]}
+      ]},
+      {name:"Part C",machine:"Row",items:[
+        {name:"EMOM \u00d7 12",group:true,dur:720,scored:false,exercises:[
+          {who:"Min 1",name:"Calories (any erg)",amounts:[8,10,12,14],unit:"cal",max:false},
+          {who:"Min 2",name:"Power Cleans",amounts:[10],unit:"reps",max:false},
+          {who:"Min 3",name:"DB Box Step Overs",amounts:[12],unit:"reps",max:false},
+          {who:"Min 4",name:"Wall Balls",amounts:[12,20],unit:"reps",max:false}
+        ]}
+      ]}
+    ]};
+    presets.push({name:"Full Body",cfg:c});
+    savePresets();
+  })();
+
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
     if(!cfg.teamKind) cfg.teamKind="teams";
@@ -2473,7 +2502,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=141;
+  const BUILD=142;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
