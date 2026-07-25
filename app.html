@@ -435,8 +435,8 @@
   body.wkscreen .blocks{display:grid!important}
   .teamsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .teamsbar label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
-  .teamsbar .dsel{width:148px;flex:none}
-  .teamsbar .dsel-btn{padding:8px 32px 8px 13px;font-size:15px}
+  .teamsbar .mwrap{width:158px;flex:none;display:block}
+  .teamsbar .mfield{padding:9px 32px 9px 13px;font-size:15px}
   .fmtrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:4px}
   #bdock{padding-right:46px}
   #bdock.tucked{display:none}
@@ -616,7 +616,7 @@
       <div class="body" style="padding-top:14px;padding-bottom:14px">
         <div class="teamsbar">
           <label id="tcLabel">Teams today</label>
-          <select id="teamCount"><option value="1">1 team</option><option value="2">2 teams</option><option value="3">3 teams</option><option value="4">4 teams</option><option value="5">5 teams</option><option value="6">6 teams</option><option value="7">7 teams</option><option value="8">8 teams</option><option value="9">9 teams</option><option value="10">10 teams</option><option value="11">11 teams</option><option value="12">12 teams</option><option value="13">13 teams</option><option value="14">14 teams</option><option value="15">15 teams</option><option value="16">16 teams</option><option value="17">17 teams</option><option value="18">18 teams</option><option value="19">19 teams</option><option value="20">20 teams</option></select>
+          <span id="tcPick"></span>
         </div>
       </div>
     </div>
@@ -2018,19 +2018,24 @@
   const TEAMPAL=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
   const crewPrefix=()=>cfg.teamKind==="solo"?"Athlete":"Team";
   function setTeamCount(n){
-    n=clamp(parseInt(n,10)||1,1,20);
+    n=clamp(parseInt(n,10)||1,1,60);
     while(cfg.crews.length<n) cfg.crews.push({name:crewPrefix()+" "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
     if(cfg.crews.length>n) cfg.crews.length=n;
     save(); buildCrews(); buildRankGrid(); updateCapReport();
     if(!sessionActive&&!running) build();
   }
   function syncTeamCount(){
-    const sel=$("teamCount"); if(!sel) return;
+    const wp=$("tcPick"); if(!wp) return;
     const solo=cfg.teamKind==="solo";
     const lb=$("tcLabel"); if(lb) lb.textContent=solo?"Athletes today":"Teams today";
-    [...sel.options].forEach(o=>{ const v=+o.value; o.textContent=v+" "+(solo?(v>1?"athletes":"athlete"):(v>1?"teams":"team")); });
-    sel.value=String(clamp(cfg.crews.length,1,20));
-    const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; }
+    const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
+    wp.innerHTML="";
+    wp.appendChild(menuField(
+      ()=>Array.from({length:60},(_,i)=>unit(i+1)),
+      ()=>unit(clamp(cfg.crews.length,1,60)),
+      v=>{ const n=clamp(parseInt(v,10)||1,1,60); if(n!==cfg.crews.length) setTeamCount(n); else syncTeamCount(); },
+      {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
+    ));
   }
   function buildCrews(){
     syncTeamCount();
@@ -2107,7 +2112,6 @@
       el.oninput=()=>{ cfg.inventory[k]=clamp(parseInt(el.value,10)||0,0,40); save(); updateCapReport(); if(!sessionActive&&!running) build(); };
     });
     updateCapReport();
-    $("teamCount").onchange=e=>setTeamCount(e.target.value);
     const syncFmt=()=>{ const solo=cfg.teamKind==="solo";
       [...$("fmtKind").children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===cfg.teamKind)));
       $("fmtSizeFld").style.display=solo?"none":"";
@@ -2351,7 +2355,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=122;
+  const BUILD=123;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
