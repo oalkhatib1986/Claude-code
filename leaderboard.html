@@ -2389,12 +2389,12 @@
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
     $("tState").textContent=clockState.textContent;
-    if(document.body.classList.contains("bigscreen")&&innerWidth<900) fitScreen();
+    if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=126;
+  const BUILD=127;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -2411,9 +2411,12 @@
   else if(location.hash==="#workout"){ scrMode="work"; show("screen"); }
   function fitScreen(){
     const w=document.querySelector(".wrap"); if(!w) return;
-    const on=document.body.classList.contains("bigscreen")&&innerWidth<900;
+    // layout viewport width: unlike innerWidth it does NOT change during pinch-zoom,
+    // so re-running this never fights the user's zoom
+    const lw=document.documentElement.clientWidth;
+    const on=document.body.classList.contains("bigscreen")&&lw<900;
     if(on){
-      const DW=1560, k=innerWidth/DW;
+      const DW=1560, k=lw/DW;
       w.style.width=DW+"px"; w.style.maxWidth="none";
       w.style.transform="scale("+k+")"; w.style.transformOrigin="top left";
       w.style.marginBottom=(-(w.scrollHeight*(1-k)))+"px";
