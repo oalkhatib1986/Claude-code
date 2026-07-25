@@ -228,6 +228,14 @@
   .crew input[type=color]{width:40px;height:40px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--field);cursor:pointer}
   .crew .del{border:1px solid var(--line);background:transparent;color:var(--ink-mute);border-radius:10px;height:40px;cursor:pointer;font-size:17px;transition:.14s}
   .crew .del:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+  .crew.solo{grid-template-columns:40px 1fr 44px}
+  .crew .mtog{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:10px;height:40px;padding:0 14px;cursor:pointer;
+    font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;transition:.14s}
+  .crew .mtog:hover{border-color:rgba(255,255,255,.3);color:var(--ink)}
+  .crew .mtog i{font-style:normal;color:var(--ink-mute);margin-left:5px}
+  .crew .marea{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:2px 0 4px}
+  .crew .marea[hidden]{display:none}
+  .crew .marea .mem{background:var(--field);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:10px 13px;font-size:16px}
 
   .tb-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .tb-pick button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:16px 8px;
@@ -551,8 +559,8 @@
     .tabs button{flex:1 1 0;min-width:0;padding:9px 1px;font-size:10px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .controls .hint{display:none}
     .row2,.row3{grid-template-columns:1fr}
-    .crew{grid-template-columns:40px 1fr 40px;grid-auto-rows:auto;row-gap:8px}
-    .crew .cnote{grid-column:1/-1}
+    .crew{grid-template-columns:40px 1fr auto 40px;grid-auto-rows:auto;row-gap:8px}
+    .crew.solo{grid-template-columns:40px 1fr 40px}
     .blocks{grid-template-columns:1fr}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -681,7 +689,7 @@
             <button class="btn" id="addCrew">+ Add team</button>
             <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
           </div>
-          <div class="note">Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Nobody picks anything. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.</div>
+          <div class="note" id="crewNote"></div>
         </div>
       </div>
     </div>
@@ -690,7 +698,7 @@
   <!-- ============ ERG TABLET (what each athlete sees) ============ -->
   <section class="view" id="viewTablet">
     <div class="tb-wrap">
-      <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows the team assigned to this machine, and new teams type their name right here at their first station.</div>
+      <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows who is assigned to this machine, and new teams or athletes type their name right here at their first station.</div>
       <div class="fld" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
       <div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div>
     </div>
@@ -716,7 +724,7 @@
             <button class="btn small" id="exportCfg" type="button">Export code</button>
             <button class="btn small" id="importCfg" type="button">Import code</button>
           </div>
-          <div class="note">Pick a saved workout to load it &mdash; or type a new name in the search box to <b>save the current one under that name</b>. <b>Save</b> updates the loaded workout; <b>New</b> starts a blank one (teams, machines and branding stay). Export / Import moves a workout between phones as a text code.</div>
+          <div class="note">Pick a saved workout to load it &mdash; or type a new name in the search box to <b>save the current one under that name</b>. <b>Save</b> updates the loaded workout; <b>New</b> starts a blank one (people, machines and branding stay). Export / Import moves a workout between phones as a text code.</div>
         </div>
       </div>
 
@@ -755,7 +763,7 @@
             <select id="rBRest"><option value="0">Off — trainer decides</option><option value="30">0:30</option><option value="60">1:00</option><option value="90">1:30</option><option value="120">2:00</option><option value="180">3:00</option><option value="300">5:00</option></select></div>
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
-          <div class="note"><b>How a session runs:</b> teams walk to a station and <b>pick their team on that erg's screen</b>. The <b>trainer starts each block</b> from this board when everyone is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard. Each station is a <b>bank of machines</b> (e.g. your 5 rowers) — in scored work the whole team's ergs count at once.</div>
+          <div class="note"><b>How a session runs:</b> everyone is <b>assigned to a machine automatically</b> — every screen shows who goes where. The <b>trainer starts each block</b> when the floor is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard.</div>
         </div>
       </div>
 
@@ -772,7 +780,7 @@
               </div>
             </div>
           </div>
-          <div class="note">Athletes are grouped into waves by their order in the Teams list (first N = wave 1, next N = wave 2 …). Every wave races the same stations below, and each athlete's clock starts when <b>their wave</b> is released — so the leaderboard (fastest total time) is fair across waves.</div>
+          <div class="note">Athletes are grouped into waves by their order in the list (first N = wave 1, next N = wave 2 …). Every wave races the same stations below, and each athlete's clock starts when <b>their wave</b> is released — so the leaderboard (fastest total time) is fair across waves.</div>
         </div>
       </div>
 
@@ -820,7 +828,7 @@
       <div class="card">
         <h3>Board display · Brand</h3>
         <div class="body">
-          <div class="fld"><label>Show under each team's score</label>
+          <div class="fld"><label>Show under each score</label>
             <div class="checks" id="dispChecks">
               <label class="chk"><input type="checkbox" data-d="split"  checked> Split</label>
               <label class="chk"><input type="checkbox" data-d="watts"  checked> Watts</label>
@@ -1176,8 +1184,8 @@
       startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Layout":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
       clockState.textContent=k===0&&!sessionActive?"Block time · ready":(cfg.teamKind==="solo"?"Athletes rotating":"Teams rotating");
       $("phaseBanner").classList.remove("scoring");
-      $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
-      $("phaseDesc").textContent = "Athletes pick their team on the erg screen · trainer starts the block";
+      $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — machines assigned" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
+      $("phaseDesc").textContent = `Every screen shows each ${kw()} their machine · trainer starts the block`;
       clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="rest"){
       $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
@@ -1791,7 +1799,7 @@
     $("seqCard").hidden=m==="rotation";
     $("seqScoreCard").hidden=m!=="sequence";
     $("modeExplain").innerHTML = m==="rotation"
-      ? `<b>Rotating blocks</b> — teams are assigned to machines automatically, the trainer starts each block, and only the scored window counts. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
+      ? `<b>Rotating blocks</b> — ${kws()} are assigned to machines automatically, the trainer starts each block, and only the scored window counts. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
       : m==="waves"
       ? `<b>Waves</b> — wave 1 starts on the trainer's go and races through the stations in order. The next wave is released when the wave ahead clears station 1 (or by the trainer). Leaderboard = fastest total time from your own wave's release.`
       : `<b>Everyone together</b> — the whole class does the same station at the same time, station after station, with its own scoring rules.`;
@@ -2055,6 +2063,9 @@
     { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
     { const x=$("rankHead"); if(x) x.textContent=solo?"Rank · Athlete · Where they are":"Rank · Team · Where they are"; }
+    { const x=$("crewNote"); if(x) x.innerHTML=(solo
+      ?"Athletes are <b>assigned automatically in order</b>: Athletes 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next athletes take Block 2, and so on. Every round the groups move together to the next block; the screens tell everyone where to go. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
+      :"Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here."); }
     const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
     wp.innerHTML="";
     wp.appendChild(menuField(
@@ -2068,16 +2079,35 @@
     syncTeamCount();
     const list=$("crewList"); list.innerHTML="";
     cfg.crews.forEach((c,i)=>{
-      const row=document.createElement("div"); row.className="crew";
+      const row=document.createElement("div"); row.className="crew"+(cfg.teamKind==="solo"?" solo":"");
+      const solo=cfg.teamKind==="solo";
       row.innerHTML=`<input type="color" value="${c.color}">
-        <input type="text" class="cname" placeholder="Team name" value="${esc(c.name)}">
-        <input type="text" class="cnote" placeholder="Members (optional)" value="${esc(c.ath)}">
-        <button class="del">&times;</button>`;
-      const [col,nm,at]=row.querySelectorAll("input"); const del=row.querySelector(".del");
+        <input type="text" class="cname" placeholder="${solo?"Athlete name":"Team name"}" value="${esc(c.name)}">
+        ${solo?"":`<button class="mtog" type="button"></button>`}
+        <button class="del">&times;</button>
+        ${solo?"":`<div class="marea" hidden></div>`}`;
+      const col=row.querySelector('input[type="color"]'), nm=row.querySelector(".cname");
+      const del=row.querySelector(".del");
       const refresh=()=>{ if(!sessionActive&&!running) build(); };
       col.oninput=()=>{c.color=col.value;save();refresh();};
       nm.oninput=()=>{c.name=nm.value;save();refresh();};
-      at.oninput=()=>{c.ath=at.value;save();refresh();};
+      if(!solo){
+        const tog=row.querySelector(".mtog"), area=row.querySelector(".marea");
+        const size=clamp(cfg.teamSize||4,2,6);
+        const init=(c.ath||"").split(",").map(s=>s.trim()).filter(Boolean);
+        const inputs=[];
+        const syncTog=()=>{ const n=inputs.length?inputs.filter(x=>x.value.trim()).length:init.length;
+          tog.innerHTML=`Members${n?` &middot; ${n}`:""} <i>${area.hidden?"&#9662;":"&#9652;"}</i>`; };
+        for(let j=0;j<size;j++){
+          const inp=document.createElement("input");
+          inp.type="text"; inp.className="mem"; inp.placeholder="Member "+(j+1);
+          inp.value=init[j]||"";
+          inp.oninput=()=>{ c.ath=inputs.map(x=>x.value.trim()).filter(Boolean).join(", "); save(); syncTog(); refresh(); };
+          area.appendChild(inp); inputs.push(inp);
+        }
+        tog.onclick=()=>{ area.hidden=!area.hidden; syncTog(); };
+        syncTog();
+      }
       del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
       list.appendChild(row);
     });
@@ -2148,7 +2178,7 @@
       cfg.crews.forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c.name)) c.name=crewPrefix()+" "+(i+1); });
       save(); syncFmt(); buildCrews(); if(!sessionActive&&!running) build(); });
     $("fmtSize").value=String(cfg.teamSize||4);
-    $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6); save(); if(!sessionActive&&!running) build(); };
+    $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6); save(); buildCrews(); if(!sessionActive&&!running) build(); };
     { const w=$("fmtSize").closest(".dsel"); if(w){ const o=$("fmtSize").options[$("fmtSize").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; } }
     syncFmt();
     $("rBRest").value=String(R().blockRest||0);
@@ -2394,7 +2424,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=127;
+  const BUILD=128;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
