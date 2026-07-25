@@ -290,6 +290,9 @@
   .restins button{border:1px dashed rgba(255,190,80,.35);background:none;color:rgba(255,190,80,.7);border-radius:999px;padding:3px 13px;
     font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .restins button:hover{border-color:rgba(255,190,80,.8);color:#ffd394}
+  .restins button.holdtg{border-color:rgba(255,255,255,.18);color:var(--ink-mute)}
+  .restins button.holdtg:hover{border-color:rgba(255,255,255,.45);color:var(--ink-dim)}
+  .restins button.holdtg.on{border-style:solid;border-color:rgba(255,90,90,.55);color:var(--hot)}
   .scrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .spill{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:6px 12px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .spill.on{background:var(--hot);border-color:var(--hot);color:#fff}
@@ -1005,6 +1008,7 @@
     cancelAnimationFrame(raf); clearTimeout(ticker);
     paused=false; { const pb=$("tkpause"); if(pb) pb.textContent="Pause"; }
     running=true; sessionActive=true; finished=false;
+    holding=false; holdPend=holdBounds();
     rot.phase="run"; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
     resetBtn.disabled=false;
@@ -1013,8 +1017,20 @@
   }
 
   function frameRotation(now){
-    if(paused) return;
+    if(paused||holding) return;
     const t=(now-t0)/1000;
+    if(holdPend.length&&t>=holdPend[0]){
+      const hb=holdPend.shift();
+      rot.elapsed=hb; holding=true;
+      cancelAnimationFrame(raf); clearTimeout(ticker);
+      for(const e of ergs){ e.split=0; e.spm=0; e.hot=false; }
+      const nseg=segAt(R().blocks[blockIdxOf(rot.round)],hb+0.01);
+      clockEl.textContent=fmtMS(nseg?nseg.remain:0); clockEl.classList.remove("hot");
+      clockState.textContent="Next part — press start";
+      startBtn.disabled=false; startBtn.textContent="Start next part";
+      renderBlockCards(); renderLanesRot(); renderTablet();
+      return;
+    }
     if(t>=roundLen()){
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
@@ -1406,6 +1422,13 @@
       } else if(running){ releaseWave(now); }
       return;
     }
+    if(cfg.mode==="rotation"&&holding){
+      holding=false; t0=performance.now()-rot.elapsed*1000;
+      startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running\u2026`;
+      if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
+      else raf=requestAnimationFrame(frameRotation);
+      return;
+    }
     if(running) return;
     if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)||anyOver()) return; startBlock(); renderBlockCards(); return; }
     // sequence: full auto run
@@ -1414,7 +1437,7 @@
     if(reduce){ const loop=()=>{ if(!running)return; frameSequence(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
     else raf=requestAnimationFrame(frameSequence);
   }
-  function reset(){ running=false; paused=false; { const pb=$("tkpause"); if(pb) pb.textContent="Pause"; } cancelAnimationFrame(raf); clearTimeout(ticker);
+  function reset(){ running=false; paused=false; holding=false; holdPend=[]; { const pb=$("tkpause"); if(pb) pb.textContent="Pause"; } cancelAnimationFrame(raf); clearTimeout(ticker);
     startBtn.disabled=false; resetBtn.disabled=true; build(); }
   startBtn.onclick=start; resetBtn.onclick=reset;
 
@@ -1474,6 +1497,7 @@
         <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No team on this machine this round</b><span>&nbsp;</span></div>`}</div>
         ${needName?`<div class="tb-namer"><label>Your team &mdash; type your team name</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
+          holding?"Next part — waiting for trainer":
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="rest"?"Rest — rotate stations":
           phase==="done"?"Session complete":
@@ -1711,11 +1735,22 @@
           }
           }
           partsEl.appendChild(sec);
-          if(!isRest && !(b.items[ii+1]&&b.items[ii+1].rest)){
+          {
+            const hasNext=ii<b.items.length-1;
             const ri=document.createElement("div"); ri.className="restins";
-            const rb=document.createElement("button"); rb.type="button"; rb.textContent="+ rest"; rb.title="Insert rest here";
-            rb.onclick=()=>{ b.items.splice(ii+1,0,{rest:true,dur:60,scored:false,exercises:[]}); save(); renderItems(); };
-            ri.appendChild(rb); partsEl.appendChild(ri);
+            if(!isRest && !(b.items[ii+1]&&b.items[ii+1].rest)){
+              const rb=document.createElement("button"); rb.type="button"; rb.textContent="+ rest"; rb.title="Insert rest here";
+              rb.onclick=()=>{ b.items.splice(ii+1,0,{rest:true,dur:60,scored:false,exercises:[]}); save(); renderItems(); };
+              ri.appendChild(rb);
+            }
+            if(hasNext){
+              const hb=document.createElement("button"); hb.type="button"; hb.className="holdtg"+(it.hold?" on":"");
+              hb.textContent=it.hold?"\u2016 trainer starts next":"\u25B8 flows into next";
+              hb.title="Does the clock roll straight into the next part, or stop and wait for the trainer?";
+              hb.onclick=()=>{ it.hold=!it.hold; save(); renderItems(); };
+              ri.appendChild(hb);
+            }
+            if(ri.childNodes.length) partsEl.appendChild(ri);
           }
         });
       };
@@ -1900,12 +1935,17 @@
   }
 
   let paused=false, pauseMark=0, rlSig="";
+  let holding=false, holdPend=[];
+  // union of "wait for trainer" boundaries across all blocks (they share one class clock)
+  const holdBounds=()=>{ const s=new Set();
+    R().blocks.forEach(b=>{ let acc=0; const its=b.items||[]; its.forEach((it,i)=>{ acc+=it.dur; if(it.hold&&i<its.length-1) s.add(acc); }); });
+    return [...s].sort((a,b2)=>a-b2); };
   function enginePump(){
     if(cfg.mode==="rotation") raf=requestAnimationFrame(rot.phase==="rest"?frameRest:frameRotation);
     else if(cfg.mode==="sequence") raf=requestAnimationFrame(frameSequence);
   }
   function setPaused(v){
-    if(cfg.mode==="waves") return;
+    if(cfg.mode==="waves"||holding) return;
     const active=running||(cfg.mode==="rotation"&&rot.phase==="rest"&&sessionActive);
     if(!active||v===paused) return;
     paused=v;
@@ -1915,7 +1955,7 @@
     else { const d=performance.now()-pauseMark; t0+=d; restT0+=d; btn.textContent="Pause"; enginePump(); }
   }
   function seek(ds){
-    if(paused||cfg.mode==="waves") return;
+    if(paused||holding||cfg.mode==="waves") return;
     const now=performance.now();
     if(cfg.mode==="rotation"&&rot.phase==="rest"){ restT0-=ds*1000; if(restT0>now) restT0=now; return; }
     if(!running) return;
@@ -1934,7 +1974,7 @@
     if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML=""; rlSig="x"; return; }
     let curIdx=-1;
     if(running){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); curIdx=sg?sg.i:99; }
-    const sig=[rot.round,rot.phase,running,paused,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]})].join("|");
+    const sig=[rot.round,rot.phase,running,paused,holding,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]})].join("|");
     if(sig===rlSig){
       if(running){ const t=el.querySelector(".prt.cur i");
         if(t){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); if(sg) t.textContent=fmtMS(sg.remain); } }
@@ -1947,7 +1987,7 @@
       const isDone=finished||r<rot.round;
       const isCur=!finished&&r===rot.round;
       const cls=isDone?"done":isCur?"cur":"next";
-      const status=isDone?"Done":isCur?(running?(paused?"Paused":"Running"):rot.phase==="rest"?"Rest":"Up next"):"Queued";
+      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":"Running"):rot.phase==="rest"?"Rest":"Up next"):"Queued";
       out+=`<div class="rrow ${cls}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span></div>`;
       if(isCur){
         let acc=0;
@@ -1967,7 +2007,7 @@
     const curRow=el.querySelector(".rrow.cur");
     if(curRow&&!running&&rot.phase==="pre"){ curRow.style.cursor="pointer"; curRow.onclick=()=>startBlock(); }
     el.querySelectorAll(".prt.nextp").forEach(pr=>{
-      pr.onclick=ev=>{ ev.stopPropagation(); if(!running||paused) return; t0=performance.now()-(+pr.dataset.seek)*1000; };
+      pr.onclick=ev=>{ ev.stopPropagation(); if(!running||paused||holding) return; t0=performance.now()-(+pr.dataset.seek)*1000; };
     });
   }
 
@@ -1981,7 +2021,7 @@
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
     const bp=$("bdPause"); if(bp&&cfg.mode!=="waves") bp.textContent=$("tkpause").textContent;
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); } },400);
-  const BUILD=104;
+  const BUILD=105;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
