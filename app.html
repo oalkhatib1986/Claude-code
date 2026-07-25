@@ -1050,6 +1050,22 @@
   if(!cfg.teamSize) cfg.teamSize=4;
   if(cfg.noScore===undefined) cfg.noScore=false;
   if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
+  // upgrade a loaded v1 Full Body working copy to real block rounds
+  if(cfg.wkName==="Full Body"&&cfg.rotation&&(cfg.rotation.blocks||[]).length===3){
+    const pb=cfg.rotation.blocks[1], pc=cfg.rotation.blocks[2];
+    if(pb&&!pb.rounds&&(pb.items||[]).length===1&&pb.items[0].dur===720){
+      pb.rounds=3; pb.items[0].dur=240; pb.items[0].name="For Quality \u00b7 rest between rounds";
+    }
+    if(pc&&!pc.rounds&&(pc.items||[]).length===1&&pc.items[0].dur===720){
+      pc.rounds=3;
+      pc.items=[
+        {dur:60,scored:false,exercises:[{who:"Min 1",name:"Calories (any erg)",amounts:[8,10,12,14],unit:"cal",max:false}]},
+        {dur:60,scored:false,exercises:[{who:"Min 2",name:"Power Cleans",amounts:[10],unit:"reps",max:false}]},
+        {dur:60,scored:false,exercises:[{who:"Min 3",name:"DB Box Step Overs",amounts:[12],unit:"reps",max:false}]},
+        {dur:60,scored:false,exercises:[{who:"Min 4",name:"Wall Balls",amounts:[12,20],unit:"reps",max:false}]}
+      ];
+    }
+  }
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -2527,7 +2543,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=145;
+  const BUILD=146;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
