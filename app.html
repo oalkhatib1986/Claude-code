@@ -61,7 +61,12 @@
   .subhead .ttl{display:flex;flex-direction:column;gap:2px}
   .subhead .ttl b{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,44px);letter-spacing:.045em;text-transform:uppercase;line-height:.95;text-wrap:balance}
   .subhead .ttl span{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.22em;text-transform:uppercase}
-  #evSummary{display:flex;align-items:baseline;gap:0;letter-spacing:normal;margin-top:8px;flex-wrap:wrap}
+  #evSummary{display:flex;align-items:baseline;gap:0;letter-spacing:normal;margin-top:8px;flex-wrap:nowrap;white-space:nowrap}
+  @media (max-width:720px){
+    #evSummary .schip b{font-size:15px}
+    #evSummary .schip i{font-size:9px;letter-spacing:.13em}
+    #evSummary .schip+.schip::before{margin:0 7px}
+  }
   .schip{display:inline-flex;align-items:baseline;gap:7px}
   .schip+.schip::before{content:"·";color:var(--ink-mute);margin:0 14px;font-size:14px}
   .schip b{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1;color:var(--ink);letter-spacing:.04em;font-variant-numeric:tabular-nums}
@@ -431,19 +436,16 @@
   .ctl-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
   .teamsfld{max-width:170px;flex:1}
   .fmtrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:4px}
-  #bdock{padding-right:44px}
-  #bdock .tico.dhide{position:absolute;right:0;top:0;bottom:0;width:34px;height:auto;border-radius:0 15px 15px 0;
-    border-left:1px solid var(--line);color:var(--ink-mute);background:rgba(255,255,255,.03)}
-  #bdock .tico.dhide svg{width:19px;height:19px}
-  #bdock .tico.dhide:hover{color:var(--ink);background:rgba(255,255,255,.07)}
+  #bdock{padding-right:46px}
   #bdock.tucked{display:none}
-  #bdockTab{position:fixed;right:0;bottom:max(24px,env(safe-area-inset-bottom));z-index:60;width:34px;height:62px;border-radius:14px 0 0 14px;
-    background:rgba(10,10,10,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-    border:1px solid var(--line);border-right:none;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+  #bdockTab{position:fixed;right:0;bottom:max(30px,env(safe-area-inset-bottom));z-index:61;width:36px;height:60px;border-radius:14px 0 0 14px;
+    background:var(--accent);border:none;color:#0a0a0a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
     box-shadow:0 8px 26px rgba(0,0,0,.5)}
-  #bdockTab:hover{color:var(--ink)}
-  #bdockTab svg{width:20px;height:20px}
-  #bdockTab[hidden]{display:none}
+  #bdockTab:active{filter:brightness(.9)}
+  #bdockTab svg{width:21px;height:21px}
+  #bdockTab .ic-r{display:none}
+  #bdockTab.open .ic-l{display:none}
+  #bdockTab.open .ic-r{display:block}
   body.bigscreen #bdockTab{display:none}
   .wkrow{display:flex;gap:10px;align-items:flex-end}
   .wkrow .fld{flex:1;min-width:0;margin:0}
@@ -572,7 +574,7 @@
       <div class="lanes" id="lanes"></div>
     </div>
 
-    <div id="bdock">
+    <div id="bdock" class="tucked">
       <b id="bdInfo"></b>
       <button class="tico lock" id="bdLock" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
       <button class="tico" id="bdPrev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
@@ -583,10 +585,9 @@
       <button class="tico" id="bdf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
       <button class="tico" id="bdNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
       <button class="btn small primary" id="bdStart" type="button">Start</button>
-      <button class="tico dhide" id="bdHide" type="button" aria-label="Hide controls" title="Hide controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></button>
       <span id="bdFlow"></span>
     </div>
-    <button id="bdockTab" type="button" hidden aria-label="Show controls" title="Show controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg></button>
+    <button id="bdockTab" type="button" aria-label="Show controls" title="Controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ic-l"><path d="M14 6l-6 6 6 6"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ic-r"><path d="M10 6l6 6-6 6"/></svg></button>
   </section>
 
   <!-- ============ TRAINER (the only page with controls) ============ -->
@@ -1095,8 +1096,8 @@
   function buildRotationBoard(){
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
       +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
-      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total time</i></span>`
-      +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`);
+      +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`)
+      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
@@ -2205,8 +2206,9 @@
   $("tknext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
   $("bdNext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
   $("tkprev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
-  $("bdHide").onclick=()=>{ $("bdock").classList.add("tucked"); $("bdockTab").hidden=false; };
-  $("bdockTab").onclick=()=>{ $("bdock").classList.remove("tucked"); $("bdockTab").hidden=true; };
+  function setDock(open){ $("bdock").classList.toggle("tucked",!open); $("bdockTab").classList.toggle("open",open);
+    $("bdockTab").setAttribute("aria-label",open?"Hide controls":"Show controls"); }
+  $("bdockTab").onclick=()=>setDock($("bdock").classList.contains("tucked"));
   $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
   syncLockUi();
 
@@ -2269,7 +2271,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=116;
+  const BUILD=117;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
