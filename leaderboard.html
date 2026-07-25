@@ -375,6 +375,14 @@
   .tb-namer label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
   .tb-namer div{display:flex;gap:8px}
   .tb-namer input{flex:1;min-width:0;background:#0f0f0f;border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 12px;font-size:16px}
+  #startFlow{font-size:13px;color:var(--ink-dim);line-height:1.5}
+  #startFlow:empty{display:none}
+  #startFlow b{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);margin-right:4px}
+  #startFlow i,#bdFlow i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink-mute)}
+  #startFlow .fa,#bdFlow .fa{color:var(--ink-mute)}
+  #bdFlow{flex-basis:100%;text-align:center;font-size:12px;color:var(--ink-dim);line-height:1.4}
+  #bdFlow:empty{display:none}
+  #bdFlow b{display:none}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -485,6 +493,7 @@
       <button class="btn small" id="bdf10" type="button" disabled>+10s</button>
       <button class="btn small" id="bdNext" type="button" disabled>Next &#9656;</button>
       <button class="btn small primary" id="bdStart" type="button">Start</button>
+      <span id="bdFlow"></span>
     </div>
   </section>
 
@@ -498,6 +507,7 @@
           <button class="btn primary" id="startBtn">Start session</button>
           <button class="btn" id="resetBtn" disabled>Reset</button>
         </div>
+        <div id="startFlow"></div>
         <div class="transport">
           <button class="btn small lockbtn" id="tkLockBtn" type="button">&#128274; Unlock</button>
           <button class="btn small" id="tkb10" type="button" disabled>&minus;10s</button>
@@ -1951,6 +1961,22 @@
     syncLockUi(); }
   function armRelock(){ if(tkLock) return; clearTimeout(tkLockTimer);
     tkLockTimer=setTimeout(()=>{ tkLock=true; syncLockUi(); },15000); }
+  function startFlowText(){
+    if(cfg.mode!=="rotation"||!nBlocks()||finished) return "";
+    if(running&&!holding) return "";
+    const b=R().blocks[blockIdxOf(rot.round)]; const its=(b.items||[]);
+    if(!its.length) return "";
+    let from=0;
+    if(holding){ let acc=0; for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(acc<=rot.elapsed+0.01) from=i+1; } }
+    const parts=[];
+    for(let i=from;i<its.length;i++){ const it=its[i];
+      const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(i+1)));
+      parts.push(`${esc(nm)} <i>${fmtMS(it.dur)}</i>`);
+      if(it.hold&&i<its.length-1) break;
+    }
+    if(!parts.length) return "";
+    return `<b>Start runs:</b> `+parts.join(` <span class="fa">&#9656;</span> `)+(from+parts.length<its.length?` <span class="fa">&#9656; &#8214;</span>`:"");
+  }
   function nextPart(){
     if(cfg.mode!=="rotation"||!running||paused||holding) return;
     const b=R().blocks[blockIdxOf(rot.round)];
@@ -2056,8 +2082,10 @@
     $("tState").textContent=clockState.textContent;
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
     const bp=$("bdPause"); if(bp&&cfg.mode!=="waves") bp.textContent=$("tkpause").textContent;
-    const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); } },400);
-  const BUILD=106;
+    const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
+    const sf=startFlowText();
+    ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
+  const BUILD=107;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
