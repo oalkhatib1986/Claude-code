@@ -452,6 +452,19 @@
   #wkPick{display:block}
   #wkPick .mwrap{display:block}
   #wkPick .mfield{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left}
+  .res{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;background:rgba(255,255,255,.015)}
+  .res summary{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;list-style:none}
+  .res summary::-webkit-details-marker{display:none}
+  .res summary b{font-family:var(--disp);font-weight:700;font-size:14.5px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .res summary span{color:var(--ink-mute);font-size:12px;white-space:nowrap}
+  .res summary i{margin-left:auto;font-style:normal;color:var(--ink-dim);font-size:12.5px;font-family:var(--mono);white-space:nowrap}
+  .res .resdel{border:none;background:none;color:var(--ink-mute);font-size:19px;cursor:pointer;padding:0 2px;line-height:1}
+  .res .resdel:hover{color:var(--hot)}
+  .restab{width:100%;border-collapse:collapse;font-size:14px}
+  .restab td{padding:8px 15px;border-top:1px solid var(--line-soft);color:var(--ink-dim)}
+  .restab td:first-child{width:34px;font-family:var(--mono);color:var(--ink-mute)}
+  .restab td:last-child{text-align:right;font-family:var(--mono)}
+  .restab tr:first-child td{color:var(--ink)}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -551,10 +564,15 @@
     <button id="smLead" class="on" type="button">Leaderboard</button>
     <button id="smWork" type="button">Workout + Timer</button>
   </div>
+  <div class="subtabs" id="ctlTabs" hidden>
+    <button id="ctWork" class="on" type="button">Session</button>
+    <button id="ctTeams" type="button">Teams</button>
+  </div>
   <div class="subtabs" id="subTabs">
     <button id="stWorkout" class="on" type="button">Workout</button>
     <button id="stSetup" type="button">Setup</button>
     <button id="stLayout" type="button">Layout</button>
+    <button id="stResults" type="button">Results</button>
   </div>
 
   <section class="view active" id="viewBoard">
@@ -620,6 +638,36 @@
         </div>
         <div id="rlist"></div>
         <div class="note">Run the class from here — or straight from the Board, which has the same start / pause / skip controls in a bar at the bottom. The Big Screen stays display-only.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS (board sub-page) ============ -->
+  <section class="view" id="viewResults">
+    <div class="cr">
+      <div class="card wide">
+        <h3>Results <span class="r" id="resCount"></span></h3>
+        <div class="body">
+          <div id="resList"></div>
+          <div class="note">Every finished session is <b>saved here automatically</b> on this device &mdash; tap one to see the full standings.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEAMS (control sub-page) ============ -->
+  <section class="view" id="viewTeams">
+    <div class="cr">
+      <div class="card wide">
+        <h3>Teams</h3>
+        <div class="body">
+          <div id="crewList"></div>
+          <div class="addbtns">
+            <button class="btn" id="addCrew">+ Add team</button>
+            <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
+          </div>
+          <div class="note">Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Nobody picks anything. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.</div>
+        </div>
       </div>
     </div>
   </section>
@@ -770,17 +818,6 @@
         </div>
       </div>
 
-      <div class="card wide">
-        <h3>Teams</h3>
-        <div class="body">
-          <div id="crewList"></div>
-          <div class="addbtns">
-            <button class="btn" id="addCrew">+ Add team</button>
-            <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
-          </div>
-          <div class="note">Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Nobody picks anything.</div>
-        </div>
-      </div>
 
     </div>
   </section>
@@ -1148,7 +1185,7 @@
   function startBlock(){
     cancelAnimationFrame(raf); clearTimeout(ticker);
     paused=false; pauseUi(false);
-    running=true; sessionActive=true; finished=false;
+    running=true; sessionActive=true; finished=false; resultSaved=false;
     holding=false; holdPend=holdBounds();
     rot.phase="run"; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
@@ -1175,7 +1212,7 @@
     if(t>=roundLen()){
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
-      if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; }
+      if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; maybeSaveResult(); }
       else { rot.round++;
         if((R().blockRest||0)>0){ rot.phase="rest"; rot.remain=R().blockRest; restT0=now; raf=requestAnimationFrame(frameRest); }
         else rot.phase="pre"; }
@@ -1357,7 +1394,7 @@
       }
       for(const e of ergs) e.cur={m:0,cals:0,elapsed:0,done:false,finT:null};
       if(seqIdx>=cfg.segments.length-1){
-        running=false; finished=true; startBtn.disabled=false; startBtn.textContent="Start session";
+        running=false; finished=true; maybeSaveResult(); startBtn.disabled=false; startBtn.textContent="Start session";
         clockState.textContent="Complete"; setSeqBanner(); renderLanesSeq(); renderTablet(); return;
       }
       seqIdx++; t0=now; setSeqBanner();
@@ -1555,7 +1592,7 @@
     if(cfg.mode==="waves"){
       const now=performance.now();
       if(!running&&!sessionActive){
-        build(); sessionActive=true; running=true; finished=false;
+        build(); sessionActive=true; running=true; finished=false; resultSaved=false;
         wavesT0=now; resetBtn.disabled=false;
         releaseWave(now);
         if(reduce){ const loop=()=>{ if(!running)return; frameWaves(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
@@ -1573,18 +1610,19 @@
     if(running) return;
     if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)||anyOver()) return; startBlock(); renderBlockCards(); return; }
     // sequence: full auto run
-    build(); running=true; sessionActive=true; finished=false; t0=performance.now();
+    build(); running=true; sessionActive=true; finished=false; resultSaved=false; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent="Running…"; resetBtn.disabled=false;
     if(reduce){ const loop=()=>{ if(!running)return; frameSequence(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
     else raf=requestAnimationFrame(frameSequence);
   }
-  function reset(){ running=false; paused=false; holding=false; holdPend=[]; pauseUi(false); cancelAnimationFrame(raf); clearTimeout(ticker);
+  function reset(){ running=false; paused=false; holding=false; holdPend=[]; resultSaved=false; pauseUi(false); cancelAnimationFrame(raf); clearTimeout(ticker);
     startBtn.disabled=false; resetBtn.disabled=true; build(); }
   startBtn.onclick=start; resetBtn.onclick=reset;
 
   /* ================= tabs ================= */
   const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"]};
   let subTab="workout";
+  let ctlTab="session";
   let scrMode="lead";
   function show(which){
     document.body.classList.toggle("bigscreen",which==="screen");
@@ -1594,20 +1632,27 @@
     $("smWork").classList.toggle("on",scrMode==="work");
     for(const k in TABS) $(TABS[k][0]).setAttribute("aria-selected",k===which);
     let active=TABS[which][1];
-    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":"viewBoard";
+    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":subTab==="results"?"viewResults":"viewBoard";
+    if(which==="trainer") active=ctlTab==="teams"?"viewTeams":"viewTrainer";
+    $("ctlTabs").hidden=which!=="trainer";
+    $("ctWork").classList.toggle("on",ctlTab==="session");
+    $("ctTeams").classList.toggle("on",ctlTab==="teams");
     $("subTabs").hidden=which!=="board";
-    [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
-    ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout"].forEach(v=>$(v).classList.toggle("active",v===active));
+    [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
+    if(which==="board"&&subTab==="results") renderResults();
+    ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet");
-  [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"]].forEach(([id,k])=>{
+  [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
   $("smWork").onclick=()=>{ scrMode="work"; show("screen"); };
+  $("ctWork").onclick=()=>{ ctlTab="session"; show("trainer"); };
+  $("ctTeams").onclick=()=>{ ctlTab="teams"; show("trainer"); };
 
   /* ================= erg tablet ================= */
   const TKEY="af_tablet_sel";
@@ -2118,6 +2163,34 @@
     buildPresetSel();
   }
 
+  const RKEY="af_results_v1";
+  let results; try{ results=JSON.parse(localStorage.getItem(RKEY))||[]; }catch(e){ results=[]; }
+  const saveResults=()=>{ try{ localStorage.setItem(RKEY,JSON.stringify(results)); }catch(e){} };
+  let resultSaved=false;
+  function maybeSaveResult(){
+    if(resultSaved||!ergs.length) return; resultSaved=true;
+    const rows=ergs.map(e=>({name:e.name,score:Math.round((e.score||0)+(e.blockCals||0))}))
+      .sort((a,b)=>b.score-a.score);
+    results.unshift({t:Date.now(),name:cfg.name||"Session",wk:cfg.wkName||"",mode:cfg.mode,unit:scoreUnit(),rows});
+    if(results.length>200) results.length=200;
+    saveResults();
+    if($("viewResults").classList.contains("active")) renderResults();
+  }
+  function renderResults(){
+    const el=$("resList"); if(!el) return;
+    $("resCount").textContent=results.length?results.length+" saved":"";
+    if(!results.length){ el.innerHTML='<div class="note">No results yet &mdash; finish a session and it lands here automatically.</div>'; return; }
+    el.innerHTML=results.map((r,i)=>{
+      const d=new Date(r.t);
+      const ds=d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+" \u00b7 "+d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+      const win=r.rows[0]||{};
+      return `<details class="res"><summary><b>${esc(r.name||"Session")}</b><span>${ds}</span><i>${esc(win.name||"")} ${win.score!=null?win.score+" "+esc(r.unit||""):""}</i><button class="resdel" data-i="${i}" type="button" aria-label="Delete result">&times;</button></summary>
+        <table class="restab">${r.rows.map((w,j)=>`<tr><td>${j+1}</td><td>${esc(w.name)}</td><td>${w.score} ${esc(r.unit||"")}</td></tr>`).join("")}</table></details>`;
+    }).join("");
+    el.querySelectorAll(".resdel").forEach(b=>b.onclick=ev=>{ ev.preventDefault(); ev.stopPropagation();
+      if(!confirm("Delete this result?")) return;
+      results.splice(+b.dataset.i,1); saveResults(); renderResults(); });
+  }
   let paused=false, pauseMark=0, rlSig="";
   let tkLock=true, tkLockTimer=0;
   function syncLockUi(){ ["tkLockBtn","bdLock"].forEach(id=>{ const x=$(id); if(!x) return;
@@ -2271,7 +2344,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=118;
+  const BUILD=119;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
