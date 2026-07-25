@@ -131,11 +131,10 @@
   .lane.leader{background:linear-gradient(90deg,rgba(255,255,255,.055),transparent 60%)}
   .lane.leader::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:3px;background:var(--accent)}
   .lane.scoring{background:linear-gradient(90deg,rgba(255,45,45,.08),transparent 55%)}
-  .rank{font-family:var(--disp);font-weight:700;font-size:34px;text-align:center;color:#4a4e54;font-variant-numeric:tabular-nums}
-  .lane.leader .rank{color:var(--ink)}
-  .rank .p1{color:var(--gold)}.rank .p2{color:var(--silver)}.rank .p3{color:var(--bronze)}
+  .rank{font-family:var(--disp);font-weight:700;font-size:34px;text-align:center;color:var(--ink);font-variant-numeric:tabular-nums}
+  .rank .p1,.rank .p2,.rank .p3{color:var(--ink)}
   .who{min-width:0}
-  .team{font-family:var(--disp);font-weight:600;font-size:26px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.02}
+  .team{font-family:var(--disp);font-weight:600;font-size:26px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.02;color:var(--accent)}
   .loc{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.14em;text-transform:uppercase;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .loc b{color:var(--ink-dim);font-weight:600}.loc .nx{color:var(--ink-mute)}
   .track{margin-top:8px;height:5px;border-radius:4px;background:rgba(255,255,255,.055);position:relative;overflow:hidden;max-width:520px}
@@ -495,7 +494,6 @@
   body.bigscreen #coLogoImg{height:64px;max-width:260px}
   .blk .teams .t.unnamed{color:#ff9490;background:rgba(255,70,64,.13)}
   .blk .teams .t.unnamed .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
-  .team.unnamed{color:#ff9490}
   .tb-tinfo b.unnamed{color:#ff9490}
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
@@ -2469,7 +2467,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=138;
+  const BUILD=139;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
