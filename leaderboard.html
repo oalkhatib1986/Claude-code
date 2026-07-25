@@ -435,6 +435,12 @@
   #bdockTab svg{width:20px;height:20px}
   #bdockTab[hidden]{display:none}
   body.bigscreen #bdockTab{display:none}
+  .wkrow{display:flex;gap:10px;align-items:flex-end}
+  .wkrow .fld{flex:1;min-width:0;margin:0}
+  #wkPick{display:block}
+  #wkPick .mwrap{display:block}
+  #wkPick .mfield{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left}
+  #wkPick .mfield::after{content:"\25BE";color:var(--ink-mute);margin-left:10px}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -605,6 +611,18 @@
     <div class="cr">
 
       <div class="card wide">
+        <h3>Workout</h3>
+        <div class="body">
+          <div class="wkrow">
+            <div class="fld"><label>Current workout</label><span id="wkPick"></span></div>
+            <button class="btn small" id="wkSave" type="button">Save</button>
+            <button class="btn small" id="wkNew" type="button">New</button>
+          </div>
+          <div class="note">Pick a saved workout to load it &mdash; or type a new name in the search box to <b>save the current one under that name</b>. <b>Save</b> updates the loaded workout with your edits; <b>New</b> starts a blank one (teams, machines and branding stay).</div>
+        </div>
+      </div>
+
+      <div class="card wide">
         <h3>Session type</h3>
         <div class="body">
           <div class="pills" id="segMode">
@@ -701,21 +719,15 @@
       </div>
 
       <div class="card">
-        <h3>Event · Saved workouts</h3>
+        <h3>Event</h3>
         <div class="body">
           <div class="fld"><label>Session name</label><input type="text" id="cName" maxlength="40"></div>
           <div class="fld"><label>Subtitle</label><input type="text" id="cSub" maxlength="40"></div>
-          <div class="fld"><label>Saved workouts</label>
-            <div class="row2" style="grid-template-columns:1fr auto;align-items:center">
-              <select id="presetSel"><option value="">— pick a saved workout —</option></select>
-              <button class="btn small" id="savePreset" type="button">Save current</button>
-            </div>
-            <div class="addbtns" style="margin-top:8px">
-              <button class="btn small" id="exportCfg" type="button">Export code</button>
-              <button class="btn small" id="importCfg" type="button">Import code</button>
-            </div>
+          <div class="addbtns">
+            <button class="btn small" id="exportCfg" type="button">Export code</button>
+            <button class="btn small" id="importCfg" type="button">Import code</button>
           </div>
-          <div class="note">Build a workout once, hit <b>Save current</b>, and from then on just pick it from the dropdown — session type, blocks, exercises, scoring, teams, everything.</div>
+          <div class="note">Export / Import moves a complete workout between phones as a text code.</div>
         </div>
       </div>
 
@@ -1964,19 +1976,27 @@
   const PKEY="af_presets_v1";
   let presets; try{ presets=JSON.parse(localStorage.getItem(PKEY))||[]; }catch(e){ presets=[]; }
   const savePresets=()=>{ try{ localStorage.setItem(PKEY,JSON.stringify(presets)); }catch(e){} };
+  function migrateLoaded(){
+    if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+    if(!cfg.teamKind) cfg.teamKind="teams";
+    if(!cfg.teamSize) cfg.teamSize=4;
+    if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
+  }
   function buildPresetSel(){
-    const sel=$("presetSel");
-    sel.innerHTML='<option value="">— pick a saved workout —</option>'+presets.map((p,i)=>`<option value="${i}">${esc(p.name)}</option>`).join("");
-    sel.value="";
-    sel.onchange=()=>{
-      if(sel.value==="") return;
-      const p=presets[+sel.value];
-      if(!p) return;
-      cfg=structuredClone(p.cfg); save(); applyAccent();
-      buildControlRoom();
-      if(!running&&!sessionActive) build();
-    };
-    const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
+    const wp=$("wkPick"); if(!wp) return;
+    wp.innerHTML="";
+    wp.appendChild(menuField(
+      ()=>presets.map(p=>p.name),
+      ()=>cfg.wkName||"Unsaved workout",
+      v=>{
+        const p=presets.find(x=>x.name===v);
+        if(p){ cfg=structuredClone(p.cfg); cfg.wkName=p.name; migrateLoaded(); save(); applyAccent();
+          buildControlRoom(); if(!running&&!sessionActive) build(); }
+        else { cfg.wkName=v; const entry={name:v,cfg:structuredClone(cfg)};
+          presets.push(entry); savePresets(); save(); buildPresetSel(); }
+      },
+      {addable:true, addLabel:"+ Save as", searchPh:"Search workouts — or type a new name…", cls:"wkfield"}
+    ));
   }
   function updateCapReport(){
     const el=$("capReport"); if(!el) return;
@@ -2049,13 +2069,19 @@
         alert("Workout imported.");
       }catch(e){ alert("That code could not be read — make sure you pasted the whole thing."); }
     };
-    $("savePreset").onclick=()=>{
-      const n=prompt("Name this workout:", cfg.name);
-      if(!n||!n.trim()) return;
-      const entry={name:n.trim(), cfg:structuredClone(cfg)};
-      const i=presets.findIndex(p=>p.name===entry.name);
+    $("wkSave").onclick=()=>{
+      let n=cfg.wkName;
+      if(!n){ n=prompt("Name this workout:", cfg.name||""); if(!n||!n.trim()) return; n=n.trim(); cfg.wkName=n; }
+      const entry={name:n, cfg:structuredClone(cfg)};
+      const i=presets.findIndex(p=>p.name===n);
       if(i>=0) presets[i]=entry; else presets.push(entry);
-      savePresets(); buildPresetSel();
+      savePresets(); save(); buildPresetSel();
+      const b=$("wkSave"); b.textContent="Saved \u2713"; setTimeout(()=>{ b.textContent="Save"; },1200);
+    };
+    $("wkNew").onclick=()=>{
+      if(!confirm("Start a new blank workout? Teams, machines and branding stay.")) return;
+      R().blocks=[]; R().laps=1; cfg.name="New Workout"; cfg.wkName=null;
+      save(); buildControlRoom(); if(!running&&!sessionActive) build();
     };
     buildBlocks(); buildStations(); buildRankGrid(); buildCrews(); syncMode(); syncSeqScoring();
     enhanceSelects();
@@ -2214,7 +2240,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=112;
+  const BUILD=113;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
