@@ -416,6 +416,25 @@
   #bdFlow{flex-basis:100%;text-align:center;font-size:12px;color:var(--ink-dim);line-height:1.4}
   #bdFlow:empty{display:none}
   #bdFlow b{display:none}
+  .subtabs{display:flex;gap:7px;margin:0 0 14px}
+  .subtabs[hidden]{display:none}
+  .subtabs button{border:1px solid var(--line);background:none;color:var(--ink-dim);border-radius:999px;padding:7px 19px;
+    font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:.14s}
+  .subtabs button:hover{border-color:rgba(255,255,255,.35)}
+  .subtabs button.on{background:var(--ink);color:#0a0a0a;border-color:var(--ink)}
+  body.bigscreen .subtabs{display:none}
+  .ctl-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+  .teamsfld{max-width:170px;flex:1}
+  .fmtrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:4px}
+  #bdock .tico.dhide{width:30px;height:30px;color:var(--ink-mute)}
+  #bdock .tico.dhide svg{width:18px;height:18px}
+  #bdock.tucked{display:none}
+  #bdockTab{position:fixed;right:0;bottom:26px;z-index:60;width:38px;height:44px;border-radius:12px 0 0 12px;
+    background:rgba(10,10,10,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--line);border-right:none;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  #bdockTab svg{width:20px;height:20px}
+  #bdockTab[hidden]{display:none}
+  body.bigscreen #bdockTab{display:none}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -494,11 +513,16 @@
       <button id="tabScreen" role="tab" aria-selected="false">Big Screen</button>
       <button id="tabTrainer" role="tab" aria-selected="false">Control</button>
       <button id="tabTablet" role="tab" aria-selected="false">Erg Tablet</button>
-      <button id="tabCtrl"  role="tab" aria-selected="false">Setup</button>
     </div>
   </header>
 
   <!-- ============ BOARD ============ -->
+  <div class="subtabs" id="subTabs">
+    <button id="stWorkout" class="on" type="button">Workout</button>
+    <button id="stSetup" type="button">Setup</button>
+    <button id="stLayout" type="button">Layout</button>
+  </div>
+
   <section class="view active" id="viewBoard">
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evSummary"></span></div>
@@ -527,18 +551,21 @@
       <button class="tico" id="bdf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
       <button class="tico" id="bdNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
       <button class="btn small primary" id="bdStart" type="button">Start</button>
+      <button class="tico dhide" id="bdHide" type="button" aria-label="Hide controls" title="Hide controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></button>
       <span id="bdFlow"></span>
     </div>
+    <button id="bdockTab" type="button" hidden aria-label="Show controls" title="Show controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg></button>
   </section>
 
   <!-- ============ TRAINER (the only page with controls) ============ -->
   <section class="view" id="viewTrainer">
     <div class="card" style="max-width:560px;margin:6px auto 0">
-      <h3>Control</h3>
       <div class="body">
-        <div class="fld" style="max-width:240px"><label>Number of teams today</label>
+        <div class="ctl-top">
+        <div class="fld teamsfld"><label id="tcLabel">Teams today</label>
           <select id="teamCount"><option value="1">1 team</option><option value="2">2 teams</option><option value="3">3 teams</option><option value="4">4 teams</option><option value="5">5 teams</option><option value="6">6 teams</option><option value="7">7 teams</option><option value="8">8 teams</option><option value="9">9 teams</option><option value="10">10 teams</option><option value="11">11 teams</option><option value="12">12 teams</option><option value="13">13 teams</option><option value="14">14 teams</option><option value="15">15 teams</option><option value="16">16 teams</option><option value="17">17 teams</option><option value="18">18 teams</option><option value="19">19 teams</option><option value="20">20 teams</option></select></div>
-        <div class="clock" style="margin-left:0;text-align:left"><b id="tClock">—</b><span id="tState"></span></div>
+        <div class="clock" style="margin-left:0;text-align:left;order:-1"><b id="tClock">—</b><span id="tState"></span></div>
+        </div>
         <div class="controls" style="margin:0">
           <button class="btn primary" id="startBtn">Start session</button>
           <button class="btn" id="resetBtn" disabled>Reset</button>
@@ -586,6 +613,17 @@
             <button data-v="waves" aria-pressed="false">Waves</button>
           </div>
           <div class="note" id="modeExplain"></div>
+          <div class="fmtrow">
+            <div class="fld"><label>Format</label>
+              <div class="pills" id="fmtKind">
+                <button data-v="teams" aria-pressed="true" type="button">Teams</button>
+                <button data-v="solo" aria-pressed="false" type="button">Solo</button>
+              </div>
+            </div>
+            <div class="fld" id="fmtSizeFld" style="min-width:170px"><label>Athletes per team</label>
+              <select id="fmtSize"><option value="2">2 per team</option><option value="3">3 per team</option><option value="4">4 per team</option><option value="5">5 per team</option><option value="6">6 per team</option></select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -698,6 +736,24 @@
       </div>
 
       <div class="card wide">
+        <h3>Teams</h3>
+        <div class="body">
+          <div id="crewList"></div>
+          <div class="addbtns">
+            <button class="btn" id="addCrew">+ Add team</button>
+            <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
+          </div>
+          <div class="note">Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Nobody picks anything.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ LAYOUT (studio machines) ============ -->
+  <section class="view" id="viewLayout">
+    <div class="cr">
+      <div class="card wide">
         <h3>Gym machines <span class="r">capacity checks &amp; auto-assignment</span></h3>
         <div class="body">
           <div class="invgrid">
@@ -710,19 +766,6 @@
           <div class="note" id="capReport"></div>
         </div>
       </div>
-
-      <div class="card wide">
-        <h3>Teams</h3>
-        <div class="body">
-          <div id="crewList"></div>
-          <div class="addbtns">
-            <button class="btn" id="addCrew">+ Add team</button>
-            <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
-          </div>
-          <div class="note">Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Nobody picks anything.</div>
-        </div>
-      </div>
-
     </div>
   </section>
 
@@ -873,6 +916,8 @@
   if(cfg.rotation&&!cfg.rotation.laps) cfg.rotation.laps=1;
   if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
   if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+  if(!cfg.teamKind) cfg.teamKind="teams";
+  if(!cfg.teamSize) cfg.teamSize=4;
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -1016,7 +1061,8 @@
   function buildRotationBoard(){
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
       +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
-      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total time</i></span>`;
+      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total time</i></span>`
+      +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`);
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
@@ -1029,7 +1075,7 @@
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
       const over=!empty&&anyOver();
       startBtn.disabled=empty||over;
-      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Setup":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
+      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Layout":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
       clockState.textContent=k===0&&!sessionActive?"Block time · ready":"Teams rotating";
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
@@ -1143,7 +1189,7 @@
     const p=typePeaks();
     const bad=Object.keys(p).filter(m=>p[m]>invOf(m));
     if(!bad.length){ el.hidden=true; return; }
-    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. Fix the workout or machine counts in Setup.`;
+    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. Fix the workout in Setup or the machine counts in Layout.`;
     el.hidden=false;
   }
   function renderBlockCards(){
@@ -1502,18 +1548,24 @@
   startBtn.onclick=start; resetBtn.onclick=reset;
 
   /* ================= tabs ================= */
-  const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"],ctrl:["tabCtrl","viewCtrl"]};
+  const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"]};
+  let subTab="workout";
   function show(which){
     document.body.classList.toggle("bigscreen",which==="screen");
     for(const k in TABS) $(TABS[k][0]).setAttribute("aria-selected",k===which);
-    const active=TABS[which][1];
-    ["viewBoard","viewTrainer","viewTablet","viewCtrl"].forEach(v=>$(v).classList.toggle("active",v===active));
+    let active=TABS[which][1];
+    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":"viewBoard";
+    $("subTabs").hidden=which!=="board";
+    [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
+    ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
     try{ history.replaceState(null,"",which==="screen"?"#screen":location.pathname+location.search); }catch(e){}
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
-  $("tabTablet").onclick=()=>show("tablet"); $("tabCtrl").onclick=()=>show("ctrl");
+  $("tabTablet").onclick=()=>show("tablet");
+  [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"]].forEach(([id,k])=>{
+    $(id).onclick=()=>{ subTab=k; show("board"); }; });
 
   /* ================= erg tablet ================= */
   const TKEY="af_tablet_sel";
@@ -1551,7 +1603,7 @@
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
-      const needName=!!(team&&/^Team \d+$/.test(team.name));
+      const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
         <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No team on this machine this round</b><span>&nbsp;</span></div>`}</div>
@@ -1625,7 +1677,7 @@
     $("seqCard").hidden=m==="rotation";
     $("seqScoreCard").hidden=m!=="sequence";
     $("modeExplain").innerHTML = m==="rotation"
-      ? `<b>Rotating blocks</b> — teams pick their station on the erg screens, the trainer starts each block, and only the scored window counts. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
+      ? `<b>Rotating blocks</b> — teams are assigned to machines automatically, the trainer starts each block, and only the scored window counts. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
       : m==="waves"
       ? `<b>Waves</b> — wave 1 starts on the trainer's go and races through the stations in order. The next wave is released when the wave ahead clears station 1 (or by the trainer). Leaderboard = fastest total time from your own wave's release.`
       : `<b>Everyone together</b> — the whole class does the same station at the same time, station after station, with its own scoring rules.`;
@@ -1870,15 +1922,19 @@
     }
   }
   const TEAMPAL=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
+  const crewPrefix=()=>cfg.teamKind==="solo"?"Athlete":"Team";
   function setTeamCount(n){
     n=clamp(parseInt(n,10)||1,1,20);
-    while(cfg.crews.length<n) cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
+    while(cfg.crews.length<n) cfg.crews.push({name:crewPrefix()+" "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
     if(cfg.crews.length>n) cfg.crews.length=n;
     save(); buildCrews(); buildRankGrid(); updateCapReport();
     if(!sessionActive&&!running) build();
   }
   function syncTeamCount(){
     const sel=$("teamCount"); if(!sel) return;
+    const solo=cfg.teamKind==="solo";
+    const lb=$("tcLabel"); if(lb) lb.textContent=solo?"Athletes today":"Teams today";
+    [...sel.options].forEach(o=>{ const v=+o.value; o.textContent=v+" "+(solo?(v>1?"athletes":"athlete"):(v>1?"teams":"team")); });
     sel.value=String(clamp(cfg.crews.length,1,20));
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; }
   }
@@ -1950,6 +2006,18 @@
     });
     updateCapReport();
     $("teamCount").onchange=e=>setTeamCount(e.target.value);
+    const syncFmt=()=>{ const solo=cfg.teamKind==="solo";
+      [...$("fmtKind").children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===cfg.teamKind)));
+      $("fmtSizeFld").style.display=solo?"none":"";
+      syncTeamCount(); };
+    [...$("fmtKind").children].forEach(b=>b.onclick=()=>{ if(cfg.teamKind===b.dataset.v) return;
+      cfg.teamKind=b.dataset.v;
+      cfg.crews.forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c.name)) c.name=crewPrefix()+" "+(i+1); });
+      save(); syncFmt(); buildCrews(); if(!sessionActive&&!running) build(); });
+    $("fmtSize").value=String(cfg.teamSize||4);
+    $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6); save(); if(!sessionActive&&!running) build(); };
+    { const w=$("fmtSize").closest(".dsel"); if(w){ const o=$("fmtSize").options[$("fmtSize").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; } }
+    syncFmt();
     $("rBRest").value=String(R().blockRest||0);
     $("rBRest").onchange=e=>{R().blockRest=clamp(parseInt(e.target.value,10)||0,0,1800);save();};
     { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
@@ -2082,6 +2150,8 @@
   $("tknext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
   $("bdNext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
   $("tkprev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
+  $("bdHide").onclick=()=>{ $("bdock").classList.add("tucked"); $("bdockTab").hidden=false; };
+  $("bdockTab").onclick=()=>{ $("bdock").classList.remove("tucked"); $("bdockTab").hidden=true; };
   $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
   syncLockUi();
 
@@ -2144,7 +2214,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=111;
+  const BUILD=112;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
