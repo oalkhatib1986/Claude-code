@@ -496,6 +496,7 @@
   .blk .teams .t.unnamed .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
   .tb-tinfo b.unnamed{color:#ff9490}
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
+  .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -739,7 +740,13 @@
           </div>
           <div class="row2">
             <div class="fld"><label>Display title</label><input type="text" id="cName" maxlength="40"></div>
-            <div class="fld"><label>Subtitle</label><input type="text" id="cSub" maxlength="40"></div>
+            <div class="fld"><label>Collab workout</label>
+              <div class="collabrow">
+                <label class="chk"><input type="checkbox" id="collabChk"> Collab</label>
+                <label class="btn small" id="coLogoUpWrap" style="cursor:pointer" hidden>Upload partner logo<input type="file" id="coLogoFile" accept="image/*" style="display:none"></label>
+                <button class="btn small" id="coLogoDel" type="button" hidden>Remove</button>
+              </div>
+            </div>
           </div>
           <div class="addbtns">
             <button class="btn small" id="exportCfg" type="button">Export code</button>
@@ -863,13 +870,6 @@
               <label class="chk"><input type="checkbox" data-d="metres"> Metres</label>
               <label class="chk"><input type="checkbox" data-d="cals" checked> Calories</label>
             </div>
-          </div>
-          <div class="fld"><label>Partner logo <span style="text-transform:none;letter-spacing:0">(optional, for collab workouts)</span></label>
-            <div class="addbtns">
-              <label class="btn small" style="cursor:pointer">Upload image<input type="file" id="coLogoFile" accept="image/*" style="display:none"></label>
-              <button class="btn small" id="coLogoDel" type="button" hidden>Remove</button>
-            </div>
-            <div class="note">Shows next to the ATHL3TE logo on the big screens. White or light logos look best on black.</div>
           </div>
           <div class="fld"><label>Accent colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"></div>
         </div>
@@ -1048,6 +1048,7 @@
   if(!cfg.teamKind) cfg.teamKind="teams";
   if(!cfg.teamSize) cfg.teamSize=4;
   if(cfg.noScore===undefined) cfg.noScore=false;
+  if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -1070,9 +1071,12 @@
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
   function syncCoLogo(){ const w=$("coLogoWrap"); if(!w) return;
-    const has=!!cfg.coLogo; w.hidden=!has;
-    if(has) $("coLogoImg").src=cfg.coLogo;
-    const d=$("coLogoDel"); if(d) d.hidden=!has; }
+    const on=!!cfg.collab, has=!!cfg.coLogo;
+    const chk=$("collabChk"); if(chk) chk.checked=on;
+    const up=$("coLogoUpWrap"); if(up) up.hidden=!on;
+    const d=$("coLogoDel"); if(d) d.hidden=!(on&&has);
+    w.hidden=!(on&&has);
+    if(on&&has) $("coLogoImg").src=cfg.coLogo; }
 
   const fmtMS=s=>{ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); };
   const fmtT=s=>Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
@@ -2194,7 +2198,7 @@
       }).join("<br>"):"No erg exercises in the workout yet.");
   }
   function buildControlRoom(){
-    $("cName").value=cfg.name; $("cSub").value=cfg.sub;
+    $("cName").value=cfg.name;
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
     pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
     $("wSize").value=W().waveSize;
@@ -2231,7 +2235,6 @@
     $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
     { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
-    $("cSub").oninput=e=>{cfg.sub=e.target.value;save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
     $("cPerUnit").oninput=e=>{cfg.scoring.perUnit=clamp(+e.target.value||1,1,1e5);save();};
     $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
@@ -2241,10 +2244,13 @@
         const h=Math.min(160,img.height), k=h/img.height;
         const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(img.width*k)); c.height=h;
         c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-        cfg.coLogo=c.toDataURL("image/png"); save(); syncCoLogo(); };
+        cfg.coLogo=c.toDataURL("image/png"); cfg.collab=true; save(); syncCoLogo(); };
         img.src=r.result; };
       r.readAsDataURL(f); e.target.value=""; };
     $("coLogoDel").onclick=()=>{ cfg.coLogo=null; save(); syncCoLogo(); };
+    $("collabChk").onchange=e=>{ cfg.collab=e.target.checked;
+      if(!cfg.collab) cfg.coLogo=null;
+      save(); syncCoLogo(); };
     syncCoLogo();
     document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
       c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();}; });
@@ -2467,7 +2473,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=139;
+  const BUILD=140;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
