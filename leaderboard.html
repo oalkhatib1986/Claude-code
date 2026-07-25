@@ -682,6 +682,14 @@
   <section class="view" id="viewTeams">
     <div class="cr">
       <div class="card wide">
+        <div class="body" style="padding-top:14px;padding-bottom:14px">
+          <div class="teamsbar">
+            <label id="tcLabel2">Teams today</label>
+            <span id="tcPick2"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card wide">
         <h3 id="teamsH3">Teams</h3>
         <div class="body">
           <div id="crewList"></div>
@@ -2056,9 +2064,8 @@
     if(!sessionActive&&!running) build();
   }
   function syncTeamCount(){
-    const wp=$("tcPick"); if(!wp) return;
     const solo=cfg.teamKind==="solo";
-    const lb=$("tcLabel"); if(lb) lb.textContent=solo?"Athletes today":"Teams today";
+    ["tcLabel","tcLabel2"].forEach(id=>{ const lb=$(id); if(lb) lb.textContent=solo?"Athletes today":"Teams today"; });
     { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
@@ -2067,13 +2074,14 @@
       ?"Athletes are <b>assigned automatically in order</b>: Athletes 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next athletes take Block 2, and so on. Every round the groups move together to the next block; the screens tell everyone where to go. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
       :"Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here."); }
     const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
-    wp.innerHTML="";
-    wp.appendChild(menuField(
-      ()=>Array.from({length:60},(_,i)=>unit(i+1)),
-      ()=>unit(clamp(cfg.crews.length,1,60)),
-      v=>{ const n=clamp(parseInt(v,10)||1,1,60); if(n!==cfg.crews.length) setTeamCount(n); else syncTeamCount(); },
-      {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
-    ));
+    ["tcPick","tcPick2"].forEach(id=>{ const wp=$(id); if(!wp) return;
+      wp.innerHTML="";
+      wp.appendChild(menuField(
+        ()=>Array.from({length:60},(_,i)=>unit(i+1)),
+        ()=>unit(clamp(cfg.crews.length,1,60)),
+        v=>{ const n=clamp(parseInt(v,10)||1,1,60); if(n!==cfg.crews.length) setTeamCount(n); else syncTeamCount(); },
+        {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
+      )); });
   }
   function buildCrews(){
     syncTeamCount();
@@ -2424,7 +2432,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=128;
+  const BUILD=129;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
