@@ -438,6 +438,11 @@
   body.bigscreen .subtabs{display:none}
   #scrTabs{display:none}
   body.bigscreen #scrTabs{display:flex;opacity:0;transition:opacity .2s}
+  #scrTabs .fitbtn{display:none}
+  @media (max-width:899px){
+    body.bigscreen #scrTabs{opacity:.6}
+    #scrTabs .fitbtn{display:block;margin-left:auto}
+  }
   body.bigscreen #scrTabs:hover{opacity:1}
   body.wkscreen .board{display:none!important}
   body.wkscreen .blocks{display:grid!important}
@@ -485,38 +490,42 @@
   #coLogoWrap i{font-style:normal;color:var(--ink-mute);font-size:20px;font-family:var(--disp)}
   #coLogoImg{height:38px;max-width:150px;object-fit:contain}
   body.bigscreen #coLogoImg{height:64px;max-width:260px}
+  .blk .teams .t.unnamed{color:#ff9490;background:rgba(255,70,64,.13);border-radius:8px;padding:3px 9px}
+  .blk .teams .t.unnamed .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
+  .team.unnamed{color:#ff9490}
+  .tb-tinfo b.unnamed{color:#ff9490}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .footer,body.bigscreen .controls{display:none}
   /* projection styles apply on any device; narrow screens get a scaled preview */
-  body.bigscreen{--rowH:104px}
-    body.bigscreen .wrap{max-width:1560px}
-  body.bigscreen .tabs{opacity:0;transition:opacity .2s}
-  body.bigscreen .tabs:hover{opacity:1}
-  body.bigscreen .badge{height:84px;width:84px}
-  body.bigscreen .lane{grid-template-columns:80px 1fr 240px}
-  body.bigscreen .rank{font-size:44px}
-  body.bigscreen .team{font-size:32px}
-  body.bigscreen .loc{font-size:15px}
-  body.bigscreen .hero{font-size:36px}
-  body.bigscreen .sub{font-size:13.5px}
-  body.bigscreen .track{max-width:none;height:6px}
-  body.bigscreen .clock b{font-size:64px}
-  body.bigscreen .subhead .ttl b{font-size:52px}
-  body.wkscreen .blocks{grid-template-columns:repeat(2,1fr);gap:26px;margin-top:26px}
-  body.wkscreen .blk{padding:28px 32px;gap:16px}
-  body.wkscreen .blk .bh b{font-size:40px}
-  body.wkscreen .blk .bh .mc{font-size:17px;padding:6px 16px}
-  body.wkscreen .blk .bd{font-size:28px;line-height:1.62}
-  body.wkscreen .blk .win{font-size:17px}
-  body.wkscreen .blk .teams .t{font-size:19px}
-  body.wkscreen .blk .teams .dot{width:13px;height:13px}
-  body.wkscreen .blk .teams .mtag{font-size:15px;padding:2px 9px}
-  body.wkscreen .clock b{font-size:110px}
-  body.wkscreen .clock span{font-size:15px;letter-spacing:.3em}
-  body.wkscreen .phase .plabel{font-size:26px}
-  body.wkscreen .phase .pdesc{font-size:18px}
+  body.bigscreen:not(.mobscreen){--rowH:104px}
+    body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
+  body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
+  body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
+  body.bigscreen:not(.mobscreen) .badge{height:84px;width:84px}
+  body.bigscreen:not(.mobscreen) .lane{grid-template-columns:80px 1fr 240px}
+  body.bigscreen:not(.mobscreen) .rank{font-size:44px}
+  body.bigscreen:not(.mobscreen) .team{font-size:32px}
+  body.bigscreen:not(.mobscreen) .loc{font-size:15px}
+  body.bigscreen:not(.mobscreen) .hero{font-size:36px}
+  body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
+  body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
+  body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
+  body.bigscreen:not(.mobscreen) .subhead .ttl b{font-size:52px}
+  body.wkscreen:not(.mobscreen) .blocks{grid-template-columns:repeat(2,1fr);gap:26px;margin-top:26px}
+  body.wkscreen:not(.mobscreen) .blk{padding:28px 32px;gap:16px}
+  body.wkscreen:not(.mobscreen) .blk .bh b{font-size:40px}
+  body.wkscreen:not(.mobscreen) .blk .bh .mc{font-size:17px;padding:6px 16px}
+  body.wkscreen:not(.mobscreen) .blk .bd{font-size:28px;line-height:1.62}
+  body.wkscreen:not(.mobscreen) .blk .win{font-size:17px}
+  body.wkscreen:not(.mobscreen) .blk .teams .t{font-size:19px}
+  body.wkscreen:not(.mobscreen) .blk .teams .dot{width:13px;height:13px}
+  body.wkscreen:not(.mobscreen) .blk .teams .mtag{font-size:15px;padding:2px 9px}
+  body.wkscreen:not(.mobscreen) .clock b{font-size:110px}
+  body.wkscreen:not(.mobscreen) .clock span{font-size:15px;letter-spacing:.3em}
+  body.wkscreen:not(.mobscreen) .phase .plabel{font-size:26px}
+  body.wkscreen:not(.mobscreen) .phase .pdesc{font-size:18px}
   @media (max-width:720px){
     :root{--rowH:78px}
     .lane{grid-template-columns:30px 1fr 104px;gap:9px;padding:0 4px}
@@ -582,6 +591,7 @@
   <div class="subtabs" id="scrTabs">
     <button id="smLead" class="on" type="button">Leaderboard</button>
     <button id="smWork" type="button">Workout + Timer</button>
+    <button id="smFit" type="button" class="fitbtn">Phone view</button>
   </div>
   <div class="subtabs" id="ctlTabs" hidden>
     <button id="ctWork" class="on" type="button">Session</button>
@@ -751,6 +761,12 @@
               <div class="pills" id="fmtKind">
                 <button data-v="teams" aria-pressed="true" type="button">Teams</button>
                 <button data-v="solo" aria-pressed="false" type="button">Solo</button>
+              </div>
+            </div>
+            <div class="fld"><label>Leaderboard</label>
+              <div class="pills" id="fmtScore">
+                <button data-v="on" aria-pressed="true" type="button">Scored</button>
+                <button data-v="off" aria-pressed="false" type="button">No score</button>
               </div>
             </div>
             <div class="fld" id="fmtSizeFld" style="min-width:170px"><label>Athletes per team</label>
@@ -1029,6 +1045,7 @@
   if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
   if(!cfg.teamKind) cfg.teamKind="teams";
   if(!cfg.teamSize) cfg.teamSize=4;
+  if(cfg.noScore===undefined) cfg.noScore=false;
   if(cfg.rotation){
     if(cfg.rotation.parts){
       cfg.rotation.blocks.forEach(b=>{
@@ -1177,7 +1194,8 @@
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
       +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
       +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`)
-      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
+      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`
+      +(showLeaderboard()?"":`<span class="schip"><b>NO SCORE</b><i>workout only</i></span>`);
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
@@ -1322,7 +1340,7 @@
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
-        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
   }
@@ -1620,6 +1638,7 @@
           <div class="track"><div class="fill"></div></div></div>
         <div class="data"><div class="hero"></div><div class="sub"></div></div>`;
       el.querySelector(".team").textContent=e.name;
+      el.querySelector(".team").classList.toggle("unnamed",unnamed(e.name));
       el.querySelector(".fill").style.background=e.color;
       lanesEl.appendChild(el); e.el=el;
     });
@@ -1667,9 +1686,14 @@
   let subTab="workout";
   let ctlTab="session";
   let scrMode="lead";
+  let scrFit="tv";
   function show(which){
     document.body.classList.toggle("bigscreen",which==="screen");
+    if(which==="screen"&&scrMode==="lead"&&!showLeaderboard()) scrMode="work";
+    { const l=$("smLead"); if(l) l.style.display=showLeaderboard()?"":"none"; }
     document.body.classList.toggle("wkscreen",which==="screen"&&scrMode==="work");
+    document.body.classList.toggle("mobscreen",which==="screen"&&scrFit==="mobile");
+    { const f=$("smFit"); if(f) f.textContent=scrFit==="mobile"?"TV preview":"Phone view"; }
     $("scrTabs").hidden=which!=="screen";
     $("smLead").classList.toggle("on",scrMode==="lead");
     $("smWork").classList.toggle("on",scrMode==="work");
@@ -1695,6 +1719,7 @@
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
   $("smWork").onclick=()=>{ scrMode="work"; show("screen"); };
+  $("smFit").onclick=()=>{ scrFit=scrFit==="tv"?"mobile":"tv"; show("screen"); };
   $("ctWork").onclick=()=>{ ctlTab="session"; show("trainer"); };
   $("ctTeams").onclick=()=>{ ctlTab="teams"; show("trainer"); };
 
@@ -1737,7 +1762,7 @@
       const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
-        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
+        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
         ${needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           holding?"Next part — waiting for trainer":
@@ -2058,6 +2083,8 @@
   const kws=()=>cfg.teamKind==="solo"?"athletes":"teams";
   const Kw=()=>cfg.teamKind==="solo"?"Athlete":"Team";
   const unnamed=n=>/^(Team|Athlete) \d+$/.test(n||"");
+  const hasScoredWork=()=>cfg.mode!=="rotation"||R().blocks.some(b=>(b.items||[]).some(it=>it.scored&&!it.rest));
+  const showLeaderboard=()=>!cfg.noScore&&hasScoredWork();
   function setTeamCount(n){
     n=clamp(parseInt(n,10)||1,1,60);
     while(cfg.crews.length<n) cfg.crews.push({name:crewPrefix()+" "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
@@ -2135,6 +2162,7 @@
     if(!cfg.teamKind) cfg.teamKind="teams";
     if(!cfg.teamSize) cfg.teamSize=4;
     if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
+    if(cfg.noScore===undefined) cfg.noScore=false;
   }
   function buildPresetSel(){
     const wp=$("wkPick"); if(!wp) return;
@@ -2187,6 +2215,10 @@
       cfg.teamKind=b.dataset.v;
       cfg.crews.forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c.name)) c.name=crewPrefix()+" "+(i+1); });
       save(); syncFmt(); buildCrews(); if(!sessionActive&&!running) build(); });
+    [...$("fmtScore").children].forEach(b=>b.onclick=()=>{ cfg.noScore=b.dataset.v==="off"; save();
+      [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
+      if(!sessionActive&&!running) build(); });
+    [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
     $("fmtSize").value=String(cfg.teamSize||4);
     $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6); save(); buildCrews(); if(!sessionActive&&!running) build(); };
     { const w=$("fmtSize").closest(".dsel"); if(w){ const o=$("fmtSize").options[$("fmtSize").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; } }
@@ -2257,7 +2289,7 @@
   const saveResults=()=>{ try{ localStorage.setItem(RKEY,JSON.stringify(results)); }catch(e){} };
   let resultSaved=false;
   function maybeSaveResult(){
-    if(resultSaved||!ergs.length) return; resultSaved=true;
+    if(resultSaved||!ergs.length||!showLeaderboard()) return; resultSaved=true;
     const rows=ergs.map(e=>({name:e.name,score:Math.round((e.score||0)+(e.blockCals||0))}))
       .sort((a,b)=>b.score-a.score);
     results.unshift({t:Date.now(),name:cfg.name||"Session",wk:cfg.wkName||"",mode:cfg.mode,unit:scoreUnit(),rows});
@@ -2434,7 +2466,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=132;
+  const BUILD=133;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -2454,7 +2486,7 @@
     // layout viewport width: unlike innerWidth it does NOT change during pinch-zoom,
     // so re-running this never fights the user's zoom
     const lw=document.documentElement.clientWidth;
-    const on=document.body.classList.contains("bigscreen")&&lw<900;
+    const on=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen")&&lw<900;
     if(on){
       const DW=1560, k=lw/DW;
       w.style.width=DW+"px"; w.style.maxWidth="none";
