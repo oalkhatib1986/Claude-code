@@ -471,35 +471,34 @@
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .footer,body.bigscreen .controls{display:none}
-  @media (min-width:900px){
-    body.bigscreen{--rowH:104px}
+  /* projection styles apply on any device; narrow screens get a scaled preview */
+  body.bigscreen{--rowH:104px}
     body.bigscreen .wrap{max-width:1560px}
-    body.bigscreen .tabs{opacity:.25;transition:opacity .2s}
-    body.bigscreen .tabs:hover{opacity:1}
-    body.bigscreen .badge{height:84px;width:84px}
-    body.bigscreen .lane{grid-template-columns:80px 1fr 240px}
-    body.bigscreen .rank{font-size:44px}
-    body.bigscreen .team{font-size:32px}
-    body.bigscreen .loc{font-size:15px}
-    body.bigscreen .hero{font-size:36px}
-    body.bigscreen .sub{font-size:13.5px}
-    body.bigscreen .track{max-width:none;height:6px}
-    body.bigscreen .clock b{font-size:64px}
-    body.bigscreen .subhead .ttl b{font-size:52px}
-    body.wkscreen .blocks{grid-template-columns:repeat(2,1fr);gap:26px;margin-top:26px}
-    body.wkscreen .blk{padding:28px 32px;gap:16px}
-    body.wkscreen .blk .bh b{font-size:36px}
-    body.wkscreen .blk .bh .mc{font-size:17px;padding:6px 16px}
-    body.wkscreen .blk .bd{font-size:24px;line-height:1.6}
-    body.wkscreen .blk .win{font-size:17px}
-    body.wkscreen .blk .teams .t{font-size:19px}
-    body.wkscreen .blk .teams .dot{width:13px;height:13px}
-    body.wkscreen .blk .teams .mtag{font-size:15px;padding:2px 9px}
-    body.wkscreen .clock b{font-size:110px}
-    body.wkscreen .clock span{font-size:15px;letter-spacing:.3em}
-    body.wkscreen .phase .plabel{font-size:26px}
-    body.wkscreen .phase .pdesc{font-size:18px}
-  }
+  body.bigscreen .tabs{opacity:.25;transition:opacity .2s}
+  body.bigscreen .tabs:hover{opacity:1}
+  body.bigscreen .badge{height:84px;width:84px}
+  body.bigscreen .lane{grid-template-columns:80px 1fr 240px}
+  body.bigscreen .rank{font-size:44px}
+  body.bigscreen .team{font-size:32px}
+  body.bigscreen .loc{font-size:15px}
+  body.bigscreen .hero{font-size:36px}
+  body.bigscreen .sub{font-size:13.5px}
+  body.bigscreen .track{max-width:none;height:6px}
+  body.bigscreen .clock b{font-size:64px}
+  body.bigscreen .subhead .ttl b{font-size:52px}
+  body.wkscreen .blocks{grid-template-columns:repeat(2,1fr);gap:26px;margin-top:26px}
+  body.wkscreen .blk{padding:28px 32px;gap:16px}
+  body.wkscreen .blk .bh b{font-size:36px}
+  body.wkscreen .blk .bh .mc{font-size:17px;padding:6px 16px}
+  body.wkscreen .blk .bd{font-size:24px;line-height:1.6}
+  body.wkscreen .blk .win{font-size:17px}
+  body.wkscreen .blk .teams .t{font-size:19px}
+  body.wkscreen .blk .teams .dot{width:13px;height:13px}
+  body.wkscreen .blk .teams .mtag{font-size:15px;padding:2px 9px}
+  body.wkscreen .clock b{font-size:110px}
+  body.wkscreen .clock span{font-size:15px;letter-spacing:.3em}
+  body.wkscreen .phase .plabel{font-size:26px}
+  body.wkscreen .phase .pdesc{font-size:18px}
   @media (max-width:720px){
     :root{--rowH:78px}
     .lane{grid-template-columns:30px 1fr 104px;gap:9px;padding:0 4px}
@@ -1651,6 +1650,7 @@
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
+    fitScreen();
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet");
@@ -2351,11 +2351,12 @@
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
     $("tState").textContent=clockState.textContent;
+    if(document.body.classList.contains("bigscreen")&&innerWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=123;
+  const BUILD=124;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -2370,6 +2371,21 @@
   applyAccent(); buildControlRoom(); build();
   if(location.hash==="#screen") show("screen");
   else if(location.hash==="#workout"){ scrMode="work"; show("screen"); }
+  function fitScreen(){
+    const w=document.querySelector(".wrap"); if(!w) return;
+    const on=document.body.classList.contains("bigscreen")&&innerWidth<900;
+    if(on){
+      const DW=1560, k=innerWidth/DW;
+      w.style.width=DW+"px"; w.style.maxWidth="none";
+      w.style.transform="scale("+k+")"; w.style.transformOrigin="top left";
+      w.style.marginBottom=(-(w.scrollHeight*(1-k)))+"px";
+      document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
+    } else {
+      w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin=""; w.style.marginBottom="";
+      document.documentElement.style.overflowX=""; document.body.style.overflowX="";
+    }
+  }
+  window.addEventListener("resize",fitScreen);
   window.addEventListener("hashchange",()=>{
     if(location.hash==="#screen"){ scrMode="lead"; show("screen"); }
     else if(location.hash==="#workout"){ scrMode="work"; show("screen"); } });
