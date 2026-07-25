@@ -589,7 +589,7 @@
     <div class="blocks" id="blockCards"></div>
 
     <div class="board">
-      <div class="board-head"><span>Rank · Team · Where they are</span><span id="scoreLabel">Score</span></div>
+      <div class="board-head"><span id="rankHead">Rank · Team · Where they are</span><span id="scoreLabel">Score</span></div>
       <div class="lanes" id="lanes"></div>
     </div>
 
@@ -665,7 +665,7 @@
   <section class="view" id="viewTeams">
     <div class="cr">
       <div class="card wide">
-        <h3>Teams</h3>
+        <h3 id="teamsH3">Teams</h3>
         <div class="body">
           <div id="crewList"></div>
           <div class="addbtns">
@@ -1154,7 +1154,7 @@
       const over=!empty&&anyOver();
       startBtn.disabled=empty||over;
       startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Layout":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
-      clockState.textContent=k===0&&!sessionActive?"Block time · ready":"Teams rotating";
+      clockState.textContent=k===0&&!sessionActive?"Block time · ready":(cfg.teamKind==="solo"?"Athletes rotating":"Teams rotating");
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
       $("phaseDesc").textContent = "Athletes pick their team on the erg screen · trainer starts the block";
@@ -1285,7 +1285,7 @@
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
-        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no teams this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
   }
@@ -1700,8 +1700,8 @@
       const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
-        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No team on this machine this round</b><span>&nbsp;</span></div>`}</div>
-        ${needName?`<div class="tb-namer"><label>Your team &mdash; type your team name</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
+        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
+        ${needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           holding?"Next part — waiting for trainer":
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
@@ -2017,6 +2017,9 @@
   }
   const TEAMPAL=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
   const crewPrefix=()=>cfg.teamKind==="solo"?"Athlete":"Team";
+  const kw=()=>cfg.teamKind==="solo"?"athlete":"team";
+  const kws=()=>cfg.teamKind==="solo"?"athletes":"teams";
+  const Kw=()=>cfg.teamKind==="solo"?"Athlete":"Team";
   function setTeamCount(n){
     n=clamp(parseInt(n,10)||1,1,60);
     while(cfg.crews.length<n) cfg.crews.push({name:crewPrefix()+" "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
@@ -2028,6 +2031,10 @@
     const wp=$("tcPick"); if(!wp) return;
     const solo=cfg.teamKind==="solo";
     const lb=$("tcLabel"); if(lb) lb.textContent=solo?"Athletes today":"Teams today";
+    { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
+    { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
+    { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
+    { const x=$("rankHead"); if(x) x.textContent=solo?"Rank · Athlete · Where they are":"Rank · Team · Where they are"; }
     const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
     wp.innerHTML="";
     wp.appendChild(menuField(
@@ -2057,7 +2064,7 @@
   }
   $("addCrew").onclick=()=>{ if(cfg.crews.length>=20)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
-    cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
+    cfg.crews.push({name:crewPrefix()+" "+(cfg.crews.length+1),ath:"",color:pal[cfg.crews.length%pal.length]}); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
   $("resetAll").onclick=()=>{ cfg=structuredClone(DEFAULTS); save(); applyAccent(); buildControlRoom(); reset(); };
 
   const PKEY="af_presets_v1";
@@ -2091,7 +2098,7 @@
     const wt=worstTeamsPerBlock();
     const p=typePeaks();
     const keys=["Row","Ski","Bike","Run","Echo"].filter(m=>p[m]);
-    el.innerHTML=`Each team uses <b>one machine of each erg type</b> in its current exercise or group (a Ski + Row group holds one ski and one rower). With <b>${cfg.crews.length} teams</b> across <b>${nBlocks()} blocks</b> (up to <b>${wt}</b> per block), peak use at any moment:<br>`+
+    el.innerHTML=`Each ${kw()} uses <b>one machine of each erg type</b> in its current exercise or group (a Ski + Row group holds one ski and one rower). With <b>${cfg.crews.length} ${kws()}</b> across <b>${nBlocks()} blocks</b> (up to <b>${wt}</b> per block), peak use at any moment:<br>`+
       (keys.length?keys.map(m=>{
         const bad=p[m]>invOf(m);
         return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${mInfo(m).label}s — ${p[m]} of ${invOf(m)}${bad?" — OVER</span>":" ✓"}`;
@@ -2356,7 +2363,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=124;
+  const BUILD=125;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
