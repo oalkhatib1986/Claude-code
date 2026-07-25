@@ -484,10 +484,6 @@
   #coLogoWrap i{font-style:normal;color:var(--ink-mute);font-size:20px;font-family:var(--disp)}
   #coLogoImg{height:38px;max-width:150px;object-fit:contain}
   body.bigscreen #coLogoImg{height:64px;max-width:260px}
-  .blk .teams .t.unnamed{color:#ff9490;background:rgba(255,70,64,.12);border-radius:8px;padding:3px 9px}
-  .blk .teams .t.unnamed .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
-  .team.unnamed{color:#ff9490}
-  .tb-tinfo b.unnamed{color:#ff9490}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -1325,7 +1321,7 @@
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
-        <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
   }
@@ -1623,7 +1619,6 @@
           <div class="track"><div class="fill"></div></div></div>
         <div class="data"><div class="hero"></div><div class="sub"></div></div>`;
       el.querySelector(".team").textContent=e.name;
-      el.querySelector(".team").classList.toggle("unnamed",unnamed(e.name));
       el.querySelector(".fill").style.background=e.color;
       lanesEl.appendChild(el); e.el=el;
     });
@@ -1741,7 +1736,7 @@
       const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
-        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${team.color}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
+        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b>${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
         ${needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           holding?"Next part — waiting for trainer":
@@ -2438,7 +2433,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=130;
+  const BUILD=131;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
