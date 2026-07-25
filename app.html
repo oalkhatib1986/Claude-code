@@ -344,8 +344,8 @@
     font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
     box-shadow:0 12px 40px -8px rgba(0,0,0,.8)}
   #updBar[hidden]{display:none}
-  .transport{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 0 2px}
-  .tico{width:42px;height:42px;border-radius:50%;border:none;background:none;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s,background .15s,transform .1s;padding:0;flex:none}
+  .transport{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 0 2px}
+  .tico{width:40px;height:40px;border-radius:50%;border:none;background:none;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s,background .15s,transform .1s;padding:0;flex:none}
   .tico svg{width:24px;height:24px;display:block}
   .tico svg text{font-family:var(--disp);font-weight:700;letter-spacing:0}
   .tico:hover:not(:disabled):not(.big):not(.lock){color:var(--ink)}
@@ -511,6 +511,7 @@
     <div id="bdock">
       <b id="bdInfo"></b>
       <button class="tico lock" id="bdLock" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
+      <button class="tico" id="bdPrev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
       <button class="tico" id="bdb10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
       <button class="tico d5" id="bdb5" type="button" disabled aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
       <button class="tico big pp" id="bdPause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
@@ -535,6 +536,7 @@
         <div id="startFlow"></div>
         <div class="transport">
           <button class="tico lock" id="tkLockBtn" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
+          <button class="tico" id="tkprev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
           <button class="tico" id="tkb10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
           <button class="tico" id="tkb5" type="button" disabled aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
           <button class="tico big pp" id="tkpause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
@@ -2005,6 +2007,18 @@
     if(!parts.length) return "";
     return `<b>Start runs:</b> `+parts.join(` <span class="fa">&#9656;</span> `)+(from+parts.length<its.length?` <span class="fa">&#9656; &#8214;</span>`:"");
   }
+  function partStarts(b){ const s=[0]; (b.items||[]).forEach(it=>s.push(s[s.length-1]+it.dur)); return s; }
+  function prevPart(){
+    if(cfg.mode!=="rotation"||!running||paused||holding) return;
+    const b=R().blocks[blockIdxOf(rot.round)]; const its=(b.items||[]);
+    if(!its.length) return;
+    const starts=partStarts(b);
+    let idx=its.length-1;
+    for(let i=0;i<its.length;i++){ if(rot.elapsed<starts[i+1]){ idx=i; break; } }
+    const target=(rot.elapsed-starts[idx]>2.5||idx===0)?starts[idx]:starts[idx-1];
+    t0=performance.now()-target*1000; rot.elapsed=target;
+    holdPend=holdBounds().filter(x=>x>target+0.05);
+  }
   function nextPart(){
     if(cfg.mode!=="rotation"||!running||paused||holding) return;
     const b=R().blocks[blockIdxOf(rot.round)];
@@ -2038,6 +2052,7 @@
     if(cfg.mode==="rotation"&&rot.phase==="rest"){ restT0-=ds*1000; if(restT0>now) restT0=now; return; }
     if(!running) return;
     t0-=ds*1000; if(t0>now) t0=now;
+    if(ds<0&&cfg.mode==="rotation") holdPend=holdBounds().filter(x=>x>((now-t0)/1000)+0.05);
   }
   $("tkpause").onclick=()=>setPaused(!paused);
   $("tkb10").onclick=()=>seek(-10); $("tkb5").onclick=()=>seek(-5);
@@ -2050,6 +2065,8 @@
   $("bdLock").onclick=()=>setTkLock(!tkLock);
   $("tknext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
   $("bdNext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
+  $("tkprev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
+  $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
   syncLockUi();
 
   function buildTrainerList(){
@@ -2102,7 +2119,7 @@
   setInterval(()=>{ const a=$("tClock"); if(!a) return;
     const noTk=cfg.mode==="waves";
     ["tkpause","tkb10","tkb5","tkf5","tkf10","bdPause","bdb10","bdb5","bdf5","bdf10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
-    ["tknext","bdNext"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
+    ["tknext","bdNext","tkprev","bdPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
     buildTrainerList();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
@@ -2111,7 +2128,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=108;
+  const BUILD=109;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
