@@ -596,6 +596,8 @@
       <div class="card wide">
         <h3>Teams</h3>
         <div class="body">
+          <div class="fld" style="max-width:240px"><label>Number of teams</label>
+            <select id="teamCount"><option value="1">1 team</option><option value="2">2 teams</option><option value="3">3 teams</option><option value="4">4 teams</option><option value="5">5 teams</option><option value="6">6 teams</option><option value="7">7 teams</option><option value="8">8 teams</option><option value="9">9 teams</option><option value="10">10 teams</option><option value="11">11 teams</option><option value="12">12 teams</option><option value="13">13 teams</option><option value="14">14 teams</option><option value="15">15 teams</option><option value="16">16 teams</option><option value="17">17 teams</option><option value="18">18 teams</option><option value="19">19 teams</option><option value="20">20 teams</option></select></div>
           <div id="crewList"></div>
           <div class="addbtns">
             <button class="btn" id="addCrew">+ Add team</button>
@@ -1660,7 +1662,21 @@
       cell.appendChild(inp); g.appendChild(cell);
     }
   }
+  const TEAMPAL=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
+  function setTeamCount(n){
+    n=clamp(parseInt(n,10)||1,1,20);
+    while(cfg.crews.length<n) cfg.crews.push({name:"Team "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
+    if(cfg.crews.length>n) cfg.crews.length=n;
+    save(); buildCrews(); buildRankGrid(); updateCapReport();
+    if(!sessionActive&&!running) build();
+  }
+  function syncTeamCount(){
+    const sel=$("teamCount"); if(!sel) return;
+    sel.value=String(clamp(cfg.crews.length,1,20));
+    const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; }
+  }
   function buildCrews(){
+    syncTeamCount();
     const list=$("crewList"); list.innerHTML="";
     cfg.crews.forEach((c,i)=>{
       const row=document.createElement("div"); row.className="crew";
@@ -1724,6 +1740,7 @@
       el.oninput=()=>{ cfg.inventory[k]=clamp(parseInt(el.value,10)||0,0,40); save(); updateCapReport(); if(!sessionActive&&!running) build(); };
     });
     updateCapReport();
+    $("teamCount").onchange=e=>setTeamCount(e.target.value);
     $("rBRest").value=String(R().blockRest||0);
     $("rBRest").onchange=e=>{R().blockRest=clamp(parseInt(e.target.value,10)||0,0,1800);save();};
     { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
