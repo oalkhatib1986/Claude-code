@@ -1,4 +1,4 @@
-<title>ATHL3TE — Erg Race Board + Control Room</title>
+<title>ATHL3TE — Erg Race Board</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <style>
   /* ============================================================
@@ -344,17 +344,25 @@
     font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
     box-shadow:0 12px 40px -8px rgba(0,0,0,.8)}
   #updBar[hidden]{display:none}
-  .transport{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 0 2px}
+  .transport{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 4px}
+  .trow{display:flex;align-items:center;justify-content:center}
+  .trow.main{gap:34px}
+  .trow.main .tico{width:50px;height:50px}
+  .trow.main .tico svg{width:28px;height:28px}
+  .trow.sub{gap:20px}
+  .trow.sub .tico{width:38px;height:38px}
+  .trow.sub .tico svg{width:22px;height:22px}
   .tico{width:40px;height:40px;border-radius:50%;border:none;background:none;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s,background .15s,transform .1s;padding:0;flex:none}
   .tico svg{width:24px;height:24px;display:block}
   .tico svg text{font-family:var(--disp);font-weight:700;letter-spacing:0}
-  .tico:hover:not(:disabled):not(.big):not(.lock){color:var(--ink)}
-  .tico.big:hover:not(:disabled){background:#fff}
+  .tico:hover:not(:disabled):not(.big):not(.lock){color:var(--accent)}
+  .tico.big:hover:not(:disabled){filter:brightness(1.12)}
   .tico.lock:not(.armed):hover{color:var(--ink)}
   .tico:active:not(:disabled){transform:scale(.92)}
   .tico:disabled{color:rgba(255,255,255,.14);cursor:default}
-  .tico.big{width:56px;height:56px;background:var(--ink);color:#0a0a0a}
-  .tico.big svg{width:26px;height:26px}
+  .tico.big{width:64px;height:64px;background:var(--accent);color:#0a0a0a}
+  .tico.big svg{width:29px;height:29px}
+  .trow.main .tico.big{width:64px;height:64px}
   .tico.big:disabled{background:rgba(255,255,255,.13);color:rgba(0,0,0,.5)}
   .tico.lock{color:var(--ink-dim)}
   .tico.lock.armed{color:var(--hot)}
@@ -364,11 +372,11 @@
   .tico.lock .ic-open{display:none}
   .tico.lock.armed .ic-open{display:block}
   .tico.lock.armed .ic-closed{display:none}
-  #bdock{gap:5px}
+  #bdock{gap:9px}
   #bdock .tico{width:36px;height:36px}
   @media (max-width:520px){ #bdock .d5{display:none} #bdock #bdInfo{display:none} }
   #bdock .tico svg{width:21px;height:21px}
-  #bdock .tico.big{width:44px;height:44px}
+  #bdock .tico.big{width:46px;height:46px}
   #bdock .tico.big svg{width:22px;height:22px}
   #rlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
   .rrow{border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:opacity .3s,border-color .15s}
@@ -484,9 +492,9 @@
     <div class="tabs" role="tablist">
       <button id="tabBoard" role="tab" aria-selected="true">Board</button>
       <button id="tabScreen" role="tab" aria-selected="false">Big Screen</button>
-      <button id="tabTrainer" role="tab" aria-selected="false">Trainer</button>
+      <button id="tabTrainer" role="tab" aria-selected="false">Control</button>
       <button id="tabTablet" role="tab" aria-selected="false">Erg Tablet</button>
-      <button id="tabCtrl"  role="tab" aria-selected="false">Control Room</button>
+      <button id="tabCtrl"  role="tab" aria-selected="false">Setup</button>
     </div>
   </header>
 
@@ -526,7 +534,7 @@
   <!-- ============ TRAINER (the only page with controls) ============ -->
   <section class="view" id="viewTrainer">
     <div class="card" style="max-width:560px;margin:6px auto 0">
-      <h3>Trainer controls</h3>
+      <h3>Control</h3>
       <div class="body">
         <div class="clock" style="margin-left:0;text-align:left"><b id="tClock">—</b><span id="tState"></span></div>
         <div class="controls" style="margin:0">
@@ -535,15 +543,21 @@
         </div>
         <div id="startFlow"></div>
         <div class="transport">
-          <button class="tico lock" id="tkLockBtn" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
-          <button class="tico" id="tkprev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
-          <button class="tico" id="tkb10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
-          <button class="tico" id="tkb5" type="button" disabled aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
-          <button class="tico big pp" id="tkpause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
-          <button class="tico" id="tkf5" type="button" disabled aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
-          <button class="tico" id="tkf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
-          <button class="tico" id="tknext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+          <div class="trow main">
+            <button class="tico" id="tkprev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
+            <button class="tico big pp" id="tkpause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
+            <button class="tico" id="tknext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+          </div>
+          <div class="trow sub">
+            <button class="tico lock" id="tkLockBtn" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
+            <button class="tico" id="tkb10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+            <button class="tico" id="tkb5" type="button" disabled aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+            <button class="tico" id="tkf5" type="button" disabled aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+            <button class="tico" id="tkf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+          </div>
         </div>
+        <div class="fld" style="max-width:240px"><label>Number of teams today</label>
+          <select id="teamCount"><option value="1">1 team</option><option value="2">2 teams</option><option value="3">3 teams</option><option value="4">4 teams</option><option value="5">5 teams</option><option value="6">6 teams</option><option value="7">7 teams</option><option value="8">8 teams</option><option value="9">9 teams</option><option value="10">10 teams</option><option value="11">11 teams</option><option value="12">12 teams</option><option value="13">13 teams</option><option value="14">14 teams</option><option value="15">15 teams</option><option value="16">16 teams</option><option value="17">17 teams</option><option value="18">18 teams</option><option value="19">19 teams</option><option value="20">20 teams</option></select></div>
         <div id="rlist"></div>
         <div class="note">Run the class from here — or straight from the Board, which has the same start / pause / skip controls in a bar at the bottom. The Big Screen stays display-only.</div>
       </div>
@@ -700,14 +714,12 @@
       <div class="card wide">
         <h3>Teams</h3>
         <div class="body">
-          <div class="fld" style="max-width:240px"><label>Number of teams</label>
-            <select id="teamCount"><option value="1">1 team</option><option value="2">2 teams</option><option value="3">3 teams</option><option value="4">4 teams</option><option value="5">5 teams</option><option value="6">6 teams</option><option value="7">7 teams</option><option value="8">8 teams</option><option value="9">9 teams</option><option value="10">10 teams</option><option value="11">11 teams</option><option value="12">12 teams</option><option value="13">13 teams</option><option value="14">14 teams</option><option value="15">15 teams</option><option value="16">16 teams</option><option value="17">17 teams</option><option value="18">18 teams</option><option value="19">19 teams</option><option value="20">20 teams</option></select></div>
           <div id="crewList"></div>
           <div class="addbtns">
             <button class="btn" id="addCrew">+ Add team</button>
             <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
           </div>
-          <div class="note">Teams are <b>assigned automatically</b>: Team 1 starts on Block 1, Team 2 on Block 2, wrapping around — several teams share a block when you have more teams than blocks, each with its own machine numbers. Everyone rotates together; the screens tell every team where to go next. Nobody picks anything.</div>
+          <div class="note">Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Nobody picks anything.</div>
         </div>
       </div>
 
@@ -933,7 +945,11 @@
   const rot={ round:0, phase:"pre", assign:[], elapsed:0, remain:0 };
   let restT0=0;
 
-  const stationOf=e=>nBlocks()? (e.id+rot.round)%nBlocks() : -1;
+  // consecutive teams fill a block's machines: Team 1,2,3 -> Block 1 M1,M2,M3;
+  // Team 4,5,6 -> Block 2; each round every group moves to the next block together
+  const stationOf=e=>{ if(!nBlocks()) return -1;
+    const per=Math.max(1,Math.ceil(cfg.crews.length/nBlocks()));
+    return (Math.floor(e.id/per)+rot.round)%nBlocks(); };
   const teamsAt=bi=>ergs.filter(e=>stationOf(e)===bi);
   const invOf=m=>m?((cfg.inventory&&cfg.inventory[m])||0):0;
   const machinesPerTeam=b=>1; // a team shares one erg and alternates on it
@@ -1013,7 +1029,7 @@
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
       const over=!empty&&anyOver();
       startBtn.disabled=empty||over;
-      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Control Room":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
+      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Setup":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
       clockState.textContent=k===0&&!sessionActive?"Block time · ready":"Teams rotating";
       $("phaseBanner").classList.remove("scoring");
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — teams pick a station" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
@@ -1127,14 +1143,14 @@
     const p=typePeaks();
     const bad=Object.keys(p).filter(m=>p[m]>invOf(m));
     if(!bad.length){ el.hidden=true; return; }
-    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. Fix the workout or machine counts in the Control Room.`;
+    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. Fix the workout or machine counts in Setup.`;
     el.hidden=false;
   }
   function renderBlockCards(){
     if(cfg.mode!=="rotation") return;
     updateCapBanner();
     if(!nBlocks()){
-      $("blockCards").innerHTML=`<div class="blk"><div class="bh"><b>No blocks yet</b></div><div class="bd">Open the Control Room and add blocks to build your workout from scratch.</div><div class="teams"></div></div>`;
+      $("blockCards").innerHTML=`<div class="blk"><div class="bh"><b>No blocks yet</b></div><div class="bd">Open Setup and add blocks to build your workout from scratch.</div><div class="teams"></div></div>`;
       return;
     }
     $("blockCards").innerHTML=R().blocks.map((b,bi)=>{
@@ -1522,7 +1538,7 @@
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(cfg.mode==="rotation"){
       const ni0=scr.querySelector("#tbName"); if(ni0&&(ni0===document.activeElement||ni0.value)) return;
-      if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in the Control Room.</div>`; return; }
+      if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in Setup.</div>`; return; }
       const sv=String(tabletSel), mtype=sv.includes(":")?sv.split(":")[0]:null, mnum=sv.includes(":")?+sv.split(":")[1]:0;
       const mLabel=mtype?`${mInfo(mtype).label} ${mnum}`:"\u2014";
       const hit=mtype?machSlots().byKey[mtype+":"+mnum]:null;
@@ -2128,7 +2144,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=109;
+  const BUILD=110;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
