@@ -843,8 +843,26 @@
     return { teams:ts.map((e,j)=>({e, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
   const mrange=t=>t.from===t.to?`M${t.from}`:`M${t.from}\u2013${t.to}`;
   const worstTeamsPerBlock=()=>nBlocks()?Math.ceil(cfg.crews.length/nBlocks()):0;
-  const overFor=b=>worstTeamsPerBlock()*machinesPerTeam(b)>invOf(blockMachine(b));
-  const anyOver=()=>R().blocks.some(b=>overFor(b));
+  const itemTypes=it=>{ const s=new Set(); (it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) s.add(m); }); return [...s]; };
+  // peak simultaneous machines needed per type: walk every item boundary across all blocks
+  const typePeaks=()=>{
+    const wt=worstTeamsPerBlock(); const peaks={};
+    if(!nBlocks()||!wt) return peaks;
+    const bounds=new Set([0]);
+    R().blocks.forEach(b=>{ let acc=0; (b.items||[]).forEach(it=>{ acc+=it.dur; bounds.add(acc); }); });
+    [...bounds].sort((a,b2)=>a-b2).forEach(t=>{
+      const use={};
+      R().blocks.forEach(b=>{ const seg=segAt(b,t+0.5); if(!seg||seg.it.rest) return;
+        itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+wt; }); });
+      for(const m in use) peaks[m]=Math.max(peaks[m]||0,use[m]);
+    });
+    return peaks;
+  };
+  const anyOver=()=>{ const p=typePeaks(); return Object.keys(p).some(m=>p[m]>invOf(m)); };
+  const teamMachLabel=(e,j,verbose)=>{ const n=j+1;
+    const ts=(running&&e.curTypes&&e.curTypes.length)?e.curTypes:null;
+    if(ts&&ts.length>1) return ts.map(m=>mInfo(m).short+" M"+n).join(" + ");
+    return (verbose?"Machine ":"M")+n; };
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
     if(n.includes("assault bike")||n.includes("echo")) return "Echo";
@@ -951,9 +969,9 @@
       if(st<0){ e.split=0; e.spm=0; e.hot=false; e.segName=""; continue; }
       const seg=segAt(R().blocks[st],t);
       if(!seg){ e.split=0; e.spm=0; e.hot=false; e.segName="done"; continue; }
-      if(seg.it.rest){ e.split=0; e.spm=0; e.hot=false; e.segName="Rest"; continue; }
+      if(seg.it.rest){ e.split=0; e.spm=0; e.hot=false; e.segName="Rest"; e.curTypes=null; continue; }
       const hot=!!seg.it.scored;
-      e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain; e.curMetric=seg.it.metric||"calories";
+      e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain; e.curMetric=seg.it.metric||"calories"; e.curTypes=itemTypes(seg.it);
       let effort = hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12);
       e.phase+=0.12;
       if(effort>0.05){
@@ -963,7 +981,7 @@
         const w=wattsFor(e.split)*effort;
         const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
         e.m+=dm; e.cals+=dc;
-        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc);
+        if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc) * Math.max(1,itemTypes(seg.it).length);
       } else { e.split=0; e.spm=0; }
     }
     const hotAny=ergs.some(e=>e.hot);
@@ -1016,8 +1034,8 @@
       else if(st<0) loc=`<span class="nx">—</span>`;
       else{
         const here=R().blocks[st], next=R().blocks[(st+1)%nBlocks()];
-        const mine=allocAt(st).teams.find(t=>t.e===e);
-        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}${mine?` · ${mrange(mine)}`:""}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
+        const mi=allocAt(st).teams.findIndex(t=>t.e===e);
+        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}${mi>=0?` · ${teamMachLabel(e,mi)}`:""}</b>${last?"":` <span class="nx">&rarr; next ${esc(next.name)}</span>`}`;
       }
       e.el.querySelector(".loc").innerHTML=loc;
       const st2=stationOf(e);
@@ -1372,7 +1390,7 @@
       const lastRound=rot.round>=totalRounds()-1;
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${esc(b.name)}</span><span class="bmach">${bmLabel(b)}</span></div>
-        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><div class="tb-tinfo"><b>${esc(t.e.name)}</b><i>${running&&t.e.split>0?`${fmtSplit(t.e.split)}/500 &middot; ${Math.round(wattsFor(t.e.split))}w &middot; r${Math.round(t.e.spm)}`:running?"erg idle":"&nbsp;"}</i></div><span>Machine${t.from===t.to?"":"s"} ${t.from===t.to?t.from:t.from+"&ndash;"+t.to}<br><b class="tb-sc">${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</b></span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
+        <div class="tb-teams">${al.teams.map(t=>`<div class="tb-team"><span class="dot" style="background:${t.e.color}"></span><div class="tb-tinfo"><b>${esc(t.e.name)}</b><i>${running&&t.e.split>0?`${fmtSplit(t.e.split)}/500 &middot; ${Math.round(wattsFor(t.e.split))}w &middot; r${Math.round(t.e.spm)}`:running?"erg idle":"&nbsp;"}</i></div><span>${teamMachLabel(t.e,t.from-1,true)}<br><b class="tb-sc">${Math.round(t.e.score+t.e.blockCals)} ${scoreUnit()}</b></span></div>`).join("")||`<div class="tb-team"><b>No teams this round</b><span>&nbsp;</span></div>`}</div>
         ${al.over?`<div class="tb-note" style="color:var(--hot);text-align:center">Needs ${al.need} machines &mdash; only ${al.cap} available. Fix in Control Room.</div>`:""}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
@@ -1726,11 +1744,13 @@
     const el=$("capReport"); if(!el) return;
     if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML="Capacity checks apply to rotating-block sessions."; return; }
     const wt=worstTeamsPerBlock();
-    el.innerHTML=`Each team shares <b>one machine</b> (athletes alternate). With <b>${cfg.crews.length} teams</b> across <b>${nBlocks()} blocks</b>, up to <b>${wt}</b> team${wt>1?"s":""} on a block at once — so each block needs ${wt} machine${wt>1?"s":""}.<br>`+
-      R().blocks.map(b=>{
-        const need=wt*machinesPerTeam(b), cap=invOf(blockMachine(b)), bad=need>cap;
-        return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${esc(b.name)} · ${bmLabel(b)} — ${need} of ${cap} machines${bad?" — OVER</span>":" ✓"}`;
-      }).join("<br>");
+    const p=typePeaks();
+    const keys=["Row","Ski","Bike","Run","Echo"].filter(m=>p[m]);
+    el.innerHTML=`Each team uses <b>one machine of each erg type</b> in its current exercise or group (a Ski + Row group holds one ski and one rower). With <b>${cfg.crews.length} teams</b> across <b>${nBlocks()} blocks</b> (up to <b>${wt}</b> per block), peak use at any moment:<br>`+
+      (keys.length?keys.map(m=>{
+        const bad=p[m]>invOf(m);
+        return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${mInfo(m).label}s — ${p[m]} of ${invOf(m)}${bad?" — OVER</span>":" ✓"}`;
+      }).join("<br>"):"No erg exercises in the workout yet.");
   }
   function buildControlRoom(){
     $("cName").value=cfg.name; $("cSub").value=cfg.sub;
@@ -1796,7 +1816,7 @@
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
     $("tState").textContent=clockState.textContent; },400);
-  const BUILD=101;
+  const BUILD=102;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
