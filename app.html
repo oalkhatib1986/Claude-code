@@ -82,6 +82,11 @@
   .phase.scoring .plabel{color:var(--hot)}
 
   /* ---------- block cards ---------- */
+  #capBanner{margin-top:14px;border:1px solid rgba(255,45,45,.55);border-radius:12px;padding:13px 16px;
+    background:linear-gradient(90deg,rgba(255,45,45,.12),transparent 70%);color:var(--ink);
+    font-size:14px;line-height:1.5}
+  #capBanner b{color:var(--hot)}
+  #capBanner[hidden]{display:none}
   .blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
   .blk{border:1px solid var(--line);border-left:3px solid var(--bl,var(--line));border-radius:16px;background:linear-gradient(90deg,var(--blbg,transparent),transparent 55%),var(--card);box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s}
   .blk.scoring{border-color:rgba(255,45,45,.55);box-shadow:0 0 34px -10px rgba(255,45,45,.3),var(--shadow)}
@@ -428,6 +433,7 @@
       <span class="plabel" id="phaseLabel"></span>
       <span class="pdesc" id="phaseDesc"></span>
     </div>
+    <div id="capBanner" hidden></div>
     <div class="blocks" id="blockCards"></div>
 
     <div class="board">
@@ -998,8 +1004,19 @@
     raf=requestAnimationFrame(frameRotation);
   }
 
+  const blockUsesTypes=b=>{ const s=new Set(); (b.items||[]).forEach(it=>itemTypes(it).forEach(m=>s.add(m))); return s; };
+  function updateCapBanner(){
+    const el=$("capBanner"); if(!el) return;
+    if(cfg.mode!=="rotation"){ el.hidden=true; return; }
+    const p=typePeaks();
+    const bad=Object.keys(p).filter(m=>p[m]>invOf(m));
+    if(!bad.length){ el.hidden=true; return; }
+    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. Fix the workout or machine counts in the Control Room.`;
+    el.hidden=false;
+  }
   function renderBlockCards(){
     if(cfg.mode!=="rotation") return;
+    updateCapBanner();
     if(!nBlocks()){
       $("blockCards").innerHTML=`<div class="blk"><div class="bh"><b>No blocks yet</b></div><div class="bd">Open the Control Room and add blocks to build your workout from scratch.</div><div class="teams"></div></div>`;
       return;
@@ -1012,7 +1029,7 @@
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${fmtMS(blockLen(b))} total · trainer starts each block</div>
-        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${mrange(t)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no teams this round</span>`}${al.over?`<span class="t overcap">&#9888; needs ${al.need} machines — ${al.cap} available</span>`:""}</div>
+        <div class="teams">${al.teams.map(t=>`<span class="t"><span class="dot" style="background:${t.e.color};color:${t.e.color}"></span>${esc(t.e.name)}<em class="mtag">${mrange(t)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no teams this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
   }
@@ -1816,7 +1833,7 @@
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
     $("tState").textContent=clockState.textContent; },400);
-  const BUILD=102;
+  const BUILD=103;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
