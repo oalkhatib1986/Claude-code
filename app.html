@@ -44,9 +44,9 @@
   .wrap{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 
   /* ---------- header ---------- */
-  header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:6px 4px 0}
+  header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:6px 0 0}
   .mark{display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:8px}
-  .badge{height:100px;width:100px;margin:-24px 0 -24px -16px;filter:invert(1);mix-blend-mode:screen;display:block}
+  .badge{height:100px;width:100px;margin:-24px 0 -24px -23px;filter:invert(1);mix-blend-mode:screen;display:block}
   .tagline{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.42em;color:var(--ink-mute);text-transform:uppercase;display:flex;align-items:center;gap:8px;white-space:nowrap;padding-left:4px}
   .tagline i{font-style:normal;color:#3d4046;letter-spacing:-.08em}
   .tabs{margin-left:auto;display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--line-soft)}
@@ -57,7 +57,7 @@
   .view{display:none}.view.active{display:block}
 
   /* ---------- board head ---------- */
-  .subhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:2px 2px 0}
+  .subhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:2px 0 0}
   .subhead .ttl{display:flex;flex-direction:column;gap:2px}
   .subhead .ttl b{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,44px);letter-spacing:.045em;text-transform:uppercase;line-height:.95;text-wrap:balance}
   .subhead .ttl span{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.22em;text-transform:uppercase}
@@ -67,7 +67,7 @@
     #evSummary .schip i{font-size:9px;letter-spacing:.13em}
     #evSummary .schip+.schip::before{margin:0 7px}
   }
-  .schip{display:inline-flex;align-items:baseline;gap:7px}
+  .schip{display:inline-flex;align-items:baseline;gap:7px;flex:none;white-space:nowrap}
   .schip+.schip::before{content:"·";color:var(--ink-mute);margin:0 14px;font-size:14px}
   .schip b{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1;color:var(--ink);letter-spacing:.04em;font-variant-numeric:tabular-nums}
   .schip i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
@@ -507,7 +507,7 @@
     body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
   body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
   body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
-  body.bigscreen:not(.mobscreen) .badge{height:84px;width:84px}
+  body.bigscreen:not(.mobscreen) .badge{height:84px;width:84px;margin:-20px 0 -20px -20px}
   body.bigscreen:not(.mobscreen) .lane{grid-template-columns:80px 1fr 240px}
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
@@ -1190,7 +1190,7 @@
       if(it.rest) return `<div class="exg"><span class="exg-h">Rest · ${fmtMS(it.dur)}</span></div>`;
       const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
-      return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${fmtMS(it.dur)}${it.scored?` <i>scored</i>`:""}</span>${lines}</div>`;
+      return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${fmtMS(it.dur)}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
 
@@ -1198,8 +1198,7 @@
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
       +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
       +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`)
-      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`
-      +(showLeaderboard()?"":`<span class="schip"><b>NO SCORE</b><i>workout only</i></span>`);
+      +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
@@ -1291,7 +1290,7 @@
       const seg=segAt(R().blocks[st],t);
       if(!seg){ e.split=0; e.spm=0; e.hot=false; e.segName="done"; continue; }
       if(seg.it.rest){ e.split=0; e.spm=0; e.hot=false; e.segName="Rest"; e.curTypes=null; continue; }
-      const hot=!!seg.it.scored;
+      const hot=!!seg.it.scored&&!cfg.noScore;
       e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain; e.curMetric=seg.it.metric||"calories"; e.curTypes=itemTypes(seg.it);
       let effort = hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12);
       e.phase+=0.12;
@@ -1339,7 +1338,7 @@
     $("blockCards").innerHTML=R().blocks.map((b,bi)=>{
       const al=allocAt(bi);
       const seg=running?segAt(b,rot.elapsed):null;
-      const hot=!!(seg&&seg.it.scored&&!seg.it.rest);
+      const hot=!!(seg&&seg.it.scored&&!seg.it.rest&&!cfg.noScore);
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
@@ -1759,7 +1758,7 @@
       const team=teamsAt(bi)[hit.j]||null;
       const phase=rot.phase;
       const seg=running?segAt(b,rot.elapsed):null;
-      const hot=!!(seg&&seg.it.scored&&!seg.it.rest);
+      const hot=!!(seg&&seg.it.scored&&!seg.it.rest&&!cfg.noScore);
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
@@ -1925,7 +1924,7 @@
           if(!it.exercises) it.exercises=[];
           const isRest=!!it.rest;
           const isGroup=!isRest&&(it.exercises.length!==1||it.group);
-          const sec=document.createElement("div"); sec.className="psec "+(isRest?"rest":isGroup?"grp":"one")+(it.scored&&!isRest?" scoredit":"");
+          const sec=document.createElement("div"); sec.className="psec "+(isRest?"rest":isGroup?"grp":"one")+(it.scored&&!isRest&&!cfg.noScore?" scoredit":"");
           const head=document.createElement("div"); head.className="psec-h";
           if(isRest){
             const gs=document.createElement("b"); gs.className="gsingle"; gs.textContent="Rest";
@@ -1950,7 +1949,7 @@
           const ls=document.createElement("i"); ls.textContent="sec";
           gt.append(minW,lm,secW,ls);
           head.appendChild(gt);
-          if(!isRest){
+          if(!isRest&&!cfg.noScore){
           const sc=document.createElement("span"); sc.className="exsc"+(it.scored?" on":""); sc.setAttribute("role","checkbox");
           sc.setAttribute("aria-checked",String(!!it.scored)); sc.tabIndex=0; sc.title="Toggle: counts toward the leaderboard"; sc.innerHTML="&#9679;";
           const flip=()=>{ it.scored=!it.scored;
@@ -1975,7 +1974,7 @@
             b.items.splice(ii,1); save(); renderItems(); };
           head.append(iup,idown,imerge,idel);
           sec.appendChild(head);
-          if(it.scored&&!isRest){
+          if(it.scored&&!isRest&&!cfg.noScore){
             const srow=document.createElement("div"); srow.className="scrow";
             const tag=document.createElement("i"); tag.className="slab hotlab"; tag.textContent="Scored:"; srow.appendChild(tag);
             const mkPill=(v,label)=>{ const b2=document.createElement("button"); b2.type="button";
@@ -2221,7 +2220,7 @@
       save(); syncFmt(); buildCrews(); if(!sessionActive&&!running) build(); });
     [...$("fmtScore").children].forEach(b=>b.onclick=()=>{ cfg.noScore=b.dataset.v==="off"; save();
       [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
-      if(!sessionActive&&!running) build(); });
+      buildBlocks(); if(!sessionActive&&!running) build(); });
     [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
     $("fmtSize").value=String(cfg.teamSize||4);
     $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6); save(); buildCrews(); if(!sessionActive&&!running) build(); };
@@ -2436,7 +2435,7 @@
           const st=acc; acc+=it.dur;
           const es=!running?"":(rot.elapsed>=acc?"done":rot.elapsed>=st?"cur":"nextp");
           const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(ii+1)));
-          out+=`<div class="prt ${es} ${it.scored?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(acc-rot.elapsed):fmtMS(it.dur)}</i></div>`;
+          out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(acc-rot.elapsed):fmtMS(it.dur)}</i></div>`;
           if(ii<(b.items||[]).length-1) out+=`<div class="ptr ${it.hold?"on":""}" data-ii="${ii}" role="button">${it.hold?"&#8214; trainer starts next":"&#9656; flows into next"}</div>`;
         });
       }
@@ -2470,7 +2469,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=134;
+  const BUILD=135;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
