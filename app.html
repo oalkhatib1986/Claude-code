@@ -331,6 +331,7 @@
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
+  .gtime .fmtpair{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
   .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px}
@@ -1267,7 +1268,7 @@
   const BLKCOL=["255,255,255","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
   const whoShown=x=>{ const w=(x.who||"").trim(); if(!w) return "";
-    if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|athlete ?\d+)$/i.test(w)) return "";
+    if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|solo|athlete ?\d+)$/i.test(w)) return "";
     return w; };
   const exTxt=x=>{ const w=whoShown(x); return `${w?w+" — ":""}${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`; };
   const exLines=b=>{
@@ -2002,7 +2003,7 @@
       const whoOpts=()=>{ const n=clamp(cfg.teamSize||4,2,6); const o=["Everyone","All "+n];
         for(let k2=2;k2<n;k2++) o.push("All "+k2);
         for(let p=1;p<=Math.ceil(n/2);p++) o.push("Pair "+p);
-        o.push("Single");
+        o.push("Solo");
         for(let a2=1;a2<=n;a2++) o.push("Athlete "+a2);
         return o; };
 
@@ -2080,6 +2081,7 @@
           const ls=document.createElement("i"); ls.textContent="sec";
           gt.append(minW,lm,secW,ls);
           if(!isRest){
+            const fp=document.createElement("span"); fp.className="fmtpair";
             const canRot=it.exercises.length>1;
             const fw=menuField(()=>["Together","Share","Waves"].concat(canRot?["Rotate"]:[]),
               ()=>it.fmt==="waves"?"Waves":it.fmt==="share"?"Share":(it.fmt==="rotate"&&canRot)?"Rotate":"Together",
@@ -2089,8 +2091,8 @@
                 else { delete it.fmt; delete it.wavesN; delete it.shareN; }
                 save(); renderItems(); if(!sessionActive&&!running) build(); },
               {cls:"time ifmt", searchPh:"Format\u2026"});
-            fw.title="How the class runs this: Together — everyone on their own station · Share — 2-3 athletes on one station, alternating · Waves — staggered groups, each wave gets the full time · Rotate — split across the group's exercises and swap";
-            gt.appendChild(fw);
+            fw.title="How the class runs this: Together — everyone on their own station · Share — athletes share one station, alternating · Waves — staggered groups, each wave gets the full time · Rotate — split across the group's exercises and swap";
+            fp.appendChild(fw);
             if(it.fmt==="share"||it.fmt==="waves"){
               const isSh=it.fmt==="share";
               const fn=menuField(()=>isSh?["2s","3s","4s","5s","6s"]:["2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
@@ -2100,8 +2102,9 @@
                   save(); renderItems(); if(!sessionActive&&!running) build(); },
                 {numeric:true, addable:true, addLabel:"Use", cls:"time ifn", searchPh:isSh?"How many share\u2026":"How many waves\u2026"});
               fn.title=isSh?"How many athletes share one station":"How many waves";
-              gt.appendChild(fn);
+              fp.appendChild(fn);
             }
+            gt.appendChild(fp);
           }
           head.appendChild(gt);
           if(!isRest&&!cfg.noScore){
@@ -2765,7 +2768,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=173;
+  const BUILD=174;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -2788,12 +2791,14 @@
     const on=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen")&&lw<900;
     if(on){
       const DW=1560, k=lw/DW;
+      const pad=parseFloat(getComputedStyle(document.body).paddingLeft)||0;
       w.style.width=DW+"px"; w.style.maxWidth="none";
       w.style.transform="scale("+k+")"; w.style.transformOrigin="top left";
+      w.style.marginLeft=(-pad)+"px";
       w.style.marginBottom=(-(w.scrollHeight*(1-k)))+"px";
       document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
     } else {
-      w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin=""; w.style.marginBottom="";
+      w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin=""; w.style.marginLeft=""; w.style.marginBottom="";
       document.documentElement.style.overflowX=""; document.body.style.overflowX="";
     }
   }
