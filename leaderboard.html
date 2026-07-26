@@ -498,6 +498,7 @@
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
   .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
   .mwrap.brounds .mfield{width:64px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center}
+  .mwrap.brrest .mfield{width:104px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center;white-space:nowrap}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -1128,11 +1129,14 @@
   const fmtLong=s=>{ s=Math.round(s); return s>=3600? `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}m` : fmtMS(s); };
   const oneRound=b=>(b.items||[]).reduce((a,it)=>a+it.dur,0);
   const bRounds=b=>clamp(parseInt(b&&b.rounds,10)||1,1,6);
-  const blockLen=b=>oneRound(b)*bRounds(b);
+  const bRRest=b=>bRounds(b)>1?clamp(parseInt(b&&b.rrest,10)||0,0,600):0;
+  const blockLen=b=>oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1);
   const roundLen=()=>Math.max(1,...R().blocks.map(blockLen));
   const segAt=(b,t)=>{ const one=oneRound(b); if(one<=0) return null;
-    const n=bRounds(b); if(t>=one*n) return null;
-    const r=Math.floor(t/one), tt=t-r*one;
+    const n=bRounds(b), rr=bRRest(b), per=one+rr;
+    if(t>=one*n+rr*(n-1)) return null;
+    const r=Math.min(n-1,Math.floor(t/per)), tt=t-r*per;
+    if(tt>=one) return {it:{rest:true,rrest:true,dur:rr}, i:-1, remain:per-tt, round:r, rounds:n};
     let acc=0; const its=b.items||[];
     for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(tt<acc) return {it:its[i], i, remain:acc-tt, round:r, rounds:n}; }
     return null; };
@@ -1169,8 +1173,8 @@
     const wt=worstTeamsPerBlock(); const peaks={};
     if(!nBlocks()||!wt) return peaks;
     const bounds=new Set([0]);
-    R().blocks.forEach(b=>{ const one=oneRound(b), n=bRounds(b);
-      for(let r=0;r<n;r++){ let acc=r*one; (b.items||[]).forEach(it=>{ acc+=it.dur; bounds.add(acc); }); } });
+    R().blocks.forEach(b=>{ const one=oneRound(b), n=bRounds(b), per=one+bRRest(b);
+      for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=it.dur; bounds.add(acc); }); } });
     [...bounds].sort((a,b2)=>a-b2).forEach(t=>{
       const use={};
       R().blocks.forEach(b=>{ const seg=segAt(b,t+0.5); if(!seg||seg.it.rest) return;
@@ -1371,7 +1375,7 @@
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${bRounds(b)>1?`${bRounds(b)} &times; ${fmtMS(oneRound(b))} · `:""}${fmtMS(blockLen(b))} total · trainer starts each block</div>
+        <div class="win">${bRounds(b)>1?`${bRounds(b)} &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total · trainer starts each block</div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
@@ -2061,7 +2065,17 @@
           v=>{ b.rounds=clamp(parseInt(v,10)||1,1,6); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
           {numeric:true, cls:"time brounds", searchPh:"Rounds\u2026"});
         rw.title="Rounds within this block";
-        top.insertBefore(rw, top.querySelector(".up")); }
+        top.insertBefore(rw, top.querySelector(".up"));
+        if(bRounds(b)>1){
+          const rr=menuField(()=>["No rest","0:30","0:45","1:00","1:30","2:00","3:00"],
+            ()=>bRRest(b)?fmtMS(bRRest(b))+" rest":"No rest",
+            v=>{ const m=v.match(/(\d+):(\d{1,2})/);
+              b.rrest=m?(+m[1]*60+ +m[2]):(/^\d+$/.test(v)?(+v<10?+v*60:+v):0);
+              save(); buildBlocks(); if(!sessionActive&&!running) build(); },
+            {numeric:true, cls:"time brrest", searchPh:"Rest between rounds\u2026"});
+          rr.title="Rest between rounds";
+          top.insertBefore(rr, top.querySelector(".up"));
+        } }
       box.querySelector(".addex").onclick=()=>{ b.items.push({dur:300,scored:false,exercises:[newEx()]}); save(); renderItems(); };
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
       box.querySelector('.up').onclick=()=>{ if(i>0){[R().blocks[i-1],R().blocks[i]]=[R().blocks[i],R().blocks[i-1]];save();buildBlocks();} };
@@ -2410,15 +2424,15 @@
     if(!parts.length) return "";
     return `<b>Start runs:</b> `+parts.join(` <span class="fa">&#9656;</span> `)+(from+parts.length<its.length?` <span class="fa">&#9656; &#8214;</span>`:"");
   }
-  function partStarts(b){ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b);
-    const s=[0]; for(let r=0;r<n;r++){ let acc=r*one; its.forEach(it=>{ acc+=it.dur; s.push(acc); }); } return s; }
+  function partStarts(b){ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b), rr=bRRest(b), per=one+rr;
+    const s=[0]; for(let r=0;r<n;r++){ let acc=r*per; its.forEach(it=>{ acc+=it.dur; s.push(acc); }); if(rr>0&&r<n-1) s.push((r+1)*per); } return s; }
   function prevPart(){
     if(cfg.mode!=="rotation"||!running||paused||holding) return;
     const b=R().blocks[blockIdxOf(rot.round)]; const its=(b.items||[]);
     if(!its.length) return;
     const starts=partStarts(b);
-    let idx=its.length-1;
-    for(let i=0;i<its.length;i++){ if(rot.elapsed<starts[i+1]){ idx=i; break; } }
+    let idx=starts.length-2;
+    for(let i=0;i+1<starts.length;i++){ if(rot.elapsed<starts[i+1]){ idx=i; break; } }
     const target=(rot.elapsed-starts[idx]>2.5||idx===0)?starts[idx]:starts[idx-1];
     t0=performance.now()-target*1000; rot.elapsed=target;
     holdPend=holdBounds().filter(x=>x>target+0.05);
@@ -2433,8 +2447,8 @@
   let holding=false, holdPend=[];
   // union of "wait for trainer" boundaries across all blocks (they share one class clock)
   const holdBounds=()=>{ const s=new Set();
-    R().blocks.forEach(b=>{ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b);
-      for(let r=0;r<n;r++){ let acc=r*one; its.forEach((it,i)=>{ acc+=it.dur;
+    R().blocks.forEach(b=>{ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b), per=one+bRRest(b);
+      for(let r=0;r<n;r++){ let acc=r*per; its.forEach((it,i)=>{ acc+=it.dur;
         if(it.hold&&!(r===n-1&&i===its.length-1)) s.add(acc); }); } });
     return [...s].sort((a,b2)=>a-b2); };
   function enginePump(){
@@ -2498,12 +2512,12 @@
       const cls=isDone?"done":isCur?"cur":"next";
       const rbAll=bRounds(b);
       const segNow=(!finished&&r===rot.round&&running)?segAt(b,rot.elapsed):null;
-      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(rbAll>1&&segNow?`Round ${segNow.round+1}/${rbAll}`:"Running")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
+      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(rbAll>1&&segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:`Round ${segNow.round+1}/${rbAll}`):"Running")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
       out+=`<div class="rrow ${cls}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${bRounds(b)>1?` · ${bRounds(b)}&times;`:""}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span></div>`;
       if(isCur){
-        const one=oneRound(b), rbN=bRounds(b);
-        const rIdx=running&&one>0? Math.min(rbN-1,Math.floor(rot.elapsed/one)) : 0;
-        const tt=running? rot.elapsed-rIdx*one : 0;
+        const one=oneRound(b), rbN=bRounds(b), per=one+bRRest(b);
+        const rIdx=running&&one>0? Math.min(rbN-1,Math.floor(rot.elapsed/per)) : 0;
+        const tt=running? rot.elapsed-rIdx*per : 0;
         let acc=0;
         (b.items||[]).forEach((it,ii)=>{
           const st=acc; acc+=it.dur;
@@ -2512,6 +2526,10 @@
           out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(acc-tt):fmtMS(it.dur)}</i></div>`;
           if(ii<(b.items||[]).length-1) out+=`<div class="ptr ${it.hold?"on":""}" data-ii="${ii}" role="button">${it.hold?"&#8214; trainer starts next":"&#9656; flows into next"}</div>`;
         });
+        if(rbN>1&&bRRest(b)>0){
+          const resting=running&&tt>=one;
+          out+=`<div class="prt ${!running?"":(resting?"cur":"nextp")}"><span class="pd"></span>Rest between rounds<i>${resting?fmtMS(per-rot.elapsed+rIdx*per):fmtMS(bRRest(b))}</i></div>`;
+        }
       }
       out+=`</div>`;
     }
@@ -2543,7 +2561,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=146;
+  const BUILD=147;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
