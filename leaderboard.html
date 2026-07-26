@@ -58,10 +58,16 @@
 
   /* ---------- board head ---------- */
   .subhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:2px 0 0}
-  .subhead .ttl{display:flex;flex-direction:column;gap:2px}
+  .subhead .ttl{display:flex;flex-direction:column;gap:2px;min-width:0;max-width:100%;flex:1 1 auto;overflow:hidden}
   .subhead .ttl b{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,44px);letter-spacing:.045em;text-transform:uppercase;line-height:.95;text-wrap:balance}
   .subhead .ttl span{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.22em;text-transform:uppercase}
-  #evSummary{display:flex;align-items:baseline;gap:0;letter-spacing:normal;margin-top:8px;flex-wrap:nowrap;white-space:nowrap}
+  #evSummary{display:flex;align-items:baseline;gap:0;letter-spacing:normal;margin-top:8px;flex-wrap:nowrap;white-space:nowrap;width:100%;min-width:0;transform-origin:left center}
+  @media (max-width:500px){
+    #evSummary .schip b{font-size:15px}
+    #evSummary .schip i{font-size:9px;letter-spacing:.12em}
+    #evSummary .schip{gap:5px}
+    #evSummary .schip+.schip::before{margin:0 8px;font-size:12px}
+  }
   @media (max-width:720px){
     #evSummary .schip b{font-size:15px}
     #evSummary .schip i{font-size:9px;letter-spacing:.13em}
@@ -1265,12 +1271,22 @@
     }).join("");
   };
 
+  function fitSummary(){
+    const s=$("evSummary"); if(!s) return;
+    s.style.transform="";
+    const need=s.scrollWidth, have=s.clientWidth;
+    if(have>0&&need>have+1) s.style.transform=`scale(${Math.max(.6,have/need)})`;
+  }
+  window.addEventListener("resize",()=>fitSummary());
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitSummary());
+  setTimeout(fitSummary,1200);
   function buildRotationBoard(){
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
       +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
       +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`)
-      +((R().blockRest||0)>0?`<span class="schip"><b>${fmtMS(R().blockRest)}</b><i>rest between blocks</i></span>`:"")
+      +((R().blockRest||0)>0?`<span class="schip"><b>${fmtMS(R().blockRest)}</b><i>block rest</i></span>`:"")
       +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
+    fitSummary();
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(curRoundLen()); clockEl.classList.remove("hot");
@@ -2697,7 +2713,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=159;
+  const BUILD=160;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
