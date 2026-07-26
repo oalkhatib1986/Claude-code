@@ -459,11 +459,12 @@
   .fmtrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:4px}
   #bdock{padding-right:46px}
   #bdock.tucked{display:none}
-  #bdockTab{position:fixed;right:0;bottom:max(34px,env(safe-area-inset-bottom));z-index:61;width:22px;height:44px;border-radius:9px 0 0 9px;
-    background:var(--accent);border:none;color:#0a0a0a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
-    box-shadow:0 6px 20px rgba(0,0,0,.45);opacity:.92}
-  #bdockTab:active{filter:brightness(.9)}
-  #bdockTab svg{width:15px;height:15px}
+  #bdockTab{position:fixed;right:0;bottom:max(34px,env(safe-area-inset-bottom));z-index:61;width:24px;height:58px;border-radius:12px 0 0 12px;
+    background:#fff;border:none;color:#0a0a0a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 2px 0 0;
+    box-shadow:0 8px 26px rgba(0,0,0,.5);opacity:.95;transition:opacity .15s,transform .15s}
+  #bdockTab:hover{opacity:1}
+  #bdockTab:active{transform:scale(.95);filter:brightness(.92)}
+  #bdockTab svg{width:14px;height:14px}
   #bdockTab .ic-r{display:none}
   #bdockTab.open .ic-l{display:none}
   #bdockTab.open .ic-r{display:block}
@@ -503,10 +504,8 @@
   .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .mwrap.brounds .mfield{width:64px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center}
   .mwrap.brrest .mfield{width:84px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center;white-space:nowrap}
-  .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
-  .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
-  body.bigscreen .blocks,body.bigscreen .footer,body.bigscreen .controls{display:none}
+  body.bigscreen .blocks,body.bigscreen .controls{display:none}
   /* projection styles apply on any device; narrow screens get a scaled preview */
   body.bigscreen:not(.mobscreen){--rowH:104px}
     body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
@@ -906,9 +905,6 @@
 
   <button id="updBar" hidden type="button">&#10227; <b></b> is live &mdash; tap to update</button>
 
-  <div class="footer">
-    <b>ATHL3TE</b> · build <span id="buildTag">?</span> · prototype — build any session, any scoring; settings save in this browser and the board reads them live. Swap the simulated feed for Web Bluetooth to go live on real Concept2 monitors.
-  </div>
 </div>
 
 <script>
@@ -2568,7 +2564,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=148;
+  const BUILD=149;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
