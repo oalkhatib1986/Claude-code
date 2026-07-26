@@ -1,0 +1,44 @@
+# Build with AI — one-time setup (~10 minutes)
+
+The "Build with AI" box on the Setup page needs a tiny private relay that holds
+your AI key so it never appears in the public web page. You create it once;
+every phone/tablet then just pastes the relay link.
+
+## 1. Get an Anthropic API key (~3 min)
+
+1. Go to **console.anthropic.com** and sign in / create an account.
+2. Add a payment method (Billing). Typical cost is **1–2 US cents per workout built**.
+3. Open **API Keys → Create Key**, name it `athl3te-relay`, and copy the key
+   (starts with `sk-ant-…`). Keep it somewhere safe — you'll paste it in step 2.
+
+## 2. Create the free relay on Cloudflare (~5 min)
+
+1. Go to **dash.cloudflare.com** and create a free account.
+2. In the left menu: **Workers & Pages → Create → Create Worker**.
+   Name it `athl3te-ai` and hit **Deploy** (the hello-world is fine for now).
+3. Click **Edit code**, delete everything, and paste the entire contents of
+   **`ai-relay-worker.js`** from this project. Hit **Deploy**.
+4. Go to the worker's **Settings → Variables and Secrets → Add**:
+   - Type: **Secret**
+   - Name: `ANTHROPIC_API_KEY`
+   - Value: your `sk-ant-…` key from step 1.
+   Save (and deploy if prompted).
+5. Copy the worker's URL from its overview page — it looks like
+   `https://athl3te-ai.<your-account>.workers.dev`.
+
+## 3. Connect the app (~1 min)
+
+1. Open the leaderboard app → **Workout → Setup → Build with AI**.
+2. Paste the worker URL into the relay-link box and hit **Save**
+   (once per device; it's remembered).
+3. Describe a workout and hit **Build it**. Review what it set up below,
+   then save the workout a name in the Workout card as usual.
+
+## Notes
+
+- The key lives only inside Cloudflare — never in the web page or the repo.
+- To revoke access at any time, delete the key in the Anthropic console.
+- The relay only accepts the workout-builder call shape and caps message
+  sizes, so even if someone finds the URL they can only spend pennies on
+  workout JSON — and you can rotate the key or add an allowed-origin check
+  in the worker if you ever want to lock it down harder.

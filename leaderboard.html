@@ -332,6 +332,18 @@
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
   .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+  .aichat{display:flex;flex-direction:column;gap:8px;margin:12px 0 2px}
+  .aichat .msg{border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;font-size:14px;line-height:1.5;max-width:94%;white-space:pre-wrap}
+  .aichat .msg.you{align-self:flex-end;background:var(--field);color:var(--ink)}
+  .aichat .msg.ai{align-self:flex-start;color:var(--ink-dim)}
+  .aichat .msg.ok{align-self:flex-start;border-color:rgba(58,222,107,.45);color:#3ade6b}
+  .aichat .msg.err{align-self:flex-start;border-color:rgba(255,70,64,.5);color:#ff6b64}
+  .aibar{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .aibar textarea{background:var(--field);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:10px 13px;font-family:var(--ui);font-size:15px;resize:vertical;min-height:52px;width:100%}
+  .aibar textarea:focus{outline:none;border-color:rgba(255,255,255,.4)}
+  .aibtns{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+  #aiMic.rec{border-color:rgba(255,70,64,.6);color:#ff6b64}
+  #aiUrl{background:var(--field);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:9px 12px;font-size:13px}
   .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px}
@@ -756,6 +768,23 @@
   <!-- ============ CONTROL ROOM ============ -->
   <section class="view" id="viewCtrl">
     <div class="cr">
+
+      <div class="card wide" id="aiCard">
+        <h3>Build with AI</h3>
+        <div class="body">
+          <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the settings below get filled in for you to review and save. Unclear bits come back as questions. Use your keyboard's mic to dictate, or the Voice button where supported.</div>
+          <div id="aiChat" class="aichat" hidden></div>
+          <div class="aibar">
+            <textarea id="aiText" rows="2" placeholder="e.g. 3 parts, everyone together, no scores. A: deadlifts every 2:00 for 10 min, share benches in 3s. B: hip thrusts + gorilla rows + planks, 3 rounds of 4:00…"></textarea>
+            <div class="aibtns">
+              <button class="btn small" id="aiMic" type="button" hidden><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>Voice</button>
+              <button class="btn" id="aiSend" type="button">Build it</button>
+            </div>
+          </div>
+          <div class="note" id="aiSetupNote" hidden>One-time setup: this needs your private AI relay link (see <b>AI_SETUP.md</b> in the project — about 10 minutes). Paste it here once per device:
+            <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
+        </div>
+      </div>
 
       <div class="card wide">
         <h3>Workout</h3>
@@ -2451,6 +2480,125 @@
       {addable:true, addLabel:"+ Save as", searchPh:"Search workouts — or type a new name…", cls:"wkfield"}
     ));
   }
+  /* ============ AI workout builder ============ */
+  const AIKEY="af_ai_url";
+  let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
+  let aiMsgs=[], aiBusy=false;
+  function aiSnapshot(){
+    return JSON.stringify({name:cfg.name,teamKind:cfg.teamKind,teamSize:cfg.teamSize,noScore:!!cfg.noScore,
+      together:!!cfg.together,laps:R().laps||1,blockRest:R().blockRest||0,sameRest:R().sameRest!==false,
+      blocks:R().blocks.map(b=>({name:b.name,rounds:b.rounds||1,rrest:b.rrest||0,aRest:b.aRest||0,
+        items:(b.items||[]).map(it=>it.rest?{rest:true,dur:it.dur}:{name:it.name,dur:it.dur,scored:!!it.scored,fmt:it.fmt,shareN:it.shareN,wavesN:it.wavesN,hold:!!it.hold,
+          exercises:(it.exercises||[]).map(x=>({who:x.who,name:x.name,amounts:x.amounts,unit:x.unit,max:!!x.max}))})}))});
+  }
+  function aiSystem(){
+    return 'You are the workout-builder inside ATHL3TE gym\'s class app. Convert the coach\'s description into ONE JSON object and reply with ONLY that JSON \u2014 no markdown fences, no other text: {"reply":"short confirmation or question for the coach","workout":<object or null>}. If anything essential is unclear, set workout to null and ask at most 2 short questions in reply. Once clear, produce the workout and a one-line reply.\n'
+      +'workout schema: {name, teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool}]}]}]}\n'
+      +'Rules: all durations in seconds. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/C2 Bike/Assault Runner \u2014 machine counts: '
+      +JSON.stringify(cfg.inventory)
+      +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
+  }
+  function aiBubble(cls,text){
+    const c=$("aiChat"); if(!c) return; c.hidden=false;
+    const d=document.createElement("div"); d.className="msg "+cls; d.textContent=text;
+    c.appendChild(d); d.scrollIntoView({block:"nearest"});
+  }
+  function applyAiWorkout(w){
+    const U={reps:"reps",cal:"cal",m:"m",sec:"sec"};
+    cfg.mode="rotation";
+    if(w.name) cfg.name=String(w.name).slice(0,40);
+    cfg.wkName=null;
+    if(w.teamKind==="solo"||w.teamKind==="teams") cfg.teamKind=w.teamKind;
+    if(w.teamSize) cfg.teamSize=clamp(parseInt(w.teamSize,10)||4,2,6);
+    if(w.noScore!==undefined) cfg.noScore=!!w.noScore;
+    if(w.together!==undefined) cfg.together=!!w.together;
+    R().laps=clamp(parseInt(w.laps,10)||1,1,6);
+    R().blockRest=clamp(parseInt(w.blockRest,10)||0,0,1800);
+    const anyA=(w.blocks||[]).some(b=>b&&b.aRest);
+    R().sameRest=!anyA;
+    R().blocks=(w.blocks||[]).slice(0,6).map((b,bi)=>({
+      name:String((b&&b.name)||("Part "+(bi+1))).slice(0,28),
+      machine:"Row",
+      rounds:clamp(parseInt(b&&b.rounds,10)||1,1,6),
+      rrest:clamp(parseInt(b&&b.rrest,10)||0,0,600),
+      aRest:clamp(parseInt(b&&b.aRest,10)||0,0,1800),
+      items:((b&&b.items)||[]).slice(0,12).map(it=>{
+        if(it&&it.rest) return {rest:true,dur:clamp(parseInt(it.dur,10)||60,5,1800),scored:false,exercises:[]};
+        const exs=((it&&it.exercises)||[]).slice(0,8).map(x=>({
+          who:cfg.teamKind==="solo"?"":String((x&&x.who)||("All "+clamp(cfg.teamSize||4,2,6))).slice(0,20),
+          name:String((x&&x.name)||"Work").slice(0,60),
+          amounts:Array.isArray(x&&x.amounts)?x.amounts.slice(0,4).map(a=>parseFloat(a)||0).filter(a=>a>0):[],
+          unit:U[x&&x.unit]||"reps",
+          max:!!(x&&x.max)
+        }));
+        if(!exs.length) exs.push({who:"",name:"Work",amounts:[],unit:"reps",max:true});
+        const o={dur:clamp(parseInt(it&&it.dur,10)||300,5,7200),scored:!!(it&&it.scored)&&!cfg.noScore,exercises:exs};
+        if(it&&it.name) o.name=String(it.name).slice(0,60);
+        if(exs.length>1) o.group=true;
+        if(o.scored){ o.metric=(it.metric==="metres"?"metres":"calories"); o.scorers=4; }
+        if(it&&it.hold) o.hold=true;
+        const f=it&&it.fmt;
+        if(f==="share"){ o.fmt="share"; o.shareN=clamp(parseInt(it.shareN,10)||2,2,6); }
+        else if(f==="waves"){ o.fmt="waves"; o.wavesN=clamp(parseInt(it.wavesN,10)||2,2,6); }
+        else if(f==="rotate"&&exs.length>1) o.fmt="rotate";
+        return o;
+      }).filter(it=>it.rest||it.exercises.length)
+    })).filter(b=>b.items.length);
+    R().blocks.forEach(b=>b.items.forEach(it=>(it.exercises||[]).forEach(x=>{
+      if(x.name&&!cfg.library.includes(x.name)) cfg.library.push(x.name); })));
+    save(); applyAccent(); buildControlRoom(); if(!running&&!sessionActive) build();
+  }
+  async function aiSend(){
+    if(aiBusy) return;
+    const ta=$("aiText"); const txt=(ta.value||"").trim();
+    if(!txt) return;
+    if(!aiUrl){ $("aiSetupNote").hidden=false; return; }
+    aiBusy=true; const btn=$("aiSend"); btn.disabled=true; btn.textContent="Thinking\u2026";
+    aiBubble("you",txt); ta.value="";
+    aiMsgs.push({role:"user",content:txt});
+    try{
+      const res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-5",max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
+      if(!res.ok) throw new Error("relay "+res.status);
+      const data=await res.json();
+      const raw=((data.content||[]).find(c=>c.type==="text")||{}).text||"";
+      aiMsgs.push({role:"assistant",content:raw});
+      let obj=null;
+      try{ obj=JSON.parse(raw.replace(/^```(json)?|```$/g,"").trim()); }catch(e){
+        const m=raw.match(/\{[\s\S]*\}/); if(m){ try{ obj=JSON.parse(m[0]); }catch(e2){} } }
+      if(!obj) throw new Error("bad reply");
+      if(obj.reply) aiBubble("ai",obj.reply);
+      if(obj.workout){ applyAiWorkout(obj.workout);
+        aiBubble("ok","Applied \u2014 review every setting below, then save it a name in the Workout card when you're happy."); }
+    }catch(e){
+      aiBubble("err","Couldn't reach the AI ("+e.message+"). Check the relay link or try again.");
+    }
+    aiBusy=false; btn.disabled=false; btn.textContent="Build it";
+  }
+  { const b=$("aiSend"); if(b) b.onclick=aiSend;
+    const ta=$("aiText"); if(ta) ta.onkeydown=e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); aiSend(); } };
+    const un=$("aiSetupNote"); if(un&&!aiUrl) un.hidden=false;
+    const ui=$("aiUrl"), us=$("aiUrlSave");
+    if(ui&&us){ ui.value=aiUrl;
+      us.onclick=()=>{ const v=(ui.value||"").trim();
+        if(!/^https:\/\//.test(v)){ aiBubble("err","The relay link must start with https://"); return; }
+        aiUrl=v; try{ localStorage.setItem(AIKEY,v); }catch(e){}
+        $("aiSetupNote").hidden=true; aiBubble("ok","Relay saved \u2014 describe your workout above."); }; }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const mic=$("aiMic");
+    if(SR&&mic){ mic.hidden=false; let rec=null;
+      mic.onclick=()=>{
+        if(rec){ rec.stop(); return; }
+        rec=new SR(); rec.lang="en-US"; rec.interimResults=false; rec.continuous=true;
+        rec.onresult=ev=>{ let t=""; for(const r of ev.results) if(r.isFinal) t+=r[0].transcript+" ";
+          if(t){ const ta2=$("aiText"); ta2.value=(ta2.value?ta2.value+" ":"")+t.trim(); } };
+        rec.onend=()=>{ rec=null; mic.classList.remove("rec"); };
+        rec.onerror=()=>{ rec=null; mic.classList.remove("rec"); };
+        mic.classList.add("rec"); rec.start();
+      };
+    }
+  }
+
   function updateCapReport(){
     const el=$("capReport"); if(!el) return;
     if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML="Capacity checks apply to rotating-block sessions."; return; }
@@ -2774,7 +2922,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=176;
+  const BUILD=177;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
