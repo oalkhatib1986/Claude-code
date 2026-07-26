@@ -507,7 +507,8 @@
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
   .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .mwrap.brounds .mfield{width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center}
-  .mwrap.ifmt .mfield{width:116px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
+  .mwrap.ifmt .mfield{width:106px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
+  .mwrap.ifn .mfield{width:54px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   .mwrap.brrest .mfield{width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .controls{display:none}
@@ -2046,17 +2047,27 @@
           gt.append(minW,lm,secW,ls);
           if(!isRest){
             const canRot=it.exercises.length>1;
-            const fw=menuField(()=>["Together","Share in 2s","Share in 3s","2 waves","3 waves","4 waves"].concat(canRot?["Rotate"]:[]),
-              ()=>it.fmt==="waves"?`${itWaves(it)} waves`:it.fmt==="share"?`Share in ${itShare(it)}s`:it.fmt==="rotate"&&canRot?"Rotate":"Together",
-              v=>{ const m=v.match(/^(\d)\s*waves?$/i); const s2=v.match(/^share\s*in\s*(\d)/i);
-                if(m){ it.fmt="waves"; it.wavesN=clamp(+m[1],2,4); delete it.shareN; }
-                else if(s2){ it.fmt="share"; it.shareN=clamp(+s2[1],2,3); delete it.wavesN; }
+            const fw=menuField(()=>["Together","Share","Waves"].concat(canRot?["Rotate"]:[]),
+              ()=>it.fmt==="waves"?"Waves":it.fmt==="share"?"Share":(it.fmt==="rotate"&&canRot)?"Rotate":"Together",
+              v=>{ if(/^share/i.test(v)){ it.fmt="share"; it.shareN=clamp(parseInt(it.shareN,10)||2,2,3); delete it.wavesN; }
+                else if(/^wave/i.test(v)){ it.fmt="waves"; it.wavesN=clamp(parseInt(it.wavesN,10)||2,2,4); delete it.shareN; }
                 else if(/^rot/i.test(v)&&canRot){ it.fmt="rotate"; delete it.wavesN; delete it.shareN; }
                 else { delete it.fmt; delete it.wavesN; delete it.shareN; }
                 save(); renderItems(); if(!sessionActive&&!running) build(); },
               {cls:"time ifmt", searchPh:"Format\u2026"});
-            fw.title="How the class runs this: everyone together on their own station; sharing one station in 2s/3s (partners alternate); staggered waves (each wave gets the full time); or rotating through the group's exercises";
+            fw.title="How the class runs this: Together — everyone on their own station · Share — 2-3 athletes on one station, alternating · Waves — staggered groups, each wave gets the full time · Rotate — split across the group's exercises and swap";
             gt.appendChild(fw);
+            if(it.fmt==="share"||it.fmt==="waves"){
+              const isSh=it.fmt==="share";
+              const fn=menuField(()=>isSh?["2s","3s"]:["2\u00d7","3\u00d7","4\u00d7"],
+                ()=>isSh?itShare(it)+"s":itWaves(it)+"\u00d7",
+                v=>{ const d=parseInt(v,10)||2;
+                  if(isSh) it.shareN=clamp(d,2,3); else it.wavesN=clamp(d,2,4);
+                  save(); renderItems(); if(!sessionActive&&!running) build(); },
+                {numeric:true, cls:"time ifn", searchPh:isSh?"Per station\u2026":"Waves\u2026"});
+              fn.title=isSh?"How many athletes share one station":"How many waves";
+              gt.appendChild(fn);
+            }
           }
           head.appendChild(gt);
           if(!isRest&&!cfg.noScore){
@@ -2680,7 +2691,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=156;
+  const BUILD=157;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
