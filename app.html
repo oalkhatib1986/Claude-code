@@ -232,7 +232,7 @@
   .iconbtn:disabled{opacity:.25;cursor:default}
   .addbtns{display:flex;gap:10px;margin-top:4px}
   .crew{display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft)}
-  .crew .cst{grid-column:1/-1;font-size:12px;color:var(--ink-mute);margin:-4px 0 0 2px;letter-spacing:.02em}
+  .crew .cst{grid-column:2/-1;font-size:12.5px;color:var(--ink-mute);margin:-4px 0 0 2px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .crew .cst b{color:var(--ink-dim);font-weight:600}
   .crew .cst span{opacity:.8}
   .crew:last-of-type{border-bottom:0}
@@ -508,6 +508,12 @@
   .tb-tinfo b.unnamed{color:#ff9490}
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
   .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
+  .blkrest{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:12px;border:1.5px dashed rgba(255,255,255,.28);border-radius:14px;padding:11px 16px;margin:0}
+  .blkrest b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink)}
+  .blkrest span{font-family:var(--disp);font-weight:600;font-size:14px;color:var(--ink-mute);font-variant-numeric:tabular-nums}
+  .win .winbr{display:none}
+  body.wkscreen:not(.mobscreen) .blkrest{display:none}
+  body.wkscreen:not(.mobscreen) .win .winbr{display:inline}
   .tlbrest{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);text-align:center;padding:7px 0;border-left:2px dashed rgba(255,255,255,.18);margin:4px 0 4px 7px}
   .stn .brow{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;margin:9px 0 2px;padding-left:2px;min-width:0}
   .stn .brow:empty{display:none}
@@ -1443,10 +1449,10 @@
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total${(R().blockRest||0)>0&&bi<R().blocks.length-1?` · then ${fmtMS(R().blockRest)} rest`:""}<span class="wintr"> · trainer starts each block</span></div>
+        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${(R().blockRest||0)>0&&bi<R().blocks.length-1?` · then ${fmtMS(R().blockRest)} rest`:""}</span><span class="wintr"> · trainer starts each block</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
-    }).join("");
+    }).join((R().blockRest||0)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(R().blockRest)}</span></div>`:"");
   }
 
   function renderLanesRot(){
@@ -2281,6 +2287,20 @@
         {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
       )); });
   }
+  function crewPosLabel(bi,j,isNow){
+    const b=R().blocks[bi]; if(!b) return "";
+    if(blockUsesTypes(b).size) return slotLabel(bi,j);
+    let it=(b.items||[]).find(x=>!x.rest);
+    const live=isNow&&running&&bi===blockIdxOf(rot.round);
+    if(live){ const sg=segAt(b,rot.elapsed); if(sg&&!sg.it.rest&&!sg.it.rrest) it=sg.it; }
+    if(!it) return "floor";
+    if(itRot(it)){ const sg2=live?segAt(b,rot.elapsed):null;
+      const sw=sg2&&sg2.swap!=null?sg2.swap:0;
+      const x2=it.exercises[(Math.max(0,j)+sw)%it.exercises.length];
+      if(x2) return x2.name; }
+    const x=(it.exercises||[])[0];
+    return x?x.name:(it.name||"floor");
+  }
   function crewStLine(i){
     if(cfg.mode!=="rotation"||!nBlocks()) return "";
     const e=ergs.find(x=>x.id===i); if(!e) return "";
@@ -2289,7 +2309,7 @@
     const j=teamsAt(st).findIndex(x=>x.id===i); if(j<0) return "";
     const here=R().blocks[st]; const nxi=(st+1)%nBlocks(); const nx=R().blocks[nxi];
     const last=rot.round>=totalRounds()-1;
-    return `Now <b>${esc(here.name)} · ${slotLabel(st,j)}</b>${(last||nBlocks()<2)?"":` <span>&rarr; next ${esc(nx.name)} · ${slotLabel(nxi,j)}</span>`}`;
+    return `Now <b>${esc(here.name)} · ${esc(crewPosLabel(st,j,true))}</b>${(last||nBlocks()<2)?"":` <span>&rarr; next ${esc(nx.name)} · ${esc(crewPosLabel(nxi,j,false))}</span>`}`;
   }
   function refreshCrewStations(){
     document.querySelectorAll("#crewList .crew").forEach((row,k)=>{
@@ -2713,7 +2733,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=160;
+  const BUILD=161;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
