@@ -460,7 +460,6 @@
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
   body.wkscreen .blk .teams{display:none}
-  body.wkscreen .blk .win .wintr{display:none}
   body.wkscreen .blk .win{color:rgba(255,255,255,.85);font-size:15px;margin-top:10px}
   .teamsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .teamsbar label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
@@ -1454,7 +1453,7 @@
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span><span class="wintr"> · trainer starts each block</span></div>
+        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
@@ -2766,7 +2765,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=172;
+  const BUILD=173;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
