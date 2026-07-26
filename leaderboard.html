@@ -226,6 +226,9 @@
   .iconbtn:disabled{opacity:.25;cursor:default}
   .addbtns{display:flex;gap:10px;margin-top:4px}
   .crew{display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .crew .cst{grid-column:1/-1;font-size:12px;color:var(--ink-mute);margin:-4px 0 0 2px;letter-spacing:.02em}
+  .crew .cst b{color:var(--ink-dim);font-weight:600}
+  .crew .cst span{opacity:.8}
   .crew:last-of-type{border-bottom:0}
   .crew input[type=color]{width:40px;height:40px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--field);cursor:pointer}
   .crew .del{border:1px solid var(--line);background:transparent;color:var(--ink-mute);border-radius:10px;height:40px;cursor:pointer;font-size:17px;transition:.14s}
@@ -503,6 +506,7 @@
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
   .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .mwrap.brounds .mfield{width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center}
+  .mwrap.ifmt .mfield{width:96px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   .mwrap.brrest .mfield{width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .controls{display:none}
@@ -1127,7 +1131,10 @@
   const roundTag=r=>laps()>1?` · round ${lapOf(r)+1}/${laps()}`:"";
   const sessionTotal=()=>totalRounds()*roundLen()+(R().blockRest||0)*Math.max(0,totalRounds()-1);
   const fmtLong=s=>{ s=Math.round(s); return s>=3600? `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}m` : fmtMS(s); };
-  const oneRound=b=>(b.items||[]).reduce((a,it)=>a+it.dur,0);
+  const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,4);
+  const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
+  const itLen=it=>!it?0:(it.fmt==="waves"?it.dur*itWaves(it):it.dur);
+  const oneRound=b=>(b.items||[]).reduce((a,it)=>a+itLen(it),0);
   const bRounds=b=>clamp(parseInt(b&&b.rounds,10)||1,1,6);
   const bRRest=b=>bRounds(b)>1?clamp(parseInt(b&&b.rrest,10)||0,0,600):0;
   const blockLen=b=>oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1);
@@ -1138,7 +1145,13 @@
     const r=Math.min(n-1,Math.floor(t/per)), tt=t-r*per;
     if(tt>=one) return {it:{rest:true,rrest:true,dur:rr}, i:-1, remain:per-tt, round:r, rounds:n};
     let acc=0; const its=b.items||[];
-    for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(tt<acc) return {it:its[i], i, remain:acc-tt, round:r, rounds:n}; }
+    for(let i=0;i<its.length;i++){ const it=its[i], L=itLen(it); acc+=L;
+      if(tt<acc){ const off=tt-(acc-L), base={it, i, round:r, rounds:n};
+        if(it.fmt==="waves"){ const wN=itWaves(it), w=Math.min(wN-1,Math.floor(off/it.dur));
+          return {...base, remain:it.dur-(off-w*it.dur), wave:w, waves:wN}; }
+        if(itRot(it)){ const ex=it.exercises.length, sub=it.dur/ex, s2=Math.min(ex-1,Math.floor(off/sub));
+          return {...base, remain:sub-(off-s2*sub), swap:s2, swaps:ex}; }
+        return {...base, remain:acc-tt}; } }
     return null; };
   const whoCount=w=>{ w=(w||"").toLowerCase(); const m=w.match(/(\d+)/);
     if(w.includes("pair")) return 2;
@@ -1174,11 +1187,13 @@
     if(!nBlocks()||!wt) return peaks;
     const bounds=new Set([0]);
     R().blocks.forEach(b=>{ const one=oneRound(b), n=bRounds(b), per=one+bRRest(b);
-      for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=it.dur; bounds.add(acc); }); } });
+      for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=itLen(it); bounds.add(acc); }); } });
     [...bounds].sort((a,b2)=>a-b2).forEach(t=>{
       const use={};
       R().blocks.forEach(b=>{ const seg=segAt(b,t+0.5); if(!seg||seg.it.rest) return;
-        itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+wt; }); });
+        if(seg.swaps){ (seg.it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) use[m]=(use[m]||0)+Math.ceil(wt/seg.swaps); }); }
+        else { const per=seg.waves?Math.ceil(wt/seg.waves):wt;
+          itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+per; }); } });
       for(const m in use) peaks[m]=Math.max(peaks[m]||0,use[m]);
     });
     return peaks;
@@ -1223,7 +1238,8 @@
       if(it.rest) return `<div class="exg"><span class="exg-h">Rest · ${fmtMS(it.dur)}</span></div>`;
       const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
-      return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${fmtMS(it.dur)}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
+      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:fmtMS(it.dur);
+      return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${tlab}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
 
@@ -1323,8 +1339,18 @@
       const seg=segAt(R().blocks[st],t);
       if(!seg){ e.split=0; e.spm=0; e.hot=false; e.segName="done"; continue; }
       if(seg.it.rest){ e.split=0; e.spm=0; e.hot=false; e.segName="Rest"; e.curTypes=null; continue; }
+      if(seg.waves!=null&&seg.waves>1){
+        const al=allocAt(st); const j=Math.max(0,al.teams.findIndex(t2=>t2.e===e));
+        const perW=Math.max(1,Math.ceil(al.teams.length/seg.waves));
+        const myW=Math.min(seg.waves-1,Math.floor(j/perW));
+        if(myW!==seg.wave){ e.split=0; e.spm=0; e.hot=false;
+          e.segName=`Wave ${seg.wave+1}/${seg.waves} on — you're wave ${myW+1}`; e.curTypes=null; continue; }
+      }
       const hot=!!seg.it.scored&&!cfg.noScore;
       e.hot=hot; e.segName=seg.it.name||""; e.segRemain=seg.remain; e.curMetric=seg.it.metric||"calories"; e.curTypes=itemTypes(seg.it);
+      if(seg.swap!=null){ const al=allocAt(st); const j=Math.max(0,al.teams.findIndex(t2=>t2.e===e));
+        const x=(seg.it.exercises||[])[(j+seg.swap)%seg.swaps];
+        if(x){ e.segName=x.name; const m=machineOf(x.name); e.curTypes=m?[m]:[]; } }
       let effort = hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12);
       e.phase+=0.12;
       if(effort>0.05){
@@ -1781,6 +1807,15 @@
     enhanceSelects(sel.closest(".fld")||document);
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
+  function tbSegLine(seg,segLabel,j,bi){
+    if(seg.waves){ const n=teamsAt(bi).length||1;
+      const perW=Math.max(1,Math.ceil(n/seg.waves));
+      const myW=Math.min(seg.waves-1,Math.floor(Math.max(0,j)/perW));
+      return myW===seg.wave?`${segLabel} — wave ${seg.wave+1}/${seg.waves}: GO`
+        :`Wave ${seg.wave+1}/${seg.waves} working — you're wave ${myW+1}`; }
+    if(seg.swap!=null){ const x=(seg.it.exercises||[])[(Math.max(0,j)+seg.swap)%seg.swaps];
+      return x?`Now: ${x.name} · rotation ${seg.swap+1}/${seg.swaps}`:segLabel; }
+    return segLabel; }
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(cfg.mode==="rotation"){
@@ -1808,7 +1843,7 @@
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="rest"?"Rest — rotate stations":
           phase==="done"?"Session complete":
-          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(segLabel)}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
+          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(tbSegLine(seg,segLabel,hit.j,bi))}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
         <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
         <div class="tb-work"><b>This block</b>${exLines(b)}</div>
         ${!lastRound&&phase!=="done"&&team?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
@@ -1985,6 +2020,19 @@
           const lm=document.createElement("i"); lm.textContent="min";
           const ls=document.createElement("i"); ls.textContent="sec";
           gt.append(minW,lm,secW,ls);
+          if(!isRest){
+            const canRot=it.exercises.length>1;
+            const fw=menuField(()=>["Together","2 waves","3 waves","4 waves"].concat(canRot?["Rotate"]:[]),
+              ()=>it.fmt==="waves"?`${itWaves(it)} waves`:it.fmt==="rotate"&&canRot?"Rotate":"Together",
+              v=>{ const m=v.match(/^(\d)\s*waves?$/i);
+                if(m){ it.fmt="waves"; it.wavesN=clamp(+m[1],2,4); }
+                else if(/^rot/i.test(v)&&canRot) it.fmt="rotate";
+                else { delete it.fmt; delete it.wavesN; }
+                save(); renderItems(); if(!sessionActive&&!running) build(); },
+              {cls:"time ifmt", searchPh:"Format\u2026"});
+            fw.title="How the class runs this: everyone together, staggered waves (each wave gets the full time), or rotating through the group's exercises";
+            gt.appendChild(fw);
+          }
           head.appendChild(gt);
           if(!isRest&&!cfg.noScore){
           const sc=document.createElement("span"); sc.className="exsc"+(it.scored?" on":""); sc.setAttribute("role","checkbox");
@@ -2173,6 +2221,22 @@
         {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
       )); });
   }
+  function crewStLine(i){
+    if(cfg.mode!=="rotation"||!nBlocks()) return "";
+    const e=ergs.find(x=>x.id===i); if(!e) return "";
+    if(finished) return `<b>Session complete</b>`;
+    const st=stationOf(e); if(st<0) return "";
+    const j=teamsAt(st).findIndex(x=>x.id===i); if(j<0) return "";
+    const here=R().blocks[st]; const nxi=(st+1)%nBlocks(); const nx=R().blocks[nxi];
+    const last=rot.round>=totalRounds()-1;
+    return `Now <b>${esc(here.name)} · ${slotLabel(st,j)}</b>${(last||nBlocks()<2)?"":` <span>&rarr; next ${esc(nx.name)} · ${slotLabel(nxi,j)}</span>`}`;
+  }
+  function refreshCrewStations(){
+    document.querySelectorAll("#crewList .crew").forEach((row,k)=>{
+      const el=row.querySelector(".cst"); if(!el) return;
+      const h=crewStLine(k); if(el.innerHTML!==h) el.innerHTML=h;
+      el.style.display=h?"":"none"; });
+  }
   function buildCrews(){
     syncTeamCount();
     const list=$("crewList"); list.innerHTML="";
@@ -2183,7 +2247,8 @@
         <input type="text" class="cname" placeholder="${solo?"Athlete name":"Team name"}" value="${esc(c.name)}">
         ${solo?"":`<button class="mtog" type="button"></button>`}
         <button class="del">&times;</button>
-        ${solo?"":`<div class="marea" hidden></div>`}`;
+        ${solo?"":`<div class="marea" hidden></div>`}
+        <div class="cst"></div>`;
       const col=row.querySelector('input[type="color"]'), nm=row.querySelector(".cname");
       const del=row.querySelector(".del");
       const refresh=()=>{ if(!sessionActive&&!running) build(); };
@@ -2209,6 +2274,7 @@
       del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
       list.appendChild(row);
     });
+    refreshCrewStations();
   }
   $("addCrew").onclick=()=>{ if(cfg.crews.length>=20)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
@@ -2426,14 +2492,19 @@
     const parts=[];
     for(let i=from;i<its.length;i++){ const it=its[i];
       const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(i+1)));
-      parts.push(`${esc(nm)} <i>${fmtMS(it.dur)}</i>`);
+      parts.push(`${esc(nm)}${it.fmt==="waves"?` &middot; ${itWaves(it)} waves`:itRot(it)?" &middot; rotating":""} <i>${fmtMS(itLen(it))}</i>`);
       if(it.hold&&i<its.length-1) break;
     }
     if(!parts.length) return "";
     return `<b>Start runs:</b> `+parts.join(` <span class="fa">&#9656;</span> `)+(from+parts.length<its.length?` <span class="fa">&#9656; &#8214;</span>`:"");
   }
   function partStarts(b){ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b), rr=bRRest(b), per=one+rr;
-    const s=[0]; for(let r=0;r<n;r++){ let acc=r*per; its.forEach(it=>{ acc+=it.dur; s.push(acc); }); if(rr>0&&r<n-1) s.push((r+1)*per); } return s; }
+    const s=[0]; for(let r=0;r<n;r++){ let acc=r*per; its.forEach(it=>{
+      const L=itLen(it);
+      if(it.fmt==="waves"){ const wN=itWaves(it); for(let w=1;w<=wN;w++) s.push(acc+it.dur*w); }
+      else if(itRot(it)){ const ex=it.exercises.length, sub=it.dur/ex; for(let k2=1;k2<=ex;k2++) s.push(acc+sub*k2); }
+      else s.push(acc+L);
+      acc+=L; }); if(rr>0&&r<n-1) s.push((r+1)*per); } return s; }
   function prevPart(){
     if(cfg.mode!=="rotation"||!running||paused||holding) return;
     const b=R().blocks[blockIdxOf(rot.round)]; const its=(b.items||[]);
@@ -2456,7 +2527,7 @@
   // union of "wait for trainer" boundaries across all blocks (they share one class clock)
   const holdBounds=()=>{ const s=new Set();
     R().blocks.forEach(b=>{ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b), per=one+bRRest(b);
-      for(let r=0;r<n;r++){ let acc=r*per; its.forEach((it,i)=>{ acc+=it.dur;
+      for(let r=0;r<n;r++){ let acc=r*per; its.forEach((it,i)=>{ acc+=itLen(it);
         if(it.hold&&!(r===n-1&&i===its.length-1)) s.add(acc); }); } });
     return [...s].sort((a,b2)=>a-b2); };
   function enginePump(){
@@ -2504,7 +2575,8 @@
     const el=$("rlist"); if(!el) return;
     if(cfg.mode!=="rotation"||!nBlocks()){ el.innerHTML=""; rlSig="x"; return; }
     let curIdx=-1;
-    if(running){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); curIdx=sg?(sg.round*100+sg.i):999; }
+    if(running){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed);
+      curIdx=sg?`${sg.round}.${sg.i}.${sg.wave??""}.${sg.swap??""}`:"end"; }
     const sig=[rot.round,rot.phase,running,paused,holding,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]}),((R().blocks[blockIdxOf(rot.round)]||{}).items||[]).map(x=>x.hold?1:0).join("")].join("|");
     if(sig===rlSig){
       if(running){ const t=el.querySelector(".prt.cur i");
@@ -2520,7 +2592,7 @@
       const cls=isDone?"done":isCur?"cur":"next";
       const rbAll=bRounds(b);
       const segNow=(!finished&&r===rot.round&&running)?segAt(b,rot.elapsed):null;
-      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:(rbAll>1?`Round ${segNow.round+1}/${rbAll}`:"Running")):"Done — stations finishing")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
+      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:segNow.waves?`Wave ${segNow.wave+1}/${segNow.waves}`:segNow.swaps?`Rotation ${segNow.swap+1}/${segNow.swaps}`:(rbAll>1?`Round ${segNow.round+1}/${rbAll}`:"Running")):"Done — stations finishing")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
       out+=`<div class="rrow ${cls}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${bRounds(b)>1?` · ${bRounds(b)}&times;`:""}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span></div>`;
       if(isCur){
         const one=oneRound(b), rbN=bRounds(b), per=one+bRRest(b);
@@ -2528,10 +2600,12 @@
         const tt=running? rot.elapsed-rIdx*per : 0;
         let acc=0;
         (b.items||[]).forEach((it,ii)=>{
-          const st=acc; acc+=it.dur;
+          const st=acc; acc+=itLen(it);
           const es=!running?"":(tt>=acc?"done":tt>=st?"cur":"nextp");
-          const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(ii+1)));
-          out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(acc-tt):fmtMS(it.dur)}</i></div>`;
+          let nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(ii+1)));
+          if(it.fmt==="waves") nm+=` · ${itWaves(it)} waves`;
+          else if(itRot(it)) nm+=" · rotating";
+          out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(Math.max(0,acc-tt)):fmtMS(itLen(it))}</i></div>`;
           if(ii<(b.items||[]).length-1) out+=`<div class="ptr ${it.hold?"on":""}" data-ii="${ii}" role="button">${it.hold?"&#8214; trainer starts next":"&#9656; flows into next"}</div>`;
         });
         if(rbN>1&&bRRest(b)>0){
@@ -2561,6 +2635,7 @@
     ["tkpause","tkb10","tkb5","tkf5","tkf10","bdPause","bdb10","bdb5","bdf5","bdf10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
     ["tknext","bdNext","tkprev","bdPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
     buildTrainerList();
+    refreshCrewStations();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
     $("tState").textContent=clockState.textContent;
@@ -2569,7 +2644,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=151;
+  const BUILD=152;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
