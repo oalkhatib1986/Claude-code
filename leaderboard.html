@@ -332,6 +332,20 @@
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
   .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+  #aiFab{position:fixed;left:14px;bottom:max(24px,env(safe-area-inset-bottom));z-index:94;width:52px;height:52px;border-radius:50%;
+    background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
+  #aiFab:hover{opacity:1}
+  #aiFab:active{transform:scale(.94)}
+  body.bigscreen #aiFab,body.bigscreen #aiPanel{display:none!important}
+  #aiPanel{position:fixed;z-index:96;left:10px;right:10px;bottom:10px;margin-left:auto;width:min(480px,calc(100vw - 20px));
+    max-height:min(76vh,640px);display:flex;flex-direction:column;background:#121316;border:1px solid var(--line);
+    border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  #aiPanel[hidden]{display:none}
+  .aiph{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line-soft)}
+  .aiph b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
+  .aipb{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 4px;min-height:120px}
+  #aiPanel .aibar{padding:10px 16px 14px;margin-top:0;border-top:1px solid var(--line-soft)}
   .aichat{display:flex;flex-direction:column;gap:8px;margin:12px 0 2px}
   .aichat .msg{border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;font-size:14px;line-height:1.5;max-width:94%;white-space:pre-wrap}
   .aichat .msg.you{align-self:flex-end;background:var(--field);color:var(--ink)}
@@ -346,8 +360,9 @@
   #aiUrl{background:var(--field);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:9px 12px;font-size:13px}
   .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
-  .exr1.slim{grid-template-columns:118px 1fr 32px}
-  .exr1.slim.hasx2{grid-template-columns:118px 1fr 32px 32px}
+  .exr1.slim{grid-template-columns:118px 1fr 32px;align-items:end}
+  .exr1.slim.hasx2{grid-template-columns:118px 1fr 32px 32px;align-items:end}
+  .exr1 .iconbtn{margin-bottom:3px}
   .psec-h{display:flex;align-items:baseline;gap:10px}
   .psec-h b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
   .psec-h span{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
@@ -360,8 +375,15 @@
   .exlist .exwrap:first-child{border-top:0;padding-top:2px}
   .exr1{display:grid;grid-template-columns:132px 1fr 44px 40px;gap:8px;align-items:center}
   @media (max-width:640px){.exr1{grid-template-columns:110px 1fr 44px 40px}}
-  .exr2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .exr2 .unit{width:auto;min-width:120px;margin-left:auto}
+  .exr2{display:flex;gap:10px 14px;align-items:flex-start;flex-wrap:wrap}
+  .exr2 .unit{width:auto;min-width:120px}
+  .trow2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .lfld{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .tfld{flex:1 1 210px}
+  .ufld{flex:0 1 160px}
+  .blab.hlab{cursor:pointer;text-decoration:underline dotted rgba(255,255,255,.32);text-underline-offset:3px}
+  .hbub{position:absolute;z-index:130;max-width:290px;background:#17181b;border:1px solid var(--line);border-radius:12px;
+    padding:10px 13px;font-size:13px;line-height:1.55;color:var(--ink-dim);box-shadow:var(--shadow)}
   .maxbtn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:7px 13px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .maxbtn.on{background:var(--accent);color:#000;border-color:var(--accent)}
   .amtchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -599,7 +621,7 @@
     .psec-h .gname,.psec-h .gsingle{flex:1 1 100%;min-width:0}
     .exr1.slim{grid-template-columns:1fr 32px}
     .exr1.slim.hasx2{grid-template-columns:1fr 32px 32px}
-    .exr1.slim .mwrap:first-child{grid-column:1/-1}
+    .exr1.slim>.lfld:first-child{grid-column:1/-1}
     .exr2{gap:6px}
     .amtchips{gap:5px}
     .amtchip .amt{width:46px}
@@ -768,23 +790,6 @@
   <!-- ============ CONTROL ROOM ============ -->
   <section class="view" id="viewCtrl">
     <div class="cr">
-
-      <div class="card wide" id="aiCard">
-        <h3>Build with AI</h3>
-        <div class="body">
-          <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the settings below get filled in for you to review and save. Unclear bits come back as questions. Use your keyboard's mic to dictate, or the Voice button where supported.</div>
-          <div id="aiChat" class="aichat" hidden></div>
-          <div class="aibar">
-            <textarea id="aiText" rows="2" placeholder="e.g. 3 parts, everyone together, no scores. A: deadlifts every 2:00 for 10 min, share benches in 3s. B: hip thrusts + gorilla rows + planks, 3 rounds of 4:00…"></textarea>
-            <div class="aibtns">
-              <button class="btn small" id="aiMic" type="button" hidden><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>Voice</button>
-              <button class="btn" id="aiSend" type="button">Build it</button>
-            </div>
-          </div>
-          <div class="note" id="aiSetupNote" hidden>One-time setup: this needs your private AI relay link (see <b>AI_SETUP.md</b> in the project — about 10 minutes). Paste it here once per device:
-            <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
-        </div>
-      </div>
 
       <div class="card wide">
         <h3>Workout</h3>
@@ -957,6 +962,23 @@
     </div>
   </section>
 
+  <button id="aiFab" type="button" aria-label="Build with AI" title="Build with AI"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button>
+  <div id="aiPanel" hidden>
+    <div class="aiph"><b>Build with AI</b><button class="iconbtn" id="aiClose" aria-label="Close">&times;</button></div>
+    <div class="aipb">
+      <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the Setup fills itself for you to review and save. Unclear bits come back as questions. Dictate with your keyboard's mic or the Voice button.</div>
+      <div id="aiChat" class="aichat" hidden></div>
+      <div class="note" id="aiSetupNote" hidden>One-time setup: this needs your private AI relay link (see <b>AI_SETUP.md</b> in the project — about 10 minutes). Paste it here once per device:
+        <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
+      </div>
+    <div class="aibar">
+        <textarea id="aiText" rows="2" placeholder="e.g. 3 parts, everyone together, no scores. A: deadlifts every 2:00 for 10 min, share benches in 3s…"></textarea>
+      <div class="aibtns">
+        <button class="btn small" id="aiMic" type="button" hidden><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>Voice</button>
+        <button class="btn" id="aiSend" type="button">Build it</button>
+        </div>
+      </div>
+    </div>
   <button id="updBar" hidden type="button">&#10227; <b></b> is live &mdash; tap to update</button>
 
 </div>
@@ -1858,6 +1880,8 @@
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
+    { const fab=$("aiFab"); if(fab) fab.style.display=(which==="tablet"||which==="screen")?"none":"";
+      const pan=$("aiPanel"); if(pan&&(which==="tablet"||which==="screen")) pan.hidden=true; }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
     fitScreen();
   }
@@ -2040,8 +2064,10 @@
       const exerciseRow=(it,x,onRemove,onSplit)=>{
         const row=document.createElement("div"); row.className="exwrap";
         const r1=document.createElement("div"); r1.className="exr1 slim";
-        if(cfg.teamKind!=="solo") r1.appendChild(menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"}));
-        r1.appendChild(menuField(()=>cfg.library, ()=>x.name, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, {addable:true, addLabel:"+ Add", searchPh:"Search or add exercise…"}));
+        const lwrap=(t,key,node)=>{ const w=document.createElement("div"); w.className="lfld";
+          w.appendChild(mkHelpLab(t,key)); w.appendChild(node); return w; };
+        if(cfg.teamKind!=="solo") r1.appendChild(lwrap("Who","who",menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"})));
+        r1.appendChild(lwrap("Exercise","exercise",menuField(()=>cfg.library, ()=>x.name, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, {addable:true, addLabel:"+ Add", searchPh:"Search or add exercise…"})));
         const del=document.createElement("button"); del.className="iconbtn exdel"; del.title="Remove exercise"; del.innerHTML="&times;"; del.onclick=onRemove;
         r1.appendChild(del);
         if(onSplit){ r1.classList.add("hasx2");
@@ -2049,14 +2075,19 @@
           sp.innerHTML="&#10549;"; sp.onclick=onSplit; r1.insertBefore(sp,del); }
         const r2=document.createElement("div"); r2.className="exr2";
         r2.innerHTML=`
-          <button type="button" class="maxbtn ${x.max?"on":""}">Max</button>
-          <span class="amtchips"></span>
-          <button type="button" class="iconbtn amtadd" title="Add another option" ${x.max?"disabled":""}>+</button>
-          <select class="unit">
-            <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
-            <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
-            <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
-            <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select>`;
+          <div class="lfld tfld"><span class="blab hlab" data-hk="target">Target</span>
+            <div class="trow2">
+              <button type="button" class="maxbtn ${x.max?"on":""}">Max</button>
+              <span class="amtchips"></span>
+              <button type="button" class="iconbtn amtadd" title="Add another option" ${x.max?"disabled":""}>+</button>
+            </div></div>
+          <div class="lfld ufld"><span class="blab hlab" data-hk="unit">Unit</span>
+            <select class="unit">
+              <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
+              <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
+              <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
+              <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select></div>`;
+        r2.querySelectorAll(".hlab").forEach(l=>{ l.onclick=e=>{ e.stopPropagation(); showHint(l,HELP[l.dataset.hk]||""); }; });
         row.append(r1,r2);
         r2.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
         enhanceSelects(r2);
@@ -2113,8 +2144,7 @@
           let fmtRow=null;
           if(!isRest){
             fmtRow=document.createElement("div"); fmtRow.className="irow";
-            const il=document.createElement("span"); il.className="blab"; il.textContent="Format";
-            fmtRow.appendChild(il);
+            fmtRow.appendChild(mkHelpLab("Format","format"));
             const fp=document.createElement("span"); fp.className="fmtpair";
             const canRot=it.exercises.length>1;
             const fw=menuField(()=>["Together","Share","Waves"].concat(canRot?["Rotate"]:[]),
@@ -2220,14 +2250,14 @@
       };
       renderItems();
       { const brow=box.querySelector(".brow");
-        const lab=t=>{ const s=document.createElement("span"); s.className="blab"; s.textContent=t; return s; };
+        const lab=(t,key)=>mkHelpLab(t,key);
         const grp=(...kids)=>{ const g=document.createElement("span"); g.className="bgrp"; kids.forEach(k=>g.appendChild(k)); brow.appendChild(g); return g; };
         const rw=menuField(()=>["1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
           ()=>bRounds(b)+"\u00d7",
           v=>{ b.rounds=clamp(parseInt(v,10)||1,1,6); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
           {numeric:true, cls:"time brounds", searchPh:"Rounds\u2026"});
         rw.title="How many times this block repeats";
-        grp(lab("Rounds"),rw);
+        grp(lab("Rounds","rounds"),rw);
         if(bRounds(b)>1){
           const rr=menuField(()=>["None","0:30","1:00","1:30","2:00","2:30","3:00","3:30","4:00","4:30","5:00"],
             ()=>bRRest(b)?fmtMS(bRRest(b)):"None",
@@ -2238,7 +2268,7 @@
               save(); buildBlocks(); if(!sessionActive&&!running) build(); },
             {numeric:true, addable:true, addLabel:"Use", cls:"time brrest", searchPh:"Type 1:30 or 130\u2026"});
           rr.title="Timed rest between rounds (never after the last round)";
-          grp(lab("Rest between rounds"),rr);
+          grp(lab("Rest between rounds","rrest"),rr);
         }
         if(R().sameRest===false&&(i<R().blocks.length-1||laps()>1)){
           const ar=menuField(()=>["None","0:30","1:00","1:30","2:00","2:30","3:00","4:00","5:00"],
@@ -2250,7 +2280,7 @@
               save(); buildBlocks(); if(!sessionActive&&!running) build(); },
             {numeric:true, addable:true, addLabel:"Use", cls:"time brrest", searchPh:"Type 1:30 or 130\u2026"});
           ar.title="Rest after this block, before the next";
-          grp(lab("Rest after"),ar);
+          grp(lab("Rest after","arest"),ar);
         } }
       box.querySelector(".addex").onclick=()=>{ b.items.push({dur:300,scored:false,exercises:[newEx()]}); save(); renderItems(); };
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
@@ -2480,6 +2510,34 @@
       {addable:true, addLabel:"+ Save as", searchPh:"Search workouts — or type a new name…", cls:"wkfield"}
     ));
   }
+  /* ============ tap-help bubbles ============ */
+  let hintEl=null;
+  function hideHint(){ if(hintEl){ hintEl.remove(); hintEl=null; } }
+  function showHint(anchor,msg){
+    hideHint();
+    const d=document.createElement("div"); d.className="hbub"; d.textContent=msg;
+    document.body.appendChild(d);
+    const r=anchor.getBoundingClientRect();
+    d.style.left=Math.max(8,Math.min(r.left,window.innerWidth-d.offsetWidth-8))+"px";
+    d.style.top=(r.bottom+7+window.scrollY)+"px";
+    hintEl=d;
+    setTimeout(()=>document.addEventListener("pointerdown",ev=>{ if(!d.contains(ev.target)) hideHint(); },{once:true,capture:true}),0);
+  }
+  const HELP={
+    who:"Who inside the team does this part \u2014 everyone together, a pair, or one athlete. Type anything custom (e.g. Min 1 for EMOMs).",
+    exercise:"Pick from your library or type a new name to add it. Erg names (Row, Ski, Bike, Run) link the exercise to that machine for tablets and machine counts.",
+    target:"The prescription: MAX = as many as possible in the time, or set numbers \u2014 add more for options (e.g. 600/500/400 m, or 12/20 kg).",
+    unit:"What the numbers count \u2014 reps, calories, metres or seconds.",
+    rounds:"How many times this whole block repeats before the class moves on.",
+    rrest:"Timed break between this block's rounds \u2014 never added after the last round.",
+    arest:"Rest after this block ends, before the next one starts.",
+    format:"How the class runs this piece: Together \u2014 everyone at once on their own station \u00b7 Share \u2014 2\u20136 athletes on one station, alternating \u00b7 Waves \u2014 groups go one after another, each wave gets the full time \u00b7 Rotate \u2014 the class splits across the group's exercises and swaps."
+  };
+  const mkHelpLab=(t,key)=>{ const s=document.createElement("span"); s.className="blab hlab"; s.textContent=t;
+    s.setAttribute("role","button"); s.tabIndex=0;
+    s.onclick=e=>{ e.stopPropagation(); showHint(s,HELP[key]||""); };
+    return s; };
+
   /* ============ AI workout builder ============ */
   const AIKEY="af_ai_url";
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
@@ -2575,9 +2633,14 @@
     }
     aiBusy=false; btn.disabled=false; btn.textContent="Build it";
   }
+  { const fab=$("aiFab"), pan=$("aiPanel");
+    if(fab&&pan){
+      fab.onclick=()=>{ pan.hidden=!pan.hidden; if(!pan.hidden){ if(!aiUrl) $("aiSetupNote").hidden=false; setTimeout(()=>$("aiText").focus(),50); } };
+      $("aiClose").onclick=()=>{ pan.hidden=true; };
+    } }
   { const b=$("aiSend"); if(b) b.onclick=aiSend;
     const ta=$("aiText"); if(ta) ta.onkeydown=e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); aiSend(); } };
-    const un=$("aiSetupNote"); if(un&&!aiUrl) un.hidden=false;
+
     const ui=$("aiUrl"), us=$("aiUrlSave");
     if(ui&&us){ ui.value=aiUrl;
       us.onclick=()=>{ const v=(ui.value||"").trim();
@@ -2922,7 +2985,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=177;
+  const BUILD=178;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
