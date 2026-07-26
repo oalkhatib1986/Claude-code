@@ -1291,7 +1291,6 @@
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>block${nBlocks()!==1?"s":""}</i></span>`
       +`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`
       +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`)
-      +((R().blockRest||0)>0?`<span class="schip"><b>${fmtMS(R().blockRest)}</b><i>block rest</i></span>`:"")
       +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
     fitSummary();
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
@@ -2734,7 +2733,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=163;
+  const BUILD=164;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
