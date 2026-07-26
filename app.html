@@ -1135,6 +1135,7 @@
   const sessionTotal=()=>totalRounds()*roundLen()+(R().blockRest||0)*Math.max(0,totalRounds()-1);
   const fmtLong=s=>{ s=Math.round(s); return s>=3600? `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}m` : fmtMS(s); };
   const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,4);
+  const itShare=it=>it&&it.fmt==="share"?clamp(parseInt(it.shareN,10)||2,2,3):0;
   const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
   const itLen=it=>!it?0:(it.fmt==="waves"?it.dur*itWaves(it):it.dur);
   const oneRound=b=>(b.items||[]).reduce((a,it)=>a+itLen(it),0);
@@ -1192,7 +1193,8 @@
     if(!nBlocks()||!wt) return peaks;
     const segUse=(seg,use)=>{
       if(seg.swaps){ (seg.it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) use[m]=(use[m]||0)+Math.ceil(wt/seg.swaps); }); }
-      else { const per=seg.waves?Math.ceil(wt/seg.waves):wt;
+      else { const sh=itShare(seg.it);
+        const per=seg.waves?Math.ceil(wt/seg.waves):(sh?Math.ceil(wt/sh):wt);
         itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+per; }); } };
     const blkBounds=b=>{ const s=new Set([0]); const n=bRounds(b), per=oneRound(b)+bRRest(b);
       for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=itLen(it); s.add(acc); }); } return s; };
@@ -1253,7 +1255,7 @@
       if(it.rest) return `<div class="exg"><span class="exg-h">Rest · ${fmtMS(it.dur)}</span></div>`;
       const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
-      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:fmtMS(it.dur);
+      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`:fmtMS(it.dur);
       return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${tlab}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
@@ -1830,6 +1832,7 @@
         :`Wave ${seg.wave+1}/${seg.waves} working — you're wave ${myW+1}`; }
     if(seg.swap!=null){ const x=(seg.it.exercises||[])[(Math.max(0,j)+seg.swap)%seg.swaps];
       return x?`Now: ${x.name} · rotation ${seg.swap+1}/${seg.swaps}`:segLabel; }
+    if(itShare(seg.it)) return `${segLabel} — share the station in ${itShare(seg.it)}s & alternate`;
     return segLabel; }
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
@@ -2043,15 +2046,16 @@
           gt.append(minW,lm,secW,ls);
           if(!isRest){
             const canRot=it.exercises.length>1;
-            const fw=menuField(()=>["Together","2 waves","3 waves","4 waves"].concat(canRot?["Rotate"]:[]),
-              ()=>it.fmt==="waves"?`${itWaves(it)} waves`:it.fmt==="rotate"&&canRot?"Rotate":"Together",
-              v=>{ const m=v.match(/^(\d)\s*waves?$/i);
-                if(m){ it.fmt="waves"; it.wavesN=clamp(+m[1],2,4); }
-                else if(/^rot/i.test(v)&&canRot) it.fmt="rotate";
-                else { delete it.fmt; delete it.wavesN; }
+            const fw=menuField(()=>["Together","Share in 2s","Share in 3s","2 waves","3 waves","4 waves"].concat(canRot?["Rotate"]:[]),
+              ()=>it.fmt==="waves"?`${itWaves(it)} waves`:it.fmt==="share"?`Share in ${itShare(it)}s`:it.fmt==="rotate"&&canRot?"Rotate":"Together",
+              v=>{ const m=v.match(/^(\d)\s*waves?$/i); const s2=v.match(/^share\s*in\s*(\d)/i);
+                if(m){ it.fmt="waves"; it.wavesN=clamp(+m[1],2,4); delete it.shareN; }
+                else if(s2){ it.fmt="share"; it.shareN=clamp(+s2[1],2,3); delete it.wavesN; }
+                else if(/^rot/i.test(v)&&canRot){ it.fmt="rotate"; delete it.wavesN; delete it.shareN; }
+                else { delete it.fmt; delete it.wavesN; delete it.shareN; }
                 save(); renderItems(); if(!sessionActive&&!running) build(); },
               {cls:"time ifmt", searchPh:"Format\u2026"});
-            fw.title="How the class runs this: everyone together, staggered waves (each wave gets the full time), or rotating through the group's exercises";
+            fw.title="How the class runs this: everyone together on their own station; sharing one station in 2s/3s (partners alternate); staggered waves (each wave gets the full time); or rotating through the group's exercises";
             gt.appendChild(fw);
           }
           head.appendChild(gt);
@@ -2523,7 +2527,7 @@
     const parts=[];
     for(let i=from;i<its.length;i++){ const it=its[i];
       const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(i+1)));
-      parts.push(`${esc(nm)}${it.fmt==="waves"?` &middot; ${itWaves(it)} waves`:itRot(it)?" &middot; rotating":""} <i>${fmtMS(itLen(it))}</i>`);
+      parts.push(`${esc(nm)}${it.fmt==="waves"?` &middot; ${itWaves(it)} waves`:itRot(it)?" &middot; rotating":itShare(it)?` &middot; in ${itShare(it)}s`:""} <i>${fmtMS(itLen(it))}</i>`);
       if(it.hold&&i<its.length-1) break;
     }
     if(!parts.length) return "";
@@ -2636,6 +2640,7 @@
           let nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(ii+1)));
           if(it.fmt==="waves") nm+=` · ${itWaves(it)} waves`;
           else if(itRot(it)) nm+=" · rotating";
+          else if(itShare(it)) nm+=` · in ${itShare(it)}s`;
           out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(Math.max(0,acc-tt)):fmtMS(itLen(it))}</i></div>`;
           if(ii<(b.items||[]).length-1) out+=`<div class="ptr ${it.hold?"on":""}" data-ii="${ii}" role="button">${it.hold?"&#8214; trainer starts next":"&#9656; flows into next"}</div>`;
         });
@@ -2675,7 +2680,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=155;
+  const BUILD=156;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
