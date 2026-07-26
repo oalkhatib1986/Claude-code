@@ -800,6 +800,9 @@
         <div class="body">
           <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them. Added things separately? Use <b>&#10548;</b> on any item to <b>group</b> it with the one above, and <b>&#10549;</b> on a grouped exercise to <b>ungroup</b> it.</div>
 
+          <div class="fld" style="max-width:340px"><label>Class flow</label>
+            <select id="rFlow"><option value="together">Everyone together — whole class, one block at a time</option><option value="stations">Stations — teams split across blocks &amp; rotate</option></select>
+            <div class="note" style="margin-top:4px">Everyone together: the whole class does the same block at once — pairs/teams alternate on their own machine. Stations: teams start on different blocks and rotate.</div></div>
           <div class="fld" style="max-width:240px"><label>Rounds — laps through all blocks</label>
             <select id="rRounds"><option value="1">1 round</option><option value="2">2 rounds</option><option value="3">3 rounds</option><option value="4">4 rounds</option><option value="5">5 rounds</option><option value="6">6 rounds</option></select></div>
           <div class="fld" style="max-width:240px"><label>Rest between blocks</label>
@@ -1170,30 +1173,42 @@
   // consecutive teams fill a block's machines: Team 1,2,3 -> Block 1 M1,M2,M3;
   // Team 4,5,6 -> Block 2; each round every group moves to the next block together
   const stationOf=e=>{ if(!nBlocks()) return -1;
+    if(cfg.together) return blockIdxOf(rot.round);
     const per=Math.max(1,Math.ceil(cfg.crews.length/nBlocks()));
     return (Math.floor(e.id/per)+rot.round)%nBlocks(); };
-  const teamsAt=bi=>ergs.filter(e=>stationOf(e)===bi);
+  const teamsAt=bi=>cfg.together?ergs.slice():ergs.filter(e=>stationOf(e)===bi);
   const invOf=m=>m?((cfg.inventory&&cfg.inventory[m])||0):0;
   const machinesPerTeam=b=>1; // a team shares one erg and alternates on it
   const allocAt=bi=>{ const b=R().blocks[bi]; const k=machinesPerTeam(b);
     const ts=teamsAt(bi); const cap=invOf(blockMachine(b));
     return { teams:ts.map((e,j)=>({e, j, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
   const mrange=t=>t.from===t.to?`M${t.from}`:`M${t.from}\u2013${t.to}`;
-  const worstTeamsPerBlock=()=>nBlocks()?Math.ceil(cfg.crews.length/nBlocks()):0;
+  const worstTeamsPerBlock=()=>!nBlocks()?0:(cfg.together?cfg.crews.length:Math.ceil(cfg.crews.length/nBlocks()));
+  const curRoundLen=()=>cfg.together?Math.max(1,blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]})):roundLen();
   const itemTypes=it=>{ const s=new Set(); (it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) s.add(m); }); return [...s]; };
   // peak simultaneous machines needed per type: walk every item boundary across all blocks
   const typePeaks=()=>{
     const wt=worstTeamsPerBlock(); const peaks={};
     if(!nBlocks()||!wt) return peaks;
+    const segUse=(seg,use)=>{
+      if(seg.swaps){ (seg.it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) use[m]=(use[m]||0)+Math.ceil(wt/seg.swaps); }); }
+      else { const per=seg.waves?Math.ceil(wt/seg.waves):wt;
+        itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+per; }); } };
+    const blkBounds=b=>{ const s=new Set([0]); const n=bRounds(b), per=oneRound(b)+bRRest(b);
+      for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=itLen(it); s.add(acc); }); } return s; };
+    if(cfg.together){
+      R().blocks.forEach(b=>{ [...blkBounds(b)].forEach(t=>{
+        const seg=segAt(b,t+0.5); if(!seg||seg.it.rest) return;
+        const use={}; segUse(seg,use);
+        for(const m in use) peaks[m]=Math.max(peaks[m]||0,use[m]); }); });
+      return peaks;
+    }
     const bounds=new Set([0]);
-    R().blocks.forEach(b=>{ const one=oneRound(b), n=bRounds(b), per=one+bRRest(b);
-      for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=itLen(it); bounds.add(acc); }); } });
+    R().blocks.forEach(b=>{ blkBounds(b).forEach(t=>bounds.add(t)); });
     [...bounds].sort((a,b2)=>a-b2).forEach(t=>{
       const use={};
       R().blocks.forEach(b=>{ const seg=segAt(b,t+0.5); if(!seg||seg.it.rest) return;
-        if(seg.swaps){ (seg.it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) use[m]=(use[m]||0)+Math.ceil(wt/seg.swaps); }); }
-        else { const per=seg.waves?Math.ceil(wt/seg.waves):wt;
-          itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+per; }); } });
+        segUse(seg,use); });
       for(const m in use) peaks[m]=Math.max(peaks[m]||0,use[m]);
     });
     return peaks;
@@ -1250,7 +1265,7 @@
       +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
     $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
     $("phaseBanner").hidden=false;
-    clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
+    clockEl.textContent=fmtMS(curRoundLen()); clockEl.classList.remove("hot");
     syncRotChrome();
   }
   function syncRotChrome(){
@@ -1322,7 +1337,7 @@
       renderBlockCards(); renderLanesRot(); renderTablet();
       return;
     }
-    if(t>=roundLen()){
+    if(t>=curRoundLen()){
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; maybeSaveResult(); }
@@ -1366,9 +1381,9 @@
     const hotAny=ergs.some(e=>e.hot);
     const hotName=(ergs.find(e=>e.hot)||{}).segName||"Score";
     const leadB=R().blocks[blockIdxOf(rot.round)];
-    const leadLen=Math.min(blockLen(leadB),roundLen());
+    const leadLen=Math.min(blockLen(leadB),curRoundLen());
     const leadDone=t>=leadLen;
-    clockEl.textContent=fmtMS((leadDone?roundLen():leadLen)-t);
+    clockEl.textContent=fmtMS((leadDone?curRoundLen():leadLen)-t);
     clockEl.classList.toggle("hot",hotAny);
     clockState.textContent=leadDone?"Other stations finishing":`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`;
     $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
@@ -1844,7 +1859,7 @@
           phase==="rest"?"Rest — rotate stations":
           phase==="done"?"Session complete":
           seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(tbSegLine(seg,segLabel,hit.j,bi))}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
-        <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(roundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
+        <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
         <div class="tb-work"><b>This block</b>${exLines(b)}</div>
         ${!lastRound&&phase!=="done"&&team?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
         ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}`;
@@ -2208,9 +2223,12 @@
     { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
     { const x=$("rankHead"); if(x) x.textContent=solo?"Rank · Athlete · Where they are":"Rank · Team · Where they are"; }
-    { const x=$("crewNote"); if(x) x.innerHTML=(solo
+    { const x=$("crewNote"); if(x) x.innerHTML=(cfg.together
+      ?(solo?"<b>Everyone together</b>: the whole class does the same block at the same time, each athlete on their own machine, and moves to the next block as one. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
+             :"<b>Everyone together</b>: the whole class does the same block at the same time — each team shares one machine and partners alternate on it — then everyone moves to the next block as one. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.")
+      :(solo
       ?"Athletes are <b>assigned automatically in order</b>: Athletes 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next athletes take Block 2, and so on. Every round the groups move together to the next block; the screens tell everyone where to go. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
-      :"Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here."); }
+      :"Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.")); }
     const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
     ["tcPick","tcPick2"].forEach(id=>{ const wp=$(id); if(!wp) return;
       wp.innerHTML="";
@@ -2341,7 +2359,7 @@
     const wt=worstTeamsPerBlock();
     const p=typePeaks();
     const keys=["Row","Ski","Bike","Run","Echo"].filter(m=>p[m]);
-    el.innerHTML=`Each ${kw()} uses <b>one machine of each erg type</b> in its current exercise or group (a Ski + Row group holds one ski and one rower). With <b>${cfg.crews.length} ${kws()}</b> across <b>${nBlocks()} blocks</b> (up to <b>${wt}</b> per block), peak use at any moment:<br>`+
+    el.innerHTML=`Each ${kw()} uses <b>one machine of each erg type</b> in its current exercise or group (a Ski + Row group holds one ski and one rower). ${cfg.together?`<b>Everyone together</b>: all <b>${cfg.crews.length} ${kws()}</b> do each block at the same time — peak use:`:`With <b>${cfg.crews.length} ${kws()}</b> across <b>${nBlocks()} blocks</b> (up to <b>${wt}</b> per block), peak use at any moment:`}<br>`+
       (keys.length?keys.map(m=>{
         const bad=p[m]>invOf(m);
         return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${mInfo(m).label}s — ${p[m]} of ${invOf(m)}${bad?" — OVER</span>":" ✓"}`;
@@ -2383,6 +2401,8 @@
     { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
     $("rRounds").value=String(R().laps||1);
     $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
+    $("rFlow").value=cfg.together?"together":"stations";
+    $("rFlow").onchange=e=>{ cfg.together=e.target.value==="together"; save(); updateCapReport(); syncTeamCount(); if(!sessionActive&&!running) build(); };
     { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
@@ -2520,7 +2540,7 @@
     if(cfg.mode!=="rotation"||!running||paused||holding) return;
     const b=R().blocks[blockIdxOf(rot.round)];
     const sg=segAt(b,rot.elapsed);
-    const target=sg? (rot.elapsed+sg.remain) : roundLen();
+    const target=sg? (rot.elapsed+sg.remain) : curRoundLen();
     t0=performance.now()-target*1000;
   }
   let holding=false, holdPend=[];
@@ -2644,7 +2664,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=152;
+  const BUILD=153;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
