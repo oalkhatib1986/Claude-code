@@ -330,7 +330,7 @@
   .psec-h .gname:focus{border-bottom-color:rgba(255,255,255,.4)}
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
-  .gtime{display:flex;align-items:center;gap:6px}
+  .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
   .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px}
@@ -516,7 +516,7 @@
   body.wkscreen:not(.mobscreen) .blkrest{display:none}
   body.wkscreen:not(.mobscreen) .win .winbr{display:inline}
   .tlbrest{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);text-align:center;padding:7px 0;border-left:2px dashed rgba(255,255,255,.18);margin:4px 0 4px 7px}
-  .stn .brow{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;margin:9px 0 2px;padding-left:2px;min-width:0}
+  .stn .brow{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin:9px 0 2px;padding-left:2px;min-width:0}
   .stn .brow:empty{display:none}
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
   .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
@@ -2733,7 +2733,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=164;
+  const BUILD=165;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
