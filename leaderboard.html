@@ -1796,7 +1796,10 @@
   let subTab="workout";
   let ctlTab="session";
   let scrMode="lead";
-  let scrFit="tv";
+  // TVs open via the #screen/#workout bookmarks and stay in TV mode;
+  // browsing the Big Screen tab on a phone defaults to the phone view.
+  let scrFit=(location.hash==="#screen"||location.hash==="#workout")?"tv"
+    :(document.documentElement.clientWidth<900?"mobile":"tv");
   function show(which){
     document.body.classList.toggle("bigscreen",which==="screen");
     if(which==="screen"&&scrMode==="lead"&&!showLeaderboard()) scrMode="work";
@@ -2736,7 +2739,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=170;
+  const BUILD=171;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
