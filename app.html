@@ -58,8 +58,13 @@
 
   /* ---------- board head ---------- */
   .subhead{display:flex;align-items:flex-end;gap:14px 20px;flex-wrap:wrap;padding:2px 0 0;position:relative}
-  #runClassBtn{position:absolute;right:0;top:4px;margin:0;flex:none;white-space:nowrap;font-size:12px;padding:8px 14px}
-  .subhead .ttl>b{padding-right:132px}
+  #runClassBtn{position:absolute;right:2px;top:8px;margin:0;flex:none;white-space:nowrap;
+    background:none;border:none;box-shadow:none;color:#fff;cursor:pointer;padding:4px 0;
+    font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.92}
+  #runClassBtn:hover{opacity:1}
+  #runClassBtn:active{opacity:.75}
+  #runClassBtn i{font-style:normal;font-weight:400;margin-left:6px}
+  .subhead .ttl>b{padding-right:118px}
   body.bigscreen #runClassBtn{display:none!important}
   body.bigscreen .subhead .ttl>b{padding-right:0}
   .subhead .ttl{display:flex;flex-direction:column;gap:2px;min-width:0;max-width:100%;flex:1 1 auto;overflow:hidden}
@@ -641,7 +646,7 @@
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evSummary"></span></div>
       <div class="clock"><b id="clock">0:00</b><span id="clockState">On the line</span></div>
-      <button class="btn" id="runClassBtn" type="button">Run class &rarr;</button>
+      <button id="runClassBtn" type="button">Run class<i>&rarr;</i></button>
     </div>
     <div class="phase" id="phaseBanner" hidden>
       <span class="plabel" id="phaseLabel"></span>
@@ -2741,7 +2746,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=168;
+  const BUILD=169;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
