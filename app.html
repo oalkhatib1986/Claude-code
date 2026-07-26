@@ -1339,14 +1339,17 @@
     }
     const hotAny=ergs.some(e=>e.hot);
     const hotName=(ergs.find(e=>e.hot)||{}).segName||"Score";
-    clockEl.textContent=fmtMS(roundLen()-t);
+    const leadB=R().blocks[blockIdxOf(rot.round)];
+    const leadLen=Math.min(blockLen(leadB),roundLen());
+    const leadDone=t>=leadLen;
+    clockEl.textContent=fmtMS((leadDone?roundLen():leadLen)-t);
     clockEl.classList.toggle("hot",hotAny);
-    clockState.textContent=`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`;
+    clockState.textContent=leadDone?"Other stations finishing":`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`;
     $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
     $("phaseBanner").classList.toggle("scoring",hotAny);
-    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:`Block ${blockIdxOf(rot.round)+1} of ${nBlocks()}${roundTag(rot.round)} — working`;
+    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:(leadDone?`${leadB?leadB.name:"Block"} done — stations finishing`:`Block ${blockIdxOf(rot.round)+1} of ${nBlocks()}${roundTag(rot.round)} — working`);
     const hm=(ergs.find(e=>e.hot)||{}).curMetric||"calories";
-    $("phaseDesc").textContent = hotAny?`Every ${hm==="calories"?"calorie":"metre"} counts NOW`:"Follow your station's screen · scored parts turn red";
+    $("phaseDesc").textContent = hotAny?`Every ${hm==="calories"?"calorie":"metre"} counts NOW`:(leadDone?"Longer stations are still working — everyone rotates when the clock hits 0:00":"Follow your station's screen · scored parts turn red");
     renderBlockCards(); renderLanesRot(); renderTablet();
     raf=requestAnimationFrame(frameRotation);
   }
@@ -2517,7 +2520,7 @@
       const cls=isDone?"done":isCur?"cur":"next";
       const rbAll=bRounds(b);
       const segNow=(!finished&&r===rot.round&&running)?segAt(b,rot.elapsed):null;
-      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(rbAll>1&&segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:`Round ${segNow.round+1}/${rbAll}`):"Running")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
+      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:(rbAll>1?`Round ${segNow.round+1}/${rbAll}`:"Running")):"Done — stations finishing")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
       out+=`<div class="rrow ${cls}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${bRounds(b)>1?` · ${bRounds(b)}&times;`:""}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span></div>`;
       if(isCur){
         const one=oneRound(b), rbN=bRounds(b), per=one+bRRest(b);
@@ -2566,7 +2569,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=150;
+  const BUILD=151;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
