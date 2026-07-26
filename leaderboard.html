@@ -331,7 +331,7 @@
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
-  .gtime .fmtpair{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+  .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
   .gtime i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px}
@@ -519,7 +519,8 @@
   .stn .brow{display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap;margin:9px 0 2px;padding-left:2px;min-width:0}
   .stn .brow:empty{display:none}
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
-  .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
+  .stn .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
+  .psec .irow{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;margin:0 0 8px;min-width:0}
   .mwrap.brounds .mfield{width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center}
   .mwrap.ifmt .mfield{width:106px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
   .mwrap.ifn .mfield{width:54px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
@@ -2080,7 +2081,11 @@
           const lm=document.createElement("i"); lm.textContent="min";
           const ls=document.createElement("i"); ls.textContent="sec";
           gt.append(minW,lm,secW,ls);
+          let fmtRow=null;
           if(!isRest){
+            fmtRow=document.createElement("div"); fmtRow.className="irow";
+            const il=document.createElement("span"); il.className="blab"; il.textContent="Format";
+            fmtRow.appendChild(il);
             const fp=document.createElement("span"); fp.className="fmtpair";
             const canRot=it.exercises.length>1;
             const fw=menuField(()=>["Together","Share","Waves"].concat(canRot?["Rotate"]:[]),
@@ -2104,7 +2109,7 @@
               fn.title=isSh?"How many athletes share one station":"How many waves";
               fp.appendChild(fn);
             }
-            gt.appendChild(fp);
+            fmtRow.appendChild(fp);
           }
           head.appendChild(gt);
           if(!isRest&&!cfg.noScore){
@@ -2132,6 +2137,7 @@
             b.items.splice(ii,1); save(); renderItems(); };
           head.append(iup,idown,imerge,idel);
           sec.appendChild(head);
+          if(fmtRow) sec.appendChild(fmtRow);
           if(it.scored&&!isRest&&!cfg.noScore){
             const srow=document.createElement("div"); srow.className="scrow";
             const tag=document.createElement("i"); tag.className="slab hotlab"; tag.textContent="Scored:"; srow.appendChild(tag);
@@ -2768,7 +2774,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=175;
+  const BUILD=176;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
