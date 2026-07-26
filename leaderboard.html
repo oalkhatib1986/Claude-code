@@ -516,7 +516,7 @@
   body.wkscreen:not(.mobscreen) .blkrest{display:none}
   body.wkscreen:not(.mobscreen) .win .winbr{display:inline}
   .tlbrest{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);text-align:center;padding:7px 0;border-left:2px dashed rgba(255,255,255,.18);margin:4px 0 4px 7px}
-  .stn .brow{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin:9px 0 2px;padding-left:2px;min-width:0}
+  .stn .brow{display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap;margin:9px 0 2px;padding-left:2px;min-width:0}
   .stn .brow:empty{display:none}
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
   .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
@@ -820,8 +820,10 @@
 
           <div class="fld" style="max-width:240px"><label>Rounds — laps through all blocks</label>
             <select id="rRounds"><option value="1">1 round</option><option value="2">2 rounds</option><option value="3">3 rounds</option><option value="4">4 rounds</option><option value="5">5 rounds</option><option value="6">6 rounds</option></select></div>
-          <div class="fld" style="max-width:240px"><label>Rest between blocks</label>
-            <select id="rBRest"><option value="0">Off — trainer decides</option><option value="30">0:30</option><option value="60">1:00</option><option value="90">1:30</option><option value="120">2:00</option><option value="180">3:00</option><option value="300">5:00</option></select></div>
+          <div class="fld" style="max-width:280px"><label>Rest between blocks</label>
+            <select id="rBRest"><option value="0">Off — trainer decides</option><option value="30">0:30</option><option value="60">1:00</option><option value="90">1:30</option><option value="120">2:00</option><option value="180">3:00</option><option value="300">5:00</option></select>
+            <label class="collabrow" style="margin-top:8px"><input type="checkbox" id="rSame" checked> Same after every block</label>
+            <div class="note" id="rSameNote" hidden style="margin-top:4px">Set each block's rest in its own row below.</div></div>
           <div id="blkList"></div>
           <div class="addbtns"><button class="btn" id="addBlk">+ Add block</button></div>
           <div class="note"><b>How a session runs:</b> everyone is <b>assigned to a machine automatically</b> — every screen shows who goes where. The <b>trainer starts each block</b> when the floor is set. Each block runs its exercises and groups top to bottom on their own times; anything marked with the red dot is <b>scored</b> and banks to the leaderboard.</div>
@@ -1148,12 +1150,15 @@
   const blockIdxOf=r=>nBlocks()? r%nBlocks() : 0;
   const lapOf=r=>nBlocks()? Math.floor(r/nBlocks()) : 0;
   const roundTag=r=>laps()>1?` · round ${lapOf(r)+1}/${laps()}`:"";
+  const restAfterBlock=bi=>{ const b=R().blocks[bi]; if(!b) return 0;
+    return R().sameRest===false? clamp(parseInt(b.aRest,10)||0,0,1800) : (R().blockRest||0); };
   const sessionTotal=()=>{ const n=totalRounds();
     const base=cfg.together? Array.from({length:n},(_,r)=>blockLen(R().blocks[blockIdxOf(r)]||{items:[]})).reduce((a,x)=>a+x,0) : n*roundLen();
-    return base+(R().blockRest||0)*Math.max(0,n-1); };
+    let rests=0; for(let r=0;r<n-1;r++) rests+=restAfterBlock(blockIdxOf(r));
+    return base+rests; };
   const fmtLong=s=>{ s=Math.round(s); return s>=3600? `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}m` : fmtMS(s); };
-  const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,4);
-  const itShare=it=>it&&it.fmt==="share"?clamp(parseInt(it.shareN,10)||2,2,3):0;
+  const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,6);
+  const itShare=it=>it&&it.fmt==="share"?clamp(parseInt(it.shareN,10)||2,2,6):0;
   const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
   const itLen=it=>!it?0:(it.fmt==="waves"?it.dur*itWaves(it):it.dur);
   const oneRound=b=>(b.items||[]).reduce((a,it)=>a+itLen(it),0);
@@ -1332,7 +1337,7 @@
   function frameRest(now){
     if(rot.phase!=="rest") return;
     if(paused) return;
-    const remain=(R().blockRest||0)-(now-restT0)/1000;
+    const remain=(rot.restDur||0)-(now-restT0)/1000;
     if(remain<=0){ rot.phase="pre"; syncRotChrome(); renderLanesRot(); renderTablet(); return; }
     rot.remain=remain;
     clockEl.textContent=fmtMS(remain); clockEl.classList.remove("hot");
@@ -1372,7 +1377,7 @@
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; maybeSaveResult(); }
       else { rot.round++;
-        if((R().blockRest||0)>0){ rot.phase="rest"; rot.remain=R().blockRest; restT0=now; raf=requestAnimationFrame(frameRest); }
+        if(restAfterBlock(blockIdxOf(rot.round-1))>0){ rot.phase="rest"; rot.restDur=restAfterBlock(blockIdxOf(rot.round-1)); rot.remain=rot.restDur; restT0=now; raf=requestAnimationFrame(frameRest); }
         else rot.phase="pre"; }
       syncRotChrome(); renderLanesRot(); renderTablet();
       return;
@@ -1449,10 +1454,10 @@
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${(R().blockRest||0)>0&&bi<R().blocks.length-1?` · then ${fmtMS(R().blockRest)} rest`:""}</span><span class="wintr"> · trainer starts each block</span></div>
+        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span><span class="wintr"> · trainer starts each block</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
-    }).join((R().blockRest||0)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(R().blockRest)}</span></div>`:"");
+    }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
   }
 
   function renderLanesRot(){
@@ -2079,8 +2084,8 @@
             const canRot=it.exercises.length>1;
             const fw=menuField(()=>["Together","Share","Waves"].concat(canRot?["Rotate"]:[]),
               ()=>it.fmt==="waves"?"Waves":it.fmt==="share"?"Share":(it.fmt==="rotate"&&canRot)?"Rotate":"Together",
-              v=>{ if(/^share/i.test(v)){ it.fmt="share"; it.shareN=clamp(parseInt(it.shareN,10)||2,2,3); delete it.wavesN; }
-                else if(/^wave/i.test(v)){ it.fmt="waves"; it.wavesN=clamp(parseInt(it.wavesN,10)||2,2,4); delete it.shareN; }
+              v=>{ if(/^share/i.test(v)){ it.fmt="share"; it.shareN=clamp(parseInt(it.shareN,10)||2,2,6); delete it.wavesN; }
+                else if(/^wave/i.test(v)){ it.fmt="waves"; it.wavesN=clamp(parseInt(it.wavesN,10)||2,2,6); delete it.shareN; }
                 else if(/^rot/i.test(v)&&canRot){ it.fmt="rotate"; delete it.wavesN; delete it.shareN; }
                 else { delete it.fmt; delete it.wavesN; delete it.shareN; }
                 save(); renderItems(); if(!sessionActive&&!running) build(); },
@@ -2089,12 +2094,12 @@
             gt.appendChild(fw);
             if(it.fmt==="share"||it.fmt==="waves"){
               const isSh=it.fmt==="share";
-              const fn=menuField(()=>isSh?["2s","3s"]:["2\u00d7","3\u00d7","4\u00d7"],
+              const fn=menuField(()=>isSh?["2s","3s","4s","5s","6s"]:["2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
                 ()=>isSh?itShare(it)+"s":itWaves(it)+"\u00d7",
-                v=>{ const d=parseInt(v,10)||2;
-                  if(isSh) it.shareN=clamp(d,2,3); else it.wavesN=clamp(d,2,4);
+                v=>{ const d=clamp(parseInt(v,10)||2,2,6);
+                  if(isSh) it.shareN=d; else it.wavesN=d;
                   save(); renderItems(); if(!sessionActive&&!running) build(); },
-                {numeric:true, cls:"time ifn", searchPh:isSh?"Per station\u2026":"Waves\u2026"});
+                {numeric:true, addable:true, addLabel:"Use", cls:"time ifn", searchPh:isSh?"How many share\u2026":"How many waves\u2026"});
               fn.title=isSh?"How many athletes share one station":"How many waves";
               gt.appendChild(fn);
             }
@@ -2197,6 +2202,18 @@
             {numeric:true, addable:true, addLabel:"Use", cls:"time brrest", searchPh:"Type 1:30 or 130\u2026"});
           rr.title="Timed rest between rounds (never after the last round)";
           grp(lab("Rest between rounds"),rr);
+        }
+        if(R().sameRest===false&&(i<R().blocks.length-1||laps()>1)){
+          const ar=menuField(()=>["None","0:30","1:00","1:30","2:00","2:30","3:00","4:00","5:00"],
+            ()=>{ const v=clamp(parseInt(b.aRest,10)||0,0,1800); return v?fmtMS(v):"None"; },
+            v=>{ const m=v.match(/(\d+):(\d{1,2})/); let s2=0;
+              if(m) s2=+m[1]*60+ +m[2];
+              else if(/^\d+$/.test(v)) s2=v.length>=3? (+v.slice(0,-2))*60+ +v.slice(-2) : (+v<10? +v*60 : +v);
+              b.aRest=clamp(s2,0,1800);
+              save(); buildBlocks(); if(!sessionActive&&!running) build(); },
+            {numeric:true, addable:true, addLabel:"Use", cls:"time brrest", searchPh:"Type 1:30 or 130\u2026"});
+          ar.title="Rest after this block, before the next";
+          grp(lab("Rest after"),ar);
         } }
       box.querySelector(".addex").onclick=()=>{ b.items.push({dur:300,scored:false,exercises:[newEx()]}); save(); renderItems(); };
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
@@ -2470,7 +2487,17 @@
     { const w=$("fmtSize").closest(".dsel"); if(w){ const o=$("fmtSize").options[$("fmtSize").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; } }
     syncFmt();
     $("rBRest").value=String(R().blockRest||0);
-    $("rBRest").onchange=e=>{R().blockRest=clamp(parseInt(e.target.value,10)||0,0,1800);save();};
+    $("rBRest").onchange=e=>{R().blockRest=clamp(parseInt(e.target.value,10)||0,0,1800);save(); if(!sessionActive&&!running) build();};
+    { const s=$("rSame"); if(s){ s.checked=R().sameRest!==false;
+      const sync=()=>{ const same=R().sameRest!==false;
+        const fld=$("rBRest").closest(".fld");
+        const d=fld.querySelector(".dsel");
+        if(d) d.style.display=same?"":"none"; else $("rBRest").style.display=same?"":"none";
+        const n2=$("rSameNote"); if(n2) n2.hidden=same; };
+      s.onchange=()=>{ R().sameRest=s.checked?true:false;
+        if(!s.checked) R().blocks.forEach(b=>{ if(b.aRest===undefined) b.aRest=R().blockRest||0; });
+        save(); sync(); buildBlocks(); if(!sessionActive&&!running) build(); };
+      sync(); } }
     { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
     $("rRounds").value=String(R().laps||1);
     $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
@@ -2670,7 +2697,7 @@
     let curIdx=-1;
     if(running){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed);
       curIdx=sg?`${sg.round}.${sg.i}.${sg.wave??""}.${sg.swap??""}`:"end"; }
-    const sig=[rot.round,rot.phase,running,paused,holding,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]}),((R().blocks[blockIdxOf(rot.round)]||{}).items||[]).map(x=>x.hold?1:0).join("")].join("|");
+    const sig=[rot.round,rot.phase,running,paused,holding,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]}),((R().blocks[blockIdxOf(rot.round)]||{}).items||[]).map(x=>x.hold?1:0).join(""),R().sameRest===false?R().blocks.map(b=>b.aRest||0).join(","):"s"+(R().blockRest||0)].join("|");
     if(sig===rlSig){
       if(running){ const t=el.querySelector(".prt.cur i");
         if(t){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); if(sg) t.textContent=fmtMS(sg.remain); } }
@@ -2708,7 +2735,7 @@
         }
       }
       out+=`</div>`;
-      if((R().blockRest||0)>0&&r<totalRounds()-1) out+=`<div class="tlbrest">Rest · ${fmtMS(R().blockRest)}</div>`;
+      if(r<totalRounds()-1&&restAfterBlock(blockIdxOf(r))>0) out+=`<div class="tlbrest">Rest · ${fmtMS(restAfterBlock(blockIdxOf(r)))}</div>`;
     }
     el.innerHTML=out;
     el.querySelectorAll(".rrow.next").forEach(row=>{
@@ -2739,7 +2766,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=171;
+  const BUILD=172;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
