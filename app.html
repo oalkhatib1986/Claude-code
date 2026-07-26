@@ -454,8 +454,8 @@
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
   body.wkscreen .blk .teams{display:none}
-  body.wkscreen .blk .win{display:none}
-  body.wkscreen #evSummary{display:none}
+  body.wkscreen .blk .win .wintr{display:none}
+  body.wkscreen .blk .win{color:rgba(255,255,255,.85);font-size:15px;margin-top:10px}
   .teamsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .teamsbar label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
   .teamsbar .mwrap{width:158px;flex:none;display:block}
@@ -532,7 +532,8 @@
   body.wkscreen:not(.mobscreen) .blk .bh b{font-size:40px}
   body.wkscreen:not(.mobscreen) .blk .bh .mc{font-size:17px;padding:6px 16px}
   body.wkscreen:not(.mobscreen) .blk .bd{font-size:28px;line-height:1.62}
-  body.wkscreen:not(.mobscreen) .blk .win{font-size:17px}
+  body.wkscreen:not(.mobscreen) .blk .win{font-size:20px}
+  body.wkscreen #evSummary .schip b{font-size:26px}
   body.wkscreen:not(.mobscreen) .blk .teams .t{font-size:19px}
   body.wkscreen:not(.mobscreen) .blk .teams .dot{width:13px;height:13px}
   body.wkscreen:not(.mobscreen) .blk .teams .mtag{font-size:15px;padding:2px 9px}
@@ -1133,7 +1134,9 @@
   const blockIdxOf=r=>nBlocks()? r%nBlocks() : 0;
   const lapOf=r=>nBlocks()? Math.floor(r/nBlocks()) : 0;
   const roundTag=r=>laps()>1?` · round ${lapOf(r)+1}/${laps()}`:"";
-  const sessionTotal=()=>totalRounds()*roundLen()+(R().blockRest||0)*Math.max(0,totalRounds()-1);
+  const sessionTotal=()=>{ const n=totalRounds();
+    const base=cfg.together? Array.from({length:n},(_,r)=>blockLen(R().blocks[blockIdxOf(r)]||{items:[]})).reduce((a,x)=>a+x,0) : n*roundLen();
+    return base+(R().blockRest||0)*Math.max(0,n-1); };
   const fmtLong=s=>{ s=Math.round(s); return s>=3600? `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}m` : fmtMS(s); };
   const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,4);
   const itShare=it=>it&&it.fmt==="share"?clamp(parseInt(it.shareN,10)||2,2,3):0;
@@ -1422,7 +1425,7 @@
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b><span class="mc">${bmLabel(b)}</span></div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${bRounds(b)>1?`${bRounds(b)} &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total · trainer starts each block</div>
+        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="wintr"> · trainer starts each block</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span>${esc(t.e.name)}<em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).join("");
@@ -2691,7 +2694,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=157;
+  const BUILD=158;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
