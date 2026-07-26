@@ -498,12 +498,12 @@
   .tb-tinfo b.unnamed{color:#ff9490}
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
   .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
-  .stn .brow{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin:9px 0 2px;padding-left:2px}
+  .stn .brow{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;margin:9px 0 2px;padding-left:2px;min-width:0}
   .stn .brow:empty{display:none}
-  .stn .brow .bgrp{display:flex;align-items:center;gap:8px}
-  .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
-  .mwrap.brounds .mfield{width:64px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center}
-  .mwrap.brrest .mfield{width:84px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center;white-space:nowrap}
+  .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
+  .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
+  .mwrap.brounds .mfield{width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center}
+  .mwrap.brrest .mfield{width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .controls{display:none}
   /* projection styles apply on any device; narrow screens get a scaled preview */
@@ -2070,12 +2070,14 @@
         rw.title="How many times this block repeats";
         grp(lab("Rounds"),rw);
         if(bRounds(b)>1){
-          const rr=menuField(()=>["None","0:30","0:45","1:00","1:30","2:00","3:00"],
+          const rr=menuField(()=>["None","0:30","1:00","1:30","2:00","2:30","3:00","3:30","4:00","4:30","5:00"],
             ()=>bRRest(b)?fmtMS(bRRest(b)):"None",
-            v=>{ const m=v.match(/(\d+):(\d{1,2})/);
-              b.rrest=m?(+m[1]*60+ +m[2]):(/^\d+$/.test(v)?(+v<10?+v*60:+v):0);
+            v=>{ const m=v.match(/(\d+):(\d{1,2})/); let s=0;
+              if(m) s=+m[1]*60+ +m[2];
+              else if(/^\d+$/.test(v)) s=v.length>=3? (+v.slice(0,-2))*60+ +v.slice(-2) : (+v<10? +v*60 : +v);
+              b.rrest=clamp(s,0,600);
               save(); buildBlocks(); if(!sessionActive&&!running) build(); },
-            {numeric:true, cls:"time brrest", searchPh:"Rest\u2026"});
+            {numeric:true, addable:true, addLabel:"Use", cls:"time brrest", searchPh:"Type 1:30 or 130\u2026"});
           rr.title="Timed rest between rounds (never after the last round)";
           grp(lab("Rest between rounds"),rr);
         } }
@@ -2564,7 +2566,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=149;
+  const BUILD=150;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
