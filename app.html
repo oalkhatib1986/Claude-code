@@ -507,7 +507,7 @@
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
   .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .mwrap.brounds .mfield{width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center}
-  .mwrap.ifmt .mfield{width:96px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
+  .mwrap.ifmt .mfield{width:116px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
   .mwrap.brrest .mfield{width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .controls{display:none}
@@ -770,10 +770,11 @@
         <h3>Session type</h3>
         <div class="body">
           <div class="pills" id="segMode">
-            <button data-v="rotation" aria-pressed="true">Rotating blocks</button>
-            <button data-v="sequence" aria-pressed="false">Everyone together</button>
+            <button data-v="rotation" aria-pressed="true">Blocks</button>
             <button data-v="waves" aria-pressed="false">Waves</button>
           </div>
+          <div class="fld" id="flowFld" style="max-width:360px"><label>Class flow</label>
+            <select id="rFlow"><option value="together">Everyone together — one block at a time</option><option value="stations">Stations — teams split across blocks &amp; rotate</option></select></div>
           <div class="note" id="modeExplain"></div>
           <div class="fmtrow">
             <div class="fld"><label>Format</label>
@@ -801,9 +802,6 @@
         <div class="body">
           <div class="note">Build each block below: <b>+ Add exercise</b> gives one exercise with its own time; <b>+ Group exercises</b> puts several exercises on one shared time. The red dot marks an exercise or group as <b>scored</b>. Blocks run their items top to bottom when the trainer starts them. Added things separately? Use <b>&#10548;</b> on any item to <b>group</b> it with the one above, and <b>&#10549;</b> on a grouped exercise to <b>ungroup</b> it.</div>
 
-          <div class="fld" style="max-width:340px"><label>Class flow</label>
-            <select id="rFlow"><option value="together">Everyone together — whole class, one block at a time</option><option value="stations">Stations — teams split across blocks &amp; rotate</option></select>
-            <div class="note" style="margin-top:4px">Everyone together: the whole class does the same block at once — pairs/teams alternate on their own machine. Stations: teams start on different blocks and rotate.</div></div>
           <div class="fld" style="max-width:240px"><label>Rounds — laps through all blocks</label>
             <select id="rRounds"><option value="1">1 round</option><option value="2">2 rounds</option><option value="3">3 rounds</option><option value="4">4 rounds</option><option value="5">5 rounds</option><option value="6">6 rounds</option></select></div>
           <div class="fld" style="max-width:240px"><label>Rest between blocks</label>
@@ -1059,6 +1057,7 @@
   if(!cfg.teamSize) cfg.teamSize=4;
   if(cfg.noScore===undefined) cfg.noScore=false;
   if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
+  if(cfg.mode==="sequence"){ cfg.mode="rotation"; cfg.together=true; }
   // upgrade a loaded v1 Full Body working copy to real block rounds
   if(cfg.wkName==="Full Body"&&cfg.rotation&&(cfg.rotation.blocks||[]).length===3){
     const pb=cfg.rotation.blocks[1], pc=cfg.rotation.blocks[2];
@@ -1921,12 +1920,13 @@
     $("rotCard").hidden=m!=="rotation";
     $("wavCard").hidden=m!=="waves";
     $("seqCard").hidden=m==="rotation";
-    $("seqScoreCard").hidden=m!=="sequence";
+    $("seqScoreCard").hidden=true;
+    { const f=$("flowFld"); if(f) f.hidden=m!=="rotation"; }
     $("modeExplain").innerHTML = m==="rotation"
-      ? `<b>Rotating blocks</b> — ${kws()} are assigned to machines automatically, the trainer starts each block, and only the scored window counts. Leaderboard = sum of every scored window. This is your Send It Saturday format.`
-      : m==="waves"
-      ? `<b>Waves</b> — wave 1 starts on the trainer's go and races through the stations in order. The next wave is released when the wave ahead clears station 1 (or by the trainer). Leaderboard = fastest total time from your own wave's release.`
-      : `<b>Everyone together</b> — the whole class does the same station at the same time, station after station, with its own scoring rules.`;
+      ? (cfg.together
+        ? `<b>Blocks · everyone together</b> — the whole class does the same block at the same time (${kws()} alternate on their own machine) and moves to the next block as one. The trainer starts each block; anything marked scored banks to the leaderboard.`
+        : `<b>Blocks · stations</b> — ${kws()} are assigned to machines automatically, start on different blocks and rotate each round. Only the scored window counts; leaderboard = sum of every scored window. This is your Send It Saturday format.`)
+      : `<b>Waves</b> — wave 1 starts on the trainer's go and races through the stations in order. The next wave is released when the wave ahead clears station 1 (or by the trainer). Leaderboard = fastest total time from your own wave's release.`;
   }
   function syncSeqScoring(){
     $("scPlacing").classList.toggle("on",cfg.scoring.mode==="placing");
@@ -1960,8 +1960,13 @@
       nm.oninput=()=>{b.name=nm.value;save();};
       const partsEl=box.querySelector(".bparts");
 
-      const newEx=()=>({who:cfg.teamKind==="solo"?"":"All 4",name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
-      const whoOpts=()=>["Everyone","All 4","All 3","All 2","Pair 1","Pair 2","Pair 3","Single","Athlete 1","Athlete 2","Athlete 3","Athlete 4"];
+      const newEx=()=>({who:cfg.teamKind==="solo"?"":"All "+clamp(cfg.teamSize||4,2,6),name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
+      const whoOpts=()=>{ const n=clamp(cfg.teamSize||4,2,6); const o=["Everyone","All "+n];
+        for(let k2=2;k2<n;k2++) o.push("All "+k2);
+        for(let p=1;p<=Math.ceil(n/2);p++) o.push("Pair "+p);
+        o.push("Single");
+        for(let a2=1;a2<=n;a2++) o.push("Athlete "+a2);
+        return o; };
 
       const exerciseRow=(it,x,onRemove,onSplit)=>{
         const row=document.createElement("div"); row.className="exwrap";
@@ -2408,7 +2413,7 @@
     $("rRounds").value=String(R().laps||1);
     $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
     $("rFlow").value=cfg.together?"together":"stations";
-    $("rFlow").onchange=e=>{ cfg.together=e.target.value==="together"; save(); updateCapReport(); syncTeamCount(); if(!sessionActive&&!running) build(); };
+    $("rFlow").onchange=e=>{ cfg.together=e.target.value==="together"; save(); updateCapReport(); syncTeamCount(); syncMode(); if(!sessionActive&&!running) build(); };
     { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
     $("cName").oninput=e=>{cfg.name=e.target.value;save();};
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
@@ -2670,7 +2675,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=154;
+  const BUILD=155;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
