@@ -239,6 +239,7 @@
   .crew .mtog:hover{border-color:rgba(255,255,255,.3);color:var(--ink)}
   .crew .mtog i{font-style:normal;color:var(--ink-mute);margin-left:5px}
   .crew .marea{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:2px 0 4px}
+  .crew .marea .memadd{align-self:flex-start}
   .crew .marea[hidden]{display:none}
   .crew .marea .mem{background:var(--field);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:10px 13px;font-size:16px}
 
@@ -1402,7 +1403,7 @@
     const p=typePeaks();
     const bad=Object.keys(p).filter(m=>p[m]>invOf(m));
     if(!bad.length){ el.hidden=true; return; }
-    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. Fix the workout in Setup or the machine counts in Layout.`;
+    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. ${cfg.teamKind==="solo"?"Switch <b>Format</b> to teams of 2\u20133 so athletes share a machine and alternate, or fix the workout in Setup / machine counts in Layout.":`Use fewer ${kws()} (bigger teams share each machine), add waves to the piece in Setup, or fix the machine counts in Layout.`}`;
     el.hidden=false;
   }
   function renderBlockCards(){
@@ -2279,13 +2280,18 @@
         const inputs=[];
         const syncTog=()=>{ const n=inputs.length?inputs.filter(x=>x.value.trim()).length:init.length;
           tog.innerHTML=`Members${n?` &middot; ${n}`:""} <i>${area.hidden?"&#9662;":"&#9652;"}</i>`; };
-        for(let j=0;j<size;j++){
-          const inp=document.createElement("input");
+        const commitMems=()=>{ c.ath=inputs.map(x=>x.value.trim()).filter(Boolean).join(", "); save(); syncTog(); refresh(); };
+        const addMem=j=>{ const inp=document.createElement("input");
           inp.type="text"; inp.className="mem"; inp.placeholder="Member "+(j+1);
           inp.value=init[j]||"";
-          inp.oninput=()=>{ c.ath=inputs.map(x=>x.value.trim()).filter(Boolean).join(", "); save(); syncTog(); refresh(); };
-          area.appendChild(inp); inputs.push(inp);
-        }
+          inp.oninput=commitMems;
+          area.insertBefore(inp,more); inputs.push(inp); return inp; };
+        const more=document.createElement("button");
+        more.type="button"; more.className="btn small memadd"; more.textContent="+ Member";
+        more.onclick=()=>{ if(inputs.length>=6) return; addMem(inputs.length).focus(); if(inputs.length>=6) more.hidden=true; };
+        area.appendChild(more);
+        for(let j=0;j<Math.max(size,init.length);j++) addMem(j);
+        if(inputs.length>=6) more.hidden=true;
         tog.onclick=()=>{ area.hidden=!area.hidden; syncTog(); };
         syncTog();
       }
@@ -2664,7 +2670,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=153;
+  const BUILD=154;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
