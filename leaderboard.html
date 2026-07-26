@@ -497,8 +497,12 @@
   .tb-tinfo b.unnamed{color:#ff9490}
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
   .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
+  .stn .brow{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin:9px 0 2px;padding-left:2px}
+  .stn .brow:empty{display:none}
+  .stn .brow .bgrp{display:flex;align-items:center;gap:8px}
+  .stn .brow .blab{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .mwrap.brounds .mfield{width:64px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center}
-  .mwrap.brrest .mfield{width:104px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center;white-space:nowrap}
+  .mwrap.brrest .mfield{width:84px;text-align:center;padding:9px 26px 9px 10px;background-position:right 8px center;white-space:nowrap}
   .footer{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0 4px;line-height:1.7}
   .footer b{color:var(--ink-dim)}
   body:not(.bigscreen) #viewBoard .board{display:none}
@@ -1896,6 +1900,7 @@
           <button class="iconbtn up" ${i===0?"disabled":""}>&#9650;</button>
           <button class="iconbtn down" ${i===R().blocks.length-1?"disabled":""}>&#9660;</button>
           <button class="iconbtn del">&times;</button></div>
+        <div class="brow"></div>
         <div class="bparts"></div>
         <div class="addbtns">
           <button class="btn small addex" type="button">+ Exercise</button>
@@ -2059,22 +2064,24 @@
         });
       };
       renderItems();
-      { const top=box.querySelector(".top");
+      { const brow=box.querySelector(".brow");
+        const lab=t=>{ const s=document.createElement("span"); s.className="blab"; s.textContent=t; return s; };
+        const grp=(...kids)=>{ const g=document.createElement("span"); g.className="bgrp"; kids.forEach(k=>g.appendChild(k)); brow.appendChild(g); return g; };
         const rw=menuField(()=>["1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
           ()=>bRounds(b)+"\u00d7",
           v=>{ b.rounds=clamp(parseInt(v,10)||1,1,6); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
           {numeric:true, cls:"time brounds", searchPh:"Rounds\u2026"});
-        rw.title="Rounds within this block";
-        top.insertBefore(rw, top.querySelector(".up"));
+        rw.title="How many times this block repeats";
+        grp(lab("Rounds"),rw);
         if(bRounds(b)>1){
-          const rr=menuField(()=>["No rest","0:30","0:45","1:00","1:30","2:00","3:00"],
-            ()=>bRRest(b)?fmtMS(bRRest(b))+" rest":"No rest",
+          const rr=menuField(()=>["None","0:30","0:45","1:00","1:30","2:00","3:00"],
+            ()=>bRRest(b)?fmtMS(bRRest(b)):"None",
             v=>{ const m=v.match(/(\d+):(\d{1,2})/);
               b.rrest=m?(+m[1]*60+ +m[2]):(/^\d+$/.test(v)?(+v<10?+v*60:+v):0);
               save(); buildBlocks(); if(!sessionActive&&!running) build(); },
-            {numeric:true, cls:"time brrest", searchPh:"Rest between rounds\u2026"});
-          rr.title="Rest between rounds";
-          top.insertBefore(rr, top.querySelector(".up"));
+            {numeric:true, cls:"time brrest", searchPh:"Rest\u2026"});
+          rr.title="Timed rest between rounds (never after the last round)";
+          grp(lab("Rest between rounds"),rr);
         } }
       box.querySelector(".addex").onclick=()=>{ b.items.push({dur:300,scored:false,exercises:[newEx()]}); save(); renderItems(); };
       box.querySelector(".addgrp").onclick=()=>{ b.items.push({name:"Group",group:true,dur:300,scored:false,exercises:[newEx(),newEx()]}); save(); renderItems(); };
@@ -2561,7 +2568,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=147;
+  const BUILD=148;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
