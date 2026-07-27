@@ -159,6 +159,48 @@
   .tb-note b{color:var(--ink-dim)}
   .tb-device{border-radius:30px;background:#141518;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 30px 70px -30px rgba(0,0,0,.9)}
   .tb-screen{border-radius:18px;background:radial-gradient(140% 100% at 50% 0%,#101114,#060708);min-height:560px;padding:26px 24px;display:flex;flex-direction:column;gap:18px}
+  /* the columns collapse on a phone (identical stacked order) and split on a
+     landscape tablet, where the whole screen must fit with no scrolling */
+  .tb-colL,.tb-colR{display:contents}
+  .tb-teams{order:1}.tb-namer{order:2}.tb-swap{order:3}.tbp{order:4}
+  .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
+  @media (orientation:landscape) and (min-width:720px) and (min-height:420px){
+    body.tabkiosk{padding:0}
+    body.tabkiosk .tb-wrap{max-width:none;margin:0;gap:0}
+    body.tabkiosk .tb-note,body.tabkiosk .tb-selrow{display:none}
+    body.tabkiosk .tb-device{border-radius:0;padding:0;box-shadow:none}
+    body.tabkiosk .tb-screen{border-radius:0;height:100%;min-height:0;padding:16px 20px;
+      display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);
+      grid-template-rows:auto minmax(0,1fr);column-gap:20px;row-gap:12px;overflow:hidden}
+    body.tabkiosk .tb-top{grid-column:1/-1}
+    body.tabkiosk .tb-colL,body.tabkiosk .tb-colR{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:hidden}
+    body.tabkiosk .tb-colR{justify-content:center;gap:6px}
+    body.tabkiosk .tb-colL>*{flex:none}
+    /* the pairs card already states the work — drop the duplicate list */
+    body.tabkiosk .tb-screen.has-swap .tb-work{display:none}
+    body.tabkiosk .tb-work{flex:1 1 0;min-height:0;overflow:hidden;font-size:12.5px;padding:11px 14px}
+    body.tabkiosk .tb-clock{font-size:clamp(52px,8.5vw,92px)}
+    body.tabkiosk .tbp-vit .opt{display:block}
+    body.tabkiosk .tb-phase{padding:0}
+    body.tabkiosk .tb-phase .pl{font-size:12px;letter-spacing:.22em}
+    body.tabkiosk .tb-top .bname{font-size:24px}
+    body.tabkiosk .tb-team{padding:10px 14px}
+    body.tabkiosk .tb-team b{font-size:18px}
+    body.tabkiosk .tb-swap{padding:9px 12px;gap:5px}
+    body.tabkiosk .tsw-row{padding:7px 10px}
+    body.tabkiosk .tsw-row b{font-size:14px}
+    body.tabkiosk .tsw-row span{font-size:12.5px}
+    body.tabkiosk .tswp{padding:7px 12px;font-size:13px}
+    body.tabkiosk .tsw-pick{gap:5px}
+    body.tabkiosk .tb-namer{padding:9px 12px}
+    body.tabkiosk .tb-namer input{height:36px;font-size:15px}
+    body.tabkiosk .tb-namer label{margin-bottom:5px}
+    body.tabkiosk .tbp{padding:11px 14px 0}
+    body.tabkiosk .tbp-hero b{font-size:clamp(34px,4.6vw,52px)}
+    body.tabkiosk .tbp-vit{margin:11px -14px 0}
+    body.tabkiosk .tbp-vit>div{padding:9px 2px 10px}
+    body.tabkiosk .tb-next{padding-top:0}
+  }
   .tb-top{display:flex;align-items:center;gap:12px}
   .tb-top .bname{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
   .tb-top .bmach{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:12px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:5px 13px}
@@ -192,7 +234,8 @@
   .tbp-bar{height:9px;border-radius:999px;background:rgba(0,0,0,.1);overflow:hidden;margin-top:13px}
   .tbp-bar i{display:block;height:100%;border-radius:999px;background:#0a0a0b;transition:width .5s linear}
   .tbp.hot .tbp-bar i{background:#d31414}
-  .tbp-vit{display:grid;margin:14px -16px 0;border-top:1px solid rgba(0,0,0,.13)}
+  .tbp-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;margin:14px -16px 0;border-top:1px solid rgba(0,0,0,.13)}
+  .tbp-vit .opt{display:none}
   .tbp-vit>div{padding:11px 3px 13px;text-align:center;border-left:1px solid rgba(0,0,0,.13);min-width:0}
   .tbp-vit>div:first-child{border-left:none}
   .tbp-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(16px,4.7vw,22px);
@@ -861,7 +904,7 @@
   <section class="view" id="viewTablet">
     <div class="tb-wrap">
       <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows who is assigned to this machine, and new teams or athletes type their name right here at their first station.</div>
-      <div class="fld" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
+      <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
       <div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div>
     </div>
   </section>
@@ -1961,7 +2004,8 @@
     if(which==="board"&&subTab==="results") renderResults();
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
-    if(which==="tablet"){ buildTabletSel(); renderTablet(); }
+    document.body.classList.toggle("tabkiosk",which==="tablet");
+    if(which==="tablet"){ buildTabletSel(); renderTablet(); fitTablet(); }
     { const fab=$("aiFab"); const onSetup=(which==="board"&&subTab==="setup");
       if(fab) fab.style.display=(onSetup&&fab.dataset.off!=="1")?"":"none";
       if(!onSetup) document.body.classList.remove("aiopen"); }
@@ -2018,12 +2062,14 @@
   }
   // metres accumulator — advances by elapsed wall time at the current split pace;
   // keyed per round so distance resets when a new round begins
-  function tbDistFor(key,split){
-    const d=tbDist[key]||(tbDist[key]={t:Date.now(),m:0});
-    const now=Date.now();
-    if(split>0) d.m+=Math.min(3,(now-d.t)/1000)*(500/split);
-    d.t=now; return d.m;
+  function tbAcc(key,split,spm){
+    const d=tbDist[key]||(tbDist[key]={t:Date.now(),m:0,s:0,el:0,sum:0});
+    const now=Date.now(), dt=Math.min(3,(now-d.t)/1000);
+    if(split>0){ d.m+=dt*(500/split); d.el+=dt; d.sum+=dt*split; d.s+=dt*((spm||0)/60); }
+    d.t=now; return d;
   }
+  const tbAvg=d=>(d&&d.el>0)?d.sum/d.el:0;
+  function tbDistFor(key,split,spm){ return tbAcc(key,split,spm).m; }
   // target-swap: inside a group where one exercise is an erg piece with metre
   // targets (the pair picks 800/1000/1200 by fitness) and the rest is floor
   // work, the erg is the metronome — hit the target, the pairs trade places
@@ -2064,6 +2110,29 @@
     if(!v||!v.classList.contains("active")||cfg.mode!=="rotation"||running) return;
     if(!sessionActive&&rot.phase==="pre") renderTablet();
   },1000);
+  // on a landscape tablet the screen fills whatever height is left below the
+  // header, so the whole readout fits with nothing to scroll
+  const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:420px)";
+  function fitTablet(){
+    const d=document.querySelector(".tb-device"); if(!d) return;
+    if(!document.body.classList.contains("tabkiosk")||!matchMedia(TBKQ).matches){ d.style.height=""; return; }
+    const top=d.getBoundingClientRect().top+window.scrollY;
+    let h=Math.max(360,Math.round(window.innerHeight-top-6));
+    d.style.height=h+"px";
+    // second pass: absorb anything else below (build tag, page padding)
+    const over=document.documentElement.scrollHeight-window.innerHeight;
+    if(over>0) d.style.height=Math.max(360,h-over)+"px";
+    // last resort on a squat screen: scale a column down rather than clip it
+    d.querySelectorAll(".tb-colL,.tb-colR").forEach(c=>{
+      c.style.transform=""; c.style.width="";
+      const ch=c.clientHeight, cs=c.scrollHeight;
+      if(cs>ch+1&&ch>0){ const k=Math.max(.6,ch/cs);
+        c.style.transformOrigin="top left"; c.style.transform="scale("+k.toFixed(3)+")";
+        c.style.width=(100/k).toFixed(2)+"%"; }
+    });
+  }
+  window.addEventListener("resize",fitTablet);
+  window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(cfg.mode==="rotation"){
@@ -2087,13 +2156,15 @@
       let mts=null, mtag="", mcls="";
       if(team){
         if(running&&seg&&!seg.it.rest&&team.split>0){
-          const m=tsw?tsw.m:tbDistFor("rd:"+team.id+":"+rot.round,team.split);
-          mts={split:team.split,spm:team.spm,m};
-          tbLastM[team.id]={split:team.split,spm:team.spm,m};
+          const ak=tsw?("sw:"+tsw.key+":"+tsw.st.n):("rd:"+team.id+":"+rot.round);
+          const d=tbAcc(ak,team.split,team.spm);
+          const m=tsw?tsw.m:d.m;
+          mts={split:team.split,spm:team.spm,m,avg:tbAvg(d),strokes:d.s,el:d.el};
+          tbLastM[team.id]=mts;
           if(hot){ mtag="scoring now"; mcls="hot"; } else { mtag="live"; mcls="live"; }
         } else if(!sessionActive&&phase==="pre"){
-          const w=tbWuFor(sv);
-          mts={split:w.split,spm:w.spm,m:tbDistFor("wu:"+sv,w.split)};
+          const w=tbWuFor(sv); const d=tbAcc("wu:"+sv,w.split,w.spm);
+          mts={split:w.split,spm:w.spm,m:d.m,avg:tbAvg(d),strokes:d.s,el:d.el};
           mtag="warm-up · not counting"; mcls="";
         } else if(tbLastM[team.id]){
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
@@ -2106,8 +2177,11 @@
         const scored=!!(team&&!cfg.noScore), scoreVal=team?Math.round(team.score+team.blockCals):0;
         const onTarget=!!(tsw&&tsw.live);
         const vit=[{v:fmtSplit(mts.split),l:"/500m"},
+                   {v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1},
                    {v:Math.round(wattsFor(mts.split)),l:"watts"},
-                   {v:Math.round(mts.spm),l:"s/m"}];
+                   {v:Math.round(mts.spm),l:"s/m"},
+                   {v:Math.round(mts.strokes||0),l:"strokes",opt:1},
+                   {v:fmtMS(Math.round(mts.el||0)),l:"on the erg",opt:1}];
         let heroV,heroL,goal=null,pct=0;
         if(onTarget){ heroV=Math.round(mts.m||0); heroL="metres"; goal=tsw.st.target;
           pct=Math.min(100,(mts.m||0)/tsw.st.target*100);
@@ -2121,8 +2195,8 @@
             ${goal?`<div class="tbp-goal"><b>${goal}</b><span>goal</span></div>`:""}
           </div>
           ${goal?`<div class="tbp-bar"><i style="width:${pct}%"></i></div>`:""}
-          <div class="tbp-vit" style="grid-template-columns:repeat(${vit.length},1fr)">
-            ${vit.map(x=>`<div><b>${x.v}</b><span>${x.l}</span></div>`).join("")}
+          <div class="tbp-vit">
+            ${vit.map(x=>`<div class="${x.opt?"opt":""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}
           </div>
         </div>`;
       }
@@ -2133,23 +2207,24 @@
           ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc(tsw.whoFor(x)||tsw.offWhos.join(" + "))}</b><span><i>${esc(x.name)}</i> <i>&middot; then ${esc(mLabel)}</i></span></div>`).join("")}
           <div class="tsw-pick"><em>target &mdash; pick yours</em><div class="tsw-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>
         </div>`:"";
-      scr.innerHTML=`
-        <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
-        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?"on this machine now":running?"erg idle":"your machine this round"}</i></div></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
-        ${needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
-        ${swCard}
-        ${mStrip}
-        <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
+      const phaseLine=`<div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           holding?"Next part — waiting for trainer":
           phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
           phase==="rest"?"Rest — rotate stations":
           phase==="done"?"Session complete":
-          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(tbSegLine(seg,segLabel,hit.j,bi))}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
-        <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
-        ${(phase==="rest"||holding)&&team&&!lastRound?`<div class="tb-go">Go now &rarr; ${esc(nxBlock.name)} &middot; ${bmLabel(nxBlock)}</div>`:""}
-        <div class="tb-work"><b>This block</b>${exLines(b)}</div>
-        ${!lastRound&&phase!=="done"&&team?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
-        ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}`;
+          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(tbSegLine(seg,segLabel,hit.j,bi))}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>`;
+      const clockLine=`<div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>`;
+      const goLine=(phase==="rest"||holding)&&team&&!lastRound?`<div class="tb-go">Go now &rarr; ${esc(nxBlock.name)} &middot; ${bmLabel(nxBlock)}</div>`:"";
+      const teamCard=`<div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?"on this machine now":running?"erg idle":"your machine this round"}</i></div></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>`;
+      const nameCard=needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:"";
+      const nextLine=(!lastRound&&phase!=="done"&&team)?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`
+        :(phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:"");
+      scr.innerHTML=`
+        <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
+        <div class="tb-colL">${teamCard}${nameCard}${swCard}<div class="tb-work"><b>This block</b>${exLines(b)}</div>${nextLine}</div>
+        <div class="tb-colR">${mStrip}${phaseLine}${clockLine}${goLine}</div>`;
+      scr.classList.toggle("has-swap",!!tsw);
+      fitTablet();
       if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
         const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(); }; }); }
       const gi=$("tbNameGo");
@@ -3378,7 +3453,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=200;
+  const BUILD=201;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
