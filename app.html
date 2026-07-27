@@ -427,6 +427,9 @@
     font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
     box-shadow:0 12px 40px -8px rgba(0,0,0,.8)}
   #updBar[hidden]{display:none}
+  .buildfoot{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.3em;
+    text-transform:uppercase;color:#33373c;padding:6px 0 30px}
+  body.bigscreen .buildfoot{display:none}
   .transport{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 4px}
   .trow{display:flex;align-items:center;justify-content:center}
   .trow.main{gap:34px}
@@ -1004,6 +1007,7 @@
         </div>
       </div>
     </div>
+  <div id="buildTag" class="buildfoot"></div>
   <button id="updBar" hidden type="button">&#10227; <b></b> is live &mdash; tap to update</button>
 
 </div>
@@ -3253,8 +3257,8 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=193;
-  { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
+  const BUILD=194;
+  { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
     try{
