@@ -173,9 +173,10 @@
   .tb-clock.hot{color:var(--hot);text-shadow:0 0 44px rgba(255,45,45,.4)}
   .tb-score{text-align:center;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase}
   .tb-score b{font-family:var(--mono);color:var(--accent);font-size:28px;font-weight:700;letter-spacing:0;vertical-align:-2px;padding:0 3px}
-  .tb-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center}
-  .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:var(--card)}
-  .tb-stats b{display:block;font-family:var(--mono);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;text-align:center}
+  .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:var(--card);min-width:0}
+  .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  @media (max-width:369px){ .tb-stats{grid-template-columns:1fr 1fr} .tb-stats b{font-size:22px} }
   .tb-stats span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase}
   .tb-stats.hot b{color:var(--hot)}
   .tb-stats.dim b{color:var(--ink-dim)}
@@ -1952,12 +1953,20 @@
     return segLabel; }
   // simulated PM5 warm-up feed (per machine) + last-effort cache (per team) —
   // the real Web Bluetooth stream replaces tbWuFor/team.split as the source later
-  const tbWu={}, tbLastM={};
+  const tbWu={}, tbLastM={}, tbDist={};
   function tbWuFor(key){
     const w=tbWu[key]||(tbWu[key]={split:128+Math.random()*14,spm:23+Math.random()*4});
     w.split=clamp(w.split+(Math.random()-0.5)*2.6,112,158);
     w.spm=clamp(w.spm+(Math.random()-0.5)*1.4,18,32);
     return w;
+  }
+  // metres accumulator — advances by elapsed wall time at the current split pace;
+  // keyed per round so distance resets when a new round begins
+  function tbDistFor(key,split){
+    const d=tbDist[key]||(tbDist[key]={t:Date.now(),m:0});
+    const now=Date.now();
+    if(split>0) d.m+=Math.min(3,(now-d.t)/1000)*(500/split);
+    d.t=now; return d.m;
   }
   setInterval(()=>{ const v=$("viewTablet");
     if(!v||!v.classList.contains("active")||cfg.mode!=="rotation"||running) return;
@@ -1985,11 +1994,14 @@
       let mts=null, mtag="", mcls="";
       if(team){
         if(running&&seg&&!seg.it.rest&&team.split>0){
-          mts={split:team.split,spm:team.spm};
-          tbLastM[team.id]={split:team.split,spm:team.spm};
+          const m=tbDistFor("rd:"+team.id+":"+rot.round,team.split);
+          mts={split:team.split,spm:team.spm,m};
+          tbLastM[team.id]={split:team.split,spm:team.spm,m};
           if(hot){ mtag="scoring now"; mcls="hot"; } else { mtag="live"; mcls="live"; }
         } else if(!sessionActive&&phase==="pre"){
-          mts=tbWuFor(sv); mtag="warm-up · not counting"; mcls="";
+          const w=tbWuFor(sv);
+          mts={split:w.split,spm:w.spm,m:tbDistFor("wu:"+sv,w.split)};
+          mtag="warm-up · not counting"; mcls="";
         } else if(tbLastM[team.id]){
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
         }
@@ -1998,6 +2010,7 @@
           <div><b>${fmtSplit(mts.split)}</b><span>split /500m</span></div>
           <div><b>${Math.round(wattsFor(mts.split))}</b><span>watts</span></div>
           <div><b>${Math.round(mts.spm)}</b><span>s/m</span></div>
+          <div><b>${Math.round(mts.m||0)}</b><span>metres</span></div>
         </div><div class="tb-mtag ${mcls}">${mtag}</div>`:"";
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
@@ -3234,7 +3247,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=190;
+  const BUILD=191;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
