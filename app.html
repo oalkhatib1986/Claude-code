@@ -177,7 +177,7 @@
   .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:var(--card);min-width:0}
   .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
   @media (max-width:369px){ .tb-stats{grid-template-columns:1fr 1fr} .tb-stats b{font-size:22px} }
-  .tb-stats span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase}
+  .tb-stats span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
   .tb-stats.hot b{color:var(--hot)}
   .tb-stats.dim b{color:var(--ink-dim)}
   .tb-mtag{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.26em;
@@ -2007,7 +2007,7 @@
         }
       }
       const mStrip=mts?`<div class="tb-stats ${mcls==="hot"?"hot":mcls===""?"dim":""}">
-          <div><b>${fmtSplit(mts.split)}</b><span>split /500m</span></div>
+          <div><b>${fmtSplit(mts.split)}</b><span>/500m</span></div>
           <div><b>${Math.round(wattsFor(mts.split))}</b><span>watts</span></div>
           <div><b>${Math.round(mts.spm)}</b><span>s/m</span></div>
           <div><b>${Math.round(mts.m||0)}</b><span>metres</span></div>
@@ -2045,7 +2045,7 @@
         <div class="tb-phase"><span class="pl">${finished?"Session complete":s.format==="time"?`Fixed time — ${fmtMS(s.duration)}`:`Race to ${s.target}m`}</span></div>
         <div class="tb-clock">${e?fmtT(e.elapsed):"--:--"}</div>
         ${e?`<div class="tb-stats">
-          <div><b>${e.split>0?fmtSplit(e.split):"--:--"}</b><span>split /500m</span></div>
+          <div><b>${e.split>0?fmtSplit(e.split):"--:--"}</b><span>/500m</span></div>
           <div><b>${e.split>0?Math.round(wattsFor(e.split)):0}</b><span>watts</span></div>
           <div><b>${Math.round(e.stageM)}</b><span>metres here</span></div>
         </div>`:""}
@@ -2062,13 +2062,19 @@
         <div class="tb-clock">${finished?"0:00":s.format==="time"?fmtMS(Math.max(0,s.duration-e.cur.elapsed)):fmtT(e.cur.elapsed)}</div>
         <div class="tb-score">score <b>${cfg.scoring.mode==="time"?fmtT(seqScoreOf(e)):Math.round(seqScoreOf(e)).toLocaleString()}</b></div>
         <div class="tb-stats">
-          <div><b>${e.split>0?fmtSplit(e.split):"--:--"}</b><span>split /500m</span></div>
+          <div><b>${e.split>0?fmtSplit(e.split):"--:--"}</b><span>/500m</span></div>
           <div><b>${e.split>0?Math.round(wattsFor(e.split)):0}</b><span>watts</span></div>
           <div><b>${Math.round(e.cur.m)}</b><span>metres</span></div>
         </div>
         <div class="tb-work"><b>Session</b>${cfg.segments.map((x,i)=>`${i===seqIdx?"&#9654; ":""}${esc(x.name)||("Station "+(i+1))}`).join(" · ")}</div>
         ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     }
+    // any tile value wider than its box shrinks until it fits — device metrics vary
+    scr.querySelectorAll(".tb-stats b").forEach(el=>{
+      el.style.fontSize="";
+      let fs=parseFloat(getComputedStyle(el).fontSize);
+      while(fs>12&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
+    });
   }
 
   /* ================= control room ================= */
@@ -3247,7 +3253,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=191;
+  const BUILD=192;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
