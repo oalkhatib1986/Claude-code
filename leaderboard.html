@@ -567,10 +567,10 @@
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
   .stn .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .psec .irow{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;margin:0 0 8px;min-width:0}
-  .mwrap.brounds .mfield{width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center}
-  .mwrap.ifmt .mfield{width:106px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
-  .mwrap.ifn .mfield{width:54px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
-  .mwrap.brrest .mfield{width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
+  .mwrap.brounds .mfield{width:auto;min-width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
+  .mwrap.ifmt .mfield{width:auto;min-width:106px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
+  .mwrap.ifn .mfield{width:auto;min-width:54px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
+  .mwrap.brrest .mfield{width:auto;min-width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   body:not(.bigscreen) #viewBoard .board{display:none}
   body.bigscreen .blocks,body.bigscreen .controls{display:none}
   /* projection styles apply on any device; narrow screens get a scaled preview */
@@ -3183,7 +3183,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=185;
+  const BUILD=186;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
