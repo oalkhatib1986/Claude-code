@@ -174,9 +174,9 @@
   .tb-score{text-align:center;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase}
   .tb-score b{font-family:var(--mono);color:var(--accent);font-size:28px;font-weight:700;letter-spacing:0;vertical-align:-2px;padding:0 3px}
   .tb-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;text-align:center}
-  .tb-stats>div.sc{grid-column:1/-1;background:var(--accent);display:flex;align-items:baseline;justify-content:center;gap:12px;padding:12px 10px}
-  .tb-stats>div.sc b{font-size:clamp(22px,7vw,34px)}
-  .tb-stats>div.sc span{font-size:12px;letter-spacing:.24em}
+  .tb-stats>div.sc{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:10px;padding:11px 10px}
+  .tb-stats>div.sc b{font-size:clamp(20px,6vw,30px)}
+  .tb-stats>div.sc span{font-size:11px;letter-spacing:.24em}
   .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:#fff;min-width:0}
   .tb-stats>div span{color:rgba(0,0,0,.55)}
   .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -3334,7 +3334,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=198;
+  const BUILD=199;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
