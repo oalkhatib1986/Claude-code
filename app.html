@@ -338,10 +338,19 @@
   #aiFab:hover{opacity:1}
   #aiFab:active{transform:scale(.94)}
   body.bigscreen #aiFab,body.bigscreen #aiPanel{display:none!important}
-  #aiPanel{position:fixed;z-index:96;left:10px;right:10px;bottom:10px;margin-left:auto;width:min(480px,calc(100vw - 20px));
-    max-height:min(76vh,640px);display:flex;flex-direction:column;background:#121316;border:1px solid var(--line);
-    border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
-  #aiPanel[hidden]{display:none}
+  #aiScrim{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:95;opacity:0;pointer-events:none;transition:opacity .28s}
+  body.aiopen #aiScrim{opacity:1;pointer-events:auto}
+  #aiPanel{position:fixed;z-index:96;left:10px;right:10px;bottom:10px;top:max(16px,env(safe-area-inset-top));
+    display:flex;flex-direction:column;background:#121316;border:1px solid var(--line);
+    border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.65);
+    visibility:hidden;transform:translateY(104%);
+    transition:transform .32s cubic-bezier(.32,.72,.24,1),visibility 0s .32s;will-change:transform}
+  body.aiopen #aiPanel{visibility:visible;transform:none;transition:transform .32s cubic-bezier(.32,.72,.24,1)}
+  @media (min-width:700px){
+    #aiPanel{left:auto;right:18px;bottom:18px;top:auto;width:460px;height:min(660px,84vh)}
+  }
+  body.aiopen{overflow:hidden}
+  body.aiopen #aiFab{opacity:0;pointer-events:none;transform:scale(.6)}
   .aiph{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line-soft)}
   .aiph b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
   .aipb{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 4px;min-height:120px}
@@ -963,7 +972,8 @@
   </section>
 
   <button id="aiFab" type="button" aria-label="Build with AI" title="Build with AI"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button>
-  <div id="aiPanel" hidden>
+  <div id="aiScrim"></div>
+  <div id="aiPanel">
     <div class="aiph"><b>Build with AI</b><button class="iconbtn" id="aiClose" aria-label="Close">&times;</button></div>
     <div class="aipb">
       <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the Setup fills itself for you to review and save. Unclear bits come back as questions. Dictate with your keyboard's mic or the Voice button.</div>
@@ -1881,7 +1891,7 @@
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
     { const fab=$("aiFab"); if(fab) fab.style.display=(which==="tablet"||which==="screen")?"none":"";
-      const pan=$("aiPanel"); if(pan&&(which==="tablet"||which==="screen")) pan.hidden=true; }
+      if(which==="tablet"||which==="screen") document.body.classList.remove("aiopen"); }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
     fitScreen();
   }
@@ -2627,16 +2637,27 @@
       if(!obj) throw new Error("bad reply");
       if(obj.reply) aiBubble("ai",obj.reply);
       if(obj.workout){ applyAiWorkout(obj.workout);
-        aiBubble("ok","Applied \u2014 review every setting below, then save it a name in the Workout card when you're happy."); }
+        aiBubble("ok","Applied \u2014 review the setup, then save it a name in the Workout card. Reopen me for tweaks.");
+        setTimeout(aiCloseP,1400); }
     }catch(e){
       aiBubble("err","Couldn't reach the AI ("+e.message+"). Check the relay link or try again.");
     }
     aiBusy=false; btn.disabled=false; btn.textContent="Build it";
   }
-  { const fab=$("aiFab"), pan=$("aiPanel");
-    if(fab&&pan){
-      fab.onclick=()=>{ pan.hidden=!pan.hidden; if(!pan.hidden){ if(!aiUrl) $("aiSetupNote").hidden=false; setTimeout(()=>$("aiText").focus(),50); } };
-      $("aiClose").onclick=()=>{ pan.hidden=true; };
+  function aiOpen(){
+    document.body.classList.add("aiopen");
+    if(!aiUrl) $("aiSetupNote").hidden=false;
+    setTimeout(()=>{ const t=$("aiText"); if(t) t.focus({preventScroll:true}); },340);
+  }
+  function aiCloseP(){ document.body.classList.remove("aiopen"); }
+  { const fab=$("aiFab");
+    if(fab){
+      fab.onclick=()=>{ document.body.classList.contains("aiopen")?aiCloseP():aiOpen(); };
+      $("aiClose").onclick=aiCloseP;
+      const sc=$("aiScrim"); if(sc) sc.onclick=aiCloseP;
+      document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&document.body.classList.contains("aiopen")) aiCloseP(); });
+      const t=$("aiText");
+      if(t) t.addEventListener("input",()=>{ t.style.height="auto"; t.style.height=Math.min(150,t.scrollHeight)+"px"; });
     } }
   { const b=$("aiSend"); if(b) b.onclick=aiSend;
     const ta=$("aiText"); if(ta) ta.onkeydown=e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); aiSend(); } };
@@ -2985,7 +3006,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=178;
+  const BUILD=179;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
