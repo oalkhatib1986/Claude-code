@@ -166,15 +166,16 @@
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
   /* ============ athlete screen (erg tablet) ============ */
   .tk{background:#fff;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;height:100%}
-  .tk-id{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:2px solid rgba(0,0,0,.12);min-width:0}
-  .tk-mach{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;
-    font-size:clamp(19px,4.6vw,30px);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
-  .tk-mach i{width:12px;height:12px;border-radius:50%;flex:none}
-  .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(18px,4.4vw,28px);
-    letter-spacing:.04em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tk-id{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:3px solid #0a0a0b;min-width:0}
+  .tk-logo{height:clamp(26px,6.4vw,42px);width:auto;flex:none;display:block}
+  .tk-mach{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;
+    font-size:clamp(26px,7vw,44px);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;line-height:1}
+  .tk-mach i{width:15px;height:15px;border-radius:50%;flex:none}
+  .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(20px,5.2vw,34px);
+    letter-spacing:.03em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1}
   .tk-who.unnamed{color:rgba(0,0,0,.35)}
-  .tk-blk{flex:none;font-family:var(--disp);font-weight:600;font-size:clamp(13px,3vw,17px);letter-spacing:.16em;
-    text-transform:uppercase;color:#fff;background:#0a0a0b;border-radius:999px;padding:7px 14px;white-space:nowrap}
+  .tk-blk{flex:none;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,20px);letter-spacing:.14em;
+    text-transform:uppercase;color:#fff;background:#0a0a0b;border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
   .tk-name{display:flex;flex-direction:column;gap:8px;padding:13px 18px;border-bottom:2px solid rgba(0,0,0,.12);background:rgba(0,0,0,.04)}
   .tk-name label{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(0,0,0,.55)}
   .tk-name>div{display:flex;gap:10px}
@@ -197,10 +198,14 @@
   .tk.live .tk-tag{background:rgba(28,160,70,.15);color:#0e7434}
   .tk.hot .tk-tag{background:rgba(255,45,45,.14);color:#c81111}
   .tk-head{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
-    letter-spacing:.03em;text-transform:uppercase}
+    letter-spacing:.03em;text-transform:uppercase;background:rgba(0,0,0,.07);border-radius:13px;padding:11px 15px}
+  .tk.live .tk-head{background:rgba(28,160,70,.15)}
+  .tk.hot .tk-head{background:rgba(255,45,45,.12);color:#c81111}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase}
-  .tk-sub{font-family:var(--ui);font-size:clamp(15px,3.8vw,21px);line-height:1.35;color:rgba(0,0,0,.62)}
+  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(17px,4.5vw,27px);line-height:1.2;
+    letter-spacing:.04em;text-transform:uppercase;color:rgba(0,0,0,.78);
+    border-top:2px solid rgba(0,0,0,.12);padding-top:11px}
   .tk-goal{display:flex;align-items:baseline;gap:11px;min-width:0}
   .tk-goal b{font-family:var(--mono);font-weight:700;font-size:clamp(42px,11.5vw,86px);line-height:.95;
     font-variant-numeric:tabular-nums}
@@ -244,28 +249,29 @@
   body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   body.kioskon .tk-vit .opt{display:block}
-  body.kioskon .tk-id{padding:15px 22px}
-  body.kioskon .tk-mach{font-size:30px}
-  body.kioskon .tk-who{font-size:28px}
-  body.kioskon .tk-blk{font-size:16px;padding:8px 15px}
+  body.kioskon .tk-id{padding:18px 24px;gap:16px}
+  body.kioskon .tk-logo{height:46px}
+  body.kioskon .tk-mach{font-size:54px}
+  body.kioskon .tk-who{font-size:38px}
+  body.kioskon .tk-blk{font-size:20px;padding:11px 18px}
   body.kioskon .tk-name{padding:14px 22px}
   body.kioskon .tk-name label{font-size:14px}
   body.kioskon .tk-name input{height:50px;font-size:20px}
   body.kioskon .tk-name .btn{height:50px;font-size:16px}
-  body.kioskon .tk-job{padding:18px 22px;gap:13px}
+  body.kioskon .tk-job{padding:16px 24px;gap:11px}
   body.kioskon .tk-clk{padding:18px 22px}
   body.kioskon .tk-tag{font-size:16px}
-  body.kioskon .tk-head{font-size:34px}
+  body.kioskon .tk-head{font-size:34px;padding:12px 17px}
   body.kioskon .tk-big{font-size:44px}
-  body.kioskon .tk-sub{font-size:21px}
-  body.kioskon .tk-goal b{font-size:88px}
+  body.kioskon .tk-sub{font-size:27px;padding-top:12px}
+  body.kioskon .tk-goal b{font-size:80px}
   body.kioskon .tk-goal i{font-size:26px}
   body.kioskon .tk-bar{height:16px}
   body.kioskon .tk-pick>span{font-size:15px}
   body.kioskon .tk-pills .tswp{font-size:21px;padding:11px 4px}
   body.kioskon .tk-flash{font-size:22px}
   body.kioskon .tk-clk span{font-size:17px}
-  body.kioskon .tk-clk b{font-size:104px}
+  body.kioskon .tk-clk b{font-size:96px}
   body.kioskon .tk-clk em{font-size:19px}
   body.kioskon .tk-vit>div{padding:13px 4px 15px}
   body.kioskon .tk-vit b{font-size:32px}
@@ -2310,6 +2316,7 @@
       scr.innerHTML=`
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-id">
+            ${(function(){const bd=document.querySelector("img.badge");return bd?`<img class="tk-logo" src="${bd.src}" alt="ATHL3TE">`:"";})()}
             <div class="tk-mach"><i style="background:rgb(${BLKCOL[bi%6]})"></i>${mLabel}</div>
             <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${team?esc(team.name):`No ${kw()} here`}</div>
             <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
@@ -3562,7 +3569,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=204;
+  const BUILD=205;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
