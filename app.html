@@ -2675,10 +2675,14 @@
     pushS(xr+"trailer\n<< /Size "+total+" /Root 1 0 R >>\nstartxref\n"+xrefOff+"\n%%EOF");
     const out=new Uint8Array(off); let p2=0; chunks.forEach(c=>{ out.set(c,p2); p2+=c.length; });
     const blob=new Blob([out],{type:"application/pdf"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    // keep the blob URL alive — iOS Safari opens it asynchronously and an early
+    // revoke throws "WebKitBlobResource error 1"; only the previous one is freed
+    try{ if(window.__briefUrl) URL.revokeObjectURL(window.__briefUrl); }catch(e){}
+    const url=URL.createObjectURL(blob); window.__briefUrl=url;
+    const a=document.createElement("a"); a.href=url;
     a.download=(String(cfg.name||"workout").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").toLowerCase()||"workout")+"-brief.pdf";
     document.body.appendChild(a); a.click();
-    setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); }catch(e){} a.remove(); },500);
+    setTimeout(()=>{ a.remove(); },1500);
   }
   { const pb=$("pdfBtn");
     if(pb) pb.onclick=()=>{ downloadBriefPdf(); }; }
@@ -3192,7 +3196,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=188;
+  const BUILD=189;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
