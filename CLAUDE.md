@@ -14,6 +14,9 @@ copy for cache-free serving; `version.txt` holds the build number.
 - **The workout summary line fits on ONE line, time last.** It auto-scales
   (`fitSummary()`); never add a chip without re-checking worst cases.
 - **No orphaned wraps.** Label+field pairs (`.bgrp`, `.fmtpair`) wrap as units.
+- **No fixed widths on value-bearing fields.** iOS draws text wider than headless
+  Chromium; a field that "just fits" in tests clips on iPhone. Use
+  `width:auto;min-width:Npx` (see `.ifmt`/`.ifn`/`.brounds`/`.brrest`).
 - **Consistency tiers:** pills 12px/34px · primary .btn 13px/38px · secondary
   .btn.small 12px/30px · nav tabs/subtabs 11px/29px. All left edges align.
 - Wording: use **Solo** (never "Single") for the one-athlete who-option; wording
