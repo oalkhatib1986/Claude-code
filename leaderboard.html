@@ -173,6 +173,32 @@
   .tb-clock.hot{color:var(--hot);text-shadow:0 0 44px rgba(255,45,45,.4)}
   .tb-score{text-align:center;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase}
   .tb-score b{font-family:var(--mono);color:var(--accent);font-size:28px;font-weight:700;letter-spacing:0;vertical-align:-2px;padding:0 3px}
+  /* erg readout: one white panel — hero chase number, then equal vitals */
+  .tbp{background:#fff;color:#0a0a0b;border-radius:16px;padding:14px 16px 0;overflow:hidden}
+  .tbp-chip{display:inline-block;padding:5px 11px;border-radius:999px;background:rgba(0,0,0,.07);
+    font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.5)}
+  .tbp.live .tbp-chip{background:rgba(28,160,70,.13);color:#12833c}
+  .tbp.hot .tbp-chip{background:rgba(255,45,45,.12);color:#d31414}
+  .tbp-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:9px;min-width:0}
+  .tbp-hero{min-width:0}
+  .tbp-hero b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(38px,12.5vw,58px);
+    line-height:.92;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tbp-hero span,.tbp-goal span{display:block;font-family:var(--disp);font-weight:600;font-size:10px;
+    letter-spacing:.22em;text-transform:uppercase;color:rgba(0,0,0,.45);margin-top:5px}
+  .tbp.hot .tbp-hero b{color:#d31414}
+  .tbp-goal{text-align:right;flex:none}
+  .tbp-goal b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(19px,5.5vw,26px);
+    line-height:1;color:rgba(0,0,0,.42);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tbp-bar{height:9px;border-radius:999px;background:rgba(0,0,0,.1);overflow:hidden;margin-top:13px}
+  .tbp-bar i{display:block;height:100%;border-radius:999px;background:#0a0a0b;transition:width .5s linear}
+  .tbp.hot .tbp-bar i{background:#d31414}
+  .tbp-vit{display:grid;margin:14px -16px 0;border-top:1px solid rgba(0,0,0,.13)}
+  .tbp-vit>div{padding:11px 3px 13px;text-align:center;border-left:1px solid rgba(0,0,0,.13);min-width:0}
+  .tbp-vit>div:first-child{border-left:none}
+  .tbp-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(16px,4.7vw,22px);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tbp-vit span{display:block;font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:rgba(0,0,0,.5);margin-top:3px;white-space:nowrap}
   .tb-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;text-align:center}
   .tb-stats>div.sc{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:10px;padding:11px 10px}
   .tb-stats>div.sc b{font-size:clamp(20px,6vw,30px)}
@@ -2073,20 +2099,38 @@
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
         }
       }
-      const scTile=(team&&!cfg.noScore)?`<div class="sc"><b>${Math.round(team.score+team.blockCals)}</b><span>${scoreUnit()}</span></div>`:"";
-      const mStrip=mts?`<div class="tb-stats ${mcls==="hot"?"hot":mcls===""?"dim":""}">
-          <div><b>${fmtSplit(mts.split)}</b><span>/500m</span></div>
-          <div><b>${Math.round(wattsFor(mts.split))}</b><span>watts</span></div>
-          <div><b>${Math.round(mts.spm)}</b><span>s/m</span></div>
-          <div><b>${Math.round(mts.m||0)}</b><span>${tsw&&tsw.live?`of ${tsw.st.target}m`:"metres"}</span></div>
-          ${scTile}
-        </div><div class="tb-mtag ${mcls}">${mtag}</div>`:"";
+      // one readout panel: the number they're chasing on top, supporting vitals
+      // beneath in equal columns — never a grid of mismatched boxes
+      let mStrip="";
+      if(mts){
+        const scored=!!(team&&!cfg.noScore), scoreVal=team?Math.round(team.score+team.blockCals):0;
+        const onTarget=!!(tsw&&tsw.live);
+        const vit=[{v:fmtSplit(mts.split),l:"/500m"},
+                   {v:Math.round(wattsFor(mts.split)),l:"watts"},
+                   {v:Math.round(mts.spm),l:"s/m"}];
+        let heroV,heroL,goal=null,pct=0;
+        if(onTarget){ heroV=Math.round(mts.m||0); heroL="metres"; goal=tsw.st.target;
+          pct=Math.min(100,(mts.m||0)/tsw.st.target*100);
+          if(scored) vit.push({v:scoreVal,l:scoreUnit()});
+        } else if(scored&&mcls==="hot"){ heroV=scoreVal; heroL=scoreUnit(); vit.push({v:Math.round(mts.m||0),l:"metres"}); }
+        else { heroV=Math.round(mts.m||0); heroL="metres"; if(scored) vit.push({v:scoreVal,l:scoreUnit()}); }
+        mStrip=`<div class="tbp ${mcls}">
+          <div class="tbp-chip">${mtag}</div>
+          <div class="tbp-hd">
+            <div class="tbp-hero"><b>${heroV}</b><span>${heroL}</span></div>
+            ${goal?`<div class="tbp-goal"><b>${goal}</b><span>goal</span></div>`:""}
+          </div>
+          ${goal?`<div class="tbp-bar"><i style="width:${pct}%"></i></div>`:""}
+          <div class="tbp-vit" style="grid-template-columns:repeat(${vit.length},1fr)">
+            ${vit.map(x=>`<div><b>${x.v}</b><span>${x.l}</span></div>`).join("")}
+          </div>
+        </div>`;
+      }
       const swCard=tsw?`<div class="tb-swap">
           <div class="tsw-flash ${Date.now()-tsw.st.flash<2400?"on":""}">Target hit &mdash; swap stations</div>
           <div class="tsw-lead">${tsw.live?"On this machine now":"Starts on this machine"}</div>
           <div class="tsw-row on"><b>${esc(tsw.onWho)}</b><span><i>${tsw.st.target}m here</i> <i>&middot; then ${esc((tsw.floorX[0]||{}).name||"swap")}</i></span></div>
           ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc(tsw.whoFor(x)||tsw.offWhos.join(" + "))}</b><span><i>${esc(x.name)}</i> <i>&middot; then ${esc(mLabel)}</i></span></div>`).join("")}
-          <div class="tsw-bar"><i style="width:${Math.min(100,tsw.m/tsw.st.target*100)}%"></i></div>
           <div class="tsw-pick"><em>target &mdash; pick yours</em><div class="tsw-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>
         </div>`:"";
       scr.innerHTML=`
@@ -2151,7 +2195,7 @@
         ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     }
     // any tile value wider than its box shrinks until it fits — device metrics vary
-    scr.querySelectorAll(".tb-stats b").forEach(el=>{
+    scr.querySelectorAll(".tb-stats b,.tbp-vit b,.tbp-hero b,.tbp-goal b").forEach(el=>{
       el.style.fontSize="";
       let fs=parseFloat(getComputedStyle(el).fontSize);
       while(fs>12&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
@@ -3334,7 +3378,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=199;
+  const BUILD=200;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
