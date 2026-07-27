@@ -184,6 +184,21 @@
     text-transform:uppercase;color:var(--ink-mute);margin:-4px 0 0}
   .tb-mtag.hot{color:var(--hot)}
   .tb-mtag.live{color:#3ade6b}
+  .tb-swap{position:relative;border:1px solid var(--line-soft);border-radius:14px;padding:14px 16px;background:var(--card);display:flex;flex-direction:column;gap:9px}
+  .tsw-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;min-width:0}
+  .tsw-row b{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  .tsw-row.on b{color:#3ade6b}
+  .tsw-row span{font-size:12.5px;color:var(--ink-dim);text-align:right;min-width:0}
+  .tsw-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .tsw-bar i{display:block;height:100%;background:#fff;border-radius:999px;transition:width .5s linear}
+  .tsw-pick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase}
+  .tswp{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:7px 14px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.06em;cursor:pointer}
+  .tswp.on{color:#0a0a0a;background:#fff;border-color:#fff}
+  .tsw-flash{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;border-radius:14px;background:rgba(10,10,11,.93);font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:#3ade6b;text-align:center;padding:8px}
+  .tsw-flash.on{display:flex;animation:tswf .45s ease}
+  @keyframes tswf{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
+  .tb-go{border:1px solid rgba(58,222,107,.45);color:#3ade6b;border-radius:14px;padding:13px 16px;
+    text-align:center;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase}
   .tb-work{border:1px solid var(--line-soft);border-radius:14px;padding:14px 17px;background:rgba(255,255,255,.02);font-size:13.5px;line-height:1.55;color:var(--ink-dim)}
   .tb-work b{font-family:var(--disp);font-weight:600;color:var(--ink);text-transform:uppercase;font-size:11px;letter-spacing:.2em;display:block;margin-bottom:5px}
   .tb-next{text-align:center;font-family:var(--disp);font-weight:500;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
@@ -1972,6 +1987,32 @@
     if(split>0) d.m+=Math.min(3,(now-d.t)/1000)*(500/split);
     d.t=now; return d.m;
   }
+  // target-swap: inside a group where one exercise is an erg piece with metre
+  // targets (the pair picks 800/1000/1200 by fitness) and the rest is floor
+  // work, the erg is the metronome — hit the target, the pairs trade places
+  const tbSw={};
+  function tbSwapInfo(sv,seg,team){
+    if(!running||!seg||seg.it.rest||!seg.it.group) return null;
+    const exs=seg.it.exercises||[];
+    const ergX=exs.find(x=>(x.unit==="m"||/^met/.test(x.unit||""))&&(x.amounts||[]).length);
+    if(!ergX) return null;
+    const whos=[...new Set(exs.map(x=>(x.who||"").trim()).filter(Boolean))];
+    if(whos.length<2||!ergX.who) return null;
+    const key=sv+":"+rot.round;
+    const st=tbSw[key]||(tbSw[key]={on:whos.indexOf(ergX.who.trim()),n:0,flash:0,pick:{},
+      target:+ergX.amounts[0]||500});
+    if(st.on<0) st.on=0;
+    const m=tbDistFor("sw:"+key+":"+st.n,team&&team.split>0?team.split:0);
+    if(m>=st.target){
+      st.n++; st.on=(st.on+1)%whos.length; st.flash=Date.now();
+      st.target=st.pick[whos[st.on]]||st.target;
+    }
+    const onWho=whos[st.on], offWhos=whos.filter((_,i)=>i!==st.on);
+    const floorX=exs.filter(x=>x!==ergX);
+    return {whos,onWho,offWhos,ergX,floorX,st,key,
+      m:Math.min(Math.round(tbDist["sw:"+key+":"+st.n]?tbDist["sw:"+key+":"+st.n].m:0),st.target)};
+  }
+  try{ window.__tbDist=tbDist; window.__tbSw=tbSw; }catch(e){}
   setInterval(()=>{ const v=$("viewTablet");
     if(!v||!v.classList.contains("active")||cfg.mode!=="rotation"||running) return;
     if(!sessionActive&&rot.phase==="pre") renderTablet();
@@ -1995,10 +2036,11 @@
       const lastRound=rot.round>=totalRounds()-1;
       const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
       // machine metrics strip — warm-up before the start, live while working, frozen in rest
+      const tsw=team?tbSwapInfo(sv,seg,team):null;
       let mts=null, mtag="", mcls="";
       if(team){
         if(running&&seg&&!seg.it.rest&&team.split>0){
-          const m=tbDistFor("rd:"+team.id+":"+rot.round,team.split);
+          const m=tsw?tsw.m:tbDistFor("rd:"+team.id+":"+rot.round,team.split);
           mts={split:team.split,spm:team.spm,m};
           tbLastM[team.id]={split:team.split,spm:team.spm,m};
           if(hot){ mtag="scoring now"; mcls="hot"; } else { mtag="live"; mcls="live"; }
@@ -2014,12 +2056,20 @@
           <div><b>${fmtSplit(mts.split)}</b><span>/500m</span></div>
           <div><b>${Math.round(wattsFor(mts.split))}</b><span>watts</span></div>
           <div><b>${Math.round(mts.spm)}</b><span>s/m</span></div>
-          <div><b>${Math.round(mts.m||0)}</b><span>metres</span></div>
+          <div><b>${Math.round(mts.m||0)}</b><span>${tsw?`of ${tsw.st.target}m`:"metres"}</span></div>
         </div><div class="tb-mtag ${mcls}">${mtag}</div>`:"";
+      const swCard=tsw?`<div class="tb-swap">
+          <div class="tsw-flash ${Date.now()-tsw.st.flash<2400?"on":""}">Target hit &mdash; swap stations</div>
+          <div class="tsw-row on"><b>${esc(tsw.onWho)}</b><span>${esc(mLabel)} &rarr; ${tsw.st.target}m &middot; then ${esc((tsw.floorX[0]||{}).name||"swap")}</span></div>
+          ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc((x.who||tsw.offWhos.join(" + ")))}</b><span>${esc(x.name)} &middot; then ${esc(mLabel)}</span></div>`).join("")}
+          <div class="tsw-bar"><i style="width:${Math.min(100,tsw.m/tsw.st.target*100)}%"></i></div>
+          <div class="tsw-pick">target ${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div>
+        </div>`:"";
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
         <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
         ${needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
+        ${swCard}
         ${mStrip}
         <div class="tb-phase"><span class="pl ${hot?"hot":""}">${
           holding?"Next part — waiting for trainer":
@@ -2028,9 +2078,12 @@
           phase==="done"?"Session complete":
           seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(tbSegLine(seg,segLabel,hit.j,bi))}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>
         <div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>
+        ${(phase==="rest"||holding)&&team&&!lastRound?`<div class="tb-go">Go now &rarr; ${esc(nxBlock.name)} &middot; ${bmLabel(nxBlock)}</div>`:""}
         <div class="tb-work"><b>This block</b>${exLines(b)}</div>
         ${!lastRound&&phase!=="done"&&team?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`:""}
         ${phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:""}`;
+      if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
+        const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(); }; }); }
       const gi=$("tbNameGo");
       if(gi){ const commit=()=>{ const inp=$("tbName"); const v=(inp.value||"").trim(); if(!v||!team) return;
           cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
@@ -3257,7 +3310,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=194;
+  const BUILD=195;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
