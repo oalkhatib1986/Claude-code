@@ -178,8 +178,8 @@
   .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
   @media (max-width:369px){ .tb-stats{grid-template-columns:1fr 1fr} .tb-stats b{font-size:22px} }
   .tb-stats span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
+  .tb-stats b{color:#fff}
   .tb-stats.hot b{color:var(--hot)}
-  .tb-stats.dim b{color:var(--ink-dim)}
   .tb-mtag{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.26em;
     text-transform:uppercase;color:var(--ink-mute);margin:-4px 0 0}
   .tb-mtag.hot{color:var(--hot)}
@@ -3253,7 +3253,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=192;
+  const BUILD=193;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
