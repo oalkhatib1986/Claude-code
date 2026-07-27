@@ -164,43 +164,49 @@
   .tb-colL,.tb-colR{display:contents}
   .tb-teams{order:1}.tb-namer{order:2}.tb-swap{order:3}.tbp{order:4}
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
-  @media (orientation:landscape) and (min-width:720px) and (min-height:560px){
-    body.tabkiosk{padding:0}
-    body.tabkiosk .tb-wrap{max-width:none;margin:0;gap:0}
-    body.tabkiosk .tb-note,body.tabkiosk .tb-selrow{display:none}
-    body.tabkiosk .tb-device{border-radius:0;padding:0;box-shadow:none}
-    body.tabkiosk .tb-screen{border-radius:0;height:100%;min-height:0;padding:16px 20px;
+  /* tablet kiosk screen — enabled on a real tablet, or via Tablet preview */
+
+    body.kioskon{padding:0}
+    body.kioskon .tb-wrap{max-width:none;margin:0;gap:0}
+    body.kioskon .tb-note,body.kioskon .tb-selrow{display:none}
+    body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none}
+    body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:16px 20px;
       display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);
       grid-template-rows:auto minmax(0,1fr);column-gap:20px;row-gap:12px;overflow:hidden}
-    body.tabkiosk .tb-top{grid-column:1/-1}
-    body.tabkiosk .tb-colL,body.tabkiosk .tb-colR{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:hidden}
-    body.tabkiosk .tb-colR{justify-content:center;gap:6px}
-    body.tabkiosk .tb-colL>*{flex:none}
+    body.kioskon .tb-top{grid-column:1/-1}
+    body.kioskon .tb-colL,body.kioskon .tb-colR{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:hidden}
+    body.kioskon .tb-colR{justify-content:center;gap:6px}
+    body.kioskon .tb-colL>*{flex:none}
     /* the pairs card already states the work — drop the duplicate list */
-    body.tabkiosk .tb-screen.has-swap .tb-work{display:none}
-    body.tabkiosk .tb-work{flex:1 1 0;min-height:0;overflow:hidden;font-size:12.5px;padding:11px 14px}
-    body.tabkiosk .tb-clock{font-size:clamp(52px,8.5vw,92px)}
-    body.tabkiosk .tbp-vit .opt{display:block}
-    body.tabkiosk .tb-phase{padding:0}
-    body.tabkiosk .tb-phase .pl{font-size:12px;letter-spacing:.22em}
-    body.tabkiosk .tb-top .bname{font-size:24px}
-    body.tabkiosk .tb-team{padding:10px 14px}
-    body.tabkiosk .tb-team b{font-size:18px}
-    body.tabkiosk .tb-swap{padding:9px 12px;gap:5px}
-    body.tabkiosk .tsw-row{padding:7px 10px}
-    body.tabkiosk .tsw-row b{font-size:14px}
-    body.tabkiosk .tsw-row span{font-size:12.5px}
-    body.tabkiosk .tswp{padding:7px 12px;font-size:13px}
-    body.tabkiosk .tsw-pick{gap:5px}
-    body.tabkiosk .tb-namer{padding:9px 12px}
-    body.tabkiosk .tb-namer input{height:36px;font-size:15px}
-    body.tabkiosk .tb-namer label{margin-bottom:5px}
-    body.tabkiosk .tbp{padding:11px 14px 0}
-    body.tabkiosk .tbp-hero b{font-size:clamp(34px,4.6vw,52px)}
-    body.tabkiosk .tbp-vit{margin:11px -14px 0}
-    body.tabkiosk .tbp-vit>div{padding:9px 2px 10px}
-    body.tabkiosk .tb-next{padding-top:0}
-  }
+    body.kioskon .tb-screen.has-swap .tb-work{display:none}
+    body.kioskon .tb-work{flex:1 1 0;min-height:0;overflow:hidden;font-size:12.5px;padding:11px 14px}
+    body.kioskon .tb-clock{font-size:clamp(52px,8.5vw,92px)}
+    body.kioskon .tbp-vit .opt{display:block}
+    body.kioskon .tb-phase{padding:0}
+    body.kioskon .tb-phase .pl{font-size:12px;letter-spacing:.22em}
+    body.kioskon .tb-top .bname{font-size:24px}
+    body.kioskon .tb-team{padding:10px 14px}
+    body.kioskon .tb-team b{font-size:18px}
+    body.kioskon .tb-swap{padding:9px 12px;gap:5px}
+    body.kioskon .tsw-row{padding:7px 10px}
+    body.kioskon .tsw-row b{font-size:14px}
+    body.kioskon .tsw-row span{font-size:12.5px}
+    body.kioskon .tswp{padding:7px 12px;font-size:13px}
+    body.kioskon .tsw-pick{gap:5px}
+    body.kioskon .tb-namer{padding:9px 12px}
+    body.kioskon .tb-namer input{height:36px;font-size:15px}
+    body.kioskon .tb-namer label{margin-bottom:5px}
+    body.kioskon .tbp{padding:11px 14px 0}
+    body.kioskon .tbp-hero b{font-size:clamp(34px,4.6vw,52px)}
+    body.kioskon .tbp-vit{margin:11px -14px 0}
+    body.kioskon .tbp-vit>div{padding:9px 2px 10px}
+    body.kioskon .tb-next{padding-top:0}
+  
+  body.tabprev .tb-note{display:none}
+  .tbprev-stage{overflow:hidden;border-radius:14px}
+  body.tabprev .tb-device{width:1005px;height:600px;flex:none;transform-origin:top left}
+  .tbprev-cap{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;
+    letter-spacing:.26em;text-transform:uppercase;color:var(--ink-mute);margin-top:9px}
   .tb-top{display:flex;align-items:center;gap:12px}
   .tb-top .bname{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
   .tb-top .bmach{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:12px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:5px 13px}
@@ -905,7 +911,9 @@
     <div class="tb-wrap">
       <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows who is assigned to this machine, and new teams or athletes type their name right here at their first station.</div>
       <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
-      <div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div>
+      <div class="tb-selrow" style="margin:-4px 0 12px"><button id="tbFit" type="button" class="btn small">Tablet preview</button></div>
+      <div class="tbprev-stage" id="tbStage"><div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div></div>
+      <div class="tbprev-cap" id="tbCap" hidden></div>
     </div>
   </section>
 
@@ -2014,6 +2022,8 @@
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet");
+  { const tf=$("tbFit"); if(tf) tf.onclick=()=>{ tbPrev=!tbPrev;
+      tf.textContent=tbPrev?"Phone view":"Tablet preview"; renderTablet(); fitTablet(); }; }
   [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
@@ -2113,9 +2123,34 @@
   // on a landscape tablet the screen fills whatever height is left below the
   // header, so the whole readout fits with nothing to scroll
   const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:560px)";
+  let tbPrev=false;
+  function kioskOn(){ return document.body.classList.contains("tabkiosk")&&(tbPrev||matchMedia(TBKQ).matches); }
   function fitTablet(){
     const d=document.querySelector(".tb-device"); if(!d) return;
-    if(!document.body.classList.contains("tabkiosk")||!matchMedia(TBKQ).matches){ d.style.height=""; return; }
+    const stage=$("tbStage");
+    document.body.classList.toggle("kioskon",kioskOn());
+    document.body.classList.toggle("tabprev",tbPrev&&document.body.classList.contains("tabkiosk"));
+    if(tbPrev&&document.body.classList.contains("tabkiosk")){
+      // render at true tablet size, then scale the whole frame to the phone
+      d.style.height=""; d.style.transform="";
+      const w=stage?stage.clientWidth:360;
+      const tall=window.innerWidth<820; // portrait phone: turn the frame on its side
+      const k=tall?Math.min(1,Math.min(w/600,(window.innerHeight*0.82)/1005))
+                  :Math.min(1,w/1005);
+      d.style.transform=tall
+        ? "scale("+k.toFixed(4)+") translate(600px,0) rotate(90deg)"
+        : "scale("+k.toFixed(4)+")";
+      if(stage){ stage.style.height=Math.round((tall?1005:600)*k)+"px";
+        stage.style.width=tall?Math.round(600*k)+"px":"";
+        stage.style.margin=tall?"0 auto":""; }
+      const cap=$("tbCap"); if(cap) cap.hidden=false; if(cap) cap.textContent=tall?"Tablet preview — turn your phone to read it":"Tablet preview — actual layout";
+      d.querySelectorAll(".tb-colL,.tb-colR").forEach(c=>{ c.style.transform=""; c.style.width=""; });
+      return;
+    }
+    if(stage){ stage.style.height=""; stage.style.width=""; stage.style.margin=""; }
+    { const cap=$("tbCap"); if(cap) cap.hidden=true; }
+    d.style.transform="";
+    if(!kioskOn()){ d.style.height=""; return; }
     const top=d.getBoundingClientRect().top+window.scrollY;
     let h=Math.max(240,Math.round(window.innerHeight-top-6));
     d.style.height=h+"px";
@@ -3453,7 +3488,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=202;
+  const BUILD=203;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
