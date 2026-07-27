@@ -337,7 +337,36 @@
     box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
   #aiFab:hover{opacity:1}
   #aiFab:active{transform:scale(.94)}
+  #aiFab{touch-action:none}
+  #aiFab.dragging{transform:scale(1.1);box-shadow:0 16px 42px rgba(0,0,0,.7);transition:none;opacity:1}
   body.bigscreen #aiFab,body.bigscreen #aiPanel{display:none!important}
+  #printDoc{display:none}
+  @media print{
+    @page{size:A4 landscape;margin:0}
+    body>*{display:none!important}
+    body #printDoc{display:block!important;box-sizing:border-box;
+      background:#0a0a0b;color:#fff;padding:38px 52px 20px;font-family:var(--ui);
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    html,body{background:#0a0a0b!important}
+    #printDoc .phead{display:flex;align-items:center;gap:20px;margin-bottom:16px}
+    #printDoc .phead img{height:56px;width:56px;object-fit:contain}
+    #printDoc .pttl{font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:.05em;text-transform:uppercase;line-height:1}
+    #printDoc .psum{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#b9bec5;margin-top:7px}
+    #printDoc .pblocks{display:flex;flex-direction:column;gap:14px}
+    #printDoc .pblk{border:1px solid rgba(255,255,255,.22);border-left:3px solid rgba(255,255,255,.8);border-radius:14px;padding:18px 26px;break-inside:avoid}
+    #printDoc .pbh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    #printDoc .pbh b{font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:.08em;text-transform:uppercase}
+    #printDoc .pbh span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#b9bec5;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 10px;white-space:nowrap}
+    #printDoc .pbd .exg{margin:0 0 8px}
+    #printDoc .pbd .exg-h{display:block;font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#b9bec5;margin-bottom:2px}
+    #printDoc .pbd .exg-h i{font-style:italic;color:#ff7b73}
+    #printDoc .pbd .exl{font-size:15.5px;line-height:1.6;color:#fff}
+    #printDoc .pwin{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#cfd3d8;margin-top:8px}
+    #printDoc .prest{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#fff}
+    #printDoc .prest::before,#printDoc .prest::after{content:"";flex:1;border-top:1px dashed rgba(255,255,255,.4)}
+    #printDoc .pfoot{font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#8a9097;margin-top:16px;text-align:center;break-inside:avoid}
+  }
+  #scrTabs{flex-wrap:wrap}
   #aiScrim{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:95;opacity:0;pointer-events:none;transition:opacity .28s}
   body.aiopen #aiScrim{opacity:1;pointer-events:auto}
   #aiPanel{position:fixed;z-index:96;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));
@@ -665,6 +694,7 @@
     <button id="smLead" class="on" type="button">Leaderboard</button>
     <button id="smWork" type="button">Workout + Timer</button>
     <button id="smFit" type="button" class="fitbtn">Phone view</button>
+    <button id="pdfBtn" type="button" class="fitbtn" hidden>PDF</button>
   </div>
   <div class="subtabs" id="ctlTabs" hidden>
     <button id="ctWork" class="on" type="button">Session</button>
@@ -1874,6 +1904,7 @@
     document.body.classList.toggle("wkscreen",which==="screen"&&scrMode==="work");
     document.body.classList.toggle("mobscreen",which==="screen"&&scrFit==="mobile");
     { const f=$("smFit"); if(f) f.textContent=scrFit==="mobile"?"TV preview":"Phone view"; }
+    { const pb=$("pdfBtn"); if(pb) pb.hidden=!(which==="screen"&&scrFit==="mobile"); }
     $("scrTabs").hidden=which!=="screen";
     $("smLead").classList.toggle("on",scrMode==="lead");
     $("smWork").classList.toggle("on",scrMode==="work");
@@ -1890,8 +1921,9 @@
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     if(which==="tablet"){ buildTabletSel(); renderTablet(); }
-    { const fab=$("aiFab"); if(fab) fab.style.display=(which==="tablet"||which==="screen")?"none":"";
-      if(which==="tablet"||which==="screen") document.body.classList.remove("aiopen"); }
+    { const fab=$("aiFab"); const onSetup=(which==="board"&&subTab==="setup");
+      if(fab) fab.style.display=onSetup?"":"none";
+      if(!onSetup) document.body.classList.remove("aiopen"); }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
     fitScreen();
   }
@@ -2520,6 +2552,29 @@
       {addable:true, addLabel:"+ Save as", searchPh:"Search workouts — or type a new name…", cls:"wkfield"}
     ));
   }
+  /* ============ client PDF (print) ============ */
+  function buildPrintDoc(){
+    let el=$("printDoc");
+    if(!el){ el=document.createElement("div"); el.id="printDoc"; document.body.appendChild(el); }
+    const badge=document.querySelector("img.badge");
+    const winLine=b=>`${bRounds(b)>1?`${bRounds(b)} rounds \u00d7 ${fmtMS(oneRound(b))}${bRRest(b)?` \u00b7 ${fmtMS(bRRest(b))} rest`:""} \u00b7 `:""}${fmtMS(blockLen(b))} total`;
+    el.innerHTML=`
+      <div class="phead">${badge?`<img src="${badge.src}" alt="">`:""}
+        <div><div class="pttl">${esc(cfg.name||"Workout")}</div>
+        <div class="psum">${nBlocks()} blocks${laps()>1?` \u00b7 ${laps()} rounds`:""} \u00b7 ${cfg.teamKind==="solo"?"Solo":"Teams of "+(cfg.teamSize||4)} \u00b7 ${fmtLong(sessionTotal())} total</div></div></div>
+      <div class="pblocks">
+      ${R().blocks.map((b,bi)=>`
+        <div class="pblk">
+          <div class="pbh"><b>${esc(b.name)}</b>${blockMachine(b)?`<span>${bmLabel(b)}</span>`:""}</div>
+          <div class="pbd">${exLines(b)}</div>
+          <div class="pwin">${winLine(b)}</div>
+        </div>
+        ${(restAfterBlock(bi)>0&&bi<R().blocks.length-1)?`<div class="prest">Rest \u00b7 ${fmtMS(restAfterBlock(bi))}</div>`:""}`).join("")}
+      </div>`;
+  }
+  { const pb=$("pdfBtn");
+    if(pb) pb.onclick=()=>{ buildPrintDoc(); setTimeout(()=>window.print(),60); }; }
+
   /* ============ tap-help bubbles ============ */
   let hintEl=null;
   function hideHint(){ if(hintEl){ hintEl.remove(); hintEl=null; } }
@@ -2652,12 +2707,33 @@
   function aiCloseP(){ document.body.classList.remove("aiopen"); }
   { const fab=$("aiFab");
     if(fab){
-      fab.onclick=()=>{ document.body.classList.contains("aiopen")?aiCloseP():aiOpen(); };
+      const FPK="af_ai_fabpos";
+      const clampPos=(l,t)=>{ const m=8;
+        return [Math.max(m,Math.min(l,window.innerWidth-fab.offsetWidth-m)),
+                Math.max(m,Math.min(t,window.innerHeight-fab.offsetHeight-m))]; };
+      const setPos=(l,t)=>{ fab.style.left=l+"px"; fab.style.top=t+"px"; fab.style.bottom="auto"; };
+      try{ const p=JSON.parse(localStorage.getItem(FPK)); if(p&&isFinite(p.l)&&isFinite(p.t)){ const [l,t]=clampPos(p.l,p.t); setPos(l,t); } }catch(e){}
+      window.addEventListener("resize",()=>{ if(fab.style.top){ const r=fab.getBoundingClientRect(); const [l,t]=clampPos(r.left,r.top); setPos(l,t); } });
+      let pid=null,sx=0,sy=0,ox=0,oy=0,drag=false;
+      fab.addEventListener("pointerdown",e=>{ pid=e.pointerId; try{ fab.setPointerCapture(pid); }catch(x){}
+        const r=fab.getBoundingClientRect(); sx=e.clientX; sy=e.clientY; ox=r.left; oy=r.top; drag=false; });
+      fab.addEventListener("pointermove",e=>{ if(pid===null) return;
+        const dx=e.clientX-sx, dy=e.clientY-sy;
+        if(!drag&&Math.hypot(dx,dy)>7){ drag=true; fab.classList.add("dragging"); }
+        if(drag){ const [l,t]=clampPos(ox+dx,oy+dy); setPos(l,t); } });
+      const endDrag=()=>{ if(pid===null) return; try{ fab.releasePointerCapture(pid); }catch(x){} pid=null;
+        fab.classList.remove("dragging");
+        if(drag){ try{ localStorage.setItem(FPK,JSON.stringify({l:Math.round(parseFloat(fab.style.left)),t:Math.round(parseFloat(fab.style.top))})); }catch(x){} }
+        else { document.body.classList.contains("aiopen")?aiCloseP():aiOpen(); }
+        drag=false; };
+      fab.addEventListener("pointerup",endDrag);
+      fab.addEventListener("pointercancel",endDrag);
       $("aiClose").onclick=aiCloseP;
       const sc=$("aiScrim"); if(sc) sc.onclick=aiCloseP;
       document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&document.body.classList.contains("aiopen")) aiCloseP(); });
       const t=$("aiText");
       if(t) t.addEventListener("input",()=>{ t.style.height="auto"; t.style.height=Math.min(150,t.scrollHeight)+"px"; });
+      fab.style.display="none"; // shown when the Setup subtab opens
     } }
   { const b=$("aiSend"); if(b) b.onclick=aiSend;
     const ta=$("aiText"); if(ta) ta.onkeydown=e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); aiSend(); } };
@@ -3006,7 +3082,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=180;
+  const BUILD=181;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
