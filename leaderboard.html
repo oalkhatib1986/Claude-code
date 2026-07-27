@@ -405,6 +405,7 @@
   .amtchip .amtdel{border:0;background:none;color:var(--ink-mute);font-size:13px;cursor:pointer;width:20px;height:26px;padding:0}
   .amtchip .amtdel:hover{color:#fff}
   .amthint{font-size:12px;color:var(--ink-mute)}
+  .itools{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
   .exsc{display:grid;place-items:center;width:36px;height:34px;border:1px solid var(--line);border-radius:9px;color:#3c4046;cursor:pointer;font-size:14px;transition:.14s;user-select:none;flex:none}
   .exsc:hover{border-color:rgba(255,255,255,.25)}
   .exsc.on{color:var(--hot);border-color:rgba(255,45,45,.55);background:rgba(255,45,45,.08)}
@@ -2186,6 +2187,7 @@
             fmtRow.appendChild(fp);
           }
           head.appendChild(gt);
+          const itools=document.createElement("span"); itools.className="itools";
           if(!isRest&&!cfg.noScore){
           const sc=document.createElement("span"); sc.className="exsc"+(it.scored?" on":""); sc.setAttribute("role","checkbox");
           sc.setAttribute("aria-checked",String(!!it.scored)); sc.tabIndex=0; sc.title="Toggle: counts toward the leaderboard"; sc.innerHTML="&#9679;";
@@ -2193,7 +2195,7 @@
             if(it.scored){ it.metric=it.metric||"calories"; }
             save(); renderItems(); };
           sc.onclick=flip; sc.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
-          head.appendChild(sc);
+          itools.appendChild(sc);
           }
           const mkBtn=(cls,html,title,disabled)=>{ const bt=document.createElement("button"); bt.className="iconbtn "+cls; bt.innerHTML=html; bt.title=title; if(disabled) bt.disabled=true; return bt; };
           const iup=mkBtn("iup","&#9650;","Move up",ii===0);
@@ -2209,7 +2211,10 @@
             prev.group=true; prev.name=prev.name||"Group";
             if(it.scored&&!prev.scored){ prev.scored=true; prev.metric=it.metric||"calories"; prev.scorers=it.scorers||4; }
             b.items.splice(ii,1); save(); renderItems(); };
-          head.append(iup,idown,imerge,idel);
+          if(b.items.length>1) itools.append(iup,idown);
+          if(!(ii===0||isRest||!!(b.items[ii-1]&&b.items[ii-1].rest))) itools.appendChild(imerge);
+          itools.appendChild(idel);
+          head.appendChild(itools);
           sec.appendChild(head);
           if(fmtRow) sec.appendChild(fmtRow);
           if(it.scored&&!isRest&&!cfg.noScore){
@@ -2540,84 +2545,103 @@
   }
   async function downloadBriefPdf(){
     try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
-    const W=1920,H=1080,M=96,PAD=40,CW=W-2*M,TW=CW-2*PAD;
+    const W=1920,H=1080,M=90,GAP=36;
     const css=getComputedStyle(document.documentElement);
     const DISP=(css.getPropertyValue("--disp")||"").trim()||"sans-serif";
     const UIF=(css.getPropertyValue("--ui")||"").trim()||"sans-serif";
-    const pages=[]; let ctx=null,y=0;
+    const c=document.createElement("canvas"); c.width=W; c.height=H;
+    const ctx=c.getContext("2d");
     const sp=px=>{ try{ ctx.letterSpacing=px+"px"; }catch(e){} };
-    const newPage=()=>{ const c=document.createElement("canvas"); c.width=W; c.height=H;
-      ctx=c.getContext("2d"); pages.push(c);
-      ctx.fillStyle="#0a0a0b"; ctx.fillRect(0,0,W,H); ctx.textBaseline="alphabetic"; y=M; };
+    ctx.fillStyle="#0a0a0b"; ctx.fillRect(0,0,W,H);
+    ctx.textBaseline="alphabetic"; ctx.textAlign="center";
     const rrect=(x,yy,w,h,r)=>{ ctx.beginPath(); ctx.moveTo(x+r,yy); ctx.arcTo(x+w,yy,x+w,yy+h,r);
       ctx.arcTo(x+w,yy+h,x,yy+h,r); ctx.arcTo(x,yy+h,x,yy,r); ctx.arcTo(x,yy,x+w,yy,r); ctx.closePath(); };
     const wrap=(txt,maxW)=>{ const words=String(txt).split(" "); const lines=[]; let cur="";
       for(const w2 of words){ const t=cur?cur+" "+w2:w2;
         if(ctx.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w2; } else cur=t; }
       if(cur) lines.push(cur); return lines; };
-    const scratch=document.createElement("canvas").getContext("2d");
-    const exLinesOf=it=>{ scratch.font=`400 28px ${UIF}`;
-      let n2=0; (it.exercises||[]).forEach(x=>{ const words=String(exTxt(x)).split(" "); let cur="",l=1;
-        for(const w2 of words){ const t=cur?cur+" "+w2:w2;
-          if(scratch.measureText(t).width>TW&&cur){ l++; cur=w2; } else cur=t; }
-        n2+=l; }); return n2; };
-    const blockH=b=>{ let h=PAD*2+56;
-      (b.items||[]).forEach(it=>{ h+= it.rest?40 : (32+exLinesOf(it)*40+14); });
-      return h+38; };
-    newPage();
-    // header
+    // badge: the app shows it via CSS invert — invert the pixels so the white marks survive on black
     const badge=document.querySelector("img.badge");
-    let tx=M;
-    if(badge){ try{ ctx.drawImage(badge,M-24,y-14,120,120); tx=M+112; }catch(e){} }
-    ctx.fillStyle="#fff"; ctx.font=`700 64px ${DISP}`; sp(3);
-    ctx.fillText(String(cfg.name||"Workout").toUpperCase(),tx,y+56);
-    ctx.fillStyle="#b9bec5"; ctx.font=`600 22px ${DISP}`; sp(5);
-    ctx.fillText((`${nBlocks()} BLOCKS${laps()>1?` \u00b7 ${laps()} ROUNDS`:""} \u00b7 ${cfg.teamKind==="solo"?"SOLO":"TEAMS OF "+(cfg.teamSize||4)} \u00b7 ${fmtLong(sessionTotal())} TOTAL`).toUpperCase(),tx,y+100);
-    sp(0); y+=170;
-    R().blocks.forEach((b,bi)=>{
-      const h=blockH(b);
-      if(y+h>H-M&&y>M+180) { newPage(); }
-      // card
-      ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.lineWidth=2; rrect(M,y,CW,h,20); ctx.stroke();
-      ctx.fillStyle="rgba(255,255,255,.85)"; ctx.fillRect(M,y+16,4,h-32);
-      let cy=y+PAD+30;
-      ctx.fillStyle="#fff"; ctx.font=`700 40px ${DISP}`; sp(3);
-      ctx.fillText(String(b.name||"Block").toUpperCase(),M+PAD,cy);
-      if(blockMachine(b)){ ctx.font=`600 20px ${DISP}`; sp(4); ctx.fillStyle="#b9bec5";
-        const lbl=bmLabel(b).toUpperCase(); const lw=ctx.measureText(lbl).width;
-        ctx.fillText(lbl,M+CW-PAD-lw,cy-6);
-        ctx.strokeStyle="rgba(255,255,255,.3)"; ctx.lineWidth=1.5;
-        rrect(M+CW-PAD-lw-20,cy-32,lw+40,40,20); ctx.stroke(); }
-      sp(0); cy+=26;
-      (b.items||[]).forEach(it=>{
-        if(it.rest){ ctx.fillStyle="#b9bec5"; ctx.font=`600 20px ${DISP}`; sp(4);
-          ctx.fillText(("REST \u00b7 "+fmtMS(it.dur)).toUpperCase(),M+PAD,cy+20); sp(0); cy+=40; return; }
-        ctx.fillStyle="#b9bec5"; ctx.font=`600 20px ${DISP}`; sp(3);
-        let hx=M+PAD; const hd=briefItemLabel(it).toUpperCase();
-        ctx.fillText(hd,hx,cy+18); hx+=ctx.measureText(hd).width;
-        if(it.scored&&!cfg.noScore){ ctx.fillStyle="#ff7b73"; ctx.fillText("  \u00b7 SCORED",hx,cy+18); }
-        sp(0); cy+=32+14;
-        ctx.fillStyle="#fff"; ctx.font=`400 28px ${UIF}`;
-        (it.exercises||[]).forEach(x=>{ wrap(exTxt(x),TW).forEach(ln=>{ ctx.fillText(ln,M+PAD,cy+12); cy+=40; }); });
+    if(badge&&badge.naturalWidth){ try{
+      const bc=document.createElement("canvas"); bc.width=badge.naturalWidth; bc.height=badge.naturalHeight;
+      const bx=bc.getContext("2d"); bx.drawImage(badge,0,0);
+      const im=bx.getImageData(0,0,bc.width,bc.height); const d=im.data;
+      for(let i2=0;i2<d.length;i2+=4){ d[i2]=255-d[i2]; d[i2+1]=255-d[i2+1]; d[i2+2]=255-d[i2+2]; }
+      bx.putImageData(im,0,0);
+      ctx.drawImage(bc,M-24,M-30,150,150);
+    }catch(e){} }
+    // title + summary, centered
+    const title=String(cfg.name||"Workout").toUpperCase();
+    let ts=92; ctx.font=`700 ${ts}px ${DISP}`; sp(4);
+    const maxTW=W-2*(M+170);
+    while(ts>40&&ctx.measureText(title).width>maxTW){ ts-=4; ctx.font=`700 ${ts}px ${DISP}`; }
+    ctx.fillStyle="#fff"; ctx.fillText(title,W/2,M+66);
+    ctx.font=`600 25px ${DISP}`; sp(7); ctx.fillStyle="#b9bec5";
+    ctx.fillText((`${nBlocks()} BLOCKS${laps()>1?` \u00b7 ${laps()} ROUNDS`:""} \u00b7 ${cfg.teamKind==="solo"?"SOLO":"TEAMS OF "+(cfg.teamSize||4)} \u00b7 ${fmtLong(sessionTotal())} TOTAL`).toUpperCase(),W/2,M+118);
+    sp(0);
+    // columns — one per block, everything on ONE page, text scales down until it fits
+    const blocks=R().blocks, N=Math.max(1,blocks.length);
+    const colW=(W-2*M-(N-1)*GAP)/N;
+    const top=M+176, bottom=H-M;
+    const anyRest=blocks.some((b,bi)=>bi<N-1&&restAfterBlock(bi)>0);
+    const measure=(b,s)=>{ const pad=Math.round(34*s), inner=colW-2*pad, L=[];
+      const pushLab=(txt,font,lsp,col,lh,hot)=>{ ctx.font=font; sp(lsp);
+        const hotW=hot?ctx.measureText(hot).width:0;
+        const lines=wrap(txt,inner);
+        lines.forEach((ln,li)=>{ const last=li===lines.length-1;
+          if(last&&hot&&ctx.measureText(ln).width+hotW<=inner) L.push({txt:ln,font,ls:lsp,col,h:lh,hot});
+          else { L.push({txt:ln,font,ls:lsp,col,h:lh});
+            if(last&&hot) L.push({txt:hot.replace(/^ \u00b7 /,""),font,ls:lsp,col:"#ff7b73",h:lh}); } });
+        sp(0); };
+      (b.items||[]).forEach((it,idx)=>{
+        if(idx) L.push({h:20*s});
+        if(it.rest){ pushLab(("REST \u00b7 "+fmtMS(it.dur)).toUpperCase(),`600 ${21*s}px ${DISP}`,3*s,"#b9bec5",30*s,""); return; }
+        pushLab(briefItemLabel(it).toUpperCase(),`600 ${21*s}px ${DISP}`,3*s,"#b9bec5",30*s,
+          (it.scored&&!cfg.noScore)?" \u00b7 SCORED":"");
+        L.push({h:6*s});
+        (it.exercises||[]).forEach(x=>{ ctx.font=`400 ${30*s}px ${UIF}`; sp(0);
+          wrap(exTxt(x),inner).forEach(ln=>L.push({txt:ln,font:`400 ${30*s}px ${UIF}`,ls:0,col:"#fff",h:43*s})); });
       });
-      ctx.fillStyle="#cfd3d8"; ctx.font=`600 21px ${DISP}`; sp(3);
-      ctx.fillText(briefWinLine(b).toUpperCase(),M+PAD,y+h-PAD+8); sp(0);
-      y+=h;
-      // rest divider
-      if(bi<R().blocks.length-1&&restAfterBlock(bi)>0){
-        if(y+70>H-M){ newPage(); }
-        const ry=y+36; ctx.strokeStyle="rgba(255,255,255,.4)"; ctx.lineWidth=1.5;
-        ctx.font=`700 22px ${DISP}`; sp(6); ctx.fillStyle="#fff";
-        const lbl2="REST \u00b7 "+fmtMS(restAfterBlock(bi)); const lw2=ctx.measureText(lbl2).width;
-        const cx=W/2;
-        ctx.setLineDash([7,8]);
-        ctx.beginPath(); ctx.moveTo(M,ry); ctx.lineTo(cx-lw2/2-26,ry); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx+lw2/2+26,ry); ctx.lineTo(W-M,ry); ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillText(lbl2,cx-lw2/2,ry+8); sp(0);
-        y+=72;
-      } else y+=22;
+      L.push({h:26*s});
+      pushLab(briefWinLine(b).toUpperCase(),`600 ${19*s}px ${DISP}`,2.5*s,"#cfd3d8",28*s,"");
+      return {L,h:L.reduce((a,x)=>a+x.h,0),pad};
+    };
+    let s=1, cols=null, nameArea=0, cardH=0;
+    for(;;){
+      nameArea=Math.round(64*s);
+      cardH=bottom-top-nameArea-(anyRest?Math.round(52*s):0);
+      cols=blocks.map(b=>measure(b,s));
+      const need=Math.max(...cols.map(cl=>cl.h+2*cl.pad));
+      if(need<=cardH||s<=0.45) break;
+      s*=0.94;
+    }
+    blocks.forEach((b,bi)=>{
+      const x=M+bi*(colW+GAP), cx=x+colW/2, cl=cols[bi];
+      ctx.fillStyle="#fff"; ctx.font=`700 ${Math.round(40*s)}px ${DISP}`; sp(3*s);
+      ctx.fillText(String(b.name||"Block").toUpperCase(),cx,top+Math.round(40*s));
+      const cardY=top+nameArea;
+      ctx.strokeStyle="rgba(255,255,255,.3)"; ctx.lineWidth=2.5; rrect(x,cardY,colW,cardH,20); ctx.stroke();
+      ctx.fillStyle="rgba(255,255,255,.85)"; ctx.fillRect(x,cardY+16,4,cardH-32);
+      let y=cardY+(cardH-cl.h)/2;
+      cl.L.forEach(ln=>{ y+=ln.h;
+        if(!ln.txt) return;
+        ctx.font=ln.font; sp(ln.ls||0);
+        const base=y-Math.round(ln.h*0.28);
+        if(ln.hot){ const w1=ctx.measureText(ln.txt).width, w2=ctx.measureText(ln.hot).width;
+          ctx.textAlign="left"; const x0=cx-(w1+w2)/2;
+          ctx.fillStyle=ln.col; ctx.fillText(ln.txt,x0,base);
+          ctx.fillStyle="#ff7b73"; ctx.fillText(ln.hot,x0+w1,base);
+          ctx.textAlign="center";
+        } else { ctx.fillStyle=ln.col; ctx.fillText(ln.txt,cx,base); }
+        sp(0);
+      });
+      if(bi<N-1&&restAfterBlock(bi)>0){
+        ctx.fillStyle="#b9bec5"; ctx.font=`600 ${Math.round(20*s)}px ${DISP}`; sp(4*s);
+        ctx.fillText(("THEN REST \u00b7 "+fmtMS(restAfterBlock(bi))).toUpperCase(),cx,cardY+cardH+Math.round(38*s)); sp(0);
+      }
     });
+    ctx.textAlign="left";
+    const pages=[c];
     // assemble the PDF
     const jpegs=pages.map(c=>{ const d=c.toDataURL("image/jpeg",0.92).split(",")[1];
       const raw=atob(d); const u=new Uint8Array(raw.length);
@@ -2684,6 +2708,7 @@
 
   /* ============ AI workout builder ============ */
   const AIKEY="af_ai_url";
+  try{ localStorage.removeItem("af_ai_fabpos"); }catch(e){}
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
   let aiMsgs=[], aiBusy=false;
   function aiSnapshot(){
@@ -3158,7 +3183,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=183;
+  const BUILD=184;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
