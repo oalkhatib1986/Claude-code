@@ -332,7 +332,7 @@
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
   .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
-  #aiFab{position:fixed;right:14px;left:auto;bottom:max(104px,calc(env(safe-area-inset-bottom) + 78px));z-index:94;width:52px;height:52px;border-radius:50%;
+  #aiFab{position:fixed;right:14px;left:auto;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:94;width:52px;height:52px;border-radius:50%;
     background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
   #aiFab:hover{opacity:1}
@@ -3183,7 +3183,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=184;
+  const BUILD=185;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
