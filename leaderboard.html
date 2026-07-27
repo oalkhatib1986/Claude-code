@@ -332,7 +332,7 @@
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
   .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
-  #aiFab{position:fixed;left:14px;bottom:max(24px,env(safe-area-inset-bottom));z-index:94;width:52px;height:52px;border-radius:50%;
+  #aiFab{position:fixed;left:14px;bottom:max(84px,calc(env(safe-area-inset-bottom) + 62px));z-index:94;width:52px;height:52px;border-radius:50%;
     background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
   #aiFab:hover{opacity:1}
@@ -340,20 +340,20 @@
   body.bigscreen #aiFab,body.bigscreen #aiPanel{display:none!important}
   #aiScrim{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:95;opacity:0;pointer-events:none;transition:opacity .28s}
   body.aiopen #aiScrim{opacity:1;pointer-events:auto}
-  #aiPanel{position:fixed;z-index:96;left:10px;right:10px;bottom:10px;top:max(16px,env(safe-area-inset-top));
+  #aiPanel{position:fixed;z-index:96;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));
     display:flex;flex-direction:column;background:#121316;border:1px solid var(--line);
-    border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.65);
-    visibility:hidden;transform:translateY(104%);
+    border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.65);max-height:min(80vh,660px);
+    visibility:hidden;transform:translateY(108%);
     transition:transform .32s cubic-bezier(.32,.72,.24,1),visibility 0s .32s;will-change:transform}
   body.aiopen #aiPanel{visibility:visible;transform:none;transition:transform .32s cubic-bezier(.32,.72,.24,1)}
   @media (min-width:700px){
-    #aiPanel{left:auto;right:18px;bottom:18px;top:auto;width:460px;height:min(660px,84vh)}
+    #aiPanel{left:auto;right:18px;width:460px}
   }
   body.aiopen{overflow:hidden}
   body.aiopen #aiFab{opacity:0;pointer-events:none;transform:scale(.6)}
   .aiph{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line-soft)}
   .aiph b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
-  .aipb{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 4px;min-height:120px}
+  .aipb{flex:0 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 4px;min-height:0}
   #aiPanel .aibar{padding:10px 16px 14px;margin-top:0;border-top:1px solid var(--line-soft)}
   .aichat{display:flex;flex-direction:column;gap:8px;margin:12px 0 2px}
   .aichat .msg{border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;font-size:14px;line-height:1.5;max-width:94%;white-space:pre-wrap}
@@ -362,7 +362,7 @@
   .aichat .msg.ok{align-self:flex-start;border-color:rgba(58,222,107,.45);color:#3ade6b}
   .aichat .msg.err{align-self:flex-start;border-color:rgba(255,70,64,.5);color:#ff6b64}
   .aibar{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-  .aibar textarea{background:var(--field);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:10px 13px;font-family:var(--ui);font-size:15px;resize:vertical;min-height:52px;width:100%}
+  .aibar textarea{background:var(--field);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:12px 14px;font-family:var(--ui);font-size:15.5px;line-height:1.5;resize:vertical;min-height:96px;width:100%}
   .aibar textarea:focus{outline:none;border-color:rgba(255,255,255,.4)}
   .aibtns{display:flex;gap:8px;justify-content:flex-end;align-items:center}
   #aiMic.rec{border-color:rgba(255,70,64,.6);color:#ff6b64}
@@ -982,7 +982,7 @@
         <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
       </div>
     <div class="aibar">
-        <textarea id="aiText" rows="2" placeholder="e.g. 3 parts, everyone together, no scores. A: deadlifts every 2:00 for 10 min, share benches in 3s…"></textarea>
+        <textarea id="aiText" rows="4" placeholder="e.g. 3 parts, everyone together, no scores. A: deadlifts every 2:00 for 10 min, share benches in 3s…"></textarea>
       <div class="aibtns">
         <button class="btn small" id="aiMic" type="button" hidden><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>Voice</button>
         <button class="btn" id="aiSend" type="button">Build it</button>
@@ -3006,7 +3006,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=179;
+  const BUILD=180;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
