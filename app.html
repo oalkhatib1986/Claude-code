@@ -164,7 +164,7 @@
   .tb-colL,.tb-colR{display:contents}
   .tb-teams{order:1}.tb-namer{order:2}.tb-swap{order:3}.tbp{order:4}
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
-  @media (orientation:landscape) and (min-width:720px) and (min-height:420px){
+  @media (orientation:landscape) and (min-width:720px) and (min-height:560px){
     body.tabkiosk{padding:0}
     body.tabkiosk .tb-wrap{max-width:none;margin:0;gap:0}
     body.tabkiosk .tb-note,body.tabkiosk .tb-selrow{display:none}
@@ -2112,16 +2112,16 @@
   },1000);
   // on a landscape tablet the screen fills whatever height is left below the
   // header, so the whole readout fits with nothing to scroll
-  const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:420px)";
+  const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:560px)";
   function fitTablet(){
     const d=document.querySelector(".tb-device"); if(!d) return;
     if(!document.body.classList.contains("tabkiosk")||!matchMedia(TBKQ).matches){ d.style.height=""; return; }
     const top=d.getBoundingClientRect().top+window.scrollY;
-    let h=Math.max(360,Math.round(window.innerHeight-top-6));
+    let h=Math.max(240,Math.round(window.innerHeight-top-6));
     d.style.height=h+"px";
     // second pass: absorb anything else below (build tag, page padding)
     const over=document.documentElement.scrollHeight-window.innerHeight;
-    if(over>0) d.style.height=Math.max(360,h-over)+"px";
+    if(over>0) d.style.height=Math.max(240,h-over)+"px";
     // last resort on a squat screen: scale a column down rather than clip it
     d.querySelectorAll(".tb-colL,.tb-colR").forEach(c=>{
       c.style.transform=""; c.style.width="";
@@ -3453,7 +3453,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=201;
+  const BUILD=202;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
