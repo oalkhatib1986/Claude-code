@@ -173,7 +173,10 @@
   .tb-clock.hot{color:var(--hot);text-shadow:0 0 44px rgba(255,45,45,.4)}
   .tb-score{text-align:center;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase}
   .tb-score b{font-family:var(--mono);color:var(--accent);font-size:28px;font-weight:700;letter-spacing:0;vertical-align:-2px;padding:0 3px}
-  .tb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;text-align:center}
+  .tb-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;text-align:center}
+  .tb-stats>div.sc{grid-column:1/-1;background:var(--accent);display:flex;align-items:baseline;justify-content:center;gap:12px;padding:12px 10px}
+  .tb-stats>div.sc b{font-size:clamp(22px,7vw,34px)}
+  .tb-stats>div.sc span{font-size:12px;letter-spacing:.24em}
   .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:#fff;min-width:0}
   .tb-stats>div span{color:rgba(0,0,0,.55)}
   .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -2021,9 +2024,13 @@
         st.target=st.pick[whos[st.on]]||st.target;
       }
     }
-    const onWho=whos[st.on], offWhos=whos.filter((_,i)=>i!==st.on);
+    // every station's occupant rotates by the number of swaps so far — the setup
+    // label is only the starting assignment, never the live one
+    const whoFor=x=>{ const i=whos.indexOf((x.who||"").trim());
+      return i<0?whos[st.n%whos.length]:whos[(i+st.n)%whos.length]; };
+    const onWho=whoFor(ergX), offWhos=whos.filter(w=>w!==onWho);
     const floorX=exs.filter(x=>x!==ergX);
-    return {whos,onWho,offWhos,ergX,floorX,st,key,live,
+    return {whos,onWho,offWhos,ergX,floorX,whoFor,st,key,live,
       m:live?Math.min(Math.round(tbDist["sw:"+key+":"+st.n]?tbDist["sw:"+key+":"+st.n].m:0),st.target):0};
   }
   try{ window.__tbDist=tbDist; window.__tbSw=tbSw; }catch(e){}
@@ -2066,23 +2073,25 @@
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
         }
       }
+      const scTile=(team&&!cfg.noScore)?`<div class="sc"><b>${Math.round(team.score+team.blockCals)}</b><span>${scoreUnit()}</span></div>`:"";
       const mStrip=mts?`<div class="tb-stats ${mcls==="hot"?"hot":mcls===""?"dim":""}">
           <div><b>${fmtSplit(mts.split)}</b><span>/500m</span></div>
           <div><b>${Math.round(wattsFor(mts.split))}</b><span>watts</span></div>
           <div><b>${Math.round(mts.spm)}</b><span>s/m</span></div>
           <div><b>${Math.round(mts.m||0)}</b><span>${tsw&&tsw.live?`of ${tsw.st.target}m`:"metres"}</span></div>
+          ${scTile}
         </div><div class="tb-mtag ${mcls}">${mtag}</div>`:"";
       const swCard=tsw?`<div class="tb-swap">
           <div class="tsw-flash ${Date.now()-tsw.st.flash<2400?"on":""}">Target hit &mdash; swap stations</div>
           <div class="tsw-lead">${tsw.live?"On this machine now":"Starts on this machine"}</div>
           <div class="tsw-row on"><b>${esc(tsw.onWho)}</b><span><i>${tsw.st.target}m here</i> <i>&middot; then ${esc((tsw.floorX[0]||{}).name||"swap")}</i></span></div>
-          ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc((x.who||tsw.offWhos.join(" + ")))}</b><span><i>${esc(x.name)}</i> <i>&middot; then ${esc(mLabel)}</i></span></div>`).join("")}
+          ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc(tsw.whoFor(x)||tsw.offWhos.join(" + "))}</b><span><i>${esc(x.name)}</i> <i>&middot; then ${esc(mLabel)}</i></span></div>`).join("")}
           <div class="tsw-bar"><i style="width:${Math.min(100,tsw.m/tsw.st.target*100)}%"></i></div>
           <div class="tsw-pick"><em>target &mdash; pick yours</em><div class="tsw-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>
         </div>`:"";
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
-        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?`${fmtSplit(team.split)}/500 &middot; ${Math.round(wattsFor(team.split))}w &middot; r${Math.round(team.spm)}`:running?"erg idle":"your machine this round"}</i></div><span><b class="tb-sc">${Math.round(team.score+team.blockCals)} ${scoreUnit()}</b></span></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
+        <div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?"on this machine now":running?"erg idle":"your machine this round"}</i></div></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>
         ${needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:""}
         ${swCard}
         ${mStrip}
@@ -3325,7 +3334,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=197;
+  const BUILD=198;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
