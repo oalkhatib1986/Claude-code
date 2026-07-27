@@ -174,25 +174,31 @@
   .tb-score{text-align:center;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase}
   .tb-score b{font-family:var(--mono);color:var(--accent);font-size:28px;font-weight:700;letter-spacing:0;vertical-align:-2px;padding:0 3px}
   .tb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;text-align:center}
-  .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:var(--card);min-width:0}
+  .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:#fff;min-width:0}
+  .tb-stats>div span{color:rgba(0,0,0,.55)}
   .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
   @media (max-width:369px){ .tb-stats{grid-template-columns:1fr 1fr} .tb-stats b{font-size:22px} }
   .tb-stats span{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
-  .tb-stats b{color:#fff}
+  .tb-stats b{color:#0a0a0b}
   .tb-stats.hot b{color:var(--hot)}
   .tb-mtag{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.26em;
     text-transform:uppercase;color:var(--ink-mute);margin:-4px 0 0}
   .tb-mtag.hot{color:var(--hot)}
   .tb-mtag.live{color:#3ade6b}
   .tb-swap{position:relative;border:1px solid var(--line-soft);border-radius:14px;padding:14px 16px;background:var(--card);display:flex;flex-direction:column;gap:9px}
-  .tsw-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;min-width:0}
+  .tsw-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;min-width:0;padding:9px 12px;border-radius:10px}
   .tsw-row b{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
-  .tsw-row.on b{color:#3ade6b}
-  .tsw-row span{font-size:12.5px;color:var(--ink-dim);text-align:right;min-width:0}
+  .tsw-row.on{background:rgba(255,255,255,.14);background:color-mix(in srgb,var(--accent) 18%,transparent)}
+  .tsw-row.on b{color:#fff}
+  .tsw-row span{font-size:13.5px;color:#cfd3d8;text-align:right;min-width:0}
+  .tsw-row span i{font-style:normal;white-space:nowrap}
   .tsw-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
   .tsw-bar i{display:block;height:100%;background:#fff;border-radius:999px;transition:width .5s linear}
-  .tsw-pick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase}
-  .tswp{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:7px 14px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.06em;cursor:pointer}
+  .tsw-pick{display:flex;flex-direction:column;gap:8px}
+  .tsw-pick em{font-style:normal;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase}
+  .tsw-pills{display:flex;gap:8px;flex-wrap:wrap}
+  .tsw-pills .tswp{flex:1 1 0;min-width:0;text-align:center}
+  .tswp{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:999px;padding:9px 17px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer}
   .tswp.on{color:#0a0a0a;background:#fff;border-color:#fff}
   .tsw-flash{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;border-radius:14px;background:rgba(10,10,11,.93);font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:#3ade6b;text-align:center;padding:8px}
   .tsw-flash.on{display:flex;animation:tswf .45s ease}
@@ -2060,10 +2066,10 @@
         </div><div class="tb-mtag ${mcls}">${mtag}</div>`:"";
       const swCard=tsw?`<div class="tb-swap">
           <div class="tsw-flash ${Date.now()-tsw.st.flash<2400?"on":""}">Target hit &mdash; swap stations</div>
-          <div class="tsw-row on"><b>${esc(tsw.onWho)}</b><span>${esc(mLabel)} &rarr; ${tsw.st.target}m &middot; then ${esc((tsw.floorX[0]||{}).name||"swap")}</span></div>
-          ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc((x.who||tsw.offWhos.join(" + ")))}</b><span>${esc(x.name)} &middot; then ${esc(mLabel)}</span></div>`).join("")}
+          <div class="tsw-row on"><b>${esc(tsw.onWho)}</b><span><i>${tsw.st.target}m here</i> <i>&middot; then ${esc((tsw.floorX[0]||{}).name||"swap")}</i></span></div>
+          ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc((x.who||tsw.offWhos.join(" + ")))}</b><span><i>${esc(x.name)}</i> <i>&middot; then ${esc(mLabel)}</i></span></div>`).join("")}
           <div class="tsw-bar"><i style="width:${Math.min(100,tsw.m/tsw.st.target*100)}%"></i></div>
-          <div class="tsw-pick">target ${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div>
+          <div class="tsw-pick"><em>target &mdash; pick yours</em><div class="tsw-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>
         </div>`:"";
       scr.innerHTML=`
         <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
@@ -3310,7 +3316,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=195;
+  const BUILD=196;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
