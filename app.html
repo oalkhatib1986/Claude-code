@@ -164,49 +164,113 @@
   .tb-colL,.tb-colR{display:contents}
   .tb-teams{order:1}.tb-namer{order:2}.tb-swap{order:3}.tbp{order:4}
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
-  /* tablet kiosk screen — enabled on a real tablet, or via Tablet preview */
-
-    body.kioskon{padding:0}
-    body.kioskon .tb-wrap{max-width:none;margin:0;gap:0}
-    body.kioskon .tb-note,body.kioskon .tb-selrow{display:none}
-    body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none}
-    body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:16px 20px;
-      display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);
-      grid-template-rows:auto minmax(0,1fr);column-gap:20px;row-gap:12px;overflow:hidden}
-    body.kioskon .tb-top{grid-column:1/-1}
-    body.kioskon .tb-colL,body.kioskon .tb-colR{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:hidden}
-    body.kioskon .tb-colR{justify-content:center;gap:6px}
-    body.kioskon .tb-colL>*{flex:none}
-    /* the pairs card already states the work — drop the duplicate list */
-    body.kioskon .tb-screen.has-swap .tb-work{display:none}
-    body.kioskon .tb-work{flex:1 1 0;min-height:0;overflow:hidden;font-size:12.5px;padding:11px 14px}
-    body.kioskon .tb-clock{font-size:clamp(52px,8.5vw,92px)}
-    body.kioskon .tbp-vit .opt{display:block}
-    body.kioskon .tb-phase{padding:0}
-    body.kioskon .tb-phase .pl{font-size:12px;letter-spacing:.22em}
-    body.kioskon .tb-top .bname{font-size:24px}
-    body.kioskon .tb-team{padding:10px 14px}
-    body.kioskon .tb-team b{font-size:18px}
-    body.kioskon .tb-swap{padding:9px 12px;gap:5px}
-    body.kioskon .tsw-row{padding:7px 10px}
-    body.kioskon .tsw-row b{font-size:14px}
-    body.kioskon .tsw-row span{font-size:12.5px}
-    body.kioskon .tswp{padding:7px 12px;font-size:13px}
-    body.kioskon .tsw-pick{gap:5px}
-    body.kioskon .tb-namer{padding:9px 12px}
-    body.kioskon .tb-namer input{height:36px;font-size:15px}
-    body.kioskon .tb-namer label{margin-bottom:5px}
-    body.kioskon .tbp{padding:11px 14px 0}
-    body.kioskon .tbp-hero b{font-size:clamp(34px,4.6vw,52px)}
-    body.kioskon .tbp-vit{margin:11px -14px 0}
-    body.kioskon .tbp-vit>div{padding:9px 2px 10px}
-    body.kioskon .tb-next{padding-top:0}
-  
+  /* ============ athlete screen (erg tablet) ============ */
+  .tk{background:#fff;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;height:100%}
+  .tk-id{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:2px solid rgba(0,0,0,.12);min-width:0}
+  .tk-mach{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;
+    font-size:clamp(19px,4.6vw,30px);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+  .tk-mach i{width:12px;height:12px;border-radius:50%;flex:none}
+  .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(18px,4.4vw,28px);
+    letter-spacing:.04em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tk-who.unnamed{color:rgba(0,0,0,.35)}
+  .tk-blk{flex:none;font-family:var(--disp);font-weight:600;font-size:clamp(13px,3vw,17px);letter-spacing:.16em;
+    text-transform:uppercase;color:#fff;background:#0a0a0b;border-radius:999px;padding:7px 14px;white-space:nowrap}
+  .tk-name{display:flex;flex-direction:column;gap:8px;padding:13px 18px;border-bottom:2px solid rgba(0,0,0,.12);background:rgba(0,0,0,.04)}
+  .tk-name label{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(0,0,0,.55)}
+  .tk-name>div{display:flex;gap:10px}
+  .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(0,0,0,.2);background:#fff;
+    color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
+  .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
+  .tk-main{display:flex;min-height:0;flex:1 1 auto}
+  .tk-job{flex:1 1 58%;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+  .tk-clk{flex:1 1 42%;min-width:0;padding:16px 18px;border-left:2px solid rgba(0,0,0,.12);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
+  .tk-clk span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,17px);letter-spacing:.18em;
+    text-transform:uppercase;color:rgba(0,0,0,.55)}
+  .tk-clk b{font-family:var(--mono);font-weight:700;font-size:clamp(46px,13vw,104px);line-height:1;
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tk-clk em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(13px,3.1vw,19px);
+    letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.6);margin-top:4px}
+  .tk-tag{align-self:flex-start;font-family:var(--disp);font-weight:700;font-size:clamp(12px,2.9vw,16px);
+    letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.55);background:rgba(0,0,0,.07);
+    border-radius:999px;padding:6px 13px}
+  .tk.live .tk-tag{background:rgba(28,160,70,.15);color:#0e7434}
+  .tk.hot .tk-tag{background:rgba(255,45,45,.14);color:#c81111}
+  .tk-head{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
+    letter-spacing:.03em;text-transform:uppercase}
+  .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
+    letter-spacing:.03em;text-transform:uppercase}
+  .tk-sub{font-family:var(--ui);font-size:clamp(15px,3.8vw,21px);line-height:1.35;color:rgba(0,0,0,.62)}
+  .tk-goal{display:flex;align-items:baseline;gap:11px;min-width:0}
+  .tk-goal b{font-family:var(--mono);font-weight:700;font-size:clamp(42px,11.5vw,86px);line-height:.95;
+    font-variant-numeric:tabular-nums}
+  .tk.hot .tk-goal b{color:#c81111}
+  .tk-goal i{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(16px,4vw,26px);
+    letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.45);white-space:nowrap}
+  .tk-bar{height:14px;border-radius:999px;background:rgba(0,0,0,.12);overflow:hidden}
+  .tk-bar i{display:block;height:100%;border-radius:999px;background:#0a0a0b;transition:width .5s linear}
+  .tk.hot .tk-bar i{background:#c81111}
+  .tk-pick{display:flex;align-items:center;gap:11px;flex-wrap:wrap;min-width:0}
+  .tk-pick>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,15px);letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(0,0,0,.5)}
+  .tk-pills{display:flex;gap:9px;flex:1 1 0;min-width:0}
+  .tk-pills .tswp{flex:1 1 0;min-width:0;border:2px solid rgba(0,0,0,.2);background:#fff;color:#0a0a0b;
+    border-radius:999px;padding:9px 4px;font-family:var(--disp);font-weight:700;
+    font-size:clamp(15px,3.6vw,20px);letter-spacing:.03em;cursor:pointer;white-space:nowrap}
+  .tk-pills .tswp.on{background:#0a0a0b;color:#fff;border-color:#0a0a0b}
+  .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
+    font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
+  .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border-top:2px solid rgba(0,0,0,.12);flex:none}
+  .tk-vit>div{padding:11px 3px 13px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
+  .tk-vit>div:first-child{border-left:none}
+  .tk-vit .opt{display:none}
+  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(19px,4.7vw,32px);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tk.hot .tk-vit b{color:#c81111}
+  .tk-vit span{display:block;margin-top:4px;font-family:var(--disp);font-weight:600;
+    font-size:clamp(11px,2.6vw,14px);letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.55);white-space:nowrap}
+  /* Tablet preview: render the real 1005x600 screen and scale it to the phone */
   body.tabprev .tb-note{display:none}
   .tbprev-stage{overflow:hidden;border-radius:14px}
   body.tabprev .tb-device{width:1005px;height:600px;flex:none;transform-origin:top left}
-  .tbprev-cap{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;
-    letter-spacing:.26em;text-transform:uppercase;color:var(--ink-mute);margin-top:9px}
+  .tbprev-cap{text-align:center;font-family:var(--disp);font-weight:600;font-size:11px;
+    letter-spacing:.24em;text-transform:uppercase;color:var(--ink-mute);margin-top:10px}
+  /* tablet kiosk — the screen is authored on a fixed 1005x600 canvas and
+     scaled to whatever device it lands on, so it can never overlap or clip */
+  body.kioskon{padding:0}
+  body.kioskon .tb-wrap{max-width:none;margin:0;gap:0}
+  body.kioskon .tb-note,body.kioskon .tb-selrow{display:none}
+  body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none;background:#fff;overflow:hidden}
+  body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
+  body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
+  body.kioskon .tk-vit .opt{display:block}
+  body.kioskon .tk-id{padding:15px 22px}
+  body.kioskon .tk-mach{font-size:30px}
+  body.kioskon .tk-who{font-size:28px}
+  body.kioskon .tk-blk{font-size:16px;padding:8px 15px}
+  body.kioskon .tk-name{padding:14px 22px}
+  body.kioskon .tk-name label{font-size:14px}
+  body.kioskon .tk-name input{height:50px;font-size:20px}
+  body.kioskon .tk-name .btn{height:50px;font-size:16px}
+  body.kioskon .tk-job{padding:18px 22px;gap:13px}
+  body.kioskon .tk-clk{padding:18px 22px}
+  body.kioskon .tk-tag{font-size:16px}
+  body.kioskon .tk-head{font-size:34px}
+  body.kioskon .tk-big{font-size:44px}
+  body.kioskon .tk-sub{font-size:21px}
+  body.kioskon .tk-goal b{font-size:88px}
+  body.kioskon .tk-goal i{font-size:26px}
+  body.kioskon .tk-bar{height:16px}
+  body.kioskon .tk-pick>span{font-size:15px}
+  body.kioskon .tk-pills .tswp{font-size:21px;padding:11px 4px}
+  body.kioskon .tk-flash{font-size:22px}
+  body.kioskon .tk-clk span{font-size:17px}
+  body.kioskon .tk-clk b{font-size:104px}
+  body.kioskon .tk-clk em{font-size:19px}
+  body.kioskon .tk-vit>div{padding:13px 4px 15px}
+  body.kioskon .tk-vit b{font-size:32px}
+  body.kioskon .tk-vit span{font-size:14px}
+
   .tb-top{display:flex;align-items:center;gap:12px}
   .tb-top .bname{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
   .tb-top .bmach{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:12px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:5px 13px}
@@ -2130,6 +2194,10 @@
     const stage=$("tbStage");
     document.body.classList.toggle("kioskon",kioskOn());
     document.body.classList.toggle("tabprev",tbPrev&&document.body.classList.contains("tabkiosk"));
+    const fitCanvas=()=>{ const tk=d.querySelector(".tk"); if(!tk) return;
+      const k=Math.min(d.clientWidth/1005,d.clientHeight/600);
+      tk.style.transform="scale("+k.toFixed(4)+")";
+      tk.style.marginLeft=Math.max(0,Math.round((d.clientWidth-1005*k)/2))+"px"; };
     if(tbPrev&&document.body.classList.contains("tabkiosk")){
       // render at true tablet size, then scale the whole frame to the phone
       d.style.height=""; d.style.transform="";
@@ -2143,8 +2211,8 @@
       if(stage){ stage.style.height=Math.round((tall?1005:600)*k)+"px";
         stage.style.width=tall?Math.round(600*k)+"px":"";
         stage.style.margin=tall?"0 auto":""; }
+      fitCanvas();
       const cap=$("tbCap"); if(cap) cap.hidden=false; if(cap) cap.textContent=tall?"Tablet preview — turn your phone to read it":"Tablet preview — actual layout";
-      d.querySelectorAll(".tb-colL,.tb-colR").forEach(c=>{ c.style.transform=""; c.style.width=""; });
       return;
     }
     if(stage){ stage.style.height=""; stage.style.width=""; stage.style.margin=""; }
@@ -2157,14 +2225,8 @@
     // second pass: absorb anything else below (build tag, page padding)
     const over=document.documentElement.scrollHeight-window.innerHeight;
     if(over>0) d.style.height=Math.max(240,h-over)+"px";
-    // last resort on a squat screen: scale a column down rather than clip it
-    d.querySelectorAll(".tb-colL,.tb-colR").forEach(c=>{
-      c.style.transform=""; c.style.width="";
-      const ch=c.clientHeight, cs=c.scrollHeight;
-      if(cs>ch+1&&ch>0){ const k=Math.max(.6,ch/cs);
-        c.style.transformOrigin="top left"; c.style.transform="scale("+k.toFixed(3)+")";
-        c.style.width=(100/k).toFixed(2)+"%"; }
-    });
+    fitCanvas();
+
   }
   window.addEventListener("resize",fitTablet);
   window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
@@ -2205,59 +2267,71 @@
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
         }
       }
-      // one readout panel: the number they're chasing on top, supporting vitals
-      // beneath in equal columns — never a grid of mismatched boxes
-      let mStrip="";
+      // ================= ATHLETE SCREEN =================
+      // three zones: identity · the job (what to do + target) · the metrics.
+      // white ground, black type, nothing small enough to squint at.
+      const scored=!!(team&&!cfg.noScore), scoreVal=team?Math.round(team.score+team.blockCals):0;
+      const onTarget=!!(tsw&&tsw.live);
+      const vit=[];
       if(mts){
-        const scored=!!(team&&!cfg.noScore), scoreVal=team?Math.round(team.score+team.blockCals):0;
-        const onTarget=!!(tsw&&tsw.live);
-        const vit=[{v:fmtSplit(mts.split),l:"/500m"},
-                   {v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1},
-                   {v:Math.round(wattsFor(mts.split)),l:"watts"},
-                   {v:Math.round(mts.spm),l:"s/m"},
-                   {v:Math.round(mts.strokes||0),l:"strokes",opt:1},
-                   {v:fmtMS(Math.round(mts.el||0)),l:"on the erg",opt:1}];
-        let heroV,heroL,goal=null,pct=0;
-        if(onTarget){ heroV=Math.round(mts.m||0); heroL="metres"; goal=tsw.st.target;
-          pct=Math.min(100,(mts.m||0)/tsw.st.target*100);
-          if(scored) vit.push({v:scoreVal,l:scoreUnit()});
-        } else if(scored&&mcls==="hot"){ heroV=scoreVal; heroL=scoreUnit(); vit.push({v:Math.round(mts.m||0),l:"metres"}); }
-        else { heroV=Math.round(mts.m||0); heroL="metres"; if(scored) vit.push({v:scoreVal,l:scoreUnit()}); }
-        mStrip=`<div class="tbp ${mcls}">
-          <div class="tbp-chip">${mtag}</div>
-          <div class="tbp-hd">
-            <div class="tbp-hero"><b>${heroV}</b><span>${heroL}</span></div>
-            ${goal?`<div class="tbp-goal"><b>${goal}</b><span>goal</span></div>`:""}
-          </div>
-          ${goal?`<div class="tbp-bar"><i style="width:${pct}%"></i></div>`:""}
-          <div class="tbp-vit">
-            ${vit.map(x=>`<div class="${x.opt?"opt":""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}
-          </div>
-        </div>`;
+        vit.push({v:fmtSplit(mts.split),l:"split /500m"});
+        vit.push({v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1});
+        vit.push({v:Math.round(wattsFor(mts.split)),l:"watts"});
+        vit.push({v:Math.round(mts.spm),l:"strokes/min"});
+        vit.push({v:Math.round(mts.strokes||0),l:"strokes",opt:1});
+        vit.push({v:fmtMS(Math.round(mts.el||0)),l:"time on erg",opt:1});
+        if(!onTarget) vit.push({v:Math.round(mts.m||0),l:"metres"});
+        if(scored) vit.push({v:scoreVal,l:scoreUnit()});
       }
-      const swCard=tsw?`<div class="tb-swap">
-          <div class="tsw-flash ${Date.now()-tsw.st.flash<2400?"on":""}">Target hit &mdash; swap stations</div>
-          <div class="tsw-lead">${tsw.live?"On this machine now":"Starts on this machine"}</div>
-          <div class="tsw-row on"><b>${esc(tsw.onWho)}</b><span><i>${tsw.st.target}m here</i> <i>&middot; then ${esc((tsw.floorX[0]||{}).name||"swap")}</i></span></div>
-          ${tsw.floorX.map(x=>`<div class="tsw-row"><b>${esc(tsw.whoFor(x)||tsw.offWhos.join(" + "))}</b><span><i>${esc(x.name)}</i> <i>&middot; then ${esc(mLabel)}</i></span></div>`).join("")}
-          <div class="tsw-pick"><em>target &mdash; pick yours</em><div class="tsw-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>
-        </div>`:"";
-      const phaseLine=`<div class="tb-phase"><span class="pl ${hot?"hot":""}">${
-          holding?"Next part — waiting for trainer":
-          phase==="pre"?(sessionActive?`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} — waiting for trainer`:"Waiting for trainer to start"):
-          phase==="rest"?"Rest — rotate stations":
-          phase==="done"?"Session complete":
-          seg?(hot?`${esc(segLabel)} — SCORING NOW`:`${esc(tbSegLine(seg,segLabel,hit.j,bi))}${seg.rounds>1?` · round ${seg.round+1}/${seg.rounds}`:""} · block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`):"Block done — recover"}</span></div>`;
-      const clockLine=`<div class="tb-clock ${hot?"hot":""}">${running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)):(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)))}</div>`;
-      const goLine=(phase==="rest"||holding)&&team&&!lastRound?`<div class="tb-go">Go now &rarr; ${esc(nxBlock.name)} &middot; ${bmLabel(nxBlock)}</div>`:"";
-      const teamCard=`<div class="tb-teams">${team?`<div class="tb-team"><span class="dot" style="background:${unnamed(team.name)?"#ffffff":"#3ade6b"};color:${unnamed(team.name)?"#ffffff":"#3ade6b"}"></span><div class="tb-tinfo"><b class="${unnamed(team.name)?"unnamed":""}">${esc(team.name)}</b><i>${running&&team.split>0?"on this machine now":running?"erg idle":"your machine this round"}</i></div></div>`:`<div class="tb-team"><b>No ${kw()} on this machine this round</b><span>&nbsp;</span></div>`}</div>`;
-      const nameCard=needName?`<div class="tb-namer"><label>${cfg.teamKind==="solo"?"Your name &mdash; type it in":"Your team &mdash; type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn small" id="tbNameGo" type="button">Save</button></div></div>`:"";
-      const nextLine=(!lastRound&&phase!=="done"&&team)?`<div class="tb-next">next station &rarr; <b>${esc(nxBlock.name)} · ${bmLabel(nxBlock)}</b></div>`
-        :(phase==="done"?`<div class="tb-next"><b>Great work — check the board</b></div>`:"");
+      const machShort=mtype?mInfo(mtype).label:"this machine";
+      const goNext=`${esc(nxBlock.name)} · ${bmLabel(nxBlock)}`;
+      let jTag="",jHead="",jSub="",jBig="";
+      if(phase==="done"){ jTag="Finished"; jHead="Session complete"; jSub="Great work — check the board"; }
+      else if(phase==="rest"||holding){ jTag="Rest"; jHead="Move to your next station"; jBig=goNext; }
+      else if(!running){
+        jTag=tsw?"Starts on this machine":"Get ready";
+        jHead=tsw?`${esc(tsw.onWho)} starts here`:esc(b.name||"Block");
+        jSub=tsw?`then ${esc((tsw.floorX[0]||{}).name||"swap")}`
+                :(b.items||[]).filter(x=>!x.rest).map(x=>esc(x.name||((x.exercises||[])[0]||{}).name||"")).filter(Boolean).join(" · ");
+      } else {
+        jTag=hot?"Scoring now":"Working";
+        jHead=tsw?`${esc(tsw.onWho)} on the ${esc(machShort)}`:esc(segLabel);
+        jSub=tsw?tsw.floorX.map(x=>`${esc(tsw.whoFor(x)||"")} on ${esc(x.name)}`).join(" · ")
+                :(seg?esc(tbSegLine(seg,segLabel,hit.j,bi)):"");
+      }
+      const tgtBlock=tsw?`
+        <div class="tk-goal"><b>${Math.round(onTarget?tsw.m:0)}</b><i>of ${tsw.st.target} m</i></div>
+        <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
+        <div class="tk-pick"><span>Target</span><div class="tk-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>`:"";
+      const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Waiting for trainer":running?"Time left in this block":"Waiting for trainer";
+      const clkVal=running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed))
+        :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
+      const nameBand=needName?`<div class="tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
       scr.innerHTML=`
-        <div class="tb-top"><span class="bname"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]});width:12px;height:12px;margin-right:9px"></i>${mLabel}</span><span class="bmach">${esc(b.name)}</span></div>
-        <div class="tb-colL">${teamCard}${nameCard}${swCard}<div class="tb-work"><b>This block</b>${exLines(b)}</div>${nextLine}</div>
-        <div class="tb-colR">${mStrip}${phaseLine}${clockLine}${goLine}</div>`;
+        <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
+          <div class="tk-id">
+            <div class="tk-mach"><i style="background:rgb(${BLKCOL[bi%6]})"></i>${mLabel}</div>
+            <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${team?esc(team.name):`No ${kw()} here`}</div>
+            <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
+          </div>
+          ${nameBand}
+          <div class="tk-main">
+            <div class="tk-job">
+              <div class="tk-tag">${jTag}${mts&&mtag&&!running?` · ${mtag}`:""}</div>
+              <div class="tk-head">${jHead}</div>
+              ${jBig?`<div class="tk-big">${jBig}</div>`:""}
+              ${tgtBlock}
+              ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
+              ${tsw&&Date.now()-tsw.st.flash<2400?`<div class="tk-flash">Target hit — swap now</div>`:""}
+            </div>
+            <div class="tk-clk">
+              <span>${clkLab}</span>
+              <b>${clkVal}</b>
+              ${!lastRound&&phase!=="done"&&team?`<em>Next &rarr; ${goNext}</em>`:""}
+            </div>
+          </div>
+          ${vit.length?`<div class="tk-vit">${vit.map(x=>`<div class="${x.opt?"opt":""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>`:""}
+        </div>`;
       scr.classList.toggle("has-swap",!!tsw);
       fitTablet();
       if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
@@ -3488,7 +3562,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=203;
+  const BUILD=204;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
