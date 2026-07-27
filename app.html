@@ -2560,15 +2560,13 @@
       for(const w2 of words){ const t=cur?cur+" "+w2:w2;
         if(ctx.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w2; } else cur=t; }
       if(cur) lines.push(cur); return lines; };
-    // badge: the app shows it via CSS invert — invert the pixels so the white marks survive on black
+    // badge: the source art is black (the app shows it CSS-inverted) — draw it on a
+    // white disc, brand-poster style, so it reads on the black page on every browser
     const badge=document.querySelector("img.badge");
-    if(badge&&badge.naturalWidth){ try{
-      const bc=document.createElement("canvas"); bc.width=badge.naturalWidth; bc.height=badge.naturalHeight;
-      const bx=bc.getContext("2d"); bx.drawImage(badge,0,0);
-      const im=bx.getImageData(0,0,bc.width,bc.height); const d=im.data;
-      for(let i2=0;i2<d.length;i2+=4){ d[i2]=255-d[i2]; d[i2+1]=255-d[i2+1]; d[i2+2]=255-d[i2+2]; }
-      bx.putImageData(im,0,0);
-      ctx.drawImage(bc,M-24,M-30,150,150);
+    if(badge){ try{
+      const bcx=M+66,bcy=M+52,br=78;
+      ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(bcx,bcy,br,0,Math.PI*2); ctx.fill();
+      const ir=br-16; ctx.drawImage(badge,bcx-ir,bcy-ir,ir*2,ir*2);
     }catch(e){} }
     // title + summary, centered
     const title=String(cfg.name||"Workout").toUpperCase();
@@ -3183,7 +3181,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=186;
+  const BUILD=187;
   { const bt=$("buildTag"); if(bt) bt.textContent=BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
