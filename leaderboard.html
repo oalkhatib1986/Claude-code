@@ -3124,16 +3124,26 @@
     if(seg&&seg.it.rest) return {nowT:"Resting",nowS:here.name,...nxt};
     // name the work as well as the station: a block that splits a team across two
     // exercises otherwise reads as a contradiction ("Next Row 1" vs the lunge)
-    const doing=seg&&!seg.it.rest
-      ? (seg.it.exercises||[]).map(x=>exTxt(x)).filter(Boolean).join(" \u00b7 ") : "";
-    return {nowT:posShort(crewPosLabel(st,j,true)), nowS:here.name, nowX:doing, ...nxt};
+    const exs=seg&&!seg.it.rest?(seg.it.exercises||[]).filter(Boolean):[];
+    const doing=exs.map(x=>exTxt(x)).join(" \u00b7 ");
+    const nowCell={nowT:posShort(crewPosLabel(st,j,true)), nowS:here.name, nowX:doing};
+    // When a block splits the team into groups, the immediate next move is the swap
+    // inside this block, not the next block — show that first and the block after.
+    const whos=[...new Set(exs.map(x=>(x.who||"").trim()).filter(Boolean))];
+    if(whos.length>1){
+      const moves=exs.map((x,k)=>`${whoShown(x)||("Group "+(k+1))} \u2192 ${exs[(k+1)%exs.length].name}`);
+      return {...nowCell, nxtLab:"Next in this block", nxtT:moves[0],
+        nxtS:moves.slice(1).join(" \u00b7 "),
+        nxtX:last?"then the session ends":`then ${nx.name} \u00b7 ${posShort(crewPosLabel(nxi,j,false))}`};
+    }
+    return {...nowCell, ...nxt};
   }
   function crewStLine(i){
     const w=crewWhere(i); if(!w) return "";
     const cell=(lab,t,s,cls,x)=>`<div class="${cls}"><span>${lab}</span><b>${esc(t||"\u2014")}</b>`
       +(s?`<i>${esc(s)}</i>`:"")+(x?`<u>${esc(x)}</u>`:"")+`</div>`;
     return cell("Now",w.nowT,w.nowS,"cnow",w.nowX)
-      +(w.nxtT?cell((w.nxtLab||"Next")+" &rarr;",w.nxtT,w.nxtS,"cnxt",""):"");
+      +(w.nxtT?cell((w.nxtLab||"Next")+" &rarr;",w.nxtT,w.nxtS,"cnxt",w.nxtX):"");
   }
   function refreshCrewStations(){
     document.querySelectorAll("#crewList .crew").forEach((row,k)=>{
@@ -4027,7 +4037,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=234;
+  const BUILD=235;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
