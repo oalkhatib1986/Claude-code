@@ -166,8 +166,8 @@
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
   /* ============ athlete screen (erg tablet) ============ */
   .tk{background:#fff;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;height:100%}
-  .tk-id{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:3px solid #0a0a0b;min-width:0}
-  .tk-logo{height:clamp(28px,7vw,46px);aspect-ratio:1;flex:none;display:flex;
+  .tk-id{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:2px solid rgba(0,0,0,.12);min-width:0}
+  .tk-logo{height:clamp(25px,6.2vw,40px);aspect-ratio:1;flex:none;display:flex;
     align-items:center;justify-content:center;overflow:hidden}
   .tk-logo img{height:186%;width:auto;max-width:none;display:block}
   .tk-mach{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;
@@ -185,7 +185,9 @@
     color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
   .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
   .tk-main{display:flex;min-height:0;flex:1 1 auto}
-  .tk-job{flex:1 1 58%;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+  .tk-job{flex:1 1 58%;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:12px;justify-content:space-between}
+  .tk-jtop{display:flex;flex-direction:column;gap:9px;align-items:flex-start;min-width:0}
+  .tk-jmid{display:flex;flex-direction:column;gap:11px;justify-content:center;flex:1 1 auto;min-height:0}
   .tk-clk{flex:1 1 42%;min-width:0;padding:16px 18px;border-left:2px solid rgba(0,0,0,.12);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
   .tk-clk span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,17px);letter-spacing:.18em;
@@ -205,9 +207,8 @@
   .tk.hot .tk-head{background:rgba(255,45,45,.12);color:#c81111}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase}
-  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(17px,4.5vw,27px);line-height:1.2;
-    letter-spacing:.04em;text-transform:uppercase;color:rgba(0,0,0,.78);
-    border-top:2px solid rgba(0,0,0,.12);padding-top:11px}
+  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(17px,4.5vw,26px);line-height:1.2;
+    letter-spacing:.04em;text-transform:uppercase;color:rgba(0,0,0,.5)}
   .tk-goal{display:flex;align-items:baseline;gap:11px;min-width:0}
   .tk-goal b{font-family:var(--mono);font-weight:700;font-size:clamp(42px,11.5vw,86px);line-height:.95;
     font-variant-numeric:tabular-nums}
@@ -217,14 +218,18 @@
   .tk-bar{height:14px;border-radius:999px;background:rgba(0,0,0,.12);overflow:hidden}
   .tk-bar i{display:block;height:100%;border-radius:999px;background:#0a0a0b;transition:width .5s linear}
   .tk.hot .tk-bar i{background:#c81111}
-  .tk-pick{display:flex;align-items:center;gap:11px;flex-wrap:wrap;min-width:0}
+  .tk-pick{display:flex;flex-direction:column;gap:9px;min-width:0;flex:none}
   .tk-pick>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,15px);letter-spacing:.2em;
     text-transform:uppercase;color:rgba(0,0,0,.5)}
-  .tk-pills{display:flex;gap:9px;flex:1 1 0;min-width:0}
-  .tk-pills .tswp{flex:1 1 0;min-width:0;border:2px solid rgba(0,0,0,.2);background:#fff;color:#0a0a0b;
-    border-radius:999px;padding:9px 4px;font-family:var(--disp);font-weight:700;
-    font-size:clamp(15px,3.6vw,20px);letter-spacing:.03em;cursor:pointer;white-space:nowrap}
+  .tk-pills{display:flex;gap:11px;min-width:0}
+  .tk-pills .tswp{flex:1 1 0;min-width:0;border:3px solid rgba(0,0,0,.22);background:#fff;color:#0a0a0b;
+    border-radius:16px;padding:0;height:clamp(52px,13vw,72px);font-family:var(--disp);font-weight:700;
+    font-size:clamp(20px,5.4vw,32px);letter-spacing:.02em;cursor:pointer;white-space:nowrap;
+    display:flex;align-items:baseline;justify-content:center;gap:2px;line-height:1;transition:.12s}
+  .tk-pills .tswp em{font-style:normal;font-size:.55em;font-weight:700;opacity:.55}
+  .tk-pills .tswp:active{transform:scale(.97)}
   .tk-pills .tswp.on{background:#0a0a0b;color:#fff;border-color:#0a0a0b}
+  .tk-pills .tswp.on em{opacity:.7}
   .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border-top:2px solid rgba(0,0,0,.12);flex:none}
@@ -252,7 +257,7 @@
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   body.kioskon .tk-vit .opt{display:block}
   body.kioskon .tk-id{padding:16px 24px;gap:16px}
-  body.kioskon .tk-logo{height:50px}
+  body.kioskon .tk-logo{height:44px}
   body.kioskon .tk-mach{font-size:54px}
   body.kioskon .tk-who{font-size:38px}
   body.kioskon .tk-blk{font-size:20px;padding:11px 18px}
@@ -265,12 +270,12 @@
   body.kioskon .tk-tag{font-size:16px}
   body.kioskon .tk-head{font-size:34px;padding:12px 17px}
   body.kioskon .tk-big{font-size:44px}
-  body.kioskon .tk-sub{font-size:27px;padding-top:12px}
-  body.kioskon .tk-goal b{font-size:80px}
+  body.kioskon .tk-sub{font-size:26px}
+  body.kioskon .tk-goal b{font-size:88px}
   body.kioskon .tk-goal i{font-size:26px}
   body.kioskon .tk-bar{height:16px}
   body.kioskon .tk-pick>span{font-size:15px}
-  body.kioskon .tk-pills .tswp{font-size:21px;padding:11px 4px}
+  body.kioskon .tk-pills .tswp{font-size:32px;height:76px}
   body.kioskon .tk-flash{font-size:22px}
   body.kioskon .tk-clk span{font-size:17px}
   body.kioskon .tk-clk b{font-size:96px}
@@ -2308,9 +2313,11 @@
                 :(seg?esc(tbSegLine(seg,segLabel,hit.j,bi)):"");
       }
       const tgtBlock=tsw?`
-        <div class="tk-goal"><b>${Math.round(onTarget?tsw.m:0)}</b><i>of ${tsw.st.target} m</i></div>
-        <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
-        <div class="tk-pick"><span>Target</span><div class="tk-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}m</button>`).join("")}</div></div>`:"";
+        <div class="tk-jmid">
+          <div class="tk-goal"><b>${Math.round(onTarget?tsw.m:0)}</b><i>of ${tsw.st.target} m</i></div>
+          <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
+        </div>
+        <div class="tk-pick"><span>Your target &mdash; tap to change</span><div class="tk-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}<em>m</em></button>`).join("")}</div></div>`:"";
       const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Waiting for trainer":running?"Time left in this block":"Waiting for trainer";
       const clkVal=running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed))
         :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
@@ -2326,11 +2333,13 @@
           ${nameBand}
           <div class="tk-main">
             <div class="tk-job">
-              <div class="tk-tag">${jTag}${mts&&mtag&&!running?` · ${mtag}`:""}</div>
-              <div class="tk-head">${jHead}</div>
-              ${jBig?`<div class="tk-big">${jBig}</div>`:""}
+              <div class="tk-jtop">
+                <div class="tk-tag">${(mts&&mtag&&!running)?mtag:jTag}</div>
+                <div class="tk-head">${jHead}</div>
+                ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
+                ${jBig?`<div class="tk-big">${jBig}</div>`:""}
+              </div>
               ${tgtBlock}
-              ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
               ${tsw&&Date.now()-tsw.st.flash<2400?`<div class="tk-flash">Target hit — swap now</div>`:""}
             </div>
             <div class="tk-clk">
@@ -3571,7 +3580,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=209;
+  const BUILD=210;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
