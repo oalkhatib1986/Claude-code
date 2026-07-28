@@ -316,6 +316,17 @@
   body.tabprev .tb-note{display:none}
   .tbprev-stage{overflow:hidden;border-radius:14px}
   body.tabprev .tb-device{width:1005px;height:600px;flex:none;transform-origin:top left}
+  /* TV preview: render the board at its real 1560x878 (16:9) TV size and scale the
+     whole frame down, so a phone sees exactly what the 70" screen shows */
+  .tvprev-stage{display:contents}
+  body.tvprev .tvprev-stage{display:block;width:100%;overflow:hidden;border-radius:14px;
+    background:#08080a;box-shadow:0 22px 54px -28px rgba(0,0,0,.92)}
+  body.tvprev #viewBoard{width:1920px;height:1080px;padding:22px 180px 0;box-sizing:border-box;
+    overflow:hidden;transform-origin:top left}
+  body.tvprev .tabs{opacity:1}
+  .tvprev-cap{text-align:center;font-family:var(--disp);font-weight:600;font-size:11px;
+    letter-spacing:.26em;text-transform:uppercase;color:var(--ink-mute);margin:9px 0 4px}
+  .tvprev-cap[hidden]{display:none}
   .tbprev-cap{text-align:center;font-family:var(--disp);font-weight:600;font-size:11px;
     letter-spacing:.24em;text-transform:uppercase;color:var(--ink-mute);margin-top:10px}
   /* tablet kiosk — the screen is authored on a fixed 1005x600 canvas and
@@ -962,7 +973,7 @@
     <button id="stResults" type="button">Results</button>
   </div>
 
-  <section class="view active" id="viewBoard">
+  <div class="tvprev-stage" id="smStage"><section class="view active" id="viewBoard">
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evSummary"></span></div>
       <div class="clock"><b id="clock">0:00</b><span id="clockState">On the line</span></div>
@@ -993,7 +1004,9 @@
       <span id="bdFlow"></span>
     </div>
     <button id="bdockTab" type="button" aria-label="Show controls" title="Controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ic-l"><path d="M14 6l-6 6 6 6"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ic-r"><path d="M10 6l6 6-6 6"/></svg></button>
-  </section>
+  </section></div>
+  <div class="tvprev-cap" id="smCap" hidden></div>
+  
 
   <!-- ============ TRAINER (the only page with controls) ============ -->
   <section class="view" id="viewTrainer">
@@ -3923,7 +3936,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=223;
+  const BUILD=224;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -3943,19 +3956,27 @@
     // layout viewport width: unlike innerWidth it does NOT change during pinch-zoom,
     // so re-running this never fights the user's zoom
     const lw=document.documentElement.clientWidth;
-    const on=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen")&&lw<900;
-    if(on){
-      const DW=1560, k=lw/DW;
-      const pad=parseFloat(getComputedStyle(document.body).paddingLeft)||0;
-      w.style.width=DW+"px"; w.style.maxWidth="none";
-      w.style.transform="scale("+k+")"; w.style.transformOrigin="top left";
-      w.style.marginLeft=(-pad)+"px";
-      w.style.marginBottom=(-(w.scrollHeight*(1-k)))+"px";
+    const big=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen");
+    // Below TV width, don't squeeze the page — draw the board at its true TV size and
+    // scale the frame, exactly like the erg tablet preview. The tabs stay full size.
+    const on=big&&lw<1100;
+    document.body.classList.toggle("tvprev",on);
+    const stage=$("smStage"), view=$("viewBoard"), cap=$("smCap");
+    w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin="";
+    w.style.marginLeft=""; w.style.marginBottom="";
+    if(cap) cap.hidden=!on;
+    if(on&&stage&&view){
+      const DW=1920, DH=1080;                      // the real screen, pixel for pixel
+      const k=Math.min(1,(stage.clientWidth||lw)/DW);
+      view.style.transform="scale("+k.toFixed(4)+")";
+      stage.style.height=Math.round(DH*k)+"px";
+      if(cap) cap.textContent="TV preview \u2014 this is what the big screen shows";
       document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
-    } else {
-      w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin=""; w.style.marginLeft=""; w.style.marginBottom="";
-      document.documentElement.style.overflowX=""; document.body.style.overflowX="";
+      return;
     }
+    if(view) view.style.transform="";
+    if(stage) stage.style.height="";
+    document.documentElement.style.overflowX=""; document.body.style.overflowX="";
   }
   window.addEventListener("resize",fitScreen);
   window.addEventListener("hashchange",()=>{

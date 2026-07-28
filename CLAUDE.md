@@ -51,4 +51,6 @@ copy for cache-free serving; `version.txt` holds the build number.
   with `shareN`/`wavesN`; `cfg.together` = everyone-together class flow;
   `R().sameRest===false` enables per-block rest-after.
 - TVs load `#screen` / `#workout` and must always start in TV mode; the Big Screen
-  tab on a phone defaults to phone view (`scrFit`).
+  tab on a phone defaults to phone view (`scrFit`). Under 1100px, TV mode frames the
+  board at a true 1920x1080 and scales it (`body.tvprev`, `#smStage`) instead of
+  squeezing the page, so the nav tabs stay full size and tappable.
