@@ -184,17 +184,24 @@
     color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
   .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
   .tk-main{display:flex;min-height:0;flex:1 1 auto}
-  .tk-job{flex:1 1 58%;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:12px;justify-content:space-between}
+  .tk-job{flex:1 1 auto;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:12px;justify-content:space-between}
   .tk-jtop{display:flex;flex-direction:column;gap:9px;align-items:flex-start;min-width:0}
-  .tk-jmid{display:flex;flex-direction:column;gap:14px;justify-content:center;flex:1 1 auto;min-height:0;padding:6px 0 10px}
-  .tk-clk{flex:1 1 42%;min-width:0;padding:16px 18px;border-left:2px solid rgba(0,0,0,.12);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
-  .tk-clk span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,17px);letter-spacing:.18em;
+  .tk-duo{display:flex;gap:20px;align-items:flex-end;flex:1 1 auto;min-height:0;min-width:0}
+  .tk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
+  .tk-cell b{display:block;font-family:var(--mono);font-weight:700;line-height:.92;
+    font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.02em}
+  .tk-cell i{display:block;font-style:normal;font-family:var(--disp);font-weight:600;
+    font-size:clamp(12px,3vw,17px);letter-spacing:.18em;text-transform:uppercase;color:rgba(0,0,0,.5)}
+  .tk-chase b{font-size:clamp(44px,12vw,84px)}
+  .tk-clk b{font-size:clamp(44px,12vw,84px)}
+  .tk.hot .tk-chase b{color:#c81111}
+  .tk-next2{font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,20px);letter-spacing:.12em;
     text-transform:uppercase;color:rgba(0,0,0,.55)}
-  .tk-clk b{font-family:var(--mono);font-weight:700;font-size:clamp(46px,13vw,104px);line-height:1;
-    font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-  .tk-clk em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(13px,3.1vw,19px);
-    letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.6);margin-top:4px}
+  /* target rail — tall buttons stacked down the right edge */
+  .tk-rail{flex:0 0 clamp(112px,23%,240px);min-width:0;border-left:2px solid rgba(0,0,0,.12);
+    padding:14px 16px;display:flex;flex-direction:column;gap:9px}
+  .tk-rail>span{font-family:var(--disp);font-weight:600;font-size:clamp(11px,2.7vw,15px);letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(0,0,0,.5)}
   .tk-tag{align-self:flex-start;font-family:var(--disp);font-weight:700;font-size:clamp(12px,2.9vw,16px);
     letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.55);background:rgba(0,0,0,.07);
     border-radius:999px;padding:7px 15px;margin-left:-15px}
@@ -221,19 +228,19 @@
   .tk-pick{display:flex;flex-direction:column;gap:9px;min-width:0;flex:none}
   .tk-pick>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,15px);letter-spacing:.2em;
     text-transform:uppercase;color:rgba(0,0,0,.5)}
-  .tk-pills{display:flex;min-width:0;border:3px solid #0a0a0b;border-radius:18px;overflow:hidden;background:#fff}
-  .tk-pills .tswp{flex:1 1 0;min-width:0;border:0;border-left:2px solid rgba(0,0,0,.16);background:#fff;
-    border-radius:0;color:#0a0a0b;padding:0;height:clamp(64px,16vw,92px);cursor:pointer;white-space:nowrap;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:.12s}
-  .tk-pills .tswp:first-child{border-left:0}
+  .tk-pills{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;
+    border:3px solid #0a0a0b;border-radius:18px;overflow:hidden;background:#fff}
+  .tk-pills .tswp{flex:1 1 0;min-width:0;min-height:0;border:0;border-top:2px solid rgba(0,0,0,.16);
+    background:#fff;border-radius:0;color:#0a0a0b;padding:4px 2px;cursor:pointer;white-space:nowrap;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:.12s}
+  .tk-pills .tswp:first-child{border-top:0}
   .tk-pills .tswp b{display:block;font-family:var(--disp);font-weight:700;line-height:1;
-    font-size:clamp(26px,6.6vw,40px);letter-spacing:.01em}
+    font-size:clamp(22px,5.6vw,34px);letter-spacing:.01em}
   .tk-pills .tswp em{display:block;font-style:normal;font-family:var(--disp);font-weight:600;line-height:1;
-    font-size:clamp(10px,2.6vw,13px);letter-spacing:.2em;text-transform:uppercase;opacity:.5}
+    font-size:clamp(9px,2.3vw,12px);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
   .tk-pills .tswp:active{background:rgba(0,0,0,.08)}
   .tk-pills .tswp.on{background:#0a0a0b;color:#fff}
   .tk-pills .tswp.on em{opacity:.7}
-  .tk-pills .tswp.on:active{background:#222}
   .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border-top:2px solid rgba(0,0,0,.12);flex:none}
@@ -269,23 +276,20 @@
   body.kioskon .tk-name label{font-size:14px}
   body.kioskon .tk-name input{height:50px;font-size:20px}
   body.kioskon .tk-name .btn{height:50px;font-size:16px}
-  body.kioskon .tk-job{padding:16px 24px;gap:11px}
-  body.kioskon .tk-clk{padding:18px 22px}
+  body.kioskon .tk-job{padding:18px 24px;gap:14px}
   body.kioskon .tk-tag{font-size:16px}
   body.kioskon .tk-head{font-size:34px;padding:12px 15px}
-  body.kioskon .tk-big{font-size:44px}
   body.kioskon .tk-sub{font-size:26px}
-  body.kioskon .tk-goal b{font-size:88px}
-  body.kioskon .tk-goal i{font-size:26px}
+  body.kioskon .tk-big{font-size:44px}
+  body.kioskon .tk-cell b{font-size:88px}
+  body.kioskon .tk-cell i{font-size:17px}
   body.kioskon .tk-bar{height:16px}
-  body.kioskon .tk-pick>span{font-size:15px}
-  body.kioskon .tk-pills .tswp{height:92px}
-  body.kioskon .tk-pills .tswp b{font-size:40px}
-  body.kioskon .tk-pills .tswp em{font-size:13px}
+  body.kioskon .tk-next2{font-size:20px}
+  body.kioskon .tk-rail{flex:0 0 210px;padding:16px 18px;gap:10px}
+  body.kioskon .tk-rail>span{font-size:15px}
+  body.kioskon .tk-pills .tswp b{font-size:34px}
+  body.kioskon .tk-pills .tswp em{font-size:12px}
   body.kioskon .tk-flash{font-size:22px}
-  body.kioskon .tk-clk span{font-size:17px}
-  body.kioskon .tk-clk b{font-size:96px}
-  body.kioskon .tk-clk em{font-size:19px}
   body.kioskon .tk-vit>div{padding:13px 4px 15px}
   body.kioskon .tk-vit b{font-size:32px}
   body.kioskon .tk-vit span{font-size:14px}
@@ -1165,7 +1169,7 @@
           <div class="invgrid">
             <div class="fld"><label>Rowers</label><input type="number" id="inv_Row" min="0" max="40"></div>
             <div class="fld"><label>SkiErgs</label><input type="number" id="inv_Ski" min="0" max="40"></div>
-            <div class="fld"><label>C2 Bikes</label><input type="number" id="inv_Bike" min="0" max="40"></div>
+            <div class="fld"><label>Bikes</label><input type="number" id="inv_Bike" min="0" max="40"></div>
             <div class="fld"><label>Assault Runners</label><input type="number" id="inv_Run" min="0" max="40"></div>
             <div class="fld"><label>Echo Bikes</label><input type="number" id="inv_Echo" min="0" max="40"></div>
           </div>
@@ -1209,7 +1213,7 @@
   const MACHINE = {
     Row: {label:"Rower", short:"Row", live:true},
     Ski: {label:"SkiErg", short:"Ski", live:true},
-    Bike:{label:"C2 Bike", short:"Bike", live:true},
+    Bike:{label:"Bike", short:"Bike", live:true},
     Run: {label:"Assault Runner", short:"Run", live:false},
     Echo:{label:"Echo Bike", short:"Echo", live:false},
   };
@@ -1301,10 +1305,10 @@
         ]},
         {name:"Block 3", machine:"Bike", items:[
           {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
-            {who:"Pair 1", name:"C2 Bike", amounts:[1200,1000,800], max:false, unit:"m"},
+            {who:"Pair 1", name:"Bike", amounts:[1200,1000,800], max:false, unit:"m"},
             {who:"Pair 2", name:"Wall Ball", amounts:[], max:true, unit:"reps"},
           ]},
-          {dur:240, scored:true, metric:"calories", scorers:4, exercises:[ {who:"All 4", name:"C2 Bike", amounts:[], max:true, unit:"cal"} ]},
+          {dur:240, scored:true, metric:"calories", scorers:4, exercises:[ {who:"All 4", name:"Bike", amounts:[], max:true, unit:"cal"} ]},
         ]},
         {name:"Block 4", machine:"Ski", items:[
           {name:"AMRAP", group:true, dur:720, scored:false, exercises:[
@@ -1316,7 +1320,7 @@
       ],
     },
     inventory:{Row:5,Ski:5,Bike:5,Run:5,Echo:0},
-    library:["Run","Row","Ski","C2 Bike","Assault Bike","DBall Reverse Lunge","Burpee Box Jump Over","Wall Ball","Alternating DB Snatch","KB Swing","Sled Push","Farmers Carry","Thruster","Burpee","Box Jump","Toes to Bar","Devil Press","Lunge","Deadlift","Push Press"],
+    library:["Run","Row","Ski","Bike","Assault Bike","DBall Reverse Lunge","Burpee Box Jump Over","Wall Ball","Alternating DB Snatch","KB Swing","Sled Push","Farmers Carry","Thruster","Burpee","Box Jump","Toes to Bar","Devil Press","Lunge","Deadlift","Push Press"],
     waves:{ waveSize:4, release:"auto" },
     segments:[
       {name:"Row",  machine:"Row", format:"distance", target:1000, duration:240},
@@ -2318,12 +2322,11 @@
         jSub=tsw?tsw.floorX.map(x=>`${esc(tsw.whoFor(x)||"")} on ${esc(x.name)}`).join(" · ")
                 :(seg?esc(tbSegLine(seg,segLabel,hit.j,bi)):"");
       }
-      const tgtBlock=tsw?`
-        <div class="tk-jmid">
-          <div class="tk-goal"><b>${Math.round(onTarget?tsw.m:0)}</b><i>of ${tsw.st.target} m</i></div>
-          <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
-        </div>
-        <div class="tk-pick"><span>Your target &mdash; tap to change</span><div class="tk-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}"><b>${+a}</b><em>metres</em></button>`).join("")}</div></div>`:"";
+      const tgtRail=tsw?`
+        <div class="tk-rail">
+          <span>Target</span>
+          <div class="tk-pills">${tsw.ergX.amounts.map(Number).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
+        </div>`:"";
       const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Waiting for trainer":running?"Time left in this block":"Waiting for trainer";
       const clkVal=running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed))
         :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
@@ -2345,14 +2348,21 @@
                 ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
                 ${jBig?`<div class="tk-big">${jBig}</div>`:""}
               </div>
-              ${tgtBlock}
+              <div class="tk-duo">
+                ${tsw?`<div class="tk-cell tk-chase">
+                  <b>${Math.round(onTarget?tsw.m:0)}</b>
+                  <i>of ${tsw.st.target} metres</i>
+                  <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
+                </div>`:""}
+                <div class="tk-cell tk-clk">
+                  <b>${clkVal}</b>
+                  <i>${clkLab}</i>
+                </div>
+              </div>
+              ${!lastRound&&phase!=="done"&&team?`<div class="tk-next2">Next &rarr; ${goNext}</div>`:""}
               ${tsw&&Date.now()-tsw.st.flash<2400?`<div class="tk-flash">Target hit — swap now</div>`:""}
             </div>
-            <div class="tk-clk">
-              <span>${clkLab}</span>
-              <b>${clkVal}</b>
-              ${!lastRound&&phase!=="done"&&team?`<em>Next &rarr; ${goNext}</em>`:""}
-            </div>
+            ${tgtRail}
           </div>
           ${vit.length?`<div class="tk-vit">${vit.map(x=>`<div class="${x.opt?"opt":""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>`:""}
         </div>`;
@@ -3120,7 +3130,7 @@
   function aiSystem(){
     return 'You are the workout-builder inside ATHL3TE gym\'s class app. Convert the coach\'s description into ONE JSON object and reply with ONLY that JSON \u2014 no markdown fences, no other text: {"reply":"short confirmation or question for the coach","workout":<object or null>}. If anything essential is unclear, set workout to null and ask at most 2 short questions in reply. Once clear, produce the workout and a one-line reply.\n'
       +'workout schema: {name, teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool}]}]}]}\n'
-      +'Rules: all durations in seconds. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/C2 Bike/Assault Runner \u2014 machine counts: '
+      +'Rules: all durations in seconds. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
@@ -3586,7 +3596,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=211;
+  const BUILD=212;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
