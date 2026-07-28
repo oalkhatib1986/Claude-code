@@ -56,4 +56,7 @@ copy for cache-free serving; `version.txt` holds the build number.
   squeezing the page, so the nav tabs stay full size and tappable. The frame excludes
   the header, so `.tvbrand` draws the mark inside it — preview only; a real TV keeps
   the header, which also carries the partner logo (`#coLogoWrap`). `fitTvBoard()`
-  scales `#tvFit` so the picture always fits the screen and centres.
+  scales `#tvFit` so the picture always fits the screen and centres. Chrome above the
+  board costs picture: `Full screen` (`body.tvfull`, `#smFull`) hides everything and
+  is the mode to cast from. Never read a stage's own inline width as "available" —
+  measure the free space or the frame can never grow back.
