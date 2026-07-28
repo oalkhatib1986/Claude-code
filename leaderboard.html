@@ -323,7 +323,10 @@
     background:#08080a;box-shadow:0 22px 54px -28px rgba(0,0,0,.92)}
   body.tvprev #viewBoard{width:1920px;height:1080px;padding:22px 180px 0;box-sizing:border-box;
     overflow:hidden;transform-origin:top left}
-  body.tvprev .tabs{opacity:1}
+  body.bigscreen.tvprev:not(.mobscreen) .tabs{opacity:1}
+  body.tvprev header{margin-bottom:4px}
+  body.tvprev .subtabs{margin-bottom:8px}
+  body.tvprev .tvprev-cap{margin:7px 0 0}
   .tvprev-cap{text-align:center;font-family:var(--disp);font-weight:600;font-size:11px;
     letter-spacing:.26em;text-transform:uppercase;color:var(--ink-mute);margin:9px 0 4px}
   .tvprev-cap[hidden]{display:none}
@@ -3948,7 +3951,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=228;
+  const BUILD=229;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -4015,22 +4018,25 @@
       const capH=cap?(cap.offsetHeight||16)+13:0;
       const padB=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
       const room=Math.max(240,window.innerHeight-sTop-capH-padB-8);
+      // the frame keeps the screen's shape in BOTH orientations: sizing only the
+      // height turned it into a letterbox strip with the board stuck to one side
+      const fw=tall?DH:DW, fh=tall?DW:DH;
       const apply=k=>{
         view.style.transform=tall
           ? "scale("+k.toFixed(4)+") translate("+DH+"px,0) rotate(90deg)"
           : "scale("+k.toFixed(4)+")";
-        stage.style.height=Math.round((tall?DW:DH)*k)+"px";
-        stage.style.width=tall?Math.round(DH*k)+"px":"";
-        stage.style.margin=tall?"0 auto":"";
+        stage.style.width=Math.round(fw*k)+"px";
+        stage.style.height=Math.round(fh*k)+"px";
+        stage.style.margin="0 auto";
       };
-      let k=tall?Math.min(1,Math.min(avail/DH,room/DW)):Math.min(1,avail/DW);
+      let k=Math.min(1,Math.min(avail/fw,room/fh));
       apply(k);
       // margins between the frame and the caption are easier to measure than to
       // predict — shrink until the page genuinely stops scrolling
       for(let i=0;i<6;i++){
         const over=document.documentElement.scrollHeight-window.innerHeight;
         if(over<=0||k<=.08) break;
-        k=Math.max(.08,k-over/(tall?DW:DH)-0.002);
+        k=Math.max(.08,k-over/fh-0.002);
         apply(k);
       }
       fitTvBoard(DH-44);
