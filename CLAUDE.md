@@ -11,12 +11,15 @@ copy for cache-free serving; `version.txt` holds the build number.
   per-block rests, collab, long names), at 390px phone width and on TV.
   Before shipping ANY layout-touching change, run
   `test_fitall.js` (scratchpad) — 3 config states × 9 pages, zero tolerance.
-- **Clipping inside a box that itself fits is the recurring failure.** Twice now
-  (metric tiles, team chips) a viewport-edge check passed while content was cut
-  off mid-glyph inside a card. `test_fitall.js` now also flags any element with
-  `overflow:hidden` whose `scrollWidth > clientWidth` — the only exemptions are
-  deliberate `text-overflow:ellipsis` and the `.tk-logo` crop mask. Never widen
+- **Content wider than its own box is always a bug — clipped OR spilling.**
+  `overflow:hidden` cuts it mid-glyph; `overflow:visible` draws it outside its own
+  border (a pill's text sitting past the pill). Both look broken. `test_fitall.js`
+  flags ANY element whose `scrollWidth > clientWidth`, whatever the overflow mode;
+  the only exemptions are real scroll containers (`overflow-x:auto/scroll`),
+  deliberate `text-overflow:ellipsis`, and the `.tk-logo` crop mask. Never widen
   that exemption list to make a test pass; fix the layout instead.
+  Removing `overflow:hidden` is NOT a fix — it converts a clip into a spill and
+  hides it from the weaker `scrollWidth` reading.
 - **Chips and pills wrap, they never clip.** Grid tracks use
   `minmax(min(100%,Npx),1fr)` so they drop to one column rather than squeeze,
   and the chip itself is `flex-wrap:wrap` with the name ellipsised (`.tn`) and

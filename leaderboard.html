@@ -108,9 +108,10 @@
   .blk .bd{font-size:13.5px;color:var(--ink-dim);line-height:1.55;min-height:42px}
   .blk .win{font-family:var(--disp);font-weight:600;font-size:11.5px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .blk .win b{color:var(--hot)}
-  .blk .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,164px),1fr));gap:8px 10px;border-top:1px solid var(--line-soft);padding-top:10px}
+  .blk .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px 10px;border-top:1px solid var(--line-soft);padding-top:10px}
   .blk .teams .t{min-width:0;padding:3px 9px;border-radius:8px}
-  .blk .teams .t .mtag{margin-left:auto;white-space:nowrap;max-width:100%}
+  .blk .teams .t .mtag{margin-left:auto;max-width:100%;white-space:normal;
+    overflow-wrap:anywhere;text-align:right;line-height:1.35}
   .blk .teams .t .tn{min-width:0;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .blk .teams .overcap,.blk .teams .t:only-child{grid-column:1/-1}
   .blk .teams .t{display:flex;flex-wrap:wrap;align-items:center;gap:5px 7px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
@@ -180,6 +181,8 @@
   body:not(.kioskon) .tk-info{flex:none}
   body:not(.kioskon) .tk-info>.tk-cell{flex:none}
   body:not(.kioskon) .tk-now{flex:none}
+  body:not(.kioskon) .tk-vit{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
+  body:not(.kioskon) .tk-vit>div{border-left:none;border-top:1px solid rgba(0,0,0,.12)}
   .tk-vit{border-top:2px solid rgba(0,0,0,.12)}
   .tk-id{display:flex;align-items:center;gap:13px;padding:14px 18px;min-width:0;flex:none}
   .tk-logo{height:clamp(25px,6.2vw,40px);aspect-ratio:1;flex:none;display:flex;
@@ -521,6 +524,7 @@
   .exr2 .dsel{margin-left:auto;width:auto;min-width:130px}
   .mwrap{position:relative;display:block;min-width:0}
   .mwrap.time{width:84px;flex:none}
+  .mwrap.time.ifmt{width:auto;min-width:106px}
   .mfield{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:11px;padding:10px 32px 10px 13px;cursor:pointer;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .15s;
@@ -2506,10 +2510,11 @@
         ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     }
     // any tile value wider than its box shrinks until it fits — device metrics vary
-    scr.querySelectorAll(".tb-stats b,.tk-vit b,.tk-cell b,.tk-pills .tswp b").forEach(el=>{
+    scr.querySelectorAll(".tb-stats b,.tb-stats span,.tk-vit b,.tk-vit span,.tk-cell b,.tk-cell i,.tk-pills .tswp b").forEach(el=>{
       el.style.fontSize="";
       let fs=parseFloat(getComputedStyle(el).fontSize);
-      while(fs>12&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
+      let floor=el.tagName==="B"?12:9;
+      while(fs>floor&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
     });
     // the work list shrinks to whatever the block needs — a 4-part block must
     // still show every line rather than clip the tail off the bottom
@@ -3806,7 +3811,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=218;
+  const BUILD=219;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
