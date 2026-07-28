@@ -167,7 +167,9 @@
   /* ============ athlete screen (erg tablet) ============ */
   .tk{background:#fff;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;height:100%}
   .tk-id{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:3px solid #0a0a0b;min-width:0}
-  .tk-logo{height:clamp(40px,10.5vw,68px);width:auto;flex:none;display:block}
+  .tk-logo{height:clamp(42px,11vw,74px);aspect-ratio:1;flex:none;display:flex;
+    align-items:center;justify-content:center;overflow:hidden}
+  .tk-logo img{height:186%;width:auto;max-width:none;display:block}
   .tk-mach{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;
     font-size:clamp(26px,7vw,44px);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;line-height:1}
   .tk-mach i{width:15px;height:15px;border-radius:50%;flex:none}
@@ -250,7 +252,7 @@
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   body.kioskon .tk-vit .opt{display:block}
   body.kioskon .tk-id{padding:14px 24px;gap:18px}
-  body.kioskon .tk-logo{height:76px}
+  body.kioskon .tk-logo{height:84px}
   body.kioskon .tk-mach{font-size:54px}
   body.kioskon .tk-who{font-size:38px}
   body.kioskon .tk-blk{font-size:20px;padding:11px 18px}
@@ -2316,7 +2318,7 @@
       scr.innerHTML=`
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-id">
-            ${(function(){const bd=document.querySelector("img.badge");return bd?`<img class="tk-logo" src="${bd.src}" alt="ATHL3TE">`:"";})()}
+            ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
             <div class="tk-mach"><i style="background:rgb(${BLKCOL[bi%6]})"></i>${mLabel}</div>
             <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${team?esc(team.name):`No ${kw()} here`}</div>
             <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
@@ -3569,7 +3571,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=206;
+  const BUILD=207;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
