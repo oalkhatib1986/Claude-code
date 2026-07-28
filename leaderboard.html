@@ -165,10 +165,15 @@
   .tb-teams{order:1}.tb-namer{order:2}.tb-swap{order:3}.tbp{order:4}
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
   /* ============ athlete screen (erg tablet) ============ */
-  .tk{background:#e9ebee;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;
-    overflow:hidden;height:100%;padding:12px;gap:12px}
-  .tk-card{background:#fff;border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.07);min-width:0}
-  .tk-col{display:flex;flex-direction:column;gap:12px;flex:1 1 auto;min-width:0;min-height:0}
+  .tk{background:#fff;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;
+    overflow:hidden;height:100%}
+  .tk-card{background:#fff;min-width:0}
+  .tk-col{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:0}
+  .tk-id{border-bottom:2px solid rgba(0,0,0,.12)}
+  .tk-inst{border-bottom:2px solid rgba(0,0,0,.12)}
+  .tk-duo>.tk-cell+.tk-cell{border-left:2px solid rgba(0,0,0,.12)}
+  .tk-rail{border-left:2px solid rgba(0,0,0,.12)}
+  .tk-vit{border-top:2px solid rgba(0,0,0,.12)}
   .tk-id{display:flex;align-items:center;gap:13px;padding:14px 18px;min-width:0;flex:none}
   .tk-logo{height:clamp(25px,6.2vw,40px);aspect-ratio:1;flex:none;display:flex;
     align-items:center;justify-content:center;overflow:hidden}
@@ -186,10 +191,10 @@
   .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(0,0,0,.2);background:#fff;
     color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
   .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
-  .tk-main{display:flex;min-height:0;flex:1 1 auto;gap:12px}
+  .tk-main{display:flex;min-height:0;flex:1 1 auto}
   .tk-inst{padding:14px 18px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;flex:none}
 
-  .tk-duo{display:flex;gap:12px;flex:1 1 auto;min-height:0;min-width:0}
+  .tk-duo{display:flex;flex:1 1 auto;min-height:0;min-width:0}
   .tk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px 18px}
   .tk-cell b{display:block;font-family:var(--mono);font-weight:700;line-height:.92;
     font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.02em}
@@ -246,10 +251,10 @@
   .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;flex:none;overflow:hidden}
-  .tk-vit>div{padding:11px 3px 13px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
+  .tk-vit>div{padding:11px 2px 13px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
   .tk-vit>div:first-child{border-left:none}
   .tk-vit .opt{display:none}
-  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(19px,4.7vw,32px);
+  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(17px,4.2vw,28px);
     font-variant-numeric:tabular-nums;white-space:nowrap}
   .tk.hot .tk-vit b{color:#c81111}
   .tk-vit span{display:block;margin-top:4px;font-family:var(--disp);font-weight:600;
@@ -280,10 +285,6 @@
   body.kioskon .tk-name .btn{height:50px;font-size:16px}
   body.kioskon .tk-inst{padding:16px 22px;gap:10px}
   body.kioskon .tk-cell{padding:16px 22px}
-  body.kioskon .tk{padding:14px;gap:14px}
-  body.kioskon .tk-main{gap:14px}
-  body.kioskon .tk-col{gap:14px}
-  body.kioskon .tk-duo{gap:14px}
   body.kioskon .tk-tag{font-size:16px}
   body.kioskon .tk-head{font-size:34px;padding:12px 15px}
   body.kioskon .tk-sub{font-size:26px}
@@ -298,7 +299,7 @@
   body.kioskon .tk-pills .tswp em{font-size:12px}
   body.kioskon .tk-flash{font-size:22px}
   body.kioskon .tk-vit>div{padding:13px 4px 15px}
-  body.kioskon .tk-vit b{font-size:32px}
+  body.kioskon .tk-vit b{font-size:28px}
   body.kioskon .tk-vit span{font-size:14px}
 
   .tb-top{display:flex;align-items:center;gap:12px}
@@ -2420,7 +2421,7 @@
         ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     }
     // any tile value wider than its box shrinks until it fits — device metrics vary
-    scr.querySelectorAll(".tb-stats b,.tbp-vit b,.tbp-hero b,.tbp-goal b").forEach(el=>{
+    scr.querySelectorAll(".tb-stats b,.tk-vit b,.tk-cell b,.tk-pills .tswp b").forEach(el=>{
       el.style.fontSize="";
       let fs=parseFloat(getComputedStyle(el).fontSize);
       while(fs>12&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
@@ -3603,7 +3604,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=213;
+  const BUILD=214;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
