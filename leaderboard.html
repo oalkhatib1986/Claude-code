@@ -869,9 +869,7 @@
   body.bigscreen:not(.mobscreen){--rowH:104px}
     body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
   /* on a TV the board is the whole picture: it carries the mark and centres itself */
-  .tvbrand{display:none}
-  body.tvprev .tvbrand{display:block;flex:none;margin:0 0 14px}
-  body.tvprev .tvbrand img{height:76px;width:auto;display:block;filter:invert(1) brightness(2)}
+  body.bigscreen:not(.mobscreen) .tvfit>.mark{flex:none;align-self:flex-start;margin:0 0 18px}
 
   .tvfit{display:contents}
   body.bigscreen:not(.mobscreen) #viewBoard.active{display:block;padding-bottom:0;overflow:hidden}
@@ -879,7 +877,7 @@
     transform-origin:top center}
   body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
   body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
-  body.bigscreen:not(.mobscreen) .badge{height:84px;width:84px;margin:-20px 0 -20px -20px}
+  body.bigscreen:not(.mobscreen) .badge{height:132px;width:132px;margin:-26px 0 -26px -30px}
   body.bigscreen:not(.mobscreen) .lane{grid-template-columns:80px 1fr 240px}
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
@@ -892,7 +890,7 @@
   body.wkscreen:not(.mobscreen) .blocks{display:flex!important;flex-wrap:wrap;
     justify-content:center;align-content:center;gap:26px;margin-top:26px}
   body.wkscreen:not(.mobscreen) .blocks>.blk{flex:1 1 calc(50% - 26px);max-width:calc(50% - 13px);min-width:0}
-  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child{flex:0 1 auto;max-width:72%}
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child{flex:1 1 100%;max-width:100%}
   body.wkscreen:not(.mobscreen) .blocks>.blkrest{flex:1 1 100%}
   body.wkscreen:not(.mobscreen) .blk{padding:28px 32px;gap:16px}
   body.wkscreen:not(.mobscreen) .blk .bh b{font-size:40px}
@@ -988,7 +986,6 @@
 
   <div class="tvprev-stage" id="smStage"><section class="view active" id="viewBoard">
     <div class="tvfit" id="tvFit">
-    <div class="tvbrand" id="tvBrand" aria-hidden="true"><img alt=""></div>
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evSummary"></span></div>
       <div class="clock"><b id="clock">0:00</b><span id="clockState">On the line</span></div>
@@ -3951,7 +3948,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=226;
+  const BUILD=228;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -3967,8 +3964,17 @@
   if(location.hash==="#screen") show("screen");
   else if(location.hash==="#workout"){ scrMode="work"; show("screen"); }
   // the board's own mark mirrors whatever the header badge is showing
-  (function(){ const b=document.querySelector("img.badge"), t=$("tvBrand");
-    if(b&&t) t.querySelector("img").src=b.src; })();
+  // On a TV the mark belongs to the picture, not to the page chrome — otherwise it
+  // floats above the vertically-centred board, and the preview frame excludes it
+  // entirely. Reparent the real .mark (which also carries the partner logo) so it
+  // centres with everything else, and put it back on the way out.
+  function placeMark(onTv){
+    const m=document.querySelector("header .mark")||document.querySelector(".tvfit>.mark");
+    const f=$("tvFit"), hd=document.querySelector("header");
+    if(!m||!f||!hd) return;
+    if(onTv){ if(m.parentElement!==f) f.insertBefore(m,f.firstChild); }
+    else if(m.parentElement!==hd) hd.insertBefore(m,hd.firstChild);
+  }
   // The TV picture must fit the TV: scale the board down if it is taller than the
   // screen, then centre what is left. Transforms don't change layout height, so the
   // vertical centring is applied as an explicit translate.
@@ -3988,6 +3994,7 @@
     // so re-running this never fights the user's zoom
     const lw=document.documentElement.clientWidth;
     const big=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen");
+    placeMark(big);
     // Below TV width, don't squeeze the page — draw the board at its true TV size and
     // scale the frame, exactly like the erg tablet preview. The tabs stay full size.
     const on=big&&lw<1100;
@@ -3998,16 +4005,40 @@
     if(cap) cap.hidden=!on;
     if(on&&stage&&view){
       const DW=1920, DH=1080;                      // the real screen, pixel for pixel
-      const k=Math.min(1,(stage.clientWidth||lw)/DW);
-      view.style.transform="scale("+k.toFixed(4)+")";
-      stage.style.height=Math.round(DH*k)+"px";
+      const avail=stage.clientWidth||lw;
+      // A 16:9 frame laid flat on a portrait phone is a postage stamp. Turn it on
+      // its side like the tablet preview does, so it fills the screen.
+      const tall=lw<820&&window.innerHeight>lw;
+      if(cap) cap.textContent=tall?"TV preview \u2014 turn your phone to read it"
+                                  :"TV preview \u2014 this is what the big screen shows";
+      const sTop=stage.getBoundingClientRect().top+window.scrollY;
+      const capH=cap?(cap.offsetHeight||16)+13:0;
+      const padB=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
+      const room=Math.max(240,window.innerHeight-sTop-capH-padB-8);
+      const apply=k=>{
+        view.style.transform=tall
+          ? "scale("+k.toFixed(4)+") translate("+DH+"px,0) rotate(90deg)"
+          : "scale("+k.toFixed(4)+")";
+        stage.style.height=Math.round((tall?DW:DH)*k)+"px";
+        stage.style.width=tall?Math.round(DH*k)+"px":"";
+        stage.style.margin=tall?"0 auto":"";
+      };
+      let k=tall?Math.min(1,Math.min(avail/DH,room/DW)):Math.min(1,avail/DW);
+      apply(k);
+      // margins between the frame and the caption are easier to measure than to
+      // predict — shrink until the page genuinely stops scrolling
+      for(let i=0;i<6;i++){
+        const over=document.documentElement.scrollHeight-window.innerHeight;
+        if(over<=0||k<=.08) break;
+        k=Math.max(.08,k-over/(tall?DW:DH)-0.002);
+        apply(k);
+      }
       fitTvBoard(DH-44);
-      if(cap) cap.textContent="TV preview \u2014 this is what the big screen shows";
       document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
       return;
     }
     if(view) view.style.transform="";
-    if(stage) stage.style.height="";
+    if(stage){ stage.style.height=""; stage.style.width=""; stage.style.margin=""; }
     document.documentElement.style.overflowX=""; document.body.style.overflowX="";
     if(big&&view){
       view.style.height="";
