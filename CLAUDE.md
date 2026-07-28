@@ -53,4 +53,7 @@ copy for cache-free serving; `version.txt` holds the build number.
 - TVs load `#screen` / `#workout` and must always start in TV mode; the Big Screen
   tab on a phone defaults to phone view (`scrFit`). Under 1100px, TV mode frames the
   board at a true 1920x1080 and scales it (`body.tvprev`, `#smStage`) instead of
-  squeezing the page, so the nav tabs stay full size and tappable.
+  squeezing the page, so the nav tabs stay full size and tappable. The frame excludes
+  the header, so `.tvbrand` draws the mark inside it — preview only; a real TV keeps
+  the header, which also carries the partner logo (`#coLogoWrap`). `fitTvBoard()`
+  scales `#tvFit` so the picture always fits the screen and centres.

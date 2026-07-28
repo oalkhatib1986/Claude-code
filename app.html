@@ -868,6 +868,15 @@
   /* projection styles apply on any device; narrow screens get a scaled preview */
   body.bigscreen:not(.mobscreen){--rowH:104px}
     body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
+  /* on a TV the board is the whole picture: it carries the mark and centres itself */
+  .tvbrand{display:none}
+  body.tvprev .tvbrand{display:block;flex:none;margin:0 0 14px}
+  body.tvprev .tvbrand img{height:76px;width:auto;display:block;filter:invert(1) brightness(2)}
+
+  .tvfit{display:contents}
+  body.bigscreen:not(.mobscreen) #viewBoard.active{display:block;padding-bottom:0;overflow:hidden}
+  body.bigscreen:not(.mobscreen) .tvfit{display:flex;flex-direction:column;width:100%;
+    transform-origin:top center}
   body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
   body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
   body.bigscreen:not(.mobscreen) .badge{height:84px;width:84px;margin:-20px 0 -20px -20px}
@@ -880,7 +889,11 @@
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
   body.bigscreen:not(.mobscreen) .subhead .ttl b{font-size:52px}
-  body.wkscreen:not(.mobscreen) .blocks{grid-template-columns:repeat(2,1fr);gap:26px;margin-top:26px}
+  body.wkscreen:not(.mobscreen) .blocks{display:flex!important;flex-wrap:wrap;
+    justify-content:center;align-content:center;gap:26px;margin-top:26px}
+  body.wkscreen:not(.mobscreen) .blocks>.blk{flex:1 1 calc(50% - 26px);max-width:calc(50% - 13px);min-width:0}
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child{flex:0 1 auto;max-width:72%}
+  body.wkscreen:not(.mobscreen) .blocks>.blkrest{flex:1 1 100%}
   body.wkscreen:not(.mobscreen) .blk{padding:28px 32px;gap:16px}
   body.wkscreen:not(.mobscreen) .blk .bh b{font-size:40px}
   body.wkscreen:not(.mobscreen) .blk .bh .mc{font-size:17px;padding:6px 16px}
@@ -974,6 +987,8 @@
   </div>
 
   <div class="tvprev-stage" id="smStage"><section class="view active" id="viewBoard">
+    <div class="tvfit" id="tvFit">
+    <div class="tvbrand" id="tvBrand" aria-hidden="true"><img alt=""></div>
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evSummary"></span></div>
       <div class="clock"><b id="clock">0:00</b><span id="clockState">On the line</span></div>
@@ -1004,7 +1019,7 @@
       <span id="bdFlow"></span>
     </div>
     <button id="bdockTab" type="button" aria-label="Show controls" title="Controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ic-l"><path d="M14 6l-6 6 6 6"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ic-r"><path d="M10 6l6 6-6 6"/></svg></button>
-  </section></div>
+  </div></section></div>
   <div class="tvprev-cap" id="smCap" hidden></div>
   
 
@@ -3936,7 +3951,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=224;
+  const BUILD=226;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -3951,6 +3966,22 @@
   applyAccent(); buildControlRoom(); build(); syncCoLogo();
   if(location.hash==="#screen") show("screen");
   else if(location.hash==="#workout"){ scrMode="work"; show("screen"); }
+  // the board's own mark mirrors whatever the header badge is showing
+  (function(){ const b=document.querySelector("img.badge"), t=$("tvBrand");
+    if(b&&t) t.querySelector("img").src=b.src; })();
+  // The TV picture must fit the TV: scale the board down if it is taller than the
+  // screen, then centre what is left. Transforms don't change layout height, so the
+  // vertical centring is applied as an explicit translate.
+  function fitTvBoard(availH){
+    const f=$("tvFit"); if(!f) return;
+    f.style.transform="";
+    if(!(availH>0)||!document.body.classList.contains("bigscreen")
+       ||document.body.classList.contains("mobscreen")) return;
+    const need=f.scrollHeight; if(!need) return;
+    const k=Math.min(1,availH/need);
+    const dy=Math.max(0,(availH-need*k)/2);
+    f.style.transform=(k<1||dy>1)?`translateY(${dy.toFixed(1)}px) scale(${k.toFixed(4)})`:"";
+  }
   function fitScreen(){
     const w=document.querySelector(".wrap"); if(!w) return;
     // layout viewport width: unlike innerWidth it does NOT change during pinch-zoom,
@@ -3970,6 +4001,7 @@
       const k=Math.min(1,(stage.clientWidth||lw)/DW);
       view.style.transform="scale("+k.toFixed(4)+")";
       stage.style.height=Math.round(DH*k)+"px";
+      fitTvBoard(DH-44);
       if(cap) cap.textContent="TV preview \u2014 this is what the big screen shows";
       document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
       return;
@@ -3977,6 +4009,17 @@
     if(view) view.style.transform="";
     if(stage) stage.style.height="";
     document.documentElement.style.overflowX=""; document.body.style.overflowX="";
+    if(big&&view){
+      view.style.height="";
+      const top=view.getBoundingClientRect().top+window.scrollY;
+      const padB=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
+      const availH=Math.max(120,window.innerHeight-top-padB-8);
+      view.style.height=availH+"px";
+      fitTvBoard(availH);
+    } else {
+      const f=$("tvFit"); if(f) f.style.transform="";
+      if(view) view.style.height="";
+    }
   }
   window.addEventListener("resize",fitScreen);
   window.addEventListener("hashchange",()=>{
