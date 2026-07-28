@@ -4071,9 +4071,11 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=236;
+  const BUILD=237;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
-  const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
+  const VURL=(location.protocol==="http:"||location.protocol==="https:")
+    ? "version.txt"
+    : "https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
     try{
       const r=await fetch(VURL+"?r="+Math.random().toString(36).slice(2),{cache:"no-store"});
@@ -4081,7 +4083,12 @@
       if(isFinite(v)&&v>BUILD){ const bar=$("updBar"); bar.querySelector("b").textContent="Build "+v; bar.dataset.v=v; bar.hidden=false; }
     }catch(e){}
   }
-  $("updBar").onclick=()=>{ location.href=location.pathname+"?v="+($("updBar").dataset.v||Math.random().toString(36).slice(2))+location.hash; };
+  $("updBar").onclick=()=>{
+    const v=$("updBar").dataset.v||Math.random().toString(36).slice(2);
+    // replace(), not href: a stale entry left in history is another way to land
+    // back on the old build with the back button
+    location.replace(location.pathname+"?v="+v+"&t="+Date.now()+location.hash);
+  };
   checkUpdate(); setInterval(checkUpdate,120000);
   applyAccent(); buildControlRoom(); build(); syncCoLogo();
   if(location.hash==="#screen") show("screen");
