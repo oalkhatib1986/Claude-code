@@ -172,7 +172,6 @@
   .tk-logo img{height:186%;width:auto;max-width:none;display:block}
   .tk-mach{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;
     font-size:clamp(26px,7vw,44px);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;line-height:1}
-  .tk-mach i{width:15px;height:15px;border-radius:50%;flex:none}
   .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(20px,5.2vw,34px);
     letter-spacing:.03em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1}
   .tk-who.unnamed{color:rgba(0,0,0,.35)}
@@ -187,7 +186,7 @@
   .tk-main{display:flex;min-height:0;flex:1 1 auto}
   .tk-job{flex:1 1 58%;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:12px;justify-content:space-between}
   .tk-jtop{display:flex;flex-direction:column;gap:9px;align-items:flex-start;min-width:0}
-  .tk-jmid{display:flex;flex-direction:column;gap:11px;justify-content:center;flex:1 1 auto;min-height:0}
+  .tk-jmid{display:flex;flex-direction:column;gap:14px;justify-content:center;flex:1 1 auto;min-height:0;padding:6px 0 10px}
   .tk-clk{flex:1 1 42%;min-width:0;padding:16px 18px;border-left:2px solid rgba(0,0,0,.12);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
   .tk-clk span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,17px);letter-spacing:.18em;
@@ -198,11 +197,12 @@
     letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.6);margin-top:4px}
   .tk-tag{align-self:flex-start;font-family:var(--disp);font-weight:700;font-size:clamp(12px,2.9vw,16px);
     letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.55);background:rgba(0,0,0,.07);
-    border-radius:999px;padding:6px 13px}
+    border-radius:999px;padding:7px 15px;margin-left:-15px}
   .tk.live .tk-tag{background:rgba(28,160,70,.15);color:#0e7434}
   .tk.hot .tk-tag{background:rgba(255,45,45,.14);color:#c81111}
   .tk-head{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
-    letter-spacing:.03em;text-transform:uppercase;background:rgba(0,0,0,.07);border-radius:13px;padding:11px 15px}
+    letter-spacing:.03em;text-transform:uppercase;background:rgba(0,0,0,.07);border-radius:13px;padding:11px 15px;
+    margin:0 -15px;align-self:stretch}
   .tk.live .tk-head{background:rgba(28,160,70,.15)}
   .tk.hot .tk-head{background:rgba(255,45,45,.12);color:#c81111}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
@@ -215,21 +215,25 @@
   .tk.hot .tk-goal b{color:#c81111}
   .tk-goal i{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(16px,4vw,26px);
     letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.45);white-space:nowrap}
-  .tk-bar{height:14px;border-radius:999px;background:rgba(0,0,0,.12);overflow:hidden}
+  .tk-bar{height:14px;flex:none;border-radius:999px;background:rgba(0,0,0,.12);overflow:hidden}
   .tk-bar i{display:block;height:100%;border-radius:999px;background:#0a0a0b;transition:width .5s linear}
   .tk.hot .tk-bar i{background:#c81111}
   .tk-pick{display:flex;flex-direction:column;gap:9px;min-width:0;flex:none}
   .tk-pick>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,15px);letter-spacing:.2em;
     text-transform:uppercase;color:rgba(0,0,0,.5)}
-  .tk-pills{display:flex;gap:11px;min-width:0}
-  .tk-pills .tswp{flex:1 1 0;min-width:0;border:3px solid rgba(0,0,0,.22);background:#fff;color:#0a0a0b;
-    border-radius:16px;padding:0;height:clamp(52px,13vw,72px);font-family:var(--disp);font-weight:700;
-    font-size:clamp(20px,5.4vw,32px);letter-spacing:.02em;cursor:pointer;white-space:nowrap;
-    display:flex;align-items:baseline;justify-content:center;gap:2px;line-height:1;transition:.12s}
-  .tk-pills .tswp em{font-style:normal;font-size:.55em;font-weight:700;opacity:.55}
-  .tk-pills .tswp:active{transform:scale(.97)}
-  .tk-pills .tswp.on{background:#0a0a0b;color:#fff;border-color:#0a0a0b}
+  .tk-pills{display:flex;min-width:0;border:3px solid #0a0a0b;border-radius:18px;overflow:hidden;background:#fff}
+  .tk-pills .tswp{flex:1 1 0;min-width:0;border:0;border-left:2px solid rgba(0,0,0,.16);background:#fff;
+    border-radius:0;color:#0a0a0b;padding:0;height:clamp(64px,16vw,92px);cursor:pointer;white-space:nowrap;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:.12s}
+  .tk-pills .tswp:first-child{border-left:0}
+  .tk-pills .tswp b{display:block;font-family:var(--disp);font-weight:700;line-height:1;
+    font-size:clamp(26px,6.6vw,40px);letter-spacing:.01em}
+  .tk-pills .tswp em{display:block;font-style:normal;font-family:var(--disp);font-weight:600;line-height:1;
+    font-size:clamp(10px,2.6vw,13px);letter-spacing:.2em;text-transform:uppercase;opacity:.5}
+  .tk-pills .tswp:active{background:rgba(0,0,0,.08)}
+  .tk-pills .tswp.on{background:#0a0a0b;color:#fff}
   .tk-pills .tswp.on em{opacity:.7}
+  .tk-pills .tswp.on:active{background:#222}
   .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border-top:2px solid rgba(0,0,0,.12);flex:none}
@@ -268,14 +272,16 @@
   body.kioskon .tk-job{padding:16px 24px;gap:11px}
   body.kioskon .tk-clk{padding:18px 22px}
   body.kioskon .tk-tag{font-size:16px}
-  body.kioskon .tk-head{font-size:34px;padding:12px 17px}
+  body.kioskon .tk-head{font-size:34px;padding:12px 15px}
   body.kioskon .tk-big{font-size:44px}
   body.kioskon .tk-sub{font-size:26px}
   body.kioskon .tk-goal b{font-size:88px}
   body.kioskon .tk-goal i{font-size:26px}
   body.kioskon .tk-bar{height:16px}
   body.kioskon .tk-pick>span{font-size:15px}
-  body.kioskon .tk-pills .tswp{font-size:32px;height:76px}
+  body.kioskon .tk-pills .tswp{height:92px}
+  body.kioskon .tk-pills .tswp b{font-size:40px}
+  body.kioskon .tk-pills .tswp em{font-size:13px}
   body.kioskon .tk-flash{font-size:22px}
   body.kioskon .tk-clk span{font-size:17px}
   body.kioskon .tk-clk b{font-size:96px}
@@ -2317,7 +2323,7 @@
           <div class="tk-goal"><b>${Math.round(onTarget?tsw.m:0)}</b><i>of ${tsw.st.target} m</i></div>
           <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
         </div>
-        <div class="tk-pick"><span>Your target &mdash; tap to change</span><div class="tk-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}">${+a}<em>m</em></button>`).join("")}</div></div>`:"";
+        <div class="tk-pick"><span>Your target &mdash; tap to change</span><div class="tk-pills">${tsw.ergX.amounts.map(a=>`<button type="button" class="tswp ${+a===tsw.st.target?"on":""}" data-a="${+a}"><b>${+a}</b><em>metres</em></button>`).join("")}</div></div>`:"";
       const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Waiting for trainer":running?"Time left in this block":"Waiting for trainer";
       const clkVal=running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed))
         :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
@@ -2326,7 +2332,7 @@
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-id">
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
-            <div class="tk-mach"><i style="background:rgb(${BLKCOL[bi%6]})"></i>${mLabel}</div>
+            <div class="tk-mach">${mLabel}</div>
             <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${team?esc(team.name):`No ${kw()} here`}</div>
             <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
           </div>
@@ -3580,7 +3586,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=210;
+  const BUILD=211;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
