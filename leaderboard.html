@@ -2489,12 +2489,16 @@
       // ---- the guide: where you go when this ends ----
       if(cir){ jHead=`Station ${cir.idx+1} of ${cir.nSt} &middot; Lap ${cir.lap}`; jSub=""; }
       let nxSpan="Next station",nxB=esc(nxBlock.name),nxEm=esc(bmLabel(nxBlock));
-      if(cir){ nxSpan="After this"; nxB=esc(cir.next.name);
-        nxEm=esc(((cir.next.amounts||[]).join("/")+exUnit(cir.next.unit)).trim()); }
       if(phase==="done"){ nxSpan="Finished"; nxB="Great work"; nxEm="Check the board"; }
       else if(!team){ nxSpan="This machine"; nxB="Not in use"; nxEm="this round"; }
       else if(phase==="rest"||holding){ nxSpan="Go now &rarr;"; }
-      else if(lastRound){ nxSpan="Last round"; nxB="Finish strong"; nxEm=""; }
+      // "Last round" only means something when there were earlier ones; a single-block
+      // session isn't on its last lap, it just has nothing after it
+      else if(lastRound&&totalRounds()>1){ nxSpan="Last round"; nxB="Finish strong"; nxEm=""; }
+      else if(lastRound){ nxSpan="After this"; nxB="Session ends"; nxEm="Finish strong"; }
+      // a circuit always points at the next station — that is the whole job of this card
+      if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
+        nxEm=esc(((cir.next.amounts||[]).join("/")+exUnit(cir.next.unit)).trim()); }
       const nxtCard=`<div class="tk-card tk-nxt"><span>${nxSpan}</span><b>${nxB}</b>${nxEm?`<em>${nxEm}</em>`:""}</div>`;
       const nameBand=needName?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
       scr.innerHTML=`
@@ -3919,7 +3923,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=222;
+  const BUILD=223;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
