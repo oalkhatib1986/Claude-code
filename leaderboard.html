@@ -172,7 +172,13 @@
   .tk-id{border-bottom:2px solid rgba(0,0,0,.12)}
   .tk-inst{border-bottom:2px solid rgba(0,0,0,.12)}
   .tk-duo>.tk-cell+.tk-cell{border-left:2px solid rgba(0,0,0,.12)}
-  .tk-rail{border-left:2px solid rgba(0,0,0,.12)}
+  .tk-side{border-left:2px solid rgba(0,0,0,.12)}
+  /* off a tablet the screen flows down the page — stack the panels, don't squeeze them */
+  body:not(.kioskon) .tk-main{flex-direction:column}
+  body:not(.kioskon) .tk-side{border-left:none;border-top:2px solid rgba(0,0,0,.12)}
+  body:not(.kioskon) .tk-info{flex:none}
+  body:not(.kioskon) .tk-info>.tk-cell{flex:none}
+  body:not(.kioskon) .tk-now{flex:none}
   .tk-vit{border-top:2px solid rgba(0,0,0,.12)}
   .tk-id{display:flex;align-items:center;gap:13px;padding:14px 18px;min-width:0;flex:none}
   .tk-logo{height:clamp(25px,6.2vw,40px);aspect-ratio:1;flex:none;display:flex;
@@ -194,6 +200,38 @@
   .tk-main{display:flex;min-height:0;flex:1 1 auto}
   .tk-inst{padding:14px 18px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;flex:none}
 
+  /* the block's actual work — restored, and it fills the left column so the
+     screen never has a dead white half */
+  .tk-work{flex:1 1 auto;min-height:0;overflow:hidden;padding:13px 18px 13px;
+    display:flex;flex-direction:column;gap:10px}
+  .tk-now{display:flex;flex:1 1 auto;flex-direction:column;justify-content:center;gap:5px;
+    min-width:0;min-height:0;overflow:hidden;padding-left:13px;border-left:5px solid #0a0a0b}
+  .tk.hot .tk-now{border-left-color:#c81111}
+  .tk-now em{display:block;flex:none;font-style:normal;font-family:var(--disp);font-weight:700;
+    font-size:clamp(17px,4.9vw,32px);line-height:1.12;letter-spacing:.02em;text-transform:uppercase;
+    color:#0a0a0b;min-width:0;overflow-wrap:anywhere}
+  .tk.hot .tk-now em{color:#c81111}
+  .tk-now.rest{border-left-color:rgba(0,0,0,.2)}
+  .tk-now.rest em{color:rgba(0,0,0,.42)}
+  .tk-then{flex:none;margin-top:auto;display:flex;align-items:baseline;gap:11px;min-width:0;
+    border-top:2px solid rgba(0,0,0,.1);padding-top:10px}
+  .tk-then>span{flex:none;font-family:var(--disp);font-weight:600;font-size:clamp(10px,2.5vw,14px);
+    letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.4)}
+  .tk-then>i{min-width:0;font-style:normal;font-family:var(--disp);font-weight:700;
+    font-size:clamp(13px,3.3vw,20px);letter-spacing:.03em;text-transform:uppercase;color:rgba(0,0,0,.5);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* right column when there's no target rail: the clock over the where-to-go-next card */
+  .tk-info{display:flex;flex-direction:column;flex:0 0 clamp(150px,34%,330px);min-width:0;min-height:0}
+  .tk-info>.tk-cell{flex:1 1 auto}
+  .tk-nxt{flex:none;padding:13px 18px 15px;display:flex;flex-direction:column;gap:4px;
+    border-top:2px solid rgba(0,0,0,.12)}
+  .tk-nxt>span{font-family:var(--disp);font-weight:600;font-size:clamp(10px,2.5vw,14px);letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(0,0,0,.45)}
+  .tk-nxt>b{font-family:var(--disp);font-weight:700;font-size:clamp(17px,4.4vw,28px);line-height:1.08;
+    letter-spacing:.03em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tk-nxt>em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(13px,3.2vw,19px);
+    letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.5);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tk-duo{display:flex;flex:1 1 auto;min-height:0;min-width:0}
   .tk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px 18px}
   .tk-cell b{display:block;font-family:var(--mono);font-weight:700;line-height:.92;
@@ -279,11 +317,12 @@
   body.kioskon .tk-mach{font-size:46px}
   body.kioskon .tk-who{font-size:32px}
   body.kioskon .tk-blk{font-size:18px;padding:9px 16px}
-  body.kioskon .tk-name{padding:14px 22px}
-  body.kioskon .tk-name label{font-size:14px}
-  body.kioskon .tk-name input{height:50px;font-size:20px}
-  body.kioskon .tk-name .btn{height:50px;font-size:16px}
-  body.kioskon .tk-inst{padding:13px 22px;gap:8px}
+  body.kioskon .tk-name{flex-direction:row;align-items:center;gap:18px;padding:9px 22px}
+  body.kioskon .tk-name label{flex:none;font-size:14px}
+  body.kioskon .tk-name>div{flex:1 1 auto;min-width:0}
+  body.kioskon .tk-name input{height:46px;font-size:19px}
+  body.kioskon .tk-name .btn{height:46px;font-size:16px}
+  body.kioskon .tk-inst{padding:11px 22px 12px;gap:7px}
   body.kioskon .tk-cell{padding:12px 22px}
   body.kioskon .tk-tag{font-size:16px}
   body.kioskon .tk-head{font-size:34px;padding:12px 15px}
@@ -293,6 +332,16 @@
   body.kioskon .tk-cell i{font-size:16px}
   body.kioskon .tk-bar{height:16px}
   body.kioskon .tk-cell u{font-size:19px}
+  body.kioskon .tk-info{flex:0 0 322px}
+  body.kioskon .tk-work{padding:13px 22px 14px;gap:11px}
+  body.kioskon .tk-now{padding-left:15px;gap:6px}
+  body.kioskon .tk-now em{font-size:32px}
+  body.kioskon .tk-then>span{font-size:14px}
+  body.kioskon .tk-then>i{font-size:20px}
+  body.kioskon .tk-nxt{padding:15px 22px 16px}
+  body.kioskon .tk-nxt>span{font-size:14px}
+  body.kioskon .tk-nxt>b{font-size:28px}
+  body.kioskon .tk-nxt>em{font-size:19px}
   body.kioskon .tk-rail{flex:0 0 210px;padding:16px 18px;gap:10px}
   body.kioskon .tk-rail>span{font-size:15px}
   body.kioskon .tk-pills .tswp b{font-size:34px}
@@ -2322,23 +2371,53 @@
       else if(phase==="rest"||holding){ jTag="Rest"; jHead="Move to your next station"; jBig=goNext; }
       else if(!running){
         jTag=tsw?"Starts on this machine":"Get ready";
-        jHead=tsw?`${esc(tsw.onWho)} starts here`:esc(b.name||"Block");
-        jSub=tsw?`then ${esc((tsw.floorX[0]||{}).name||"swap")}`
-                :(b.items||[]).filter(x=>!x.rest).map(x=>esc(x.name||((x.exercises||[])[0]||{}).name||"")).filter(Boolean).join(" · ");
+        jHead=tsw?`${esc(tsw.onWho)} starts here`:"Waiting for the trainer";
+        jSub=tsw?`then ${esc((tsw.floorX[0]||{}).name||"swap")}`:"";
       } else {
         jTag=hot?"Scoring now":"Working";
         jHead=tsw?`${esc(tsw.onWho)} on the ${esc(machShort)}`:esc(segLabel);
         jSub=tsw?tsw.floorX.map(x=>`${esc(tsw.whoFor(x)||"")} on ${esc(x.name)}`).join(" · ")
                 :(seg?esc(tbSegLine(seg,segLabel,hit.j,bi)):"");
       }
+      // the work list below already carries the detail — never print the same line twice
+      const flat=s=>String(s).replace(/<[^>]*>/g,"").replace(/\s+/g," ").trim().toLowerCase();
+      if(jSub&&flat(jSub)===flat(jHead)) jSub="";
       const tgtRail=tsw?`
-        <div class="tk-card tk-rail">
+        <div class="tk-card tk-rail tk-side">
           <span>Target</span>
           <div class="tk-pills">${tsw.ergX.amounts.map(Number).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
         </div>`:"";
-      const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Waiting for trainer":running?"Time left in this block":"Waiting for trainer";
+      const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Next part in a moment"
+        :running?"Time left in this block":"This block lasts";
       const clkVal=running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed))
         :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
+      // ---- what this block actually is, with the live segment marked ----
+      // during a rest the guide looks forward: show the block you're walking to
+      const wBlk=(phase==="rest"||holding)?nxBlock:b;
+      const wIts=(wBlk.items||[]);
+      const nowI=(seg&&wBlk===b)?seg.i:wIts.findIndex(x=>!x.rest);
+      const nowIt=nowI>=0?wIts[nowI]:null;
+      const itSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
+        :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
+      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x))}</em>`);
+      if(!nowLines.length) nowLines=[`<em>${esc(nowIt?itSum(nowIt):(wBlk.desc||wBlk.name||"Work"))}</em>`];
+      let after=wIts.slice(nowI+1).map(itSum), thenLab="then";
+      if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
+      if(phase==="rest"||holding) after=[];
+      if(phase==="done"){ thenLab="today"; after=[];
+        nowLines=R().blocks.map(x=>`<em>${esc(x.name)} \u00b7 ${esc(bmLabel(x))}</em>`); }
+      const thenTxt=after.join(" \u00b7 ");
+      const workList=`<div class="tk-card tk-work">
+                <div class="tk-now ${(nowIt&&nowIt.rest&&phase!=="done")?"rest":""}">${nowLines.join("")}</div>
+                ${thenTxt?`<div class="tk-then"><span>${thenLab}</span><i>${esc(thenTxt)}</i></div>`:""}
+              </div>`;
+      // ---- the guide: where you go when this ends ----
+      let nxSpan="Next station",nxB=esc(nxBlock.name),nxEm=esc(bmLabel(nxBlock));
+      if(phase==="done"){ nxSpan="Finished"; nxB="Great work"; nxEm="Check the board"; }
+      else if(!team){ nxSpan="This machine"; nxB="Not in use"; nxEm="this round"; }
+      else if(phase==="rest"||holding){ nxSpan="Go now &rarr;"; }
+      else if(lastRound){ nxSpan="Last round"; nxB="Finish strong"; nxEm=""; }
+      const nxtCard=`<div class="tk-card tk-nxt"><span>${nxSpan}</span><b>${nxB}</b>${nxEm?`<em>${nxEm}</em>`:""}</div>`;
       const nameBand=needName?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
       scr.innerHTML=`
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
@@ -2357,21 +2436,24 @@
                 ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
                 ${jBig?`<div class="tk-big">${jBig}</div>`:""}
               </div>
-              <div class="tk-duo">
-                ${tsw?`<div class="tk-card tk-cell tk-chase">
+              ${tsw?`<div class="tk-duo">
+                <div class="tk-card tk-cell tk-chase">
                   <b>${Math.round(onTarget?tsw.m:0)}</b>
                   <i>of ${tsw.st.target} metres</i>
                   <div class="tk-bar"><i style="width:${onTarget?Math.min(100,tsw.m/tsw.st.target*100):0}%"></i></div>
-                </div>`:""}
+                </div>
                 <div class="tk-card tk-cell tk-clk">
                   <b>${clkVal}</b>
                   <i>${clkLab}</i>
                   ${!lastRound&&phase!=="done"&&team?`<u>Next &rarr; ${goNext}</u>`:""}
                 </div>
-              </div>
+              </div>`:workList}
               ${tsw&&Date.now()-tsw.st.flash<2400?`<div class="tk-flash">Target hit — swap now</div>`:""}
             </div>
-            ${tgtRail}
+            ${tsw?tgtRail:`<div class="tk-side tk-info">
+              <div class="tk-card tk-cell tk-clk"><b>${clkVal}</b><i>${clkLab}</i></div>
+              ${nxtCard}
+            </div>`}
           </div>
           ${vit.length?`<div class="tk-card tk-vit">${vit.map(x=>`<div class="${x.opt?"opt":""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>`:""}
         </div>`;
@@ -2427,6 +2509,33 @@
       let fs=parseFloat(getComputedStyle(el).fontSize);
       while(fs>12&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
     });
+    // the work list shrinks to whatever the block needs — a 4-part block must
+    // still show every line rather than clip the tail off the bottom
+    const wk=scr.querySelector(".tk-work");
+    if(wk){
+      const nw=wk.querySelector(".tk-now"), els=[...wk.querySelectorAll(".tk-now em")];
+      if(nw&&els.length){
+        els.forEach(e=>e.style.fontSize="");
+        nw.style.gap="";
+        // measure by rects: a centred flex column overflows both ends, and
+        // scrollHeight silently under-reports that
+        const over=()=>{ const r=nw.getBoundingClientRect();
+          return els.some(e=>{ const q=e.getBoundingClientRect();
+            return q.top<r.top-.5||q.bottom>r.bottom+.5||e.scrollWidth>e.clientWidth+1; })
+            ||nw.scrollWidth>nw.clientWidth+1||wk.scrollHeight>wk.clientHeight+1; };
+        const size=()=>parseFloat(getComputedStyle(els[0]).fontSize);
+        const set=v=>els.forEach(e=>e.style.fontSize=v+"px");
+        // grow into whatever room the block leaves, then pull back until it fits —
+        // a two-line block reads huge, an eight-line block still shows every line
+        // growing only makes sense on the fixed tablet canvas; in the phone's
+        // flow layout the column just gets taller and nothing ever overflows
+        if(document.body.classList.contains("kioskon")){
+          let g=0; while(!over()&&size()<46&&g++<44) set(size()+1); }
+        let s=0; while(over()&&size()>15&&s++<44){ set(size()-1);
+          const gp=parseFloat(getComputedStyle(nw).gap)||0;
+          if(size()<26&&gp>2) nw.style.gap=(gp-1)+"px"; }
+      }
+    }
   }
 
   /* ================= control room ================= */
@@ -2922,16 +3031,17 @@
 
   // ---- ATHL3TE class library (from the gym's own boards) ----
   (function seedLibrary(){
-    if(presets.some(p=>p.seedV===3)) return;
+    if(presets.some(p=>p.seedV===4)) return;
+    presets=presets.filter(p=>p.seedV!==3);
     const E=(name,amounts,unit,who)=>({who:who||"",name:name,amounts:amounts||[],unit:unit||"reps",max:false});
-    const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:true});
+    const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:false});
     const I=(dur,exs,label)=>Object.assign({dur:dur,scored:false,exercises:exs},label?{name:label,group:true}:{});
     const RS=dur=>({rest:true,dur:dur});
     const B=(name,items,rounds,machine)=>Object.assign({name:name,machine:machine||"Row",items:items},rounds?{rounds:rounds}:{});
     const W=(name,blocks)=>{ const c=structuredClone(DEFAULTS);
       c.name=name; c.wkName=name; c.noScore=true; c.together=true; c.teamKind="solo";
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:3,cfg:c}; };
+      return {name:name,seedV:4,cfg:c}; };
 
     const lib=[
       W("Slow It or Send It",[
@@ -3694,7 +3804,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=216;
+  const BUILD=217;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
