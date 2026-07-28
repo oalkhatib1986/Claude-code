@@ -1422,6 +1422,7 @@
   if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
   if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
   if(!cfg.teamKind) cfg.teamKind="teams";
+  normCrewNames();
   if(!cfg.teamSize) cfg.teamSize=4;
   if(cfg.noScore===undefined) cfg.noScore=false;
   if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
@@ -3090,7 +3091,7 @@
         tog.onclick=()=>{ area.hidden=!area.hidden; syncTog(); };
         syncTog();
       }
-      del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
+      del.onclick=()=>{ if(cfg.crews.length<=1)return; cfg.crews.splice(i,1); normCrewNames(); save(); buildCrews(); buildRankGrid(); updateCapReport(); if(!sessionActive&&!running) build(); };
       list.appendChild(row);
     });
     refreshCrewStations();
@@ -3223,12 +3224,20 @@
     savePresets();
   })();
 
+  // Placeholder crew names have to follow the format. A preset saved as Solo still
+  // carries "Team 1..4" from DEFAULTS, deleting a crew leaves a gap in the numbering,
+  // and switching format has to relabel them. Real typed names are never touched.
+  function normCrewNames(){
+    const pre=(cfg.teamKind==="solo")?"Athlete":"Team";
+    (cfg.crews||[]).forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c&&c.name||"")) c.name=pre+" "+(i+1); });
+  }
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
     if(!cfg.teamKind) cfg.teamKind="teams";
     if(!cfg.teamSize) cfg.teamSize=4;
     if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
     if(cfg.noScore===undefined) cfg.noScore=false;
+    normCrewNames();
   }
   function buildPresetSel(){
     const wp=$("wkPick"); if(!wp) return;
@@ -3458,7 +3467,7 @@
     cfg.mode="rotation";
     if(w.name) cfg.name=String(w.name).slice(0,40);
     cfg.wkName=null;
-    if(w.teamKind==="solo"||w.teamKind==="teams") cfg.teamKind=w.teamKind;
+    if(w.teamKind==="solo"||w.teamKind==="teams"){ cfg.teamKind=w.teamKind; normCrewNames(); }
     if(w.teamSize) cfg.teamSize=clamp(parseInt(w.teamSize,10)||4,2,6);
     if(w.noScore!==undefined) cfg.noScore=!!w.noScore;
     if(w.together!==undefined) cfg.together=!!w.together;
@@ -3620,7 +3629,7 @@
       syncTeamCount(); };
     [...$("fmtKind").children].forEach(b=>b.onclick=()=>{ if(cfg.teamKind===b.dataset.v) return;
       cfg.teamKind=b.dataset.v;
-      cfg.crews.forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c.name)) c.name=crewPrefix()+" "+(i+1); });
+      normCrewNames();
       save(); syncFmt(); buildCrews(); buildBlocks(); if(!sessionActive&&!running) build(); });
     [...$("fmtScore").children].forEach(b=>b.onclick=()=>{ cfg.noScore=b.dataset.v==="off"; save();
       [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
@@ -3910,7 +3919,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=221;
+  const BUILD=222;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
