@@ -11,6 +11,16 @@ copy for cache-free serving; `version.txt` holds the build number.
   per-block rests, collab, long names), at 390px phone width and on TV.
   Before shipping ANY layout-touching change, run
   `test_fitall.js` (scratchpad) — 3 config states × 9 pages, zero tolerance.
+- **Clipping inside a box that itself fits is the recurring failure.** Twice now
+  (metric tiles, team chips) a viewport-edge check passed while content was cut
+  off mid-glyph inside a card. `test_fitall.js` now also flags any element with
+  `overflow:hidden` whose `scrollWidth > clientWidth` — the only exemptions are
+  deliberate `text-overflow:ellipsis` and the `.tk-logo` crop mask. Never widen
+  that exemption list to make a test pass; fix the layout instead.
+- **Chips and pills wrap, they never clip.** Grid tracks use
+  `minmax(min(100%,Npx),1fr)` so they drop to one column rather than squeeze,
+  and the chip itself is `flex-wrap:wrap` with the name ellipsised (`.tn`) and
+  the value tag (`.mtag`) kept whole.
 - **The workout summary line fits on ONE line, time last.** It auto-scales
   (`fitSummary()`); never add a chip without re-checking worst cases.
 - **No orphaned wraps.** Label+field pairs (`.bgrp`, `.fmtpair`) wrap as units.
