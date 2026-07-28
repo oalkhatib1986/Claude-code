@@ -2803,7 +2803,7 @@
         const grp=(...kids)=>{ const g=document.createElement("span"); g.className="bgrp"; kids.forEach(k=>g.appendChild(k)); brow.appendChild(g); return g; };
         const rw=menuField(()=>["1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7","7\u00d7","8\u00d7","9\u00d7","10\u00d7","12\u00d7","15\u00d7","16\u00d7","20\u00d7"],
           ()=>bRounds(b)+"\u00d7",
-          v=>{ b.rounds=clamp(parseInt(v,10)||1,1,6); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
+          v=>{ b.rounds=clamp(parseInt(v,10)||1,1,30); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
           {numeric:true, cls:"time brounds", searchPh:"Rounds\u2026"});
         rw.title="How many times this block repeats";
         grp(lab("Rounds","rounds"),rw);
@@ -3811,7 +3811,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=219;
+  const BUILD=220;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
