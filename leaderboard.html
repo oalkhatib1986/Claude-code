@@ -1441,7 +1441,7 @@
   const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
   const itLen=it=>!it?0:(it.fmt==="waves"?it.dur*itWaves(it):it.dur);
   const oneRound=b=>(b.items||[]).reduce((a,it)=>a+itLen(it),0);
-  const bRounds=b=>clamp(parseInt(b&&b.rounds,10)||1,1,6);
+  const bRounds=b=>clamp(parseInt(b&&b.rounds,10)||1,1,30);
   const bRRest=b=>bRounds(b)>1?clamp(parseInt(b&&b.rrest,10)||0,0,600):0;
   const blockLen=b=>oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1);
   const roundLen=()=>Math.max(1,...R().blocks.map(blockLen));
@@ -1549,7 +1549,8 @@
   const whoShown=x=>{ const w=(x.who||"").trim(); if(!w) return "";
     if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|solo|athlete ?\d+)$/i.test(w)) return "";
     return w; };
-  const exTxt=x=>{ const w=whoShown(x); return `${w?w+" — ":""}${x.name} · ${x.max?"Max":(x.amounts||[]).join("/")}${exUnit(x.unit)}`; };
+  const exTxt=x=>{ const w=whoShown(x); const a=x.max?"Max":(x.amounts||[]).join("/");
+    return `${w?w+" — ":""}${x.name}${a?" · "+a+exUnit(x.unit):""}`; };
   const exLines=b=>{
     const its=b.items||[];
     if(!its.length) return esc(b.desc||"—");
@@ -2684,7 +2685,7 @@
       { const brow=box.querySelector(".brow");
         const lab=(t,key)=>mkHelpLab(t,key);
         const grp=(...kids)=>{ const g=document.createElement("span"); g.className="bgrp"; kids.forEach(k=>g.appendChild(k)); brow.appendChild(g); return g; };
-        const rw=menuField(()=>["1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
+        const rw=menuField(()=>["1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7","7\u00d7","8\u00d7","9\u00d7","10\u00d7","12\u00d7","15\u00d7","16\u00d7","20\u00d7"],
           ()=>bRounds(b)+"\u00d7",
           v=>{ b.rounds=clamp(parseInt(v,10)||1,1,6); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
           {numeric:true, cls:"time brounds", searchPh:"Rounds\u2026"});
@@ -2916,6 +2917,95 @@
       ]}
     ]};
     presets.push({name:"Full Body",seedV:2,cfg:c});
+    savePresets();
+  })();
+
+  // ---- ATHL3TE class library (from the gym's own boards) ----
+  (function seedLibrary(){
+    if(presets.some(p=>p.seedV===3)) return;
+    const E=(name,amounts,unit,who)=>({who:who||"",name:name,amounts:amounts||[],unit:unit||"reps",max:false});
+    const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:true});
+    const I=(dur,exs,label)=>Object.assign({dur:dur,scored:false,exercises:exs},label?{name:label,group:true}:{});
+    const RS=dur=>({rest:true,dur:dur});
+    const B=(name,items,rounds,machine)=>Object.assign({name:name,machine:machine||"Row",items:items},rounds?{rounds:rounds}:{});
+    const W=(name,blocks)=>{ const c=structuredClone(DEFAULTS);
+      c.name=name; c.wkName=name; c.noScore=true; c.together=true; c.teamKind="solo";
+      c.rotation={laps:1,blockRest:0,blocks:blocks};
+      return {name:name,seedV:3,cfg:c}; };
+
+    const lib=[
+      W("Slow It or Send It",[
+        B("Part A",[I(120,[E("Alt DB Snatches",[20]),E("Lateral Up-Down over DB",[12])],"E2MOM 16 min · 10/15/20kg")],8),
+        B("Part B",[I(120,[E("Run",[250,325,400],"m")]),I(120,[E("Row",[250,325,400],"m")])],4),
+        B("Part C",[I(120,[E("Cal Ski",[10,14,18],"cal"),E("Thrusters",[8]),E("Devil Press",[4])],"E2MOM 16 min · 7.5/12.5/17.5kg")],8)
+      ]),
+      W("Barbell Power",[
+        B("Part A",[I(720,[E("Build to a 1 rep max Deadlift")])]),
+        B("Part B",[I(60,[E("Hang Cleans",[6])]),I(60,[E("Front Squats",[6])]),I(60,[E("AKBS",[12])]),RS(60)],3),
+        B("Part C",[I(60,[E("Alt DB Snatches",[16])]),I(60,[E("Burpees",[12])]),I(60,[E("DB Thrusters",[16])]),I(60,[E("DB Reverse Lunge",[12])])],4)
+      ]),
+      W("Upper Focus 1",[
+        B("Part A",[I(150,[E("Barbell Bench Press @ 60% 1RM",[8])],"Every 2:30 for 12:30")],5),
+        B("Part B",[I(600,[E("Seated Shoulder Press",[10]),E("Dual DB Bent Over Row",[10]),E("Press Ups on Dumbbells",[10]),E("Russian Twists with DB",[20])],"10 min AMRAP")]),
+        B("Part C",[I(120,[E("Cal Erg",[16,20,24],"cal")]),I(120,[E("Dual Hang DB Snatches",[12]),E("Dual DB Push Press",[10]),E("Burpees",[8])],"E2MOM 16 min")],4)
+      ]),
+      W("Upper Focus 2",[
+        B("Part A",[I(900,[E("New strength cycle — build to a 1RM Push Press")])]),
+        B("Part B",[I(60,[E("DB Bench Press with a pulse",[12])]),I(60,[M("Press Ups in 40 seconds")]),
+                    I(60,[E("Dual DB Bent Over Row with a pause",[12])]),I(60,[M("Pull Ups in 40 seconds")])],3),
+        B("Part C",[I(90,[E("Cal (pick an erg)",[8,12,16],"cal"),M("DB Snatches — remaining time"),M("Burpees over Dumbbells")],"1:30 on / 0:45 off"),RS(45)],6)
+      ]),
+      W("Lower Focus 1",[
+        B("Part A",[I(150,[E("Back Squat @ 75% of 3RM",[5])],"Every 2:30 for 10 min")],4),
+        B("Part B",[I(60,[E("RDL",[10])]),
+                    I(60,[E("DB Split Squats (R leg)",[6]),E("Explosive Split Squats (R leg)",[6])]),
+                    I(60,[E("DB Split Squats (L leg)",[6]),E("Explosive Split Squats (L leg)",[6])]),
+                    I(60,[M("Deadball Squats — 40 sec work")]),RS(60)],3),
+        B("Part C",[I(720,[E("DB Squat Cleans",[21,15,9]),E("DB Push Press",[21,15,9]),E("AB Mat Sit Ups",[21,15,9])],"For time · 21-15-9")])
+      ]),
+      W("Engine",[
+        B("Part A",[I(300,[E("Ski",[500],"m"),M("Run — remaining time")],"5 min on / 2 min off · A"),RS(120),
+                    I(300,[M("Run — the distance you ran"),E("Ski",[500],"m")],"5 min on / 2 min off · B"),RS(120)]),
+        B("Part B",[I(300,[E("Deadball over Shoulder",[10]),E("Deadball Squats",[10]),E("Shuttle Runs",[20],"m"),E("Deadball Reverse Lunge",[10])],"AMRAP · 5 min on / 2 min off"),RS(120)],2),
+        B("Part C",[I(300,[E("Row",[500],"m"),M("Run — remaining time")],"5 min on / 2 min off · A"),RS(120),
+                    I(300,[M("Run — the distance you ran"),E("Row",[500],"m")],"5 min on / 2 min off · B"),RS(120)])
+      ]),
+      W("Lower Focus 2",[
+        B("Part A",[I(720,[E("Set 1 — 40-50% of max",[5,6]),E("Set 2 — 60-70%",[3,5]),E("Set 3 — 80-85%",[2,3]),E("Set 4 — 90%",[1]),E("Then go for your 3RM attempt")],"12 min · 3RM attempt")]),
+        B("Part B",[I(60,[E("DB Bulgarian Split Squats (L leg)",[6]),E("BW Bulgarian Split Squats",[8])]),
+                    I(60,[E("DB Bulgarian Split Squats (R leg)",[6]),E("BW Bulgarian Split Squats",[8])]),
+                    I(60,[E("Wall Balls (4/6/9kg)",[16,20])]),RS(60)],4),
+        B("Part C",[I(60,[E("Cal Erg",[6,10,14],"cal")]),I(60,[E("Burpees",[6,10,14])])],8)
+      ]),
+      W("Upper Focus 3",[
+        B("Part A",[I(480,[E("Set 1 — 60% of 3RM",[5]),E("Set 2 — 70%",[3]),E("Set 3 — 80%",[2]),E("Set 4 — 90%",[1,2])],"E2MOM 8 min · Strict Press"),
+                    I(420,[E("Test your 3RM")])]),
+        B("Part B",[I(60,[E("SA DB Chest Press (each side)",[4]),E("Dual DB",[4])]),
+                    I(60,[E("Pendlay Row",[10])]),
+                    I(60,[E("Explosive Push Ups to Plate / HR Press Ups",[10,15])]),
+                    I(60,[E("Renegade Row (5-6 each side)",[10,12])])],3),
+        B("Part C",[I(120,[E("Cals Ski (shared)",[20,26,32],"cal")]),
+                    I(120,[E("DB Snatches",[6]),E("Burpees",[3])],"YGIG AMRAP")],3)
+      ]),
+      W("Hyrox Conditioner",[
+        B("Part A",[I(2700,[E("Run",[1000],"m"),E("Sled Pull",[50],"m"),E("SkiErg",[500],"m"),E("Run",[500],"m"),
+                            E("Farmers Carry",[100],"m"),E("Row",[500],"m"),E("Run",[250],"m"),E("Burpee to Plate",[40])],"45:00 AMRAP")]),
+        B("Part B",[I(600,[E("Wall Balls",[120])],"Finisher · for time")])
+      ]),
+      W("Upper Focus 4",[
+        B("Part A",[I(120,[E("Strict Press @ 70% 3RM",[5])],"E2MOM 10 min · 5 x 5")],5),
+        B("Part B",[I(60,[E("Deadlift @ 70%",[6])]),I(60,[E("Banded Pull Downs",[15])]),
+                    I(60,[E("Dual DB Clean and Press",[10])]),I(60,[E("DB Floor Press",[10])])],4),
+        B("Part C",[I(180,[E("AKBS",[10]),E("KB Clean and Press",[10]),E("Burpees",[5]),M("BFSU / HLR — remaining time")],"3 min on / 1 min off"),RS(60)],4)
+      ]),
+      W("Upper Focus 5",[
+        B("Part A",[I(900,[E("Test week — 5RM Incline Bench Press · 15 min cap")])]),
+        B("Part B",[I(60,[E("Single Arm DB Bench Press",[6])]),I(60,[E("Banded Face Pulls",[15])]),
+                    I(60,[E("BB Bent Over Row",[6])]),I(60,[E("Dual DB Arnold Press",[8])]),RS(60)],3),
+        B("Part C",[I(900,[E("Erg",[60,40,20,10],"cal"),E("DB Snatches",[60,40,20,10]),E("Burpee over Dumbbell",[60,40,20,10])],"In pairs · 60-40-20-10 · YGIG · 15 min cap")])
+      ])
+    ];
+    lib.forEach(w=>{ if(!presets.some(p=>p.name===w.name)) presets.push(w); });
     savePresets();
   })();
 
@@ -3604,7 +3694,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=214;
+  const BUILD=215;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
