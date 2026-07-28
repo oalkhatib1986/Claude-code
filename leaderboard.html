@@ -891,7 +891,7 @@
     transform-origin:top center}
   body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
   body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
-  body.bigscreen:not(.mobscreen) .badge{height:132px;width:132px;margin:-26px 0 -26px -30px}
+  body.bigscreen:not(.mobscreen) .badge{height:168px;width:168px;margin:-32px 0 -32px -38px}
   body.bigscreen:not(.mobscreen) .lane{grid-template-columns:80px 1fr 240px}
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
@@ -906,10 +906,20 @@
   body.wkscreen:not(.mobscreen) .blocks>.blk{flex:1 1 calc(50% - 26px);max-width:calc(50% - 13px);min-width:0}
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child{flex:1 1 100%;max-width:100%}
   body.wkscreen:not(.mobscreen) .blocks>.blkrest{flex:1 1 100%}
+  body.bigscreen:not(.mobscreen) .subhead .ttl{flex-direction:row;align-items:baseline;
+    gap:12px 34px;flex-wrap:wrap;overflow:visible}
+  body.bigscreen:not(.mobscreen) .subhead .ttl b{flex:none}
+  body.bigscreen:not(.mobscreen) #evSummary{width:auto;flex:1 1 auto;margin-top:0;justify-content:flex-end}
   body.wkscreen:not(.mobscreen) .blk{padding:28px 32px;gap:16px}
   body.wkscreen:not(.mobscreen) .blk .bh b{font-size:40px}
-  body.wkscreen:not(.mobscreen) .blk .bh .mc{font-size:17px;padding:6px 16px}
-  body.wkscreen:not(.mobscreen) .blk .bd{font-size:28px;line-height:1.62}
+  body.bigscreen:not(.mobscreen) .blk .bh .mc{display:none}
+  body.wkscreen:not(.mobscreen) .blk .bd{font-size:34px;line-height:1.55}
+  /* a single block has ~1500px of width and a tall thin list — run it in two columns
+     so the type can be twice the size instead of the card being mostly empty */
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd{column-count:2;column-gap:60px;
+    font-size:46px;line-height:1.5}
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exl,
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{break-inside:avoid}
   body.wkscreen:not(.mobscreen) .blk .win{font-size:20px}
   body.wkscreen #evSummary .schip b{font-size:26px}
   body.wkscreen:not(.mobscreen) .blk .teams .t{font-size:19px}
@@ -4003,7 +4013,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=232;
+  const BUILD=233;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
