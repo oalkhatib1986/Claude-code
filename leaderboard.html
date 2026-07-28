@@ -3970,7 +3970,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=230;
+  const BUILD=231;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
@@ -4033,31 +4033,17 @@
       const tall=lw<820&&window.innerHeight>lw;
       if(cap) cap.textContent=tall?"TV preview \u2014 turn your phone to read it"
                                   :"TV preview \u2014 this is what the big screen shows";
-      const sTop=stage.getBoundingClientRect().top+window.scrollY;
-      const capH=cap?(cap.offsetHeight||16)+13:0;
-      const padB=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
-      const room=Math.max(240,window.innerHeight-sTop-capH-padB-8);
-      // the frame keeps the screen's shape in BOTH orientations: sizing only the
-      // height turned it into a letterbox strip with the board stuck to one side
+      // Fill the width, exactly like the erg tablet preview does, and let the page
+      // scroll down if the frame is taller than the screen. Capping by height instead
+      // shrank a landscape phone's preview to a quarter of the tablet preview's size.
       const fw=tall?DH:DW, fh=tall?DW:DH;
-      const apply=k=>{
-        view.style.transform=tall
-          ? "scale("+k.toFixed(4)+") translate("+DH+"px,0) rotate(90deg)"
-          : "scale("+k.toFixed(4)+")";
-        stage.style.width=Math.round(fw*k)+"px";
-        stage.style.height=Math.round(fh*k)+"px";
-        stage.style.margin="0 auto";
-      };
-      let k=Math.min(1,Math.min(avail/fw,room/fh));
-      apply(k);
-      // margins between the frame and the caption are easier to measure than to
-      // predict — shrink until the page genuinely stops scrolling
-      for(let i=0;i<6;i++){
-        const over=document.documentElement.scrollHeight-window.innerHeight;
-        if(over<=0||k<=.08) break;
-        k=Math.max(.08,k-over/fh-0.002);
-        apply(k);
-      }
+      const k=Math.min(1,avail/fw);
+      view.style.transform=tall
+        ? "scale("+k.toFixed(4)+") translate("+DH+"px,0) rotate(90deg)"
+        : "scale("+k.toFixed(4)+")";
+      stage.style.width=Math.round(fw*k)+"px";
+      stage.style.height=Math.round(fh*k)+"px";
+      stage.style.margin="0 auto";
       fitTvBoard(DH-44);
       document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
       return;
