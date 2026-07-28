@@ -217,7 +217,18 @@
   .tk.hot .tk-now em{color:#c81111}
   .tk-now.rest{border-left-color:rgba(0,0,0,.2)}
   .tk-now.rest em{color:rgba(0,0,0,.42)}
-  .tk-then{flex:none;margin-top:auto;display:flex;align-items:baseline;gap:11px;min-width:0;
+  /* the DONE bar — hit while sweating, so it takes the whole width and is tall */
+  .tk-done{flex:none;margin-top:auto;width:100%;border:0;cursor:pointer;
+    background:#0a0a0b;color:#fff;border-radius:13px;padding:13px 18px;
+    display:flex;align-items:baseline;justify-content:center;gap:14px;transition:.12s}
+  .tk-done:active{background:#2b2b2f}
+  .tk-done b{font-family:var(--disp);font-weight:700;font-size:clamp(19px,5vw,32px);
+    letter-spacing:.08em;text-transform:uppercase;line-height:1}
+  .tk-done i{font-style:normal;font-family:var(--disp);font-weight:600;
+    font-size:clamp(12px,3vw,18px);letter-spacing:.08em;text-transform:uppercase;
+    color:rgba(255,255,255,.66);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tk.hot .tk-done{background:#c81111}
+    .tk-then{flex:none;margin-top:auto;display:flex;align-items:baseline;gap:11px;min-width:0;
     border-top:2px solid rgba(0,0,0,.1);padding-top:10px}
   .tk-then>span{flex:none;font-family:var(--disp);font-weight:600;font-size:clamp(10px,2.5vw,14px);
     letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.4)}
@@ -340,6 +351,9 @@
   body.kioskon .tk-work{padding:13px 22px 14px;gap:11px}
   body.kioskon .tk-now{padding-left:15px;gap:6px}
   body.kioskon .tk-now em{font-size:32px}
+  body.kioskon .tk-done{padding:15px 22px}
+  body.kioskon .tk-done b{font-size:32px}
+  body.kioskon .tk-done i{font-size:18px}
   body.kioskon .tk-then>span{font-size:14px}
   body.kioskon .tk-then>i{font-size:20px}
   body.kioskon .tk-nxt{padding:15px 22px 16px}
@@ -525,6 +539,7 @@
   .mwrap{position:relative;display:block;min-width:0}
   .mwrap.time{width:84px;flex:none}
   .mwrap.time.ifmt{width:auto;min-width:106px}
+  .mwrap.time.irotby{width:auto;min-width:118px}
   .mfield{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:11px;padding:10px 32px 10px 13px;cursor:pointer;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .15s;
@@ -588,7 +603,7 @@
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
-  .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+  .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
   #aiFab{position:fixed;right:14px;left:auto;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:94;width:52px;height:52px;border-radius:50%;
     background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
@@ -833,6 +848,7 @@
   .stn .blab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);white-space:nowrap}
   .psec .irow{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;margin:0 0 8px;min-width:0}
   .mwrap.brounds .mfield{width:auto;min-width:56px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
+  .mwrap.irotby .mfield{width:auto;min-width:118px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
   .mwrap.ifmt .mfield{width:auto;min-width:106px;text-align:center;padding:9px 24px 9px 8px;background-position:right 8px center;white-space:nowrap}
   .mwrap.ifn .mfield{width:auto;min-width:54px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
   .mwrap.brrest .mfield{width:auto;min-width:76px;text-align:center;padding:9px 22px 9px 8px;background-position:right 7px center;white-space:nowrap}
@@ -1494,25 +1510,40 @@
   const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,6);
   const itShare=it=>it&&it.fmt==="share"?clamp(parseInt(it.shareN,10)||2,2,6):0;
   const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
+  // circuits are self-paced by default; items built before this existed stay on the clock
+  const itRotBy=it=>(it&&it.rotBy==="done")?"done":(it&&it.rotBy==="clock")?"clock":"clock";
+  const itSelf=it=>itRot(it)&&itRotBy(it)==="done";
   const itLen=it=>!it?0:(it.fmt==="waves"?it.dur*itWaves(it):it.dur);
   const oneRound=b=>(b.items||[]).reduce((a,it)=>a+itLen(it),0);
-  const bRounds=b=>clamp(parseInt(b&&b.rounds,10)||1,1,30);
-  const bRRest=b=>bRounds(b)>1?clamp(parseInt(b&&b.rrest,10)||0,0,600):0;
-  const blockLen=b=>oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1);
+  // AMRAP: the block loops its items until a time cap instead of a fixed count.
+  // bRounds() derives how many laps fit so every round-indexed path keeps working.
+  const isAmrap=b=>!!(b&&b.rounds==="amrap");
+  const bCap=b=>clamp(parseInt(b&&b.cap,10)||1200,10,7200);
+  const bRRestRaw=b=>clamp(parseInt(b&&b.rrest,10)||0,0,600);
+  const bRounds=b=>{ if(isAmrap(b)){ const one=oneRound(b); if(one<=0) return 1;
+      return Math.max(1,Math.ceil(bCap(b)/(one+bRRestRaw(b)))); }
+    return clamp(parseInt(b&&b.rounds,10)||1,1,30); };
+  const bRRest=b=>bRounds(b)>1?bRRestRaw(b):0;
+  const blockLen=b=>isAmrap(b)?bCap(b):oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1);
   const roundLen=()=>Math.max(1,...R().blocks.map(blockLen));
   const segAt=(b,t)=>{ const one=oneRound(b); if(one<=0) return null;
-    const n=bRounds(b), rr=bRRest(b), per=one+rr;
-    if(t>=one*n+rr*(n-1)) return null;
-    const r=Math.min(n-1,Math.floor(t/per)), tt=t-r*per;
-    if(tt>=one) return {it:{rest:true,rrest:true,dur:rr}, i:-1, remain:per-tt, round:r, rounds:n};
+    const n=bRounds(b), rr=bRRest(b), per=one+rr, amr=isAmrap(b);
+    if(amr){ if(t>=bCap(b)) return null; }
+    else if(t>=one*n+rr*(n-1)) return null;
+    // an AMRAP's last lap is cut short by the cap — never promise more time than is left
+    const cap=amr?bCap(b)-t:Infinity;
+    const r=amr?Math.floor(t/per):Math.min(n-1,Math.floor(t/per)), tt=t-r*per;
+    if(tt>=one) return {it:{rest:true,rrest:true,dur:rr}, i:-1, remain:Math.min(cap,per-tt), round:r, rounds:n, amrap:amr};
     let acc=0; const its=b.items||[];
     for(let i=0;i<its.length;i++){ const it=its[i], L=itLen(it); acc+=L;
-      if(tt<acc){ const off=tt-(acc-L), base={it, i, round:r, rounds:n};
+      if(tt<acc){ const off=tt-(acc-L), base={it, i, round:r, rounds:n, amrap:amr};
         if(it.fmt==="waves"){ const wN=itWaves(it), w=Math.min(wN-1,Math.floor(off/it.dur));
-          return {...base, remain:it.dur-(off-w*it.dur), wave:w, waves:wN}; }
-        if(itRot(it)){ const ex=it.exercises.length, sub=it.dur/ex, s2=Math.min(ex-1,Math.floor(off/sub));
-          return {...base, remain:sub-(off-s2*sub), swap:s2, swaps:ex}; }
-        return {...base, remain:acc-tt}; } }
+          return {...base, remain:Math.min(cap,it.dur-(off-w*it.dur)), wave:w, waves:wN}; }
+        if(itRot(it)){ const ex=it.exercises.length;
+          if(itSelf(it)) return {...base, remain:Math.min(cap,acc-tt), swaps:ex, self:true};
+          const sub=it.dur/ex, s2=Math.min(ex-1,Math.floor(off/sub));
+          return {...base, remain:Math.min(cap,sub-(off-s2*sub)), swap:s2, swaps:ex}; }
+        return {...base, remain:Math.min(cap,acc-tt)}; } }
     return null; };
   const whoCount=w=>{ w=(w||"").toLowerCase(); const m=w.match(/(\d+)/);
     if(w.includes("pair")) return 2;
@@ -1613,7 +1644,7 @@
       if(it.rest) return `<div class="exg"><span class="exg-h">Rest · ${fmtMS(it.dur)}</span></div>`;
       const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
-      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`:fmtMS(it.dur);
+      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${it.exercises.length} stations · self-paced`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`:fmtMS(it.dur);
       return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${tlab}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
@@ -1686,6 +1717,7 @@
     running=true; sessionActive=true; finished=false; resultSaved=false;
     holding=false; holdPend=holdBounds();
     rot.phase="run"; t0=performance.now();
+    circReset();
     startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
     resetBtn.disabled=false;
     if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
@@ -1789,7 +1821,7 @@
       return `<div class="blk ${hot?"scoring":""} bcw">
         <div class="bh"><b>${esc(b.name)}</b>${blockMachine(b)?`<span class="mc">${bmLabel(b)}</span>`:""}</div>
         <div class="bd">${exLines(b)}</div>
-        <div class="win">${bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
+        <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span><b class="tn">${esc(t.e.name)}</b><em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
@@ -2128,7 +2160,7 @@
     else raf=requestAnimationFrame(frameSequence);
   }
   function reset(){ running=false; paused=false; holding=false; holdPend=[]; resultSaved=false; pauseUi(false); cancelAnimationFrame(raf); clearTimeout(ticker);
-    startBtn.disabled=false; resetBtn.disabled=true; build(); }
+    circReset(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
   startBtn.onclick=start; resetBtn.onclick=reset;
 
   /* ================= tabs ================= */
@@ -2214,6 +2246,14 @@
     return segLabel; }
   // simulated PM5 warm-up feed (per machine) + last-effort cache (per team) —
   // the real Web Bluetooth stream replaces tbWuFor/team.split as the source later
+  // self-paced circuit: how many stations each team has ticked off, per block+item.
+  // Station = (their starting position + stations done) % stations, so the class
+  // stays spread out and nobody has to be told where to go.
+  const circ={};
+  const circKey=(bi,i,id)=>bi+":"+i+":"+String(id);
+  const circN=(bi,i,id)=>circ[circKey(bi,i,id)]||0;
+  const circAdd=(bi,i,id)=>{ const k=circKey(bi,i,id); circ[k]=(circ[k]||0)+1; };
+  const circReset=()=>{ for(const k in circ) delete circ[k]; };
   const tbWu={}, tbLastM={}, tbDist={};
   function tbWuFor(key){
     const w=tbWu[key]||(tbWu[key]={split:128+Math.random()*14,spm:23+Math.random()*4});
@@ -2319,6 +2359,14 @@
   window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
   function renderTablet(){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
+    if(!scr.__doneWired){ scr.__doneWired=1;
+      // the screen redraws on a timer, so bind the tap to the container, never to
+      // the button itself — otherwise a tap landing mid-redraw is lost
+      scr.addEventListener("click",ev=>{ const d=ev.target.closest&&ev.target.closest(".tk-done");
+        if(!d) return;
+        circAdd(+d.dataset.bi,+d.dataset.i,d.dataset.tid);
+        renderTablet(); renderLanesRot(); });
+    }
     if(cfg.mode==="rotation"){
       const ni0=scr.querySelector("#tbName"); if(ni0&&(ni0===document.activeElement||ni0.value)) return;
       if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in Setup.</div>`; return; }
@@ -2393,10 +2441,25 @@
           <span>Target</span>
           <div class="tk-pills">${tsw.ergX.amounts.map(Number).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
         </div>`:"";
+      // in an AMRAP or a self-paced circuit the lap length is an internal detail —
+      // what the athlete is racing is the block's own clock
+      const capMode=isAmrap(b)||!!(seg&&seg.self);
       const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Next part in a moment"
-        :running?"Time left in this block":"This block lasts";
-      const clkVal=running?(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed))
+        :running?(isAmrap(b)?"Left in this AMRAP":"Time left in this block")
+        :(isAmrap(b)?"AMRAP time cap":"This block lasts");
+      const clkVal=running?(capMode?fmtMS(Math.max(0,blockLen(b)-rot.elapsed))
+          :(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)))
         :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
+      // ---- self-paced circuit: this team's own station, not the class's ----
+      let cir=null;
+      if(team&&seg&&seg.self&&!seg.it.rest){
+        const exs=(seg.it.exercises||[]).filter(Boolean);
+        if(exs.length>1){
+          const nSt=exs.length, done=circN(bi,seg.i,team.id);
+          const idx=(Math.max(0,hit.j)+done)%nSt;
+          cir={exs,nSt,done,idx,i:seg.i,cur:exs[idx],next:exs[(idx+1)%nSt],lap:Math.floor(done/nSt)+1};
+        }
+      }
       // ---- what this block actually is, with the live segment marked ----
       // during a rest the guide looks forward: show the block you're walking to
       const wBlk=(phase==="rest"||holding)?nxBlock:b;
@@ -2413,12 +2476,20 @@
       if(phase==="done"){ thenLab="today"; after=[];
         nowLines=R().blocks.map(x=>`<em>${esc(x.name)} \u00b7 ${esc(bmLabel(x))}</em>`); }
       const thenTxt=after.join(" \u00b7 ");
-      const workList=`<div class="tk-card tk-work">
+      const workList=cir?`<div class="tk-card tk-work">
+                <div class="tk-now"><em>${esc(exTxt(cir.cur))}</em></div>
+                <button type="button" class="tk-done" id="tbDone"
+                  data-bi="${bi}" data-i="${cir.i}" data-tid="${esc(String(team.id))}">
+                  <b>Done</b><i>next &rarr; ${esc(cir.next.name)}</i></button>
+              </div>`:`<div class="tk-card tk-work">
                 <div class="tk-now ${(nowIt&&nowIt.rest&&phase!=="done")?"rest":""}">${nowLines.join("")}</div>
                 ${thenTxt?`<div class="tk-then"><span>${thenLab}</span><i>${esc(thenTxt)}</i></div>`:""}
               </div>`;
       // ---- the guide: where you go when this ends ----
+      if(cir){ jHead=`Station ${cir.idx+1} of ${cir.nSt} &middot; Lap ${cir.lap}`; jSub=""; }
       let nxSpan="Next station",nxB=esc(nxBlock.name),nxEm=esc(bmLabel(nxBlock));
+      if(cir){ nxSpan="After this"; nxB=esc(cir.next.name);
+        nxEm=esc(((cir.next.amounts||[]).join("/")+exUnit(cir.next.unit)).trim()); }
       if(phase==="done"){ nxSpan="Finished"; nxB="Great work"; nxEm="Check the board"; }
       else if(!team){ nxSpan="This machine"; nxB="Not in use"; nxEm="this round"; }
       else if(phase==="rest"||holding){ nxSpan="Go now &rarr;"; }
@@ -2465,6 +2536,7 @@
         </div>`;
       scr.classList.toggle("has-swap",!!tsw);
       fitTablet();
+
       if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
         const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(); }; }); }
       const gi=$("tbNameGo");
@@ -2696,12 +2768,21 @@
               ()=>it.fmt==="waves"?"Waves":it.fmt==="share"?"Share":(it.fmt==="rotate"&&canRot)?"Rotate":"Together",
               v=>{ if(/^share/i.test(v)){ it.fmt="share"; it.shareN=clamp(parseInt(it.shareN,10)||2,2,6); delete it.wavesN; }
                 else if(/^wave/i.test(v)){ it.fmt="waves"; it.wavesN=clamp(parseInt(it.wavesN,10)||2,2,6); delete it.shareN; }
-                else if(/^rot/i.test(v)&&canRot){ it.fmt="rotate"; delete it.wavesN; delete it.shareN; }
+                else if(/^rot/i.test(v)&&canRot){ it.fmt="rotate"; it.rotBy=it.rotBy||"done"; delete it.wavesN; delete it.shareN; }
                 else { delete it.fmt; delete it.wavesN; delete it.shareN; }
                 save(); renderItems(); if(!sessionActive&&!running) build(); },
               {cls:"time ifmt", searchPh:"Format\u2026"});
             fw.title="How the class runs this: Together — everyone on their own station · Share — athletes share one station, alternating · Waves — staggered groups, each wave gets the full time · Rotate — split across the group's exercises and swap";
             fp.appendChild(fw);
+            if(itRot(it)){
+              const rb=menuField(()=>["When done","On the clock"],
+                ()=>itRotBy(it)==="done"?"When done":"On the clock",
+                v=>{ it.rotBy=/done/i.test(v)?"done":"clock";
+                  save(); renderItems(); if(!sessionActive&&!running) build(); },
+                {cls:"time irotby", searchPh:"Move when\u2026"});
+              rb.title="When people move to the next station";
+              fp.appendChild(rb);
+            }
             if(it.fmt==="share"||it.fmt==="waves"){
               const isSh=it.fmt==="share";
               const fn=menuField(()=>isSh?["2s","3s","4s","5s","6s"]:["2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
@@ -2801,12 +2882,26 @@
       { const brow=box.querySelector(".brow");
         const lab=(t,key)=>mkHelpLab(t,key);
         const grp=(...kids)=>{ const g=document.createElement("span"); g.className="bgrp"; kids.forEach(k=>g.appendChild(k)); brow.appendChild(g); return g; };
-        const rw=menuField(()=>["1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7","7\u00d7","8\u00d7","9\u00d7","10\u00d7","12\u00d7","15\u00d7","16\u00d7","20\u00d7"],
-          ()=>bRounds(b)+"\u00d7",
-          v=>{ b.rounds=clamp(parseInt(v,10)||1,1,30); save(); buildBlocks(); if(!sessionActive&&!running) build(); },
+        const rw=menuField(()=>["AMRAP","1\u00d7","2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7","7\u00d7","8\u00d7","9\u00d7","10\u00d7","12\u00d7","15\u00d7","16\u00d7","20\u00d7"],
+          ()=>isAmrap(b)?"AMRAP":bRounds(b)+"\u00d7",
+          v=>{ if(/amrap/i.test(v)){ b.rounds="amrap"; b.cap=clamp(parseInt(b.cap,10)||1200,10,7200); }
+            else { b.rounds=clamp(parseInt(v,10)||1,1,30); delete b.cap; }
+            save(); buildBlocks(); if(!sessionActive&&!running) build(); },
           {numeric:true, cls:"time brounds", searchPh:"Rounds\u2026"});
-        rw.title="How many times this block repeats";
+        rw.title="How many times this block repeats \u2014 AMRAP loops it until the time cap";
         grp(lab("Rounds","rounds"),rw);
+        if(isAmrap(b)){
+          const cp=menuField(()=>["5:00","8:00","10:00","12:00","15:00","20:00","25:00","30:00","40:00","45:00","60:00"],
+            ()=>fmtMS(bCap(b)),
+            v=>{ const m=v.match(/(\d+):(\d{1,2})/); let s=0;
+              if(m) s=+m[1]*60+ +m[2];
+              else if(/^\d+$/.test(v)) s=v.length>=3? (+v.slice(0,-2))*60+ +v.slice(-2) : (+v<10? +v*60 : +v);
+              b.cap=clamp(s,10,7200);
+              save(); buildBlocks(); if(!sessionActive&&!running) build(); },
+            {numeric:true, addable:true, addLabel:"Use", cls:"time brrest", searchPh:"Type 45:00 or 4500\u2026"});
+          cp.title="As many rounds as possible inside this time";
+          grp(lab("Time cap","cap"),cp);
+        }
         if(bRounds(b)>1){
           const rr=menuField(()=>["None","0:30","1:00","1:30","2:00","2:30","3:00","3:30","4:00","4:30","5:00"],
             ()=>bRRest(b)?fmtMS(bRRest(b)):"None",
@@ -3038,8 +3133,8 @@
 
   // ---- ATHL3TE class library (from the gym's own boards) ----
   (function seedLibrary(){
-    if(presets.some(p=>p.seedV===4)) return;
-    presets=presets.filter(p=>p.seedV!==3);
+    if(presets.some(p=>p.seedV===5)) return;
+    presets=presets.filter(p=>p.seedV!==3&&p.seedV!==4);
     const E=(name,amounts,unit,who)=>({who:who||"",name:name,amounts:amounts||[],unit:unit||"reps",max:false});
     const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:false});
     const I=(dur,exs,label)=>Object.assign({dur:dur,scored:false,exercises:exs},label?{name:label,group:true}:{});
@@ -3048,7 +3143,7 @@
     const W=(name,blocks)=>{ const c=structuredClone(DEFAULTS);
       c.name=name; c.wkName=name; c.noScore=true; c.together=true; c.teamKind="solo";
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:4,cfg:c}; };
+      return {name:name,seedV:5,cfg:c}; };
 
     const lib=[
       W("Slow It or Send It",[
@@ -3105,8 +3200,10 @@
                     I(120,[E("DB Snatches",[6]),E("Burpees",[3])],"YGIG AMRAP")],3)
       ]),
       W("Hyrox Conditioner",[
-        B("Part A",[I(2700,[E("Run",[1000],"m"),E("Sled Pull",[50],"m"),E("SkiErg",[500],"m"),E("Run",[500],"m"),
-                            E("Farmers Carry",[100],"m"),E("Row",[500],"m"),E("Run",[250],"m"),E("Burpee to Plate",[40])],"45:00 AMRAP")]),
+        Object.assign(B("Part A",[Object.assign(I(300,[E("Run",[1000],"m"),E("Sled Pull",[50],"m"),E("SkiErg",[500],"m"),E("Run",[500],"m"),
+                            E("Farmers Carry",[100],"m"),E("Row",[500],"m"),E("Run",[250],"m"),E("Burpee to Plate",[40]),
+                            E("Wall Balls",[50])],"Hyrox circuit"),{fmt:"rotate",rotBy:"done"})]),
+                    {rounds:"amrap",cap:2700}),
         B("Part B",[I(600,[E("Wall Balls",[120])],"Finisher · for time")])
       ]),
       W("Upper Focus 4",[
@@ -3154,7 +3251,7 @@
     if(it.rest) return "Rest \u00b7 "+fmtMS(it.dur);
     const label=(it.exercises&&it.exercises.length===1&&!it.name)?"":(it.name||"Group");
     const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} \u00d7 ${itWaves(it)} waves`
-      :itRot(it)?`${fmtMS(it.dur)} \u00b7 swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`
+      :itSelf(it)?`${it.exercises.length} stations \u00b7 self-paced`:itRot(it)?`${fmtMS(it.dur)} \u00b7 swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`
       :itShare(it)?`${fmtMS(it.dur)} \u00b7 share in ${itShare(it)}s, alternate`
       :fmtMS(it.dur);
     return (label?label+" \u00b7 ":"")+tlab;
@@ -3320,10 +3417,12 @@
     exercise:"Pick from your library or type a new name to add it. Erg names (Row, Ski, Bike, Run) link the exercise to that machine for tablets and machine counts.",
     target:"The prescription: MAX = as many as possible in the time, or set numbers \u2014 add more for options (e.g. 600/500/400 m, or 12/20 kg).",
     unit:"What the numbers count \u2014 reps, calories, metres or seconds.",
-    rounds:"How many times this whole block repeats before the class moves on.",
+    rounds:"How many times this whole block repeats before the class moves on. AMRAP = as many rounds as possible inside a time cap.",
+    cap:"The AMRAP time cap \u2014 the class keeps looping this block's stations until the clock runs out.",
+    rotby:"When people move to the next station: When done \u2014 they tap DONE on the tablet as they finish, so everyone is self-paced \u00b7 On the clock \u2014 the app moves everyone at fixed intervals.",
     rrest:"Timed break between this block's rounds \u2014 never added after the last round.",
     arest:"Rest after this block ends, before the next one starts.",
-    format:"How the class runs this piece: Together \u2014 everyone at once on their own station \u00b7 Share \u2014 2\u20136 athletes on one station, alternating \u00b7 Waves \u2014 groups go one after another, each wave gets the full time \u00b7 Rotate \u2014 the class splits across the group's exercises and swaps."
+    format:"How the class runs this piece: Together \u2014 everyone at once on their own station \u00b7 Share \u2014 2\u20136 athletes on one station, alternating \u00b7 Waves \u2014 groups go one after another, each wave gets the full time \u00b7 Rotate \u2014 a circuit: everyone starts on a different exercise and moves along in order (this is the one for Hyrox-style station work)."
   };
   const mkHelpLab=(t,key)=>{ const s=document.createElement("span"); s.className="blab hlab"; s.textContent=t;
     s.setAttribute("role","button"); s.tabIndex=0;
@@ -3657,7 +3756,7 @@
     const parts=[];
     for(let i=from;i<its.length;i++){ const it=its[i];
       const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(i+1)));
-      parts.push(`${esc(nm)}${it.fmt==="waves"?` &middot; ${itWaves(it)} waves`:itRot(it)?" &middot; rotating":itShare(it)?` &middot; in ${itShare(it)}s`:""} <i>${fmtMS(itLen(it))}</i>`);
+      parts.push(`${esc(nm)}${it.fmt==="waves"?` &middot; ${itWaves(it)} waves`:itSelf(it)?" &middot; self-paced circuit":itRot(it)?" &middot; rotating":itShare(it)?` &middot; in ${itShare(it)}s`:""} <i>${fmtMS(itLen(it))}</i>`);
       if(it.hold&&i<its.length-1) break;
     }
     if(!parts.length) return "";
@@ -3811,7 +3910,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=220;
+  const BUILD=221;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
