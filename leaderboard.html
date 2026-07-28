@@ -3298,6 +3298,7 @@
     return (label?label+" \u00b7 ":"")+tlab;
   }
   function briefWinLine(b){
+    if(isAmrap(b)) return `AMRAP \u00b7 as many rounds as possible \u00b7 ${fmtMS(bCap(b))} total`;
     return `${bRounds(b)>1?`${bRounds(b)} rounds \u00d7 ${fmtMS(oneRound(b))}${bRRest(b)?` \u00b7 ${fmtMS(bRRest(b))} rest`:""} \u00b7 `:""}${fmtMS(blockLen(b))} total`;
   }
   async function downloadBriefPdf(){
@@ -3335,14 +3336,15 @@
     while(ts>40&&ctx.measureText(title).width>maxTW){ ts-=4; ctx.font=`700 ${ts}px ${DISP}`; }
     ctx.fillStyle="#fff"; ctx.fillText(title,W/2,M+66);
     ctx.font=`600 25px ${DISP}`; sp(7); ctx.fillStyle="#b9bec5";
-    ctx.fillText((`${nBlocks()} BLOCKS${laps()>1?` \u00b7 ${laps()} ROUNDS`:""} \u00b7 ${cfg.teamKind==="solo"?"SOLO":"TEAMS OF "+(cfg.teamSize||4)} \u00b7 ${fmtLong(sessionTotal())} TOTAL`).toUpperCase(),W/2,M+118);
+    ctx.fillText((`${nBlocks()} BLOCK${nBlocks()===1?"":"S"}${laps()>1?` \u00b7 ${laps()} ROUNDS`:""} \u00b7 ${cfg.teamKind==="solo"?"SOLO":"TEAMS OF "+(cfg.teamSize||4)} \u00b7 ${fmtLong(sessionTotal())} TOTAL`).toUpperCase(),W/2,M+118);
     sp(0);
     // columns — one per block, everything on ONE page, text scales down until it fits
     const blocks=R().blocks, N=Math.max(1,blocks.length);
     const colW=(W-2*M-(N-1)*GAP)/N;
     const top=M+176, bottom=H-M;
     const anyRest=blocks.some((b,bi)=>bi<N-1&&restAfterBlock(bi)>0);
-    const measure=(b,s)=>{ const pad=Math.round(34*s), inner=colW-2*pad, L=[];
+    const measure=(b,s,two)=>{ const pad=Math.round(34*s);
+      const inner=two?(colW-2*pad-GAP)/2:colW-2*pad; const L=[];
       const pushLab=(txt,font,lsp,col,lh,hot)=>{ ctx.font=font; sp(lsp);
         const hotW=hot?ctx.measureText(hot).width:0;
         const lines=wrap(txt,inner);
@@ -3362,17 +3364,29 @@
       });
       L.push({h:26*s});
       pushLab(briefWinLine(b).toUpperCase(),`600 ${19*s}px ${DISP}`,2.5*s,"#cfd3d8",28*s,"");
-      return {L,h:L.reduce((a,x)=>a+x.h,0),pad};
+      const tot=L.reduce((a,x)=>a+x.h,0);
+      if(!two) return {L,h:tot,pad,inner};
+      // split into two balanced columns so a tall, narrow list can use the page's
+      // width instead of forcing the type down
+      let acc=0,cut=L.length;
+      for(let i=0;i<L.length;i++){ acc+=L[i].h; if(acc>=tot/2){ cut=i+1; break; } }
+      const hA=L.slice(0,cut).reduce((a,x)=>a+x.h,0), hB=tot-hA;
+      return {L,h:Math.max(hA,hB),pad,inner,cut,two:true};
     };
     let s=1, cols=null, nameArea=0, cardH=0;
-    for(;;){
-      nameArea=Math.round(64*s);
-      cardH=bottom-top-nameArea-(anyRest?Math.round(52*s):0);
-      cols=blocks.map(b=>measure(b,s));
-      const need=Math.max(...cols.map(cl=>cl.h+2*cl.pad));
-      if(need<=cardH||s<=0.45) break;
-      s*=0.94;
-    }
+    // one block on a 1920 page leaves ~1700px of unused width — split it in two
+    const twoCol=N===1&&(blocks[0].items||[]).reduce((a,it)=>a+1+((it.exercises||[]).length),0)>6;
+    const layout=v=>{ const na=Math.round(64*v);
+      const ch=bottom-top-na-(anyRest?Math.round(52*v):0);
+      const cs=blocks.map(b=>measure(b,v,twoCol));
+      return {na,ch,cs,ok:Math.max(...cs.map(cl=>cl.h+2*cl.pad))<=ch}; };
+    let cur=layout(s);
+    while(!cur.ok&&s>0.45){ s*=0.94; cur=layout(s); }
+    // ...and grow into the space a short workout leaves, or a 9-line brief prints
+    // at reading size on a 70" screen
+    for(;;){ const t=s*1.04; if(t>2.6) break;
+      const nx=layout(t); if(!nx.ok) break; s=t; cur=nx; }
+    nameArea=cur.na; cardH=cur.ch; cols=cur.cs;
     blocks.forEach((b,bi)=>{
       const x=M+bi*(colW+GAP), cx=x+colW/2, cl=cols[bi];
       ctx.fillStyle="#fff"; ctx.font=`700 ${Math.round(40*s)}px ${DISP}`; sp(3*s);
@@ -3380,19 +3394,24 @@
       const cardY=top+nameArea;
       ctx.strokeStyle="rgba(255,255,255,.3)"; ctx.lineWidth=2.5; rrect(x,cardY,colW,cardH,20); ctx.stroke();
       ctx.fillStyle="rgba(255,255,255,.85)"; ctx.fillRect(x,cardY+16,4,cardH-32);
-      let y=cardY+(cardH-cl.h)/2;
-      cl.L.forEach(ln=>{ y+=ln.h;
-        if(!ln.txt) return;
-        ctx.font=ln.font; sp(ln.ls||0);
-        const base=y-Math.round(ln.h*0.28);
-        if(ln.hot){ const w1=ctx.measureText(ln.txt).width, w2=ctx.measureText(ln.hot).width;
-          ctx.textAlign="left"; const x0=cx-(w1+w2)/2;
-          ctx.fillStyle=ln.col; ctx.fillText(ln.txt,x0,base);
-          ctx.fillStyle="#ff7b73"; ctx.fillText(ln.hot,x0+w1,base);
-          ctx.textAlign="center";
-        } else { ctx.fillStyle=ln.col; ctx.fillText(ln.txt,cx,base); }
-        sp(0);
-      });
+      const y0=cardY+(cardH-cl.h)/2;
+      const drawRun=(list,centreX)=>{ let y=y0;
+        list.forEach(ln=>{ y+=ln.h;
+          if(!ln.txt) return;
+          ctx.font=ln.font; sp(ln.ls||0);
+          const base=y-Math.round(ln.h*0.28);
+          if(ln.hot){ const w1=ctx.measureText(ln.txt).width, w2=ctx.measureText(ln.hot).width;
+            ctx.textAlign="left"; const x0=centreX-(w1+w2)/2;
+            ctx.fillStyle=ln.col; ctx.fillText(ln.txt,x0,base);
+            ctx.fillStyle="#ff7b73"; ctx.fillText(ln.hot,x0+w1,base);
+            ctx.textAlign="center";
+          } else { ctx.fillStyle=ln.col; ctx.fillText(ln.txt,centreX,base); }
+          sp(0);
+        }); };
+      if(cl.two){ const iw=cl.inner;
+        drawRun(cl.L.slice(0,cl.cut), x+cl.pad+iw/2);
+        drawRun(cl.L.slice(cl.cut),   x+cl.pad+iw+GAP+iw/2);
+      } else drawRun(cl.L,cx);
       if(bi<N-1&&restAfterBlock(bi)>0){
         ctx.fillStyle="#b9bec5"; ctx.font=`600 ${Math.round(20*s)}px ${DISP}`; sp(4*s);
         ctx.fillText(("THEN REST \u00b7 "+fmtMS(restAfterBlock(bi))).toUpperCase(),cx,cardY+cardH+Math.round(38*s)); sp(0);
@@ -3951,7 +3970,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=229;
+  const BUILD=230;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
