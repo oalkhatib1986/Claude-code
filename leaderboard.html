@@ -221,8 +221,8 @@
   .tk.hot .tk-head{background:rgba(255,45,45,.12);color:#c81111}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase}
-  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(17px,4.5vw,26px);line-height:1.2;
-    letter-spacing:.04em;text-transform:uppercase;color:rgba(0,0,0,.5)}
+  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
+    letter-spacing:.03em;text-transform:uppercase;color:rgba(0,0,0,.5);padding:0 15px;margin:0 -15px;align-self:stretch}
   .tk-goal{display:flex;align-items:baseline;gap:11px;min-width:0}
   .tk-goal b{font-family:var(--mono);font-weight:700;font-size:clamp(42px,11.5vw,86px);line-height:.95;
     font-variant-numeric:tabular-nums}
@@ -251,14 +251,14 @@
   .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;flex:none;overflow:hidden}
-  .tk-vit>div{padding:11px 2px 13px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
+  .tk-vit>div{padding:12px 7px 14px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
   .tk-vit>div:first-child{border-left:none}
   .tk-vit .opt{display:none}
-  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(17px,4.2vw,28px);
-    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(20px,5vw,38px);
+    line-height:1.02;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
   .tk.hot .tk-vit b{color:#c81111}
-  .tk-vit span{display:block;margin-top:4px;font-family:var(--disp);font-weight:600;
-    font-size:clamp(11px,2.6vw,14px);letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.55);white-space:nowrap}
+  .tk-vit span{display:block;margin-top:5px;font-family:var(--disp);font-weight:600;
+    font-size:clamp(11px,2.8vw,16px);letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.55);white-space:nowrap}
   /* Tablet preview: render the real 1005x600 screen and scale it to the phone */
   body.tabprev .tb-note{display:none}
   .tbprev-stage{overflow:hidden;border-radius:14px}
@@ -274,23 +274,23 @@
   body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   body.kioskon .tk-vit .opt{display:block}
-  body.kioskon .tk-id{padding:16px 24px;gap:16px}
-  body.kioskon .tk-logo{height:44px}
-  body.kioskon .tk-mach{font-size:54px}
-  body.kioskon .tk-who{font-size:38px}
-  body.kioskon .tk-blk{font-size:20px;padding:11px 18px}
+  body.kioskon .tk-id{padding:11px 24px;gap:16px}
+  body.kioskon .tk-logo{height:40px}
+  body.kioskon .tk-mach{font-size:46px}
+  body.kioskon .tk-who{font-size:32px}
+  body.kioskon .tk-blk{font-size:18px;padding:9px 16px}
   body.kioskon .tk-name{padding:14px 22px}
   body.kioskon .tk-name label{font-size:14px}
   body.kioskon .tk-name input{height:50px;font-size:20px}
   body.kioskon .tk-name .btn{height:50px;font-size:16px}
-  body.kioskon .tk-inst{padding:16px 22px;gap:10px}
-  body.kioskon .tk-cell{padding:16px 22px}
+  body.kioskon .tk-inst{padding:13px 22px;gap:8px}
+  body.kioskon .tk-cell{padding:12px 22px}
   body.kioskon .tk-tag{font-size:16px}
   body.kioskon .tk-head{font-size:34px;padding:12px 15px}
-  body.kioskon .tk-sub{font-size:26px}
+  body.kioskon .tk-sub{font-size:34px}
   body.kioskon .tk-big{font-size:44px}
-  body.kioskon .tk-cell b{font-size:88px}
-  body.kioskon .tk-cell i{font-size:17px}
+  body.kioskon .tk-cell b{font-size:74px}
+  body.kioskon .tk-cell i{font-size:16px}
   body.kioskon .tk-bar{height:16px}
   body.kioskon .tk-cell u{font-size:19px}
   body.kioskon .tk-rail{flex:0 0 210px;padding:16px 18px;gap:10px}
@@ -298,9 +298,9 @@
   body.kioskon .tk-pills .tswp b{font-size:34px}
   body.kioskon .tk-pills .tswp em{font-size:12px}
   body.kioskon .tk-flash{font-size:22px}
-  body.kioskon .tk-vit>div{padding:13px 4px 15px}
-  body.kioskon .tk-vit b{font-size:28px}
-  body.kioskon .tk-vit span{font-size:14px}
+  body.kioskon .tk-vit>div{padding:14px 8px 16px}
+  body.kioskon .tk-vit b{font-size:38px}
+  body.kioskon .tk-vit span{font-size:16px}
 
   .tb-top{display:flex;align-items:center;gap:12px}
   .tb-top .bname{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
@@ -3694,7 +3694,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=215;
+  const BUILD=216;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL="https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
   async function checkUpdate(){
