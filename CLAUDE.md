@@ -50,6 +50,17 @@ copy for cache-free serving; `version.txt` holds the build number.
 - Engine: per-block `rounds`/`rrest`/`aRest`; per-item `fmt` (share/waves/rotate)
   with `shareN`/`wavesN`; `cfg.together` = everyone-together class flow;
   `R().sameRest===false` enables per-block rest-after.
+- **Stations are physical, and counted.** `it.stations` is how many of that thing the
+  gym owns (4 racks). `itStations()` falls back to `shareN`, then to one each;
+  `blockStations()` takes the hungriest part so nobody is left without one;
+  `machSlots()` allocates per STATION and hands them out (`floor(j/per)`). Never
+  number stations per athlete — that is what printed "M1..M12" for four racks.
+- **NOW and NEXT are one component used twice.** `crewWhere()` returns
+  `{now,nxt}`, each `{lab, work, where, note}`: the work with its reps, the place
+  (`Block A · Station 1`), one note. `crewStLine()` has a single `cell()` builder so
+  the boxes cannot drift apart. "Next" resolves nearest-first — the swap inside this
+  part, the next part of this block, then the next block, which is the only case that
+  says `end of <block>`. The station number never rides on the exercise name.
 - TVs load `#screen` / `#workout` and must always start in TV mode; the Big Screen
   tab on a phone defaults to phone view (`scrFit`). Under 1100px, TV mode frames the
   board at a true 1920x1080 and scales it (`body.tvprev`, `#smStage`) instead of
