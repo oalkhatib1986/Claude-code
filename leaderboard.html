@@ -319,11 +319,18 @@
   /* TV preview: render the board at its real 1560x878 (16:9) TV size and scale the
      whole frame down, so a phone sees exactly what the 70" screen shows */
   /* full screen — the board and nothing else, for casting to the TV */
-  /* the only chrome full screen keeps: switch view, and leave. Barely there until
-     you reach for them, so you can change the picture without dropping out. */
+  /* The only chrome full screen keeps: switch view, and leave. They are OFF, not
+     faint: touch has no hover to leave, so a tap used to light them and leave them
+     lit on top of the board. Any tap or pointer move calls them back for a few
+     seconds (tvctlPoke), then they go again. While hidden they take no taps, so the
+     first touch in that corner can never be an accidental exit. */
   .tvctl{display:none;position:fixed;top:12px;right:12px;z-index:60;gap:8px;
-    opacity:.16;transition:opacity .2s}
-  .tvctl:hover,.tvctl:focus-within{opacity:1}
+    opacity:0;pointer-events:none;transition:opacity .28s}
+  .tvctl.show,.tvctl:focus-within{opacity:1;pointer-events:auto}
+  /* not projecting yet: leave a hint of the control so it can be found at all */
+  body.bigscreen:not(.tvfull) .tvctl{opacity:.16;pointer-events:auto}
+  body.bigscreen:not(.tvfull) .tvctl.show{opacity:1}
+  @media (hover:hover) and (pointer:fine){ .tvctl:hover{opacity:1;pointer-events:auto} }
   .tvctl button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
     background:rgba(0,0,0,.6);color:#fff;font-size:20px;line-height:1;cursor:pointer;
     display:flex;align-items:center;justify-content:center}
@@ -853,7 +860,9 @@
   #scrTabs .fitbtn{display:none}
   @media (max-width:899px){
     body.bigscreen #scrTabs{opacity:.6}
-    #scrTabs .fitbtn{display:block;margin-left:auto}
+    /* one evenly spaced row, like every other sub-tab row — no auto margins
+       shoving the last two pills apart */
+    #scrTabs .fitbtn{display:block}
   }
   body.bigscreen #scrTabs:hover{opacity:1}
   body.wkscreen .board{display:none!important}
@@ -1927,7 +1936,7 @@
       const seg=running?segAt(b,rot.elapsed):null;
       const hot=!!(seg&&seg.it.scored&&!seg.it.rest&&!cfg.noScore);
       return `<div class="blk ${hot?"scoring":""} bcw">
-        <div class="bh"><b>${esc(b.name)}</b>${blockMachine(b)?`<span class="mc">${bmLabel(b)}</span>`:""}</div>
+        <div class="bh"><b>${esc(b.name)}</b></div>
         <div class="bd">${exLines(b)}</div>
         <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span><b class="tn">${esc(t.e.name)}</b><em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
@@ -2321,6 +2330,17 @@
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
   $("smWork").onclick=()=>{ scrMode="work"; show("screen"); };
   $("smFit").onclick=()=>{ scrFit=scrFit==="tv"?"mobile":"tv"; show("screen"); };
+  // The corner controls come back for a moment on any activity and then go away
+  // again, so nothing sits on top of the board while the class is running.
+  let tvctlT=0;
+  function tvctlPoke(ms){
+    const c=document.querySelector(".tvctl"); if(!c) return;
+    c.classList.add("show"); clearTimeout(tvctlT);
+    tvctlT=setTimeout(()=>c.classList.remove("show"),ms||2800);
+  }
+  ["pointerdown","pointermove","keydown","wheel"].forEach(ev=>
+    document.addEventListener(ev,()=>{
+      if(document.body.classList.contains("bigscreen")) tvctlPoke(); },{passive:true}));
   function setFull(on){
     document.body.classList.toggle("tvfull",on);
     try{
@@ -2328,6 +2348,8 @@
       else if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{});
     }catch(e){}
     fitScreen(); requestAnimationFrame(fitScreen);
+    // show them once on the way in so you know they are there, then let them fade
+    if(on) tvctlPoke(2200);
   }
   // Entering full screen belongs to the TV preview, not to a pill of its own:
   // tap the frame you are previewing, or the corner control when projecting.
@@ -4118,7 +4140,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=242;
+  const BUILD=243;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
