@@ -1726,9 +1726,18 @@
   const anyOver=()=>{ const p=typePeaks(); return Object.keys(p).some(m=>p[m]>invOf(m)); };
   // fixed machine numbering: every block slot gets real machine numbers per type,
   // counted across blocks in order — so "Rower 3" means the same physical erg all session
+  // Sharing means FEWER stations, not more names. 12 athletes sharing in 3s need
+  // 4 racks/ergs, and athletes 1-3 are all on number 1. Stations are allocated per
+  // station, then handed out; the block's tightest share sets how many exist, so a
+  // block that also has an unshared part still has a machine for everyone.
+  const blockShareN=b=>{ let m=0; ((b&&b.items)||[]).forEach(it=>{ if(it.rest) return;
+      const s=itShare(it)||1; if(!m||s<m) m=s; }); return m||1; };
+  const stationNo=(b,j)=>Math.floor(Math.max(0,j)/blockShareN(b))+1;
   const machSlots=()=>{ const ctr={}, byKey={}, byBlock=[]; const wt=worstTeamsPerBlock();
     R().blocks.forEach((b,bi)=>{ const types=[...blockUsesTypes(b)]; const slots=[];
-      for(let j=0;j<wt;j++){ const mm={}; types.forEach(tp=>{ ctr[tp]=(ctr[tp]||0)+1; mm[tp]=ctr[tp]; byKey[tp+":"+ctr[tp]]={bi,j}; }); slots.push(mm); }
+      const sh=blockShareN(b), nSt=Math.max(1,Math.ceil(wt/sh)), stn=[];
+      for(let s2=0;s2<nSt;s2++){ const mm={}; types.forEach(tp=>{ ctr[tp]=(ctr[tp]||0)+1; mm[tp]=ctr[tp]; byKey[tp+":"+ctr[tp]]={bi,j:s2*sh}; }); stn.push(mm); }
+      for(let j=0;j<wt;j++) slots.push(stn[Math.min(stn.length-1,Math.floor(j/sh))]);
       byBlock.push(slots); });
     return {byKey,byBlock}; };
   const slotLabel=(bi,j,types)=>{ const mm=(machSlots().byBlock[bi]||[])[j]||{};
@@ -3238,7 +3247,7 @@
     if(!it) return "floor";
     // Off the ergs there is still a spot per athlete \u2014 rack 3, bar 3 \u2014 and they need
     // to be told which one is theirs, exactly as "Row 3" tells them on a machine block.
-    const n=" "+(j+1);
+    const n=" "+stationNo(b,j);
     if(itRot(it)){ const sg2=live?segAt(b,rot.elapsed):null;
       const sw=sg2&&sg2.swap!=null?sg2.swap:0;
       const x2=it.exercises[(Math.max(0,j)+sw)%it.exercises.length];
@@ -4213,7 +4222,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=246;
+  const BUILD=247;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
