@@ -620,6 +620,7 @@
   .mwrap.time{width:84px;flex:none}
   .mwrap.time.ifmt{width:auto;min-width:106px}
   .mwrap.time.irotby{width:auto;min-width:118px}
+  .mwrap.time.istn{width:auto;min-width:118px}
   .mfield{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:11px;padding:10px 32px 10px 13px;cursor:pointer;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .15s;
@@ -2990,9 +2991,20 @@
             fmtRow.appendChild(mkHelpLab("Format","format"));
             const fp=document.createElement("span"); fp.className="fmtpair";
             const canRot=it.exercises.length>1;
-            const fw=menuField(()=>["Together","Share","Waves"].concat(canRot?["Rotate"]:[]),
+            // Rotate is always offered. Hiding it left Omar hunting for a option that
+            // had simply vanished; it says what it needs instead.
+            const rotOpt=canRot?"Rotate":"Rotate \u2014 needs 2 exercises";
+            const fw=menuField(()=>["Together","Share","Waves",rotOpt],
               ()=>it.fmt==="waves"?"Waves":it.fmt==="share"?"Share":(it.fmt==="rotate"&&canRot)?"Rotate":"Together",
-              v=>{ if(/^share/i.test(v)){ it.fmt="share"; it.shareN=clamp(parseInt(it.shareN,10)||2,2,6); delete it.wavesN; }
+              v=>{ if(/^rot/i.test(v)&&!canRot){
+                  // the pick is refused, so nothing is re-rendered \u2014 the bubble would
+                  // be anchored to an element that no longer exists
+                  showHint(fw.querySelector(".mfield")||fw,
+                    "Rotate swaps people between the exercises in this part, so it needs at least "
+                    +"two. Add one with + Exercise \u2014 or use Share if several athletes take "
+                    +"turns on the same one.");
+                  return; }
+                if(/^share/i.test(v)){ it.fmt="share"; it.shareN=clamp(parseInt(it.shareN,10)||2,2,6); delete it.wavesN; }
                 else if(/^wave/i.test(v)){ it.fmt="waves"; it.wavesN=clamp(parseInt(it.wavesN,10)||2,2,6); delete it.shareN; }
                 else if(/^rot/i.test(v)&&canRot){ it.fmt="rotate"; it.rotBy=it.rotBy||"done"; delete it.wavesN; delete it.shareN; }
                 else { delete it.fmt; delete it.wavesN; delete it.shareN; }
@@ -3013,13 +3025,16 @@
             // many and the sharing follows: 12 athletes, 4 racks -> three per rack.
             if(!itemTypes(it).length){
               const wt=Math.max(1,worstTeamsPerBlock());
-              const stn=menuField(()=>["One each"].concat(Array.from({length:Math.max(12,wt)},(_,k)=>String(k+1))),
-                ()=>{ const n=clamp(parseInt(it.stations,10)||0,0,60); return n?String(n):"One each"; },
+              const stnTxt=n=>n?(n+" station"+(n>1?"s":"")):("One each ("+wt+")");
+              const stn=menuField(()=>[stnTxt(0)].concat(Array.from({length:Math.max(12,wt)},(_,k)=>stnTxt(k+1))),
+                ()=>stnTxt(clamp(parseInt(it.stations,10)||0,0,60)),
                 v=>{ const n=/one each/i.test(v)?0:clamp(parseInt(v,10)||0,0,60);
                   if(n) it.stations=n; else delete it.stations;
                   save(); renderItems(); if(!sessionActive&&!running) build(); },
-                {numeric:true, addable:true, addLabel:"Use", cls:"time istn", searchPh:"How many\u2026"});
-              stn.title="How many of these you have in the gym \u2014 racks, bars, benches. Athletes share what there is.";
+                {numeric:true, addable:true, addLabel:"Use", cls:"time istn",
+                 searchPh:"How many do you have\u2026"});
+              stn.title="How many of these the gym has \u2014 racks, bars, benches. Athletes share what "
+                +"there is: "+wt+" of them across 4 stations is three to a station.";
               fp.appendChild(mkHelpLab("Stations","stations"));
               fp.appendChild(stn);
             }
@@ -4269,7 +4284,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=249;
+  const BUILD=250;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
