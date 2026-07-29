@@ -55,6 +55,12 @@ copy for cache-free serving; `version.txt` holds the build number.
   `blockStations()` takes the hungriest part so nobody is left without one;
   `machSlots()` allocates per STATION and hands them out (`floor(j/per)`). Never
   number stations per athlete — that is what printed "M1..M12" for four racks.
+- **A part is named by its WORK, not by its exercise.** `partLabel()` is the one
+  label for a part wherever the trainer reads a list of them (session timeline,
+  start-flow line): exercise + amounts + format + station count. Three parts that
+  differ only in reps must never render as three identical rows — `audit.js` walks
+  every surface (timeline, start flow, NOW/NEXT, overview card, TV board, lane,
+  tablet) with a 6/4/2-rep block and fails if any of them drops the prescription.
 - **NOW and NEXT are one component used twice.** `crewWhere()` returns
   `{now,nxt}`, each `{lab, work, where, note}`: the work with its reps, the place
   (`Block A · Station 1`), one note. `crewStLine()` has a single `cell()` builder so

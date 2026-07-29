@@ -826,8 +826,9 @@
   .rrow.cur{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.035)}
   .rrow.next{cursor:pointer}
   .rrow.next:hover{border-color:rgba(255,255,255,.3)}
-  .prt{display:flex;align-items:center;gap:9px;padding:9px 2px 9px 8px;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-dim);transition:opacity .3s}
-  .prt i{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--ink-mute);margin-left:auto}
+  .prt{display:flex;align-items:baseline;gap:9px;padding:9px 2px 9px 8px;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-dim);transition:opacity .3s}
+  .prt>b{font-weight:400;min-width:0;overflow-wrap:anywhere}
+  .prt i{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--ink-mute);margin-left:auto;flex:none;white-space:nowrap}
   .prt.done{opacity:.3;pointer-events:none}
   .prt.cur{color:var(--ink)} .prt.cur.scored{color:var(--hot)}
   .prt.cur i{color:var(--ink)}
@@ -1794,6 +1795,21 @@
   const amtNum=a=>{ const v=amtVal(a); return v===null?NaN:parseFloat(v.split("-")[0]); };
   const exTxt=x=>{ const w=whoShown(x); const a=x.max?"Max":amtList(x).join("/");
     return `${w?w+" — ":""}${x.name}${a?" · "+a+exUnit(x.unit):""}`; };
+  // ONE label for a part, wherever the trainer reads a list of them. The exercise
+  // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
+  const partLabel=(it,ii)=>{
+    if(!it) return "";
+    if(it.rest) return "Rest";
+    const xs=(it.exercises||[]).filter(Boolean);
+    const work=xs.length?xs.map(x=>exTxt(x)).join(" \u00b7 "):"";
+    let nm=it.name?(work?it.name+" \u00b7 "+work:it.name):(work||("Part "+((ii||0)+1)));
+    if(it.fmt==="waves") nm+=" \u00b7 "+itWaves(it)+" waves";
+    else if(itSelf(it)) nm+=" \u00b7 self-paced circuit";
+    else if(itRot(it)) nm+=" \u00b7 rotating";
+    else if(itShare(it)) nm+=" \u00b7 in "+itShare(it)+"s";
+    const st=clamp(parseInt(it.stations,10)||0,0,60);
+    if(st) nm+=" \u00b7 "+st+" station"+(st>1?"s":"");
+    return nm; };
   const exLines=b=>{
     const its=b.items||[];
     if(!its.length) return esc(b.desc||"—");
@@ -4145,8 +4161,7 @@
     if(holding){ let acc=0; for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(acc<=rot.elapsed+0.01) from=i+1; } }
     const parts=[];
     for(let i=from;i<its.length;i++){ const it=its[i];
-      const nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(i+1)));
-      parts.push(`${esc(nm)}${it.fmt==="waves"?` &middot; ${itWaves(it)} waves`:itSelf(it)?" &middot; self-paced circuit":itRot(it)?" &middot; rotating":itShare(it)?` &middot; in ${itShare(it)}s`:""} <i>${fmtMS(itLen(it))}</i>`);
+      parts.push(`${esc(partLabel(it,i))} <i>${fmtMS(itLen(it))}</i>`);
       if(it.hold&&i<its.length-1) break;
     }
     if(!parts.length) return "";
@@ -4256,11 +4271,8 @@
         (b.items||[]).forEach((it,ii)=>{
           const st=acc; acc+=itLen(it);
           const es=!running?"":(tt>=acc?"done":tt>=st?"cur":"nextp");
-          let nm=it.rest?"Rest":(it.name||((it.exercises||[])[0]||{}).name||("Part "+(ii+1)));
-          if(it.fmt==="waves") nm+=` · ${itWaves(it)} waves`;
-          else if(itRot(it)) nm+=" · rotating";
-          else if(itShare(it)) nm+=` · in ${itShare(it)}s`;
-          out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>${esc(nm)}<i>${es==="cur"?fmtMS(Math.max(0,acc-tt)):fmtMS(itLen(it))}</i></div>`;
+          const nm=partLabel(it,ii);
+          out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span><b>${esc(nm)}</b><i>${es==="cur"?fmtMS(Math.max(0,acc-tt)):fmtMS(itLen(it))}</i></div>`;
           if(ii<(b.items||[]).length-1) out+=`<div class="ptr ${it.hold?"on":""}" data-ii="${ii}" role="button">${it.hold?"&#8214; trainer starts next":"&#9656; flows into next"}</div>`;
         });
         if(rbN>1&&bRRest(b)>0){
@@ -4300,7 +4312,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=251;
+  const BUILD=252;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
