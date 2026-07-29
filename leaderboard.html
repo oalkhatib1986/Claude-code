@@ -2853,7 +2853,7 @@
       nm.oninput=()=>{b.name=nm.value;save();};
       const partsEl=box.querySelector(".bparts");
 
-      const newEx=()=>({who:cfg.teamKind==="solo"?"":"All "+clamp(cfg.teamSize||4,2,6),name:cfg.library[0]||"Run",amounts:[],max:true,unit:"reps"});
+      const newEx=()=>({who:cfg.teamKind==="solo"?"":"All "+clamp(cfg.teamSize||4,2,6),name:cfg.library[0]||"Run",amounts:[],max:true,unit:""});
       const whoOpts=()=>{ const n=clamp(cfg.teamSize||4,2,6); const o=["Everyone","All "+n];
         for(let k2=2;k2<n;k2++) o.push("All "+k2);
         for(let p=1;p<=Math.ceil(n/2);p++) o.push("Pair "+p);
@@ -2883,6 +2883,7 @@
             </div></div>
           <div class="lfld ufld"><span class="blab hlab" data-hk="unit">Unit</span>
             <select class="unit">
+              <option value="" ${x.unit?"":"selected"}>\u2014</option>
               <option value="m" ${x.unit==="m"?"selected":""}>metres</option>
               <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
               <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
@@ -2898,7 +2899,7 @@
           x.amounts.forEach((a,ai)=>{
             const chip=document.createElement("span"); chip.className="amtchip";
             const raw=(a===null||a===undefined)?"":String(a);
-            const ph=x.unit==="reps"?"8-10":"0";
+            const ph=(x.unit==="reps"||!x.unit)?"8-10":"0";
             chip.innerHTML=`<input type="text" class="amt" inputmode="numeric" value="${esc(raw)}"`
               +` placeholder="${ph}" title="One number, or a range like 8-10">`
               +`<button type="button" class="amtdel" title="Remove option">&times;</button>`;
@@ -4212,7 +4213,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=245;
+  const BUILD=246;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
