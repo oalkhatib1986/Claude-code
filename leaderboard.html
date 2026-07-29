@@ -758,7 +758,7 @@
   .maxbtn.on{background:var(--accent);color:#000;border-color:var(--accent)}
   .amtchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .amtchip{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;padding:2px 1px 2px 5px;background:var(--field)}
-  .amtchip .amt{width:52px;border:0;background:transparent;padding:8px 0 8px 2px;font-family:var(--mono);font-size:16px;color:var(--ink)}
+  .amtchip .amt{width:auto;min-width:44px;border:0;background:transparent;padding:8px 0 8px 2px;font-family:var(--mono);font-size:16px;color:var(--ink)}
   .amtchip .amt:focus{outline:none}
   .amt::-webkit-inner-spin-button,.amt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
   .amtchip .amtdel{border:0;background:none;color:var(--ink-mute);font-size:13px;cursor:pointer;width:20px;height:26px;padding:0}
@@ -1028,7 +1028,7 @@
     .exr1.slim>.lfld:first-child{grid-column:1/-1}
     .exr2{gap:6px}
     .amtchips{gap:5px}
-    .amtchip .amt{width:46px}
+    .amtchip .amt{width:auto;min-width:40px}
     .maxbtn{padding:7px 11px}
     .exr2 .dsel{width:100%;margin-left:0;min-width:0}
     #segMode{flex-wrap:nowrap}
@@ -1755,7 +1755,14 @@
   const whoShown=x=>{ const w=(x.who||"").trim(); if(!w) return "";
     if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|solo|athlete ?\d+)$/i.test(w)) return "";
     return w; };
-  const exTxt=x=>{ const w=whoShown(x); const a=x.max?"Max":(x.amounts||[]).join("/");
+  // A target is either a fixed number (10) or a range (8-10). An amount you haven't
+  // finished typing ("", "8-") is not an amount yet and never reaches a screen.
+  const amtVal=a=>{ if(a===null||a===undefined) return null;
+    const s=String(a).trim().replace(/\s*[-–]\s*/,"-");
+    return /^\d+(\.\d+)?(-\d+(\.\d+)?)?$/.test(s)?s:null; };
+  const amtList=x=>(x.amounts||[]).map(amtVal).filter(v=>v!==null);
+  const amtNum=a=>{ const v=amtVal(a); return v===null?NaN:parseFloat(v.split("-")[0]); };
+  const exTxt=x=>{ const w=whoShown(x); const a=x.max?"Max":amtList(x).join("/");
     return `${w?w+" — ":""}${x.name}${a?" · "+a+exUnit(x.unit):""}`; };
   const exLines=b=>{
     const its=b.items||[];
@@ -1968,7 +1975,12 @@
         // "Next" is whatever actually happens next for THIS team — the pairs swapping
         // inside the block, or the next station of a circuit — not always the next
         // block. Same answer the trainer's NOW/NEXT panel gives, from the same source.
-        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)} · ${bmShort(here)}${mi>=0?` · ${slotLabel(st,mi,running?e.curTypes:null)}`:""}</b>${(()=>{
+        // off the ergs there is no machine name to print — say the block and the
+        // athlete's own spot instead of "Block A · — · M3"
+        const mach=blockMachine(here)?` · ${bmShort(here)}`:"";
+        const spot=mi<0?"":` · ${blockUsesTypes(here).size?slotLabel(st,mi,running?e.curTypes:null)
+                                                         :posShort(crewPosLabel(st,mi,true))}`;
+        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)}${mach}${spot}</b>${(()=>{
           const w=crewWhere(e.id), no=!w||!w.nxtT||w.nxtT==="—";
           const nx = (w&&w.nxtList&&w.nxtList.length) ? w.nxtList.join(" · ")
             : no ? (last?"":next.name)
@@ -2448,13 +2460,13 @@
     const it=seg?seg.it:(b&&(b.items||[]).find(x=>!x.rest));
     if(!it||it.rest||!it.group) return null;
     const exs=it.exercises||[];
-    const ergX=exs.find(x=>(x.unit==="m"||/^met/.test(x.unit||""))&&(x.amounts||[]).length);
+    const ergX=exs.find(x=>(x.unit==="m"||/^met/.test(x.unit||""))&&amtList(x).length);
     if(!ergX) return null;
     const whos=[...new Set(exs.map(x=>(x.who||"").trim()).filter(Boolean))];
     if(whos.length<2||!ergX.who) return null;
     const key=sv+":"+rot.round;
     const st=tbSw[key]||(tbSw[key]={on:whos.indexOf(ergX.who.trim()),n:0,flash:0,pick:{},
-      target:+ergX.amounts[0]||500});
+      target:amtNum(amtList(ergX)[0])||500});
     if(st.on<0) st.on=0;
     const live=!!(running&&seg);
     if(live){
@@ -2606,7 +2618,7 @@
       const tgtRail=tsw?`
         <div class="tk-card tk-rail tk-side">
           <span>Target</span>
-          <div class="tk-pills">${tsw.ergX.amounts.map(Number).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
+          <div class="tk-pills">${amtList(tsw.ergX).map(amtNum).filter(a=>isFinite(a)).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
         </div>`:"";
       // in an AMRAP or a self-paced circuit the lap length is an internal detail —
       // what the athlete is racing is the block's own clock
@@ -2664,7 +2676,7 @@
       else if(lastRound){ nxSpan="After this"; nxB="Session ends"; nxEm="Finish strong"; }
       // a circuit always points at the next station — that is the whole job of this card
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
-        nxEm=esc(((cir.next.amounts||[]).join("/")+exUnit(cir.next.unit)).trim()); }
+        nxEm=esc((amtList(cir.next).join("/")+exUnit(cir.next.unit)).trim()); }
       const nxtCard=`<div class="tk-card tk-nxt"><span>${nxSpan}</span><b>${nxB}</b>${nxEm?`<em>${nxEm}</em>`:""}</div>`;
       const nameBand=needName?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
       scr.innerHTML=`
@@ -2877,7 +2889,7 @@
               <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select></div>`;
         r2.querySelectorAll(".hlab").forEach(l=>{ l.onclick=e=>{ e.stopPropagation(); showHint(l,HELP[l.dataset.hk]||""); }; });
         row.append(r1,r2);
-        r2.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();};
+        r2.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();renderAmts();};
         enhanceSelects(r2);
         const chips=r2.querySelector(".amtchips");
         const renderAmts=()=>{
@@ -2885,16 +2897,30 @@
           if(x.max) return;
           x.amounts.forEach((a,ai)=>{
             const chip=document.createElement("span"); chip.className="amtchip";
-            chip.innerHTML=`<input type="number" class="amt" inputmode="numeric" value="${a}" min="0" step="1"><button type="button" class="amtdel" title="Remove option">&times;</button>`;
+            const raw=(a===null||a===undefined)?"":String(a);
+            const ph=x.unit==="reps"?"8-10":"0";
+            chip.innerHTML=`<input type="text" class="amt" inputmode="numeric" value="${esc(raw)}"`
+              +` placeholder="${ph}" title="One number, or a range like 8-10">`
+              +`<button type="button" class="amtdel" title="Remove option">&times;</button>`;
             const inp=chip.querySelector(".amt");
-            inp.oninput=()=>{ const v=parseFloat(inp.value); if(isFinite(v)){ x.amounts[ai]=v; save(); } };
+            // no fixed width: "8-10" and "1200" must both sit inside the chip
+            const fit=()=>{ inp.size=Math.max(3,(inp.value||inp.placeholder||"").length+1); };
+            fit();
+            inp.oninput=()=>{
+              const clean=inp.value.replace(/[^\d.\-–]/g,"").replace(/–/g,"-").replace(/^-/,"");
+              if(clean!==inp.value){ const p=inp.selectionStart; inp.value=clean; try{inp.setSelectionRange(p,p);}catch(e){} }
+              fit();
+              const n=parseFloat(clean);
+              x.amounts[ai]= clean===""?null : (/-/.test(clean)?clean : (isFinite(n)?n:null));
+              save(); };
             chip.querySelector(".amtdel").onclick=()=>{ x.amounts.splice(ai,1); save(); renderAmts(); };
             chips.appendChild(chip);
           });
           if(!x.amounts.length){ const h=document.createElement("span"); h.className="amthint"; h.textContent="add amount →"; chips.appendChild(h); }
         };
         renderAmts();
-        r2.querySelector(".amtadd").onclick=()=>{ x.amounts.push(x.amounts.length?x.amounts[x.amounts.length-1]:100); save(); renderAmts(); };
+        // a brand-new target starts EMPTY — you type it, you don't clear a 100 first
+        r2.querySelector(".amtadd").onclick=()=>{ x.amounts.push(x.amounts.length?x.amounts[x.amounts.length-1]:null); save(); renderAmts(); };
         r2.querySelector(".maxbtn").onclick=()=>{ x.max=!x.max; save(); renderItems(); };
         return row;
       };
@@ -3196,7 +3222,12 @@
   }
   const posShort=s=>{ s=String(s||"");
     const cut=s.split(/\s+[@(·,]/)[0].split(" · ")[0].trim();
-    return cut.length>18? cut.slice(0,17).trimEnd()+"\u2026" : cut; };
+    if(cut.length<=18) return cut;
+    // never drop the number: "Back Squat 7" is useless as "Back Squat\u2026" \u2014 the
+    // number is the instruction, it says which rack is yours
+    const m=cut.match(/\s(\d+)$/);
+    if(m) return cut.slice(0,Math.max(4,16-m[1].length)).trimEnd()+"\u2026 "+m[1];
+    return cut.slice(0,17).trimEnd()+"\u2026"; };
   function crewPosLabel(bi,j,isNow){
     const b=R().blocks[bi]; if(!b) return "";
     if(blockUsesTypes(b).size) return slotLabel(bi,j);
@@ -3204,12 +3235,15 @@
     const live=isNow&&running&&bi===blockIdxOf(rot.round);
     if(live){ const sg=segAt(b,rot.elapsed); if(sg&&!sg.it.rest&&!sg.it.rrest) it=sg.it; }
     if(!it) return "floor";
+    // Off the ergs there is still a spot per athlete \u2014 rack 3, bar 3 \u2014 and they need
+    // to be told which one is theirs, exactly as "Row 3" tells them on a machine block.
+    const n=" "+(j+1);
     if(itRot(it)){ const sg2=live?segAt(b,rot.elapsed):null;
       const sw=sg2&&sg2.swap!=null?sg2.swap:0;
       const x2=it.exercises[(Math.max(0,j)+sw)%it.exercises.length];
-      if(x2) return x2.name; }
+      if(x2) return x2.name+n; }
     const x=(it.exercises||[])[0];
-    return x?x.name:(it.name||"floor");
+    return (x?x.name:(it.name||"floor"))+n;
   }
   // Where this athlete is standing right now, and where they go next. On a
   // self-paced circuit that's their own station, not the class's.
@@ -3233,8 +3267,35 @@
     }
     const nxi=(st+1)%nBlocks(), nx=R().blocks[nxi];
     const last=rot.round>=totalRounds()-1||nBlocks()<2;
-    const nxt={nxtLab:"Next block", nxtT:last?"\u2014":posShort(crewPosLabel(nxi,j,false)),
-               nxtS:last?"nothing after this":nx.name};
+    const its=here.items||[];
+    const itLines=it=>{ const xs=(it.exercises||[]).filter(Boolean);
+      return xs.length?xs.map(x=>exTxt(x)):[it.name||"Work"]; };
+    // A block is a LIST of parts. If this block still has work left in it, that work
+    // is what happens next \u2014 not the next block, and never "nothing after this".
+    const nextItem=(()=>{
+      if(!seg||seg.i<0) return null;
+      let rest=0;
+      for(let m=seg.i+1;m<its.length;m++){
+        if(its[m].rest){ rest+=its[m].dur||0; continue; }
+        return {it:its[m],rest,again:false};
+      }
+      // a block that repeats comes back to its own first part before it moves on
+      if(seg.rounds>1&&seg.round<seg.rounds-1)
+        for(let m=0;m<its.length;m++) if(!its[m].rest)
+          return {it:its[m],rest:rest+bRRest(here),again:true};
+      return null;
+    })();
+    const tail=last?"then the session ends"
+                   :`then ${nx.name} \u00b7 ${posShort(crewPosLabel(nxi,j,false))}`;
+    let nxt;
+    if(nextItem){
+      const L=itLines(nextItem.it);
+      const sub=[nextItem.again?`round ${(seg.round||0)+2} of ${seg.rounds}`:"",
+                 nextItem.rest?`after ${fmtMS(nextItem.rest)} rest`:""].filter(Boolean).join(" \u00b7 ");
+      nxt={nxtLab:"Next in this block", nxtT:L[0], nxtList:L.length>1?L:null,
+           nxtS:sub, nxtX:tail};
+    } else nxt={nxtLab:"Next block", nxtT:last?"\u2014":posShort(crewPosLabel(nxi,j,false)),
+                nxtS:last?"nothing after this":nx.name};
     if(seg&&seg.it.rest) return {nowT:"Resting",nowS:here.name,...nxt};
     // name the work as well as the station: a block that splits a team across two
     // exercises otherwise reads as a contradiction ("Next Row 1" vs the lunge)
@@ -3249,7 +3310,7 @@
       // every move is a peer, so they are all drawn the same size \u2014 not one headline
       // and the rest shrunk into a footnote
       return {...nowCell, nxtLab:"Next in this block", nxtT:moves[0], nxtList:moves,
-        nxtX:last?"then the session ends":`then ${nx.name} \u00b7 ${posShort(crewPosLabel(nxi,j,false))}`};
+        nxtX:nextItem?`then ${itLines(nextItem.it).join(" \u00b7 ")}`:tail};
     }
     return {...nowCell, ...nxt};
   }
@@ -4151,7 +4212,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=244;
+  const BUILD=245;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
