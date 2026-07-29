@@ -63,3 +63,11 @@ copy for cache-free serving; `version.txt` holds the build number.
   or via the corner control when already projecting; `.tvctl` then offers switch-view
   and exit. Never read a stage's own inline width as "available" —
   measure the free space or the frame can never grow back.
+- **Full screen FILLS the screen, edge to edge.** `body.tvfull` drops the 1920x1080
+  conceit entirely: `#viewBoard` is sized to the real viewport (turned on its side
+  when the device is held upright) and `fillTvBoard()` picks the width the board is
+  *authored* at — `W = cw * H(W) / ch` — so the uniform scale lands on exactly
+  cw x ch. Wider than the screen means it scales down, narrower means it scales up;
+  either way there are no black bands on either axis. Fitting inside a fixed frame
+  (`fitTvBoard`) is for the *preview* only. `fsfill.js` asserts ≥94% coverage on both
+  axes and nothing painted outside, on 1920/2560/3840 TVs and phone both ways.
