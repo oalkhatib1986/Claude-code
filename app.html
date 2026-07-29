@@ -328,7 +328,12 @@
     background:rgba(0,0,0,.6);color:#fff;font-size:20px;line-height:1;cursor:pointer;
     display:flex;align-items:center;justify-content:center}
   .tvctl button:hover{background:rgba(255,255,255,.14)}
-  body.tvfull .tvctl{display:flex}
+  body.tvfull .tvctl,
+  body.bigscreen:not(.mobscreen):not(.tvprev) .tvctl{display:flex}
+  body:not(.tvfull) #tvSwap,body:not(.tvfull) #tvExit{display:none}
+  body.tvfull #tvFull{display:none}
+  /* in the preview the frame itself is the button — that is what you are casting */
+  body.tvprev .tvprev-stage{cursor:pointer}
   body.tvfull{padding:0!important}
   body.tvfull header,body.tvfull .subtabs,body.tvfull .tvprev-cap{display:none!important}
   body.tvfull .wrap{max-width:none!important;padding:0!important;gap:0}
@@ -1009,6 +1014,7 @@
 </style>
 
 <div class="tvctl" id="tvCtl">
+  <button id="tvFull" type="button" title="Go full screen">&#9974;</button>
   <button id="tvSwap" type="button" title="Switch between Leaderboard and Workout + Timer">&#8646;</button>
   <button id="tvExit" type="button" title="Leave full screen (Esc)">&times;</button>
 </div>
@@ -1028,7 +1034,6 @@
     <button id="smLead" class="on" type="button">Leaderboard</button>
     <button id="smWork" type="button">Workout + Timer</button>
     <button id="smFit" type="button" class="fitbtn">Phone view</button>
-    <button id="smFull" type="button" class="fitbtn">Full screen</button>
     <button id="pdfBtn" type="button" class="fitbtn" hidden>PDF</button>
   </div>
   <div class="subtabs" id="ctlTabs" hidden>
@@ -2303,10 +2308,13 @@
       if(on){ const el=document.documentElement; if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); }
       else if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{});
     }catch(e){}
-    const b=$("smFull"); if(b) b.textContent=on?"Exit full screen":"Full screen";
     fitScreen(); requestAnimationFrame(fitScreen);
   }
-  { const fb=$("smFull"); if(fb) fb.onclick=()=>setFull(!document.body.classList.contains("tvfull")); }
+  // Entering full screen belongs to the TV preview, not to a pill of its own:
+  // tap the frame you are previewing, or the corner control when projecting.
+  { const st=$("smStage"); if(st) st.onclick=()=>{
+      if(document.body.classList.contains("tvprev")&&!document.body.classList.contains("tvfull")) setFull(true); }; }
+  { const gb=$("tvFull"); if(gb) gb.onclick=()=>setFull(true); }
   { const xb=$("tvExit"); if(xb) xb.onclick=()=>setFull(false); }
   { const sw=$("tvSwap"); if(sw) sw.onclick=()=>{
       // stay in full screen, just change which picture is on the wall
@@ -4084,7 +4092,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=238;
+  const BUILD=239;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
@@ -4153,8 +4161,8 @@
       // A 16:9 frame laid flat on a portrait phone is a postage stamp. Turn it on
       // its side like the tablet preview does, so it fills the screen.
       const tall=lw<820&&window.innerHeight>lw;
-      if(cap) cap.textContent=tall?"TV preview \u2014 turn your phone to read it"
-                                  :"TV preview \u2014 this is what the big screen shows";
+      if(cap) cap.textContent=tall?"TV preview \u2014 tap to go full screen \u00b7 turn your phone to read it"
+                                  :"TV preview \u2014 tap to go full screen";
       // Fill the width, exactly like the erg tablet preview does, and let the page
       // scroll down if the frame is taller than the screen. Capping by height instead
       // shrank a landscape phone's preview to a quarter of the tablet preview's size.

@@ -57,6 +57,9 @@ copy for cache-free serving; `version.txt` holds the build number.
   the header, so `.tvbrand` draws the mark inside it — preview only; a real TV keeps
   the header, which also carries the partner logo (`#coLogoWrap`). `fitTvBoard()`
   scales `#tvFit` so the picture always fits the screen and centres. Chrome above the
-  board costs picture: `Full screen` (`body.tvfull`, `#smFull`) hides everything and
-  is the mode to cast from. Never read a stage's own inline width as "available" —
+  board costs picture: full screen (`body.tvfull`) hides everything and is the mode to
+  cast from. It is not a pill of its own — the sub-tab row stays Leaderboard ·
+  Workout+Timer · Phone/TV view · PDF. You enter it by tapping the TV preview frame,
+  or via the corner control when already projecting; `.tvctl` then offers switch-view
+  and exit. Never read a stage's own inline width as "available" —
   measure the free space or the frame can never grow back.
