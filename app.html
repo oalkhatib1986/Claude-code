@@ -581,10 +581,13 @@
   .crew .cst b{font-family:var(--disp);font-weight:700;font-size:16.5px;line-height:1.2;
     letter-spacing:.02em;color:var(--ink);min-width:0;overflow-wrap:anywhere}
   .crew .cst b+b{margin-top:2px}
-  .crew .cst i{font-style:normal;font-size:12.5px;line-height:1.35;color:var(--ink-mute);
-    min-width:0;overflow-wrap:anywhere}
-  .crew .cst u{display:block;text-decoration:none;margin-top:5px;padding-top:5px;
-    border-top:1px solid var(--line-soft);font-size:12.5px;line-height:1.35;
+  /* ONE size in the whole box. The trainer reads these at arm's length across a
+     gym floor, so the station and the block are as big as the work above them —
+     they are told apart by weight and colour, never by shrinking. */
+  .crew .cst i{font-style:normal;font-size:16.5px;font-weight:500;line-height:1.25;
+    color:var(--ink-mute);min-width:0;overflow-wrap:anywhere}
+  .crew .cst u{display:block;text-decoration:none;margin-top:6px;padding-top:6px;
+    border-top:1px solid var(--line-soft);font-size:16.5px;font-weight:500;line-height:1.25;
     color:var(--ink-dim);min-width:0;overflow-wrap:anywhere}
   .crew:last-of-type{border-bottom:0}
   .crew .del{border:1px solid var(--line);background:transparent;color:var(--ink-mute);border-radius:10px;height:40px;cursor:pointer;font-size:17px;transition:.14s}
@@ -687,7 +690,9 @@
   .psec-h .gsingle{flex:1;min-width:110px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .psec-h .gtime{display:flex;align-items:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
-  .fmtpair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+  .fmtpair{display:flex;align-items:flex-end;gap:9px 10px;flex-wrap:wrap;min-width:0}
+  .fmtpair .nfld{flex:0 0 auto;min-width:0}
+  .psec .irow.fmtrow{flex-wrap:wrap;align-items:flex-end}
   #aiFab{position:fixed;right:14px;left:auto;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:94;width:52px;height:52px;border-radius:50%;
     background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
@@ -2987,9 +2992,14 @@
           gt.append(minW,lm,secW,ls);
           let fmtRow=null;
           if(!isRest){
-            fmtRow=document.createElement("div"); fmtRow.className="irow";
-            fmtRow.appendChild(mkHelpLab("Format","format"));
+            fmtRow=document.createElement("div"); fmtRow.className="irow fmtrow";
             const fp=document.createElement("span"); fp.className="fmtpair";
+            // Each field carries its OWN label, above it. One label to the left of the
+            // row drifted to whichever line the wrap left it on, and the count field
+            // had no name at all.
+            const named=(t,key,node)=>{ const w=document.createElement("span");
+              w.className="lfld nfld"; w.appendChild(mkHelpLab(t,key)); w.appendChild(node);
+              fp.appendChild(w); return node; };
             const canRot=it.exercises.length>1;
             // Rotate is always offered. Hiding it left Omar hunting for a option that
             // had simply vanished; it says what it needs instead.
@@ -3011,7 +3021,7 @@
                 save(); renderItems(); if(!sessionActive&&!running) build(); },
               {cls:"time ifmt", searchPh:"Format\u2026"});
             fw.title="How the class runs this: Together — everyone on their own station · Share — athletes share one station, alternating · Waves — staggered groups, each wave gets the full time · Rotate — split across the group's exercises and swap";
-            fp.appendChild(fw);
+            named("Format","format",fw);
             if(itRot(it)){
               const rb=menuField(()=>["When done","On the clock"],
                 ()=>itRotBy(it)==="done"?"When done":"On the clock",
@@ -3019,7 +3029,7 @@
                   save(); renderItems(); if(!sessionActive&&!running) build(); },
                 {cls:"time irotby", searchPh:"Move when\u2026"});
               rb.title="When people move to the next station";
-              fp.appendChild(rb);
+              named("Move when","rotby",rb);
             }
             // Off the ergs the gym has a fixed number of racks/bars/benches. Say how
             // many and the sharing follows: 12 athletes, 4 racks -> three per rack.
@@ -3035,8 +3045,7 @@
                  searchPh:"How many do you have\u2026"});
               stn.title="How many of these the gym has \u2014 racks, bars, benches. Athletes share what "
                 +"there is: "+wt+" of them across 4 stations is three to a station.";
-              fp.appendChild(mkHelpLab("Stations","stations"));
-              fp.appendChild(stn);
+              named("Stations","stations",stn);
             }
             // with a station count the share is derived, so the "in Ns" picker would
             // just be a second way to say the same thing
@@ -3049,7 +3058,7 @@
                   save(); renderItems(); if(!sessionActive&&!running) build(); },
                 {numeric:true, addable:true, addLabel:"Use", cls:"time ifn", searchPh:isSh?"How many share\u2026":"How many waves\u2026"});
               fn.title=isSh?"How many athletes share one station":"How many waves";
-              fp.appendChild(fn);
+              named(isSh?"Share in":"Waves",isSh?"sharein":"waves",fn);
             }
             fmtRow.appendChild(fp);
           }
@@ -3345,19 +3354,24 @@
                      note:`station ${b2+1} of ${n}`}};
       }
     }
-    const nowIt=seg?seg.it:(its.find(x=>!x.rest)||null);
+    // Which part they are on. Before the clock starts there is no live segment, but
+    // there IS a first part — reading "no segment" as "block finished" is what sent
+    // an idle board to the next block instead of to this block's second part.
+    const nowIx=(seg&&seg.i>=0)?seg.i:its.findIndex(x=>!x.rest);
+    const nowIt=nowIx>=0?its[nowIx]:null;
+    const rounds=(seg&&seg.rounds)||bRounds(here), round=(seg&&seg.round)||0;
     const now={lab:NOW, work:wkText(nowIt,j,seg&&seg.swap),
                where:`${here.name} \u00b7 ${spotHere}`, note:""};
     // ---- what is genuinely next, nearest first ----
     const nextItem=(()=>{
-      if(!seg||seg.i<0) return null;
+      if(nowIx<0) return null;
       let rest=0;
-      for(let m=seg.i+1;m<its.length;m++){
+      for(let m=nowIx+1;m<its.length;m++){
         if(its[m].rest){ rest+=its[m].dur||0; continue; }
         return {it:its[m],rest,again:false};
       }
       // a block that repeats comes back to its own first part before it moves on
-      if(seg.rounds>1&&seg.round<seg.rounds-1)
+      if(rounds>1&&round<rounds-1)
         for(let m=0;m<its.length;m++) if(!its[m].rest)
           return {it:its[m],rest:rest+bRRest(here),again:true};
       return null;
@@ -3365,16 +3379,16 @@
     const nxi=(st+1)%nBlocks(), nx=R().blocks[nxi];
     const last=rot.round>=totalRounds()-1||nBlocks()<2;
     // 1. the groups inside this part swap with each other
-    const xs=(seg&&!seg.it.rest)?(seg.it.exercises||[]).filter(Boolean):[];
+    const xs=(nowIt&&!nowIt.rest)?(nowIt.exercises||[]).filter(Boolean):[];
     const whos=[...new Set(xs.map(x=>(x.who||"").trim()).filter(Boolean))];
-    if(whos.length>1&&!itRot(seg.it))
-      return {now, nxt:{lab:NXT, work:wkSwap(seg.it), short:wkShort(seg.it,j,0,true),
+    if(whos.length>1&&!itRot(nowIt))
+      return {now, nxt:{lab:NXT, work:wkSwap(nowIt), short:wkShort(nowIt,j,0,true),
         where:`${here.name} \u00b7 ${spotHere}`, note:"groups swap"}};
     // 2. the next part of this block
     if(nextItem)
       return {now, nxt:{lab:NXT, work:wkText(nextItem.it,j,0), short:wkShort(nextItem.it,j,0),
         where:`${here.name} \u00b7 ${spotHere}`,
-        note:[nextItem.again?`round ${(seg.round||0)+2} of ${seg.rounds}`:"",
+        note:[nextItem.again?`round ${round+2} of ${rounds}`:"",
               nextItem.rest?`after ${fmtMS(nextItem.rest)} rest`:""].filter(Boolean).join(" \u00b7 ")}};
     // 3. this block is done \u2014 say so, then show the next block the same way
     if(last)
@@ -3786,6 +3800,8 @@
     setTimeout(()=>document.addEventListener("pointerdown",ev=>{ if(!d.contains(ev.target)) hideHint(); },{once:true,capture:true}),0);
   }
   const HELP={
+    sharein:"How many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
+    rotby:"When people move on: When done \u2014 each athlete taps Done on their tablet and moves at their own pace \u00b7 On the clock \u2014 everyone swaps together on a fixed split.",
     stations:"How many of these you have in the gym \u2014 squat racks, bars, benches. Leave it on One each if everybody gets their own. Set 4 with 12 athletes and they share three to a rack, and every screen says which one is theirs.",
     who:"Who inside the team does this part \u2014 everyone together, a pair, or one athlete. Type anything custom (e.g. Min 1 for EMOMs).",
     exercise:"Pick from your library or type a new name to add it. Erg names (Row, Ski, Bike, Run) link the exercise to that machine for tablets and machine counts.",
@@ -4284,7 +4300,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=250;
+  const BUILD=251;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
