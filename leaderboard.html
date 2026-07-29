@@ -1754,7 +1754,10 @@
     return {byKey,byBlock}; };
   const slotLabel=(bi,j,types)=>{ const mm=(machSlots().byBlock[bi]||[])[j]||{};
     let ks=Object.keys(mm); if(types&&types.length){ const f=types.filter(t=>mm[t]!=null); if(f.length) ks=f; }
-    if(!ks.length) return "M"+(j+1);
+    // Off the ergs there is no machine name to hang a number on, but there IS a
+    // station, and it is the SHARED one — "M"+(j+1) numbered athletes instead and
+    // printed M1..M12 for four racks.
+    if(!ks.length) return "Station "+stationNo(R().blocks[bi],j);
     return ks.map(t=>mInfo(t).short+" "+mm[t]).join(" + "); };
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
@@ -4266,7 +4269,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=248;
+  const BUILD=249;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
