@@ -134,10 +134,10 @@
   .ptag.nx{background:transparent;color:var(--ink-dim);box-shadow:inset 0 0 0 1px var(--line)}
   /* the one thing you should be able to find from anywhere in the gym */
   .exg.pnow{background:var(--ink);border-radius:12px;padding:9px 12px 11px}
-  .exg.pnow .exg-h{color:rgba(0,0,0,.58)}
-  .exg.pnow .exl{color:#000;font-weight:700}
+  .blk .bd .exg.pnow .exg-h,
+  .blk .bd .exg.pnow .exg-h i{color:rgba(0,0,0,.62)}
+  .blk .bd .exg.pnow .exl{color:#000;font-weight:700}
   .exg.pnow .ptag{background:#000;color:var(--ink)}
-  .exg.pnow .exg-h i{color:rgba(0,0,0,.58)}
   .blk.scoring .exg.pnow{background:var(--hot)}
   .blk.scoring .exg.pnow .exl{color:#000}
   /* NEXT is the same shape, quietly drawn, so the two read as a pair */
@@ -147,9 +147,9 @@
     border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap}
   /* the card body is ONE size — the group header, the work and the total all read
      at 15px. They are told apart by weight, case and colour, never by shrinking. */
-  .blk .bd{font-size:15px;color:var(--ink-dim);line-height:1.5;min-height:42px}
-  .blk .bd .exg-h{font-size:15px;letter-spacing:.13em;margin-bottom:2px;color:var(--ink-dim)}
-  .blk .win{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.11em;color:var(--ink-dim);text-transform:uppercase}
+  .blk .bd{font-size:15px;color:var(--ink);line-height:1.5;min-height:42px}
+  .blk .bd .exg-h{font-size:15px;letter-spacing:.13em;margin-bottom:2px;color:var(--ink)}
+  .blk .win{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.11em;color:var(--ink);text-transform:uppercase}
   .blk .win b{color:var(--hot)}
   .blk .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px 10px;border-top:1px solid var(--line-soft);padding-top:10px}
   .blk .teams .t{min-width:0;padding:3px 9px;border-radius:8px}
@@ -956,7 +956,7 @@
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
   body.wkscreen .blk .teams{display:none}
   body.wkscreen .phase .pdesc{display:none}
-  body.wkscreen .blk .win{color:rgba(255,255,255,.85);font-size:15px;margin-top:10px}
+  body.wkscreen .blk .win{color:var(--ink);font-size:15px;margin-top:10px}
   .teamsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .teamsbar label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
   .teamsbar .mwrap{width:158px;flex:none;display:block}
@@ -1064,8 +1064,8 @@
     font-size:46px;line-height:1.5}
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exl,
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{break-inside:avoid}
-  body.wkscreen:not(.mobscreen) .blk .bd .exg-h{font-size:24px;letter-spacing:.16em;margin-bottom:8px}
-  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{font-size:28px;margin-bottom:12px}
+  body.wkscreen:not(.mobscreen) .blk .bd .exg-h{font-size:inherit;letter-spacing:.08em;margin-bottom:4px}
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{margin-bottom:6px}
   body.wkscreen:not(.mobscreen) .blk .bd .exg{margin-top:16px}
   body.wkscreen:not(.mobscreen) .blk .bstat{font-size:22px;letter-spacing:.16em}
   body.wkscreen:not(.mobscreen) .blk .bclk b{font-size:52px}
@@ -4655,7 +4655,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=258;
+  const BUILD=259;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
