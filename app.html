@@ -110,6 +110,15 @@
   .blk .bstat{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:11px;
     letter-spacing:.14em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
   .blk .bstat.q{font-weight:600;color:var(--ink-mute)}
+  /* how long is left on THIS part, big enough to read while you are working */
+  .blk .bclk{margin-left:auto;display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+  .blk .bclk b{font-family:var(--mono);font-weight:700;font-size:23px;line-height:1;
+    letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .blk .bclk i{font-style:normal;font-family:var(--disp);font-weight:600;font-size:10px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute)}
+  .blk.scoring .bclk b{color:var(--hot)}
+  .blk .bwhere{font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-dim);margin-top:-4px}
   .blk .bprog{height:4px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
   .blk .bprog i{display:block;height:100%;border-radius:99px;background:var(--ink);
     transition:width .35s linear}
@@ -123,8 +132,16 @@
     padding:1px 7px;border-radius:99px;background:var(--ink);color:#000;
     font-family:var(--disp);font-weight:700;font-size:9px;letter-spacing:.18em}
   .ptag.nx{background:transparent;color:var(--ink-dim);box-shadow:inset 0 0 0 1px var(--line)}
-  .exg.pnow .exg-h{color:var(--ink)}
-  .exg.pnow .exl{color:var(--ink);font-weight:600}
+  /* the one thing you should be able to find from anywhere in the gym */
+  .exg.pnow{background:var(--ink);border-radius:12px;padding:9px 12px 11px}
+  .exg.pnow .exg-h{color:rgba(0,0,0,.58)}
+  .exg.pnow .exl{color:#000;font-weight:700}
+  .exg.pnow .ptag{background:#000;color:var(--ink)}
+  .exg.pnow .exg-h i{color:rgba(0,0,0,.58)}
+  .blk.scoring .exg.pnow{background:var(--hot)}
+  .blk.scoring .exg.pnow .exl{color:#000}
+  /* NEXT is the same shape, quietly drawn, so the two read as a pair */
+  .exg.pnxt{border-radius:12px;padding:9px 12px 11px;box-shadow:inset 0 0 0 1px var(--line)}
   .blk .bh b{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase}
   .blk .bh .mc{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:11px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;
     border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap}
@@ -1051,6 +1068,11 @@
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{font-size:28px;margin-bottom:12px}
   body.wkscreen:not(.mobscreen) .blk .bd .exg{margin-top:16px}
   body.wkscreen:not(.mobscreen) .blk .bstat{font-size:22px;letter-spacing:.16em}
+  body.wkscreen:not(.mobscreen) .blk .bclk b{font-size:52px}
+  body.wkscreen:not(.mobscreen) .blk .bclk i{font-size:18px}
+  body.wkscreen:not(.mobscreen) .blk .bwhere{font-size:22px;letter-spacing:.18em;margin-top:-8px}
+  body.wkscreen:not(.mobscreen) .exg.pnow,
+  body.wkscreen:not(.mobscreen) .exg.pnxt{border-radius:20px;padding:16px 22px 20px}
   body.wkscreen:not(.mobscreen) .blk .bprog{height:8px}
   body.wkscreen:not(.mobscreen) .ptag{font-size:17px;padding:2px 13px;margin-right:12px}
   body.wkscreen:not(.mobscreen) .blk .win{font-size:24px;letter-spacing:.16em}
@@ -2138,11 +2160,13 @@
       if(live){
         if(seg.rounds>1) bits.push(`Round ${seg.round+1}/${seg.rounds}`);
         bits.push(seg.i<0?"Round rest":`Part ${seg.i+1} of ${its}`);
-        bits.push(`${fmtMS(Math.max(0,Math.ceil(seg.remain)))} left`);
       }
-      const stat=live?bits.join(" \u00b7 "):state==="queued"?"Up next":state==="donez"?"Done":"";
+      const stat=state==="queued"?"Up next":state==="donez"?"Done":"";
       return `<div class="blk ${hot?"scoring":""} ${state} bcw">
-        <div class="bh"><b>${esc(b.name)}</b>${stat?`<span class="bstat${live?"":" q"}">${stat}</span>`:""}</div>
+        <div class="bh"><b>${esc(b.name)}</b>${live
+          ?`<span class="bclk"><b>${fmtMS(Math.max(0,Math.ceil(seg.remain)))}</b><i>left</i></span>`
+          :stat?`<span class="bstat q">${stat}</span>`:""}</div>
+        ${live?`<div class="bwhere">${bits.join(" \u00b7 ")}</div>`:""}
         ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
         <div class="bd">${exLines(b,live?seg:null)}</div>
         <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
@@ -4631,7 +4655,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=257;
+  const BUILD=258;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
@@ -4668,15 +4692,30 @@
   // The TV picture must fit the TV: scale the board down if it is taller than the
   // screen, then centre what is left. Transforms don't change layout height, so the
   // vertical centring is applied as an explicit translate.
+  // The room we were given is remembered ON the element: this runs before the
+  // closure's own initialisers do, so a module-level `let` would be in its dead zone.
   function fitTvBoard(availH){
     const f=$("tvFit"); if(!f) return;
+    if(availH>0) f._avail=availH;
+    const A=f._avail||0;
     f.style.transform=""; f.style.width="";
-    if(!(availH>0)||!document.body.classList.contains("bigscreen")
+    if(!(A>0)||!document.body.classList.contains("bigscreen")
        ||document.body.classList.contains("mobscreen")) return;
     const need=f.scrollHeight; if(!need) return;
-    const k=Math.min(1,availH/need);
-    const dy=Math.max(0,(availH-need*k)/2);
+    const k=Math.min(1,A/need);
+    const dy=Math.max(0,(A-need*k)/2);
     f.style.transform=(k<1||dy>1)?`translateY(${dy.toFixed(1)}px) scale(${k.toFixed(4)})`:"";
+  }
+  // The transform never moves the layout box, so re-measuring on resize cannot loop.
+  if(window.ResizeObserver){
+    const ro=new ResizeObserver(()=>{
+      const b=document.body;
+      if(!b.classList.contains("bigscreen")||b.classList.contains("mobscreen")) return;
+      const g=$("tvFit"), fl=g&&g._fill;
+      if(b.classList.contains("tvfull")){ if(fl) fillTvBoard(fl[0],fl[1]); }
+      else fitTvBoard(0);
+    });
+    const f=$("tvFit"); if(f) ro.observe(f);
   }
   // FILL a box, don't fit inside it. A uniform scale can only ever match one axis, so
   // instead of shrinking the picture until it fits (and leaving bands on the other
@@ -4685,6 +4724,7 @@
   // exactly cw x ch — the table goes edge to edge and the type is as big as it can be.
   function fillTvBoard(cw,ch){
     const f=$("tvFit"); if(!f||!(cw>0)||!(ch>0)) return;
+    f._fill=[cw,ch];
     f.style.transform=""; f.style.width=cw+"px";
     let W=cw;
     for(let i=0;i<4;i++){

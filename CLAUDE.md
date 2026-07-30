@@ -85,6 +85,19 @@ copy for cache-free serving; `version.txt` holds the build number.
   Other blocks dim to `.queued`/`.donez`. The big screen shows no standing advice line
   (`body.wkscreen .phase .pdesc{display:none}`) — a TV across the gym is for the workout.
   `livebd.js` gates it.
+- **The running part is a slab, not a shade of grey.** `.exg.pnow` is a solid light
+  ground with black type; `.exg.pnxt` is the same shape drawn in outline, so the pair
+  reads as one control. The part's countdown is its own headline (`.bclk`, 52px on TV)
+  beside the block name, with round · part n of m on its own line (`.bwhere`) — a
+  status string small enough to squeeze onto the title row is too small to read from
+  the floor.
+- **A board measured once is measured wrong — it GROWS.** Starting the clock turns a
+  part into a slab and adds a countdown, so the picture gets taller after `fitTvBoard()`
+  ran. A `ResizeObserver` on `#tvFit` re-fits (or re-fills, in `tvfull`) whenever its
+  own box changes; the room it was given lives on the element (`f._avail`, `f._fill`)
+  because `fitTvBoard` is called during init, before any closure `let` is initialised.
+  `tvfit.js` asserts nothing hangs past `#viewBoard` on 1920/2560/1366 and in the phone
+  preview, idle and live.
 - **`% 1RM` is prescription, so it rides in `exTxt()`** and reaches every surface at once.
   `exRM()` returns 0 for anything `machineOf()` recognises — an erg has no one-rep max,
   so the field is not even drawn on its row.
