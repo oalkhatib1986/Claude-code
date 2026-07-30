@@ -54,6 +54,10 @@
     font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s}
   .tabs button:hover{color:var(--ink)}
   .tabs button[aria-selected="true"]{background:var(--ink);color:#0a0a0a}
+  /* The PILL is what the eye lines up, not the bar around it. Pull the first one
+     flush so it shares a left edge with the sub-tab pills, the title and the cards. */
+  .tabs button:first-child{margin-left:-5px}
+  .tabs button:last-child{margin-right:-5px}
   .view{display:none}.view.active{display:block}
 
   /* ---------- board head ---------- */
@@ -108,8 +112,8 @@
   /* the card body is ONE size — the group header, the work and the total all read
      at 15px. They are told apart by weight, case and colour, never by shrinking. */
   .blk .bd{font-size:15px;color:var(--ink-dim);line-height:1.5;min-height:42px}
-  .blk .bd .exg-h{font-size:15px;letter-spacing:.13em;margin-bottom:2px}
-  .blk .win{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.11em;color:var(--ink-mute);text-transform:uppercase}
+  .blk .bd .exg-h{font-size:15px;letter-spacing:.13em;margin-bottom:2px;color:var(--ink-dim)}
+  .blk .win{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.11em;color:var(--ink-dim);text-transform:uppercase}
   .blk .win b{color:var(--hot)}
   .blk .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px 10px;border-top:1px solid var(--line-soft);padding-top:10px}
   .blk .teams .t{min-width:0;padding:3px 9px;border-radius:8px}
@@ -715,6 +719,11 @@
   .gtime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;min-width:0}
   .fmtpair{display:flex;align-items:flex-end;gap:9px 10px;flex-wrap:wrap;min-width:0}
   .fmtpair .nfld{flex:0 0 auto;min-width:0}
+  /* worked out, not typed: it reads like a field but there is nothing to set */
+  .shareout b{display:flex;align-items:baseline;gap:7px;min-height:38px;padding:0 2px;
+    font-family:var(--disp);font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap}
+  .shareout b i{font-style:normal;font-family:var(--body,inherit);font-weight:500;
+    font-size:12px;letter-spacing:0;color:var(--ink-mute);white-space:nowrap}
   .psec .irow.fmtrow{flex-wrap:wrap;align-items:flex-end}
   #aiFab{position:fixed;right:14px;left:auto;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:94;width:52px;height:52px;border-radius:50%;
     background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -1277,7 +1286,7 @@
             <button data-v="waves" aria-pressed="false">Waves</button>
           </div>
           <div class="fld" id="flowFld" style="max-width:360px"><label>Class flow</label>
-            <select id="rFlow"><option value="together">One block at a time — the whole class together</option><option value="stations">All blocks at once — split up and rotate</option></select></div>
+            <select id="rFlow"><option value="together">One block at a time — the whole class together</option><option value="stations">All blocks at once — split across the blocks and rotate</option></select></div>
           <div class="note" id="modeExplain"></div>
           <div class="fmtrow">
             <div class="fld"><label>Format</label>
@@ -1681,7 +1690,15 @@
     return base+rests; };
   const fmtLong=s=>{ s=Math.round(s); return s>=3600? `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}m` : fmtMS(s); };
   const itWaves=it=>clamp(parseInt(it&&it.wavesN,10)||2,2,6);
-  const itShare=it=>it&&it.fmt==="share"?clamp(parseInt(it.shareN,10)||2,2,6):0;
+  const itShare=it=>{
+    if(!it||it.fmt!=="share") return 0;
+    const wt=Math.max(1,worstTeamsPerBlock());
+    const g=itGear(it);
+    if(g) return Math.max(1,Math.ceil(wt/Math.max(1,Math.min(g,wt))));
+    const n=clamp(parseInt(it.stations,10)||0,0,60);
+    if(n) return Math.max(1,Math.ceil(wt/Math.max(1,Math.min(n,wt))));
+    return clamp(parseInt(it.shareN,10)||0,0,6);   // saved workouts only
+  };
   const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
   // circuits are self-paced by default; items built before this existed stay on the clock
   const itRotBy=it=>(it&&it.rotBy==="done")?"done":(it&&it.rotBy==="clock")?"clock":"clock";
@@ -1754,8 +1771,10 @@
     if(!nBlocks()||!wt) return peaks;
     const segUse=(seg,use)=>{
       if(seg.swaps){ (seg.it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) use[m]=(use[m]||0)+Math.ceil(wt/seg.swaps); }); }
-      else { const sh=itShare(seg.it);
-        const per=seg.waves?Math.ceil(wt/seg.waves):(sh?Math.ceil(wt/sh):wt);
+      else {
+        // however many stations this part actually has \u2014 the same number the
+        // screens hand out, so the capacity report can never disagree with them
+        const per=seg.waves?Math.ceil(wt/seg.waves):Math.min(wt,itStations(seg.it,wt));
         itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+per; }); } };
     const blkBounds=b=>{ const s=new Set([0]); const n=bRounds(b), per=oneRound(b)+bRRest(b);
       for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=itLen(it); s.add(acc); }); } return s; };
@@ -1788,11 +1807,15 @@
   // otherwise one station each.
   // What the gym owns, and which exercise needs which of it. Set the count ONCE in
   // Layout and every part that uses that exercise shares it out automatically.
+  const ergLabels=()=>Object.keys(MACHINE).map(m=>mInfo(m).label);
+  const ergTypeOf=label=>Object.keys(MACHINE).find(m=>mInfo(m).label===label)||"";
   const gearFor=nm=>{
     const key=String(nm||"").trim().toLowerCase(); if(!key) return "";
     const g=(cfg.exGear||{})[key];
-    if(g&&(cfg.gear||[]).some(x=>x.name===g)) return g;
+    if(g&&((cfg.gear||[]).some(x=>x.name===g)||ergTypeOf(g))) return g;
     if(g==="") return "";   // you said none, and none is what you get
+    // an erg exercise names its own machine: Run -> Assault Runner
+    { const m=machineOf(nm); if(m) return mInfo(m).label; }
     // Nothing chosen yet: link it when the NAMES genuinely say so \u2014 a shared word
     // of four letters or more. "Back Squat" and "Squat Rack" share "squat"; "Sled
     // Push" and "Sled" share "sled". Never guess past that, and one tap overrides it.
@@ -1802,7 +1825,8 @@
       const n2=words(x.name).filter(w=>kw2.includes(w)).length;
       if(n2>bestN){ bestN=n2; best=x.name; } });
     return best; };
-  const gearCount=g=>{ const e=(cfg.gear||[]).find(x=>x.name===g);
+  const gearCount=g=>{ const t=ergTypeOf(g); if(t) return invOf(t);
+    const e=(cfg.gear||[]).find(x=>x.name===g);
     return e?clamp(parseInt(e.n,10)||0,0,60):0; };
   // a part needs as many of each kind as it has \u2014 the scarcest kind decides
   const itGear=it=>{ let n=0;
@@ -1820,14 +1844,16 @@
     ((b&&b.items)||[]).forEach(it=>{ if(it.rest) return;
       const k=itStations(it,wt); if(k>n) n=k; });
     return Math.max(1,Math.min(n||wt,wt)); };
+  const spreadIx=(j,nSt,wt)=>Math.min(Math.max(1,nSt)-1,
+    Math.floor(Math.max(0,j)*Math.max(1,nSt)/Math.max(1,wt)));
   const stationNo=(b,j)=>{ const wt=Math.max(1,worstTeamsPerBlock());
-    const nSt=blockStations(b), per=Math.max(1,Math.ceil(wt/nSt));
-    return Math.min(nSt,Math.floor(Math.max(0,j)/per)+1); };
+    return spreadIx(j,blockStations(b),wt)+1; };
   const machSlots=()=>{ const ctr={}, byKey={}, byBlock=[]; const wt=worstTeamsPerBlock();
     R().blocks.forEach((b,bi)=>{ const types=[...blockUsesTypes(b)]; const slots=[];
-      const nSt=blockStations(b), per=Math.max(1,Math.ceil(Math.max(1,wt)/nSt)), stn=[];
-      for(let s2=0;s2<nSt;s2++){ const mm={}; types.forEach(tp=>{ ctr[tp]=(ctr[tp]||0)+1; mm[tp]=ctr[tp]; byKey[tp+":"+ctr[tp]]={bi,j:s2*per}; }); stn.push(mm); }
-      for(let j=0;j<wt;j++) slots.push(stn[Math.min(stn.length-1,Math.floor(j/per))]);
+      const nSt=blockStations(b), stn=[];
+      for(let s2=0;s2<nSt;s2++){ const mm={}; types.forEach(tp=>{ ctr[tp]=(ctr[tp]||0)+1; mm[tp]=ctr[tp];
+        byKey[tp+":"+ctr[tp]]={bi,j:Math.ceil(s2*Math.max(1,wt)/Math.max(1,nSt))}; }); stn.push(mm); }
+      for(let j=0;j<wt;j++) slots.push(stn[spreadIx(j,nSt,wt)]);
       byBlock.push(slots); });
     return {byKey,byBlock}; };
   const slotLabel=(bi,j,types)=>{ const mm=(machSlots().byBlock[bi]||[])[j]||{};
@@ -3019,7 +3045,9 @@
         // It lives on the wrapping row: .exr1 is a fixed four-column grid and a fifth
         // field simply pushed the card off the screen.
         {
-          const opts=()=>["\u2014 none (one each)"].concat((cfg.gear||[]).map(g=>g.name).filter(Boolean));
+          const opts=()=>["\u2014 none (one each)"]
+            .concat(ergLabels().map(l=>l+" \u00b7 "+gearCount(l)))
+            .concat((cfg.gear||[]).map(g=>g.name).filter(Boolean));
           const cur=()=>{ const g=gearFor(x.name);
             return g?(g+" \u00b7 "+gearCount(g)):"\u2014 none (one each)"; };
           const gearFld=menuField(opts, cur,
@@ -3148,19 +3176,28 @@
               rb.title="When people move to the next station";
               named("Move when","rotby",rb);
             }
-            // equipment already says how many there are, so the "in Ns" picker would
-            // just be a second way to say the same thing
-            if((it.fmt==="share"&&!itGear(it)&&!clamp(parseInt(it.stations,10)||0,0,60))
-               ||it.fmt==="waves"){
-              const isSh=it.fmt==="share";
-              const fn=menuField(()=>isSh?["2s","3s","4s","5s","6s"]:["2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
-                ()=>isSh?itShare(it)+"s":itWaves(it)+"\u00d7",
-                v=>{ const d=clamp(parseInt(v,10)||2,2,6);
-                  if(isSh) it.shareN=d; else it.wavesN=d;
+            if(it.fmt==="waves"){
+              const fn=menuField(()=>["2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
+                ()=>itWaves(it)+"\u00d7",
+                v=>{ it.wavesN=clamp(parseInt(v,10)||2,2,6);
                   save(); renderItems(); if(!sessionActive&&!running) build(); },
-                {numeric:true, addable:true, addLabel:"Use", cls:"time ifn", searchPh:isSh?"How many share\u2026":"How many waves\u2026"});
-              fn.title=isSh?"How many athletes share one station":"How many waves";
-              named(isSh?"Share in":"Waves",isSh?"sharein":"waves",fn);
+                {numeric:true, addable:true, addLabel:"Use", cls:"time ifn", searchPh:"How many waves\u2026"});
+              fn.title="How many waves";
+              named("Waves","waves",fn);
+            }
+            // Sharing is not a number you type. Say how many are in class (Control)
+            // and how much kit the gym has (Layout), and this is the answer.
+            if(it.fmt==="share"){
+              const wt=Math.max(1,worstTeamsPerBlock());
+              const nSt=itGear(it)||clamp(parseInt(it.stations,10)||0,0,60);
+              const per=itShare(it);
+              const out=document.createElement("span"); out.className="lfld nfld shareout";
+              const lab=mkHelpLab("Share in","sharein");
+              const val=document.createElement("b");
+              if(nSt&&per) val.innerHTML=`${per}s <i>${wt} \u00f7 ${Math.min(nSt,wt)} station${Math.min(nSt,wt)>1?"s":""}</i>`;
+              else if(per) val.innerHTML=`${per}s <i>saved</i>`;
+              else val.innerHTML=`&mdash; <i>link equipment</i>`;
+              out.append(lab,val); fp.appendChild(out);
             }
             fmtRow.appendChild(fp);
           }
@@ -3374,7 +3411,8 @@
     // who gets split in the class's own word
     { const sel=$("rFlow"); if(sel&&sel.options.length>1){
         sel.options[0].textContent="One block at a time \u2014 the whole class together";
-        sel.options[1].textContent="All blocks at once \u2014 "+kws()+" split up and rotate"; } }
+        sel.options[1].textContent="All blocks at once \u2014 "+kws()
+          +" split across the blocks and rotate"; } }
     { const x=$("crewNote"); if(x) x.innerHTML=(cfg.together
       ?(solo?"<b>Everyone together</b>: the whole class does the same block at the same time, each athlete on their own machine, and moves to the next block as one. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
              :"<b>Everyone together</b>: the whole class does the same block at the same time — each team shares one machine and partners alternate on it — then everyone moves to the next block as one. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.")
@@ -3976,7 +4014,7 @@
     setTimeout(()=>document.addEventListener("pointerdown",ev=>{ if(!d.contains(ev.target)) hideHint(); },{once:true,capture:true}),0);
   }
   const HELP={
-    sharein:"How many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
+    sharein:"Worked out for you: how many are in class today divided by how many of that equipment the gym has. Set the class size in Control and the equipment count in Layout \u203a Gym equipment \u2014 there is nothing to type here.\n\nHow many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
     rotby:"When people move on: When done \u2014 each athlete taps Done on their tablet and moves at their own pace \u00b7 On the clock \u2014 everyone swaps together on a fixed split.",
     equipment:"What this exercise needs \u2014 a squat rack, a bench, a sled. Add the kit and its count once in Layout \u203a Gym equipment; every exercise linked to it then shares it out automatically, and each athlete is told which one is theirs.",
     stations:"How many of these you have in the gym \u2014 squat racks, bars, benches. Leave it on One each if everybody gets their own. Set 4 with 12 athletes and they share three to a rack, and every screen says which one is theirs.",
@@ -4527,7 +4565,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=255;
+  const BUILD=256;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
