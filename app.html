@@ -635,7 +635,7 @@
   .mwrap.time{width:84px;flex:none}
   .mwrap.time.ifmt{width:auto;min-width:106px}
   .mwrap.time.irotby{width:auto;min-width:118px}
-  .mwrap.time.istn{width:auto;min-width:118px}
+  .mwrap.time.igear{width:auto;min-width:132px}
   .mfield{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:11px;padding:10px 32px 10px 13px;cursor:pointer;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .15s;
@@ -671,6 +671,17 @@
   .bdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
   .mtag{font-family:var(--mono);font-style:normal;font-size:10px;color:var(--ink-dim);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-left:7px}
   .overcap{color:var(--hot)!important}
+  .gearhd,.gearrow{display:grid;grid-template-columns:1fr 84px 40px;gap:9px;align-items:center}
+  .gearhd{padding:0 0 4px}
+  .gearhd span{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-mute)}
+  .gearhd span:nth-child(2){text-align:center}
+  .gearrow{padding:7px 0;border-bottom:1px solid var(--line-soft)}
+  .gearrow:last-child{border-bottom:0}
+  .gearrow .gn{text-align:center}
+  .gearrow .del{border:1px solid var(--line);background:transparent;color:var(--ink-mute);
+    border-radius:10px;height:40px;cursor:pointer;font-size:17px;transition:.14s}
+  .gearrow .del:hover{color:#fff;border-color:rgba(255,255,255,.3)}
   .invgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px}
   .tb-teams{display:flex;flex-direction:column;gap:8px}
   .tb-tinfo{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
@@ -769,6 +780,7 @@
   .lfld{display:flex;flex-direction:column;gap:5px;min-width:0}
   .tfld{flex:1 1 210px}
   .ufld{flex:0 1 160px}
+  .gfld{flex:0 1 auto;min-width:0}
   .blab.hlab{cursor:pointer;text-decoration:underline dotted rgba(255,255,255,.32);text-underline-offset:3px}
   .hbub{position:absolute;z-index:130;max-width:290px;background:#17181b;border:1px solid var(--line);border-radius:12px;
     padding:10px 13px;font-size:13px;line-height:1.55;color:var(--ink-dim);box-shadow:var(--shadow)}
@@ -1393,6 +1405,18 @@
           <div class="note" id="capReport"></div>
         </div>
       </div>
+      <div class="card wide">
+        <h3>Gym equipment <span class="r">racks, bars, sleds &mdash; how many you own</span></h3>
+        <div class="body">
+          <div class="gearhd"><span>Equipment</span><span>How many</span></div>
+          <div id="gearList"></div>
+          <div class="addbtns"><button class="btn small" id="addGear" type="button">+ Add equipment</button></div>
+          <div class="note">Add the kit the gym actually has. Link an exercise to it in
+            <b>Setup</b> and every screen works the sharing out for you \u2014 12 athletes
+            and 4 squat racks is three to a rack, and each of them is told which one.
+            An exercise with no equipment gives everybody their own spot.</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1537,6 +1561,8 @@
       ],
     },
     inventory:{Row:5,Ski:5,Bike:5,Run:5,Echo:0},
+    gear:[{name:"Squat Rack",n:4},{name:"Bench",n:4},{name:"Sled",n:2}],
+    exGear:{},
     library:["Run","Row","Ski","Bike","Assault Bike","DBall Reverse Lunge","Burpee Box Jump Over","Wall Ball","Alternating DB Snatch","KB Swing","Sled Push","Farmers Carry","Thruster","Burpee","Box Jump","Toes to Bar","Devil Press","Lunge","Deadlift","Push Press"],
     waves:{ waveSize:4, release:"auto" },
     segments:[
@@ -1559,6 +1585,8 @@
   if(cfg.rotation&&!cfg.rotation.laps) cfg.rotation.laps=1;
   if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
   if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+  if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
+  if(!cfg.exGear||typeof cfg.exGear!=="object") cfg.exGear=structuredClone(DEFAULTS.exGear);
   if(!cfg.teamKind) cfg.teamKind="teams";
   normCrewNames();
   if(!cfg.teamSize) cfg.teamSize=4;
@@ -1752,7 +1780,29 @@
   // How many of this thing the gym actually has. Set it per part ("I own 4 racks")
   // and the sharing follows from it; otherwise fall back to "share in Ns", and
   // otherwise one station each.
+  // What the gym owns, and which exercise needs which of it. Set the count ONCE in
+  // Layout and every part that uses that exercise shares it out automatically.
+  const gearFor=nm=>{
+    const key=String(nm||"").trim().toLowerCase(); if(!key) return "";
+    const g=(cfg.exGear||{})[key];
+    if(g&&(cfg.gear||[]).some(x=>x.name===g)) return g;
+    if(g==="") return "";   // you said none, and none is what you get
+    // nothing chosen yet: only link it when the names genuinely say so
+    // ("Sled Push" -> Sled). Never guess past that.
+    let best="";
+    (cfg.gear||[]).forEach(x=>{ const n2=String(x.name||"").trim().toLowerCase();
+      if(n2&&key.includes(n2)&&n2.length>best.length) best=x.name; });
+    return best; };
+  const gearCount=g=>{ const e=(cfg.gear||[]).find(x=>x.name===g);
+    return e?clamp(parseInt(e.n,10)||0,0,60):0; };
+  // a part needs as many of each kind as it has \u2014 the scarcest kind decides
+  const itGear=it=>{ let n=0;
+    (((it||{}).exercises)||[]).forEach(x=>{ const g=gearFor(x.name); if(!g) return;
+      const c=gearCount(g); if(c>0&&(!n||c<n)) n=c; });
+    return n; };
   const itStations=(it,wt)=>{
+    const g=itGear(it);
+    if(g) return Math.max(1,Math.min(g,Math.max(1,wt)));
     const n=clamp(parseInt(it&&it.stations,10)||0,0,60);
     if(n) return Math.max(1,Math.min(n,Math.max(1,wt)));
     const sh=itShare(it); return sh?Math.max(1,Math.ceil(wt/sh)):Math.max(1,wt); };
@@ -2393,6 +2443,9 @@
     $("subTabs").hidden=which!=="board";
     [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
     if(which==="board"&&subTab==="results") renderResults();
+    // Setup shows the gym's equipment counts, so it must be rebuilt on the way in —
+    // renaming a rack in Layout otherwise left the old name on every exercise.
+    if(which==="board"&&subTab==="setup") buildBlocks();
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     document.body.classList.toggle("tabkiosk",which==="tablet");
@@ -2924,7 +2977,12 @@
         const lwrap=(t,key,node)=>{ const w=document.createElement("div"); w.className="lfld";
           w.appendChild(mkHelpLab(t,key)); w.appendChild(node); return w; };
         if(cfg.teamKind!=="solo") r1.appendChild(lwrap("Who","who",menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"})));
-        r1.appendChild(lwrap("Exercise","exercise",menuField(()=>cfg.library, ()=>x.name, v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save(); }, {addable:true, addLabel:"+ Add", searchPh:"Search or add exercise…"})));
+        // Picking the exercise loads the kit it needs: the link is remembered per
+        // exercise NAME, so "Back Squat -> Squat Rack" is set once and set for good.
+        r1.appendChild(lwrap("Exercise","exercise",menuField(()=>cfg.library, ()=>x.name,
+          v=>{ if(!cfg.library.includes(v)) cfg.library.push(v); x.name=v; save();
+            renderItems(); if(!sessionActive&&!running) build(); },
+          {addable:true, addLabel:"+ Add", searchPh:"Search or add exercise…"})));
         const del=document.createElement("button"); del.className="iconbtn exdel"; del.title="Remove exercise"; del.innerHTML="&times;"; del.onclick=onRemove;
         r1.appendChild(del);
         if(onSplit){ r1.classList.add("hasx2");
@@ -2945,6 +3003,25 @@
               <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
               <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
               <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select></div>`;
+        // The equipment this exercise needs \u2014 and therefore how many stations exist.
+        // It lives on the wrapping row: .exr1 is a fixed four-column grid and a fifth
+        // field simply pushed the card off the screen.
+        {
+          const opts=()=>["\u2014 none (one each)"].concat((cfg.gear||[]).map(g=>g.name).filter(Boolean));
+          const cur=()=>{ const g=gearFor(x.name);
+            return g?(g+" \u00b7 "+gearCount(g)):"\u2014 none (one each)"; };
+          const gearFld=menuField(opts, cur,
+            v=>{ const key=String(x.name||"").trim().toLowerCase(); if(!key) return;
+              const nm=String(v).split(" \u00b7 ")[0];
+              if(/^\u2014|^none/i.test(nm)) cfg.exGear[key]="";
+              else cfg.exGear[key]=nm;
+              save(); renderItems(); if(!sessionActive&&!running) build(); },
+            {cls:"time igear", searchPh:"Which equipment\u2026"});
+          gearFld.title="What this exercise needs. The count lives in Layout \u203a Gym equipment, "
+            +"so change it once and every workout using this exercise follows.";
+          const w=lwrap("Equipment","equipment",gearFld); w.classList.add("gfld");
+          r2.appendChild(w);
+        }
         r2.querySelectorAll(".hlab").forEach(l=>{ l.onclick=e=>{ e.stopPropagation(); showHint(l,HELP[l.dataset.hk]||""); }; });
         row.append(r1,r2);
         r2.querySelector(".unit").onchange=e=>{x.unit=e.target.value;save();renderAmts();};
@@ -3059,25 +3136,10 @@
               rb.title="When people move to the next station";
               named("Move when","rotby",rb);
             }
-            // Off the ergs the gym has a fixed number of racks/bars/benches. Say how
-            // many and the sharing follows: 12 athletes, 4 racks -> three per rack.
-            if(!itemTypes(it).length){
-              const wt=Math.max(1,worstTeamsPerBlock());
-              const stnTxt=n=>n?(n+" station"+(n>1?"s":"")):("One each ("+wt+")");
-              const stn=menuField(()=>[stnTxt(0)].concat(Array.from({length:Math.max(12,wt)},(_,k)=>stnTxt(k+1))),
-                ()=>stnTxt(clamp(parseInt(it.stations,10)||0,0,60)),
-                v=>{ const n=/one each/i.test(v)?0:clamp(parseInt(v,10)||0,0,60);
-                  if(n) it.stations=n; else delete it.stations;
-                  save(); renderItems(); if(!sessionActive&&!running) build(); },
-                {numeric:true, addable:true, addLabel:"Use", cls:"time istn",
-                 searchPh:"How many do you have\u2026"});
-              stn.title="How many of these the gym has \u2014 racks, bars, benches. Athletes share what "
-                +"there is: "+wt+" of them across 4 stations is three to a station.";
-              named("Stations","stations",stn);
-            }
-            // with a station count the share is derived, so the "in Ns" picker would
+            // equipment already says how many there are, so the "in Ns" picker would
             // just be a second way to say the same thing
-            if((it.fmt==="share"&&!clamp(parseInt(it.stations,10)||0,0,60))||it.fmt==="waves"){
+            if((it.fmt==="share"&&!itGear(it)&&!clamp(parseInt(it.stations,10)||0,0,60))
+               ||it.fmt==="waves"){
               const isSh=it.fmt==="share";
               const fn=menuField(()=>isSh?["2s","3s","4s","5s","6s"]:["2\u00d7","3\u00d7","4\u00d7","5\u00d7","6\u00d7"],
                 ()=>isSh?itShare(it)+"s":itWaves(it)+"\u00d7",
@@ -3687,6 +3749,8 @@
   }
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+  if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
+  if(!cfg.exGear||typeof cfg.exGear!=="object") cfg.exGear=structuredClone(DEFAULTS.exGear);
     if(!cfg.teamKind) cfg.teamKind="teams";
     if(!cfg.teamSize) cfg.teamSize=4;
     if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
@@ -3897,6 +3961,7 @@
   const HELP={
     sharein:"How many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
     rotby:"When people move on: When done \u2014 each athlete taps Done on their tablet and moves at their own pace \u00b7 On the clock \u2014 everyone swaps together on a fixed split.",
+    equipment:"What this exercise needs \u2014 a squat rack, a bench, a sled. Add the kit and its count once in Layout \u203a Gym equipment; every exercise linked to it then shares it out automatically, and each athlete is told which one is theirs.",
     stations:"How many of these you have in the gym \u2014 squat racks, bars, benches. Leave it on One each if everybody gets their own. Set 4 with 12 athletes and they share three to a rack, and every screen says which one is theirs.",
     who:"Who inside the team does this part \u2014 everyone together, a pair, or one athlete. Type anything custom (e.g. Min 1 for EMOMs).",
     exercise:"Pick from your library or type a new name to add it. Erg names (Row, Ski, Bike, Run) link the exercise to that machine for tablets and machine counts.",
@@ -4084,6 +4149,34 @@
         return `${bad?"<span style=\"color:var(--hot)\">&#9888; ":""}${mInfo(m).label}s — ${p[m]} of ${invOf(m)}${bad?" — OVER</span>":" ✓"}`;
       }).join("<br>"):"No erg exercises in the workout yet.");
   }
+  // Layout \u2192 Gym equipment: name it, say how many, done.
+  function buildGear(){
+    const list=$("gearList"); if(!list) return;
+    list.innerHTML="";
+    (cfg.gear||[]).forEach((g,i)=>{
+      const row=document.createElement("div"); row.className="gearrow";
+      row.innerHTML=`<input type="text" class="gname" placeholder="Squat rack" value="${esc(g.name||"")}">`
+        +`<input type="number" class="gn" min="0" max="60" value="${clamp(parseInt(g.n,10)||0,0,60)}">`
+        +`<button class="del" type="button" aria-label="Remove">&times;</button>`;
+      const nm=row.querySelector(".gname"), nn=row.querySelector(".gn");
+      nm.oninput=()=>{ const old=g.name; g.name=nm.value;
+        // keep every exercise pointing at the same kit after a rename
+        Object.keys(cfg.exGear||{}).forEach(k=>{ if(cfg.exGear[k]===old) cfg.exGear[k]=g.name; });
+        save(); if(!sessionActive&&!running) build(); };
+      nn.oninput=()=>{ g.n=clamp(parseInt(nn.value,10)||0,0,60); save(); updateCapReport();
+        if(!sessionActive&&!running) build(); };
+      row.querySelector(".del").onclick=()=>{
+        const gone=g.name;
+        cfg.gear.splice(i,1);
+        Object.keys(cfg.exGear||{}).forEach(k=>{ if(cfg.exGear[k]===gone) delete cfg.exGear[k]; });
+        save(); buildGear(); if(!sessionActive&&!running) build(); };
+      list.appendChild(row);
+    });
+    const add=$("addGear");
+    if(add) add.onclick=()=>{ if((cfg.gear||[]).length>=24) return;
+      cfg.gear.push({name:"",n:4}); save(); buildGear();
+      const last=list.querySelector(".gearrow:last-child .gname"); if(last) last.focus(); };
+  }
   function buildControlRoom(){
     $("cName").value=cfg.name;
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
@@ -4098,6 +4191,7 @@
       el.value=(cfg.inventory&&cfg.inventory[k])||0;
       el.oninput=()=>{ cfg.inventory[k]=clamp(parseInt(el.value,10)||0,0,40); save(); updateCapReport(); if(!sessionActive&&!running) build(); };
     });
+    buildGear();
     updateCapReport();
     const syncFmt=()=>{ const solo=cfg.teamKind==="solo";
       [...$("fmtKind").children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===cfg.teamKind)));
@@ -4391,7 +4485,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=253;
+  const BUILD=254;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"

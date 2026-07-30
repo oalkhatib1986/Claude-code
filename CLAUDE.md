@@ -50,8 +50,15 @@ copy for cache-free serving; `version.txt` holds the build number.
 - Engine: per-block `rounds`/`rrest`/`aRest`; per-item `fmt` (share/waves/rotate)
   with `shareN`/`wavesN`; `cfg.together` = everyone-together class flow;
   `R().sameRest===false` enables per-block rest-after.
-- **Stations are physical, and counted.** `it.stations` is how many of that thing the
-  gym owns (4 racks). `itStations()` falls back to `shareN`, then to one each;
+- **The gym owns the equipment; the exercise names what it needs.** `cfg.gear`
+  (Layout > Gym equipment) is `[{name,n}]`; `cfg.exGear` maps a lowercased exercise
+  name to a gear name, `""` meaning "none, deliberately". `gearFor()` prefers the
+  stored link, then a genuine substring match ("Sled Push" -> Sled) and never guesses
+  past that. Change a count once and every workout using that exercise re-splits.
+  Setup is rebuilt on entry (`show()`), or a rename in Layout leaves stale names on
+  the exercise rows. `it.stations` survives only as a fallback for saved workouts.
+- **Stations are physical, and counted.** `itStations()` reads gear first, then
+  `it.stations`, then `shareN`, then one each;
   `blockStations()` takes the hungriest part so nobody is left without one;
   `machSlots()` allocates per STATION and hands them out (`floor(j/per)`). Never
   number stations per athlete — that is what printed "M1..M12" for four racks.
