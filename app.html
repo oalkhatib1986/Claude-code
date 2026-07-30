@@ -256,6 +256,27 @@
   .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(0,0,0,.2);background:#fff;
     color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
   .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
+  /* claim: the machine offering itself to whoever walks up */
+  .tk-claim{gap:11px}
+  .tk-claim .tk-head{background:rgba(0,0,0,.07)}
+  .tk-claim.got .tk-tag{background:rgba(28,160,70,.15);color:#0e7434}
+  .tk-claim.got .tk-head{background:rgba(28,160,70,.15)}
+  .tk-claimrow{display:flex;gap:10px;align-self:stretch;min-width:0}
+  .tk-claimrow input{flex:1 1 auto;min-width:0;height:52px;border-radius:12px;
+    border:2px solid rgba(0,0,0,.22);background:#fff;color:#0a0a0b;
+    font-family:var(--ui);font-size:clamp(17px,4vw,21px);padding:0 14px}
+  .tk-claimrow .btn{flex:none;height:52px;background:#0a0a0b;color:#fff;border:none;
+    border-radius:12px;padding:0 22px;font-size:clamp(14px,3.4vw,17px);letter-spacing:.1em}
+  .tk-free{align-self:flex-start;border:2px solid rgba(0,0,0,.2);background:transparent;
+    color:rgba(0,0,0,.6);border-radius:999px;padding:9px 17px;cursor:pointer;
+    font-family:var(--disp);font-weight:700;font-size:clamp(11px,2.7vw,14px);
+    letter-spacing:.12em;text-transform:uppercase}
+  .tk-free:active{background:rgba(0,0,0,.07)}
+  #claimBar{margin-top:9px;font-size:13px;color:var(--ink-dim);line-height:1.5}
+  #claimBar:empty{display:none}
+  #claimBar b{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-mute);margin-right:4px}
+  #claimBar i{font-style:normal;color:var(--ink)}
   .tk-main{display:flex;min-height:0;flex:1 1 auto}
   .tk-inst{padding:14px 18px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;flex:none}
 
@@ -1226,6 +1247,7 @@
           <label id="tcLabel">Teams today</label>
           <span id="tcPick"></span>
         </div>
+        <div id="claimBar"></div>
       </div>
     </div>
 
@@ -2788,7 +2810,10 @@
         renderTablet(); renderLanesRot(); });
     }
     if(cfg.mode==="rotation"){
-      const ni0=scr.querySelector("#tbName"); if(ni0&&(ni0===document.activeElement||ni0.value)) return;
+      // never redraw over someone mid-type: the screen refreshes on a timer
+      { const typing=[...scr.querySelectorAll("#tbName,#tbClaim")]
+          .some(i=>i===document.activeElement||i.value);
+        if(typing) return; }
       if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in Setup.</div>`; return; }
       const sv=String(tabletSel), mtype=sv.includes(":")?sv.split(":")[0]:null, mnum=sv.includes(":")?+sv.split(":")[1]:0;
       const mLabel=mtype?`${mInfo(mtype).label} ${mnum}`:"\u2014";
@@ -2803,6 +2828,9 @@
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
       const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
+      // Claiming is the FIRST placement only, and only before the clock starts.
+      const claiming=!!(team&&!running&&!sessionActive&&phase==="pre");
+      const claimed=!!(team&&!unnamed(team.name));
       // machine metrics strip — warm-up before the start, live while working, frozen in rest
       const tsw=team?tbSwapInfo(sv,seg,team,b):null;
       let mts=null, mtag="", mcls="";
@@ -2919,24 +2947,36 @@
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
         nxEm=esc((amtList(cir.next).join("/")+exUnit(cir.next.unit)).trim()); }
       const nxtCard=`<div class="tk-card tk-nxt"><span>${nxSpan}</span><b>${nxB}</b>${nxEm?`<em>${nxEm}</em>`:""}</div>`;
-      const nameBand=needName?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
+      const nameBand=(needName&&!claiming)?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
       scr.innerHTML=`
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-card tk-id">
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
             <div class="tk-mach">${mLabel}</div>
-            <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${team?esc(team.name):`No ${kw()} here`}</div>
+            <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${
+              team?(claiming&&!claimed?"Nobody yet":esc(team.name)):`No ${kw()} here`}</div>
             <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
           </div>
           ${nameBand}
           <div class="tk-main">
             <div class="tk-col">
-              <div class="tk-card tk-inst">
+              ${claiming?`<div class="tk-card tk-inst tk-claim${claimed?" got":""}">
+                <div class="tk-tag">${claimed?"You\u2019re on this one":"Free \u2014 take it"}</div>
+                <div class="tk-head">${claimed?esc(team.name):"Tap in to claim it"}</div>
+                ${claimed
+                  ? `<div class="tk-sub">Waiting for the trainer</div>
+                     <button type="button" class="tk-free" id="tbFree">Not you? Free this ${esc(machShort.toLowerCase())}</button>`
+                  : `<div class="tk-claimrow">
+                       <input id="tbClaim" maxlength="18" autocomplete="off"
+                         placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
+                       <button type="button" class="btn" id="tbClaimGo">I\u2019m on</button>
+                     </div>`}
+              </div>`:`<div class="tk-card tk-inst">
                 <div class="tk-tag">${(mts&&mtag&&!running)?mtag:jTag}</div>
                 <div class="tk-head">${jHead}</div>
                 ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
                 ${jBig?`<div class="tk-big">${jBig}</div>`:""}
-              </div>
+              </div>`}
               ${tsw?`<div class="tk-duo">
                 <div class="tk-card tk-cell tk-chase">
                   <b>${Math.round(onTarget?tsw.m:0)}</b>
@@ -2963,6 +3003,17 @@
 
       if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
         const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(); }; }); }
+      { const go=$("tbClaimGo"), inp=$("tbClaim");
+        const take=()=>{ const v=(inp.value||"").trim(); if(!v||!team) return;
+          cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
+          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(); };
+        if(go&&inp){ go.onclick=take; inp.onkeydown=ev=>{ if(ev.key==="Enter") take(); }; } }
+      { const fr=$("tbFree");
+        if(fr) fr.onclick=()=>{ if(!team) return;
+          // back to the placeholder the roster started with, so the slot reads as free
+          const nm=(cfg.teamKind==="solo"?"Athlete ":"Team ")+(team.id+1);
+          cfg.crews[team.id].name=nm; team.name=nm; save();
+          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(); }; }
       const gi=$("tbNameGo");
       if(gi){ const commit=()=>{ const inp=$("tbName"); const v=(inp.value||"").trim(); if(!v||!team) return;
           cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
@@ -4493,6 +4544,27 @@
     syncLockUi(); }
   function armRelock(){ if(tkLock) return; clearTimeout(tkLockTimer);
     tkLockTimer=setTimeout(()=>{ tkLock=true; syncLockUi(); },15000); }
+  // Who has taken a machine, and which ones are still free. Only the machines
+  // carry a tablet, so only they can be claimed — a floor-only workout has none.
+  function claimState(){
+    if(cfg.mode!=="rotation"||!nBlocks()) return null;
+    const ms=machSlots().byKey, keys=Object.keys(ms);
+    if(!keys.length) return null;
+    const seen=new Set(); let got=0, tot=0; const free=[];
+    keys.forEach(k=>{ const h=ms[k]; const t=teamsAt(h.bi)[h.j]; if(!t) return;
+      const kk=t.id+":"+h.bi; if(seen.has(kk)) return; seen.add(kk);
+      tot++;
+      if(unnamed(t.name)){ const q=k.split(":"); free.push(mInfo(q[0]).label+" "+q[1]); }
+      else got++; });
+    return {got,tot,free};
+  }
+  function claimBarText(){
+    if(sessionActive||running||finished) return "";
+    const c=claimState(); if(!c||!c.tot) return "";
+    if(c.got>=c.tot) return `<b>Tapped in</b> everyone \u2014 every machine has a name on it`;
+    const list=c.free.slice(0,4).join(" \u00b7 ")+(c.free.length>4?` +${c.free.length-4} more`:"");
+    return `<b>Tapped in</b> ${c.got} of ${c.tot} \u2014 still free: <i>${esc(list)}</i>`;
+  }
   function startFlowText(){
     if(cfg.mode!=="rotation"||!nBlocks()||finished) return "";
     if(running&&!holding) return "";
@@ -4671,9 +4743,11 @@
     if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
+    { const cb=$("claimBar"); const t=claimBarText();
+      if(cb&&cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=261;
+  const BUILD=262;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"

@@ -107,6 +107,16 @@ copy for cache-free serving; `version.txt` holds the build number.
   the boxes cannot drift apart. "Next" resolves nearest-first — the swap inside this
   part, the next part of this block, then the next block, which is the only case that
   says `end of <block>`. The station number never rides on the exercise name.
+- **The machine is not the question — the person is.** The tablet is bolted to the
+  erg, so before the clock starts each screen offers itself: `.tk-claim` replaces the
+  instruction card while `phase==="pre" && !sessionActive`, and tapping a name in
+  writes it straight into the crew slot that machine already maps to
+  (`machSlots().byKey` -> `{bi,j}` -> `teamsAt(bi)[j]`). No new state: a claim IS the
+  name, an unclaimed slot is one `unnamed()` still holds. Freeing it restores the
+  placeholder. `claimBarText()` tells the trainer who has tapped in and which machines
+  are still empty. Claiming is the FIRST placement only — every rotation after it is
+  the same engine as before. The redraw guard must cover `#tbClaim` as well as
+  `#tbName`, or the 400ms tick wipes what someone is typing. `claim.js` gates it.
 - **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
   opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
   button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go
