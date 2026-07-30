@@ -77,6 +77,17 @@ copy for cache-free serving; `version.txt` holds the build number.
   on the station alone would tell two of them the wrong thing. Cells drop a `where`
   that merely repeats the heading. Anything reading these panels must select
   `#crewList .stgrp`, not `.crew`.
+- **Start the clock and the board stops being a plan.** `renderBlockCards()` marks the
+  block the class is in `.live` (all of them when `cfg.together===false`), heads it with
+  round · part n of m · time left over a `.bprog` bar, and hands `segAt()` to
+  `exLines(b,seg)` so the running part is `.pnow` (tag NOW) and the one after it `.pnxt`
+  (tag NEXT — the next PART of this block, or the top of the next round when it repeats).
+  Other blocks dim to `.queued`/`.donez`. The big screen shows no standing advice line
+  (`body.wkscreen .phase .pdesc{display:none}`) — a TV across the gym is for the workout.
+  `livebd.js` gates it.
+- **`% 1RM` is prescription, so it rides in `exTxt()`** and reaches every surface at once.
+  `exRM()` returns 0 for anything `machineOf()` recognises — an erg has no one-rep max,
+  so the field is not even drawn on its row.
 - **NOW and NEXT are one component used twice.** `crewWhere()` returns
   `{now,nxt}`, each `{lab, work, where, note}`: the work with its reps, the place
   (`Block A · Station 1`), one note. `crewStLine()` has a single `cell()` builder so
