@@ -849,6 +849,12 @@
   .rrow.done{opacity:.3;pointer-events:none}
   .rrow.cur{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.035)}
   .rrow.next{cursor:pointer}
+  .rrow .rpeek{margin-left:6px;flex:none;width:28px;height:28px;border-radius:8px;
+    border:1px solid var(--line);background:transparent;color:var(--ink-mute);
+    font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;transition:.14s}
+  .rrow .rpeek:hover{color:#fff;border-color:rgba(255,255,255,.32)}
+  .prt.peek{opacity:.72}
   .rrow.next:hover{border-color:rgba(255,255,255,.3)}
   .prt{display:flex;align-items:baseline;gap:9px;padding:9px 2px 9px 8px;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-dim);transition:opacity .3s}
   .prt>b{font-weight:400;min-width:0;overflow-wrap:anywhere}
@@ -1271,7 +1277,7 @@
             <button data-v="waves" aria-pressed="false">Waves</button>
           </div>
           <div class="fld" id="flowFld" style="max-width:360px"><label>Class flow</label>
-            <select id="rFlow"><option value="together">Everyone together — one block at a time</option><option value="stations">Stations — teams split across blocks &amp; rotate</option></select></div>
+            <select id="rFlow"><option value="together">One block at a time — the whole class together</option><option value="stations">All blocks at once — split up and rotate</option></select></div>
           <div class="note" id="modeExplain"></div>
           <div class="fmtrow">
             <div class="fld"><label>Format</label>
@@ -1787,11 +1793,14 @@
     const g=(cfg.exGear||{})[key];
     if(g&&(cfg.gear||[]).some(x=>x.name===g)) return g;
     if(g==="") return "";   // you said none, and none is what you get
-    // nothing chosen yet: only link it when the names genuinely say so
-    // ("Sled Push" -> Sled). Never guess past that.
-    let best="";
-    (cfg.gear||[]).forEach(x=>{ const n2=String(x.name||"").trim().toLowerCase();
-      if(n2&&key.includes(n2)&&n2.length>best.length) best=x.name; });
+    // Nothing chosen yet: link it when the NAMES genuinely say so \u2014 a shared word
+    // of four letters or more. "Back Squat" and "Squat Rack" share "squat"; "Sled
+    // Push" and "Sled" share "sled". Never guess past that, and one tap overrides it.
+    const words=t=>String(t||"").toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>=4);
+    const kw2=words(key); let best="", bestN=0;
+    (cfg.gear||[]).forEach(x=>{
+      const n2=words(x.name).filter(w=>kw2.includes(w)).length;
+      if(n2>bestN){ bestN=n2; best=x.name; } });
     return best; };
   const gearCount=g=>{ const e=(cfg.gear||[]).find(x=>x.name===g);
     return e?clamp(parseInt(e.n,10)||0,0,60):0; };
@@ -1864,7 +1873,10 @@
     if(it.rest) return "Rest";
     const xs=(it.exercises||[]).filter(Boolean);
     const work=xs.length?xs.map(x=>exTxt(x)).join(" \u00b7 "):"";
-    let nm=it.name?(work?it.name+" \u00b7 "+work:it.name):(work||("Part "+((ii||0)+1)));
+    // a part named after its only exercise adds nothing: "Back Squat \u00b7 Back Squat \u00b7 2 reps"
+    const same=xs.length===1&&String(it.name||"").trim().toLowerCase()
+      ===String(xs[0].name||"").trim().toLowerCase();
+    let nm=(it.name&&!same)?(work?it.name+" \u00b7 "+work:it.name):(work||("Part "+((ii||0)+1)));
     if(it.fmt==="waves") nm+=" \u00b7 "+itWaves(it)+" waves";
     else if(itSelf(it)) nm+=" \u00b7 self-paced circuit";
     else if(itRot(it)) nm+=" \u00b7 rotating";
@@ -3358,6 +3370,11 @@
     { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
     { const x=$("rankHead"); if(x) x.textContent=solo?"Rank · Athlete · Where they are":"Rank · Team · Where they are"; }
+    // the two flows differ in HOW MANY BLOCKS RUN AT ONCE — lead with that, and name
+    // who gets split in the class's own word
+    { const sel=$("rFlow"); if(sel&&sel.options.length>1){
+        sel.options[0].textContent="One block at a time \u2014 the whole class together";
+        sel.options[1].textContent="All blocks at once \u2014 "+kws()+" split up and rotate"; } }
     { const x=$("crewNote"); if(x) x.innerHTML=(cfg.together
       ?(solo?"<b>Everyone together</b>: the whole class does the same block at the same time, each athlete on their own machine, and moves to the next block as one. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
              :"<b>Everyone together</b>: the whole class does the same block at the same time — each team shares one machine and partners alternate on it — then everyone moves to the next block as one. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.")
@@ -4224,6 +4241,9 @@
     { const w=$("rBRest").closest(".dsel"); if(w){ const o=$("rBRest").options[$("rBRest").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"Off"; } }
     $("rRounds").value=String(R().laps||1);
     $("rRounds").onchange=e=>{R().laps=clamp(parseInt(e.target.value,10)||1,1,6);save(); if(!sessionActive&&!running) build();};
+    { const sel=$("rFlow"), o=sel.options;
+      o[0].textContent="One block at a time \u2014 the whole class together";
+      o[1].textContent="All blocks at once \u2014 "+kws()+" split up and rotate"; }
     $("rFlow").value=cfg.together?"together":"stations";
     $("rFlow").onchange=e=>{ cfg.together=e.target.value==="together"; save(); updateCapReport(); syncTeamCount(); syncMode(); if(!sessionActive&&!running) build(); };
     { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
@@ -4313,6 +4333,8 @@
       results.splice(+b.dataset.i,1); saveResults(); renderResults(); });
   }
   let paused=false, pauseMark=0, rlSig="";
+  // which queued blocks the trainer has opened to look inside
+  const rlOpen=new Set();
   let tkLock=true, tkLockTimer=0;
   function syncLockUi(){ ["tkLockBtn","bdLock"].forEach(id=>{ const x=$(id); if(!x) return;
     x.classList.toggle("armed",!tkLock);
@@ -4420,12 +4442,12 @@
     if(running){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed);
       curIdx=sg?`${sg.round}.${sg.i}.${sg.wave??""}.${sg.swap??""}`:"end"; }
     const sig=[rot.round,rot.phase,running,paused,holding,finished,curIdx,totalRounds(),blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]}),((R().blocks[blockIdxOf(rot.round)]||{}).items||[]).map(x=>x.hold?1:0).join(""),R().sameRest===false?R().blocks.map(b=>b.aRest||0).join(","):"s"+(R().blockRest||0)].join("|");
-    if(sig===rlSig){
+    if(sig+"|"+[...rlOpen].sort().join(",")===rlSig){
       if(running){ const t=el.querySelector(".prt.cur i");
         if(t){ const b=R().blocks[blockIdxOf(rot.round)]; const sg=segAt(b,rot.elapsed); if(sg) t.textContent=fmtMS(sg.remain); } }
       return;
     }
-    rlSig=sig;
+    rlSig=sig+"|"+[...rlOpen].sort().join(",");
     let out="";
     for(let r=0;r<totalRounds();r++){
       const bi=blockIdxOf(r), b=R().blocks[bi];
@@ -4435,7 +4457,21 @@
       const rbAll=bRounds(b);
       const segNow=(!finished&&r===rot.round&&running)?segAt(b,rot.elapsed):null;
       const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:segNow.waves?`Wave ${segNow.wave+1}/${segNow.waves}`:segNow.swaps?`Rotation ${segNow.swap+1}/${segNow.swaps}`:(rbAll>1?`Round ${segNow.round+1}/${rbAll}`:"Running")):"Done — stations finishing")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
-      out+=`<div class="rrow ${cls}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${bRounds(b)>1?` · ${bRounds(b)}&times;`:""}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span></div>`;
+      // Any block can be opened to see what is in it — a queued block that will not
+      // say what is coming is no use to a trainer planning the next two minutes.
+      const open=isCur||rlOpen.has(r);
+      out+=`<div class="rrow ${cls} ${open?"open":""}" data-r="${r}"><div class="rh"><i class="bdot" style="background:rgb(${BLKCOL[bi%6]})"></i>${esc(b.name)}${bRounds(b)>1?` · ${bRounds(b)}&times;`:""}${laps()>1?` · R${lapOf(r)+1}`:""}<span>${status}</span>`
+        +(isCur?"":`<button class="rpeek" type="button" data-r="${r}" aria-expanded="${open}" aria-label="${open?"Hide":"Preview"} this block">${open?"&#9652;":"&#9662;"}</button>`)
+        +`</div>`;
+      if(open&&!isCur){
+        // a preview: what is in it, in order, with no live clock
+        (b.items||[]).forEach((it,ii)=>{
+          out+=`<div class="prt peek ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>`
+            +`<b>${esc(partLabel(it,ii))}</b><i>${fmtMS(itLen(it))}</i></div>`;
+        });
+        if(bRounds(b)>1&&bRRest(b)>0)
+          out+=`<div class="prt peek"><span class="pd"></span><b>Rest between rounds</b><i>${fmtMS(bRRest(b))}</i></div>`;
+      }
       if(isCur){
         const one=oneRound(b), rbN=bRounds(b), per=one+bRRest(b);
         const rIdx=running&&one>0? Math.min(rbN-1,Math.floor(rot.elapsed/per)) : 0;
@@ -4457,6 +4493,12 @@
       if(r<totalRounds()-1&&restAfterBlock(blockIdxOf(r))>0) out+=`<div class="tlbrest">Rest · ${fmtMS(restAfterBlock(blockIdxOf(r)))}</div>`;
     }
     el.innerHTML=out;
+    el.querySelectorAll(".rpeek").forEach(bt=>{
+      bt.onclick=ev=>{ ev.stopPropagation();
+        const r2=+bt.dataset.r;
+        if(rlOpen.has(r2)) rlOpen.delete(r2); else rlOpen.add(r2);
+        rlSig=""; buildTrainerList(); };
+    });
     el.querySelectorAll(".rrow.next").forEach(row=>{
       row.onclick=()=>{ if(running||paused||holding) return; rot.round=+row.dataset.r; rot.phase="pre"; syncRotChrome(); startBlock(); };
     });
@@ -4485,7 +4527,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=254;
+  const BUILD=255;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
