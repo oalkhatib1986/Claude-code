@@ -107,6 +107,15 @@ copy for cache-free serving; `version.txt` holds the build number.
   the boxes cannot drift apart. "Next" resolves nearest-first — the swap inside this
   part, the next part of this block, then the next block, which is the only case that
   says `end of <block>`. The station number never rides on the exercise name.
+- **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
+  opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
+  button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go
+  stale. A real tablet in landscape kiosk gets there anyway via `TBKQ`. The rotated
+  frame is fitted to `stage.clientWidth - 3` — at exactly the stage width it rounds a
+  pixel past the viewport and the page picks up a sideways scroll. In phone view the
+  target rail is short and wide, so `.tk-pills` turns into a ROW: stacked with
+  `flex:1 1 0` its buttons collapsed into each other and printed 500 on top of 600.
+  `tbland.js` gates both layouts.
 - TVs load `#screen` / `#workout` and must always start in TV mode; the Big Screen
   tab on a phone defaults to phone view (`scrFit`). Under 1100px, TV mode frames the
   board at a true 1920x1080 and scales it (`body.tvprev`, `#smStage`) instead of

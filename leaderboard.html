@@ -234,6 +234,10 @@
   body:not(.kioskon) .tk-now{flex:none}
   body:not(.kioskon) .tk-vit{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
   body:not(.kioskon) .tk-vit>div{border-left:none;border-top:1px solid rgba(0,0,0,.12)}
+  body:not(.kioskon) .tk-rail{flex:none}
+  body:not(.kioskon) .tk-pills{flex-direction:row;flex:none}
+  body:not(.kioskon) .tk-pills .tswp{border-top:0;border-left:2px solid rgba(0,0,0,.16);padding:8px 6px}
+  body:not(.kioskon) .tk-pills .tswp:first-child{border-left:0}
   .tk-vit{border-top:2px solid rgba(0,0,0,.12)}
   .tk-id{display:flex;align-items:center;gap:13px;padding:14px 18px;min-width:0;flex:none}
   .tk-logo{height:clamp(25px,6.2vw,40px);aspect-ratio:1;flex:none;display:flex;
@@ -341,7 +345,7 @@
     text-transform:uppercase;color:rgba(0,0,0,.5)}
   .tk-pills{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;
     border:3px solid #0a0a0b;border-radius:18px;overflow:hidden;background:#fff}
-  .tk-pills .tswp{flex:1 1 0;min-width:0;min-height:0;border:0;border-top:2px solid rgba(0,0,0,.16);
+  .tk-pills .tswp{flex:1 1 0;min-width:0;min-height:44px;border:0;border-top:2px solid rgba(0,0,0,.16);
     background:#fff;border-radius:0;color:#0a0a0b;padding:4px 2px;cursor:pointer;white-space:nowrap;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:.12s}
   .tk-pills .tswp:first-child{border-top:0}
@@ -1296,7 +1300,7 @@
     <div class="tb-wrap">
       <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows who is assigned to this machine, and new teams or athletes type their name right here at their first station.</div>
       <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
-      <div class="tb-selrow" style="margin:-4px 0 12px"><button id="tbFit" type="button" class="btn small">Tablet preview</button></div>
+      <div class="tb-selrow" style="margin:-4px 0 12px"><button id="tbFit" type="button" class="btn small">Phone view</button></div>
       <div class="tbprev-stage" id="tbStage"><div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div></div>
       <div class="tbprev-cap" id="tbCap" hidden></div>
     </div>
@@ -2724,11 +2728,15 @@
   // on a landscape tablet the screen fills whatever height is left below the
   // header, so the whole readout fits with nothing to scroll
   const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:560px)";
-  let tbPrev=false;
+  // The Erg Tablet tab exists to show what the tablet shows, and the tablet is a
+  // landscape kiosk. Open on the real 1005x600 frame; the button flips to phone view.
+  let tbPrev=true;
   function kioskOn(){ return document.body.classList.contains("tabkiosk")&&(tbPrev||matchMedia(TBKQ).matches); }
   function fitTablet(){
     const d=document.querySelector(".tb-device"); if(!d) return;
     const stage=$("tbStage");
+    // the button names what it will do, so it can never go stale on re-entry
+    { const tf=$("tbFit"); if(tf) tf.textContent=tbPrev?"Phone view":"Tablet preview"; }
     document.body.classList.toggle("kioskon",kioskOn());
     document.body.classList.toggle("tabprev",tbPrev&&document.body.classList.contains("tabkiosk"));
     const fitCanvas=()=>{ const tk=d.querySelector(".tk"); if(!tk) return;
@@ -2738,7 +2746,9 @@
     if(tbPrev&&document.body.classList.contains("tabkiosk")){
       // render at true tablet size, then scale the whole frame to the phone
       d.style.height=""; d.style.transform="";
-      const w=stage?stage.clientWidth:360;
+      // a hair under: at exactly the stage width the rotated frame rounds a pixel
+      // or two past the viewport and the page picks up a sideways scroll
+      const w=Math.max(120,(stage?stage.clientWidth:360)-3);
       const tall=window.innerWidth<820; // portrait phone: turn the frame on its side
       const k=tall?Math.min(1,Math.min(w/600,(window.innerHeight*0.82)/1005))
                   :Math.min(1,w/1005);
@@ -4663,7 +4673,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=260;
+  const BUILD=261;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
