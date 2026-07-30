@@ -105,7 +105,26 @@
   .blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
   .blk{border:1px solid var(--line);border-left:3px solid var(--bl,var(--line));border-radius:16px;background:linear-gradient(90deg,var(--blbg,transparent),transparent 55%),var(--card);box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s}
   .blk.scoring{border-color:rgba(255,45,45,.55);box-shadow:0 0 34px -10px rgba(255,45,45,.3),var(--shadow)}
-  .blk .bh{display:flex;align-items:center;gap:10px}
+  .blk .bh{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+  /* where the class is in this block, right now */
+  .blk .bstat{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .blk .bstat.q{font-weight:600;color:var(--ink-mute)}
+  .blk .bprog{height:4px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+  .blk .bprog i{display:block;height:100%;border-radius:99px;background:var(--ink);
+    transition:width .35s linear}
+  .blk.scoring .bprog i{background:var(--hot)}
+  .blk.queued,.blk.donez{opacity:.42}
+  .blk.donez .bstat.q{color:var(--ink-dim)}
+  .blk.bcw.live{--bl:#ffffff;--blbg:rgba(255,255,255,.06)}
+  .blk.bcw.live{border-color:rgba(255,255,255,.42)}
+  /* NOW and NEXT are the same tag twice, so the eye reads them as a pair */
+  .ptag{font-style:normal;display:inline-block;vertical-align:baseline;margin-right:7px;
+    padding:1px 7px;border-radius:99px;background:var(--ink);color:#000;
+    font-family:var(--disp);font-weight:700;font-size:9px;letter-spacing:.18em}
+  .ptag.nx{background:transparent;color:var(--ink-dim);box-shadow:inset 0 0 0 1px var(--line)}
+  .exg.pnow .exg-h{color:var(--ink)}
+  .exg.pnow .exl{color:var(--ink);font-weight:600}
   .blk .bh b{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase}
   .blk .bh .mc{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:11px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;
     border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap}
@@ -640,6 +659,7 @@
   .mwrap.time.ifmt{width:auto;min-width:106px}
   .mwrap.time.irotby{width:auto;min-width:118px}
   .mwrap.time.igear{width:auto;min-width:132px}
+  .mwrap.time.irm{width:auto;min-width:96px}
   .mfield{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:11px;padding:10px 32px 10px 13px;cursor:pointer;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .15s;
@@ -918,6 +938,7 @@
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
   body.wkscreen .blk .teams{display:none}
+  body.wkscreen .phase .pdesc{display:none}
   body.wkscreen .blk .win{color:rgba(255,255,255,.85);font-size:15px;margin-top:10px}
   .teamsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .teamsbar label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
@@ -1029,6 +1050,9 @@
   body.wkscreen:not(.mobscreen) .blk .bd .exg-h{font-size:24px;letter-spacing:.16em;margin-bottom:8px}
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{font-size:28px;margin-bottom:12px}
   body.wkscreen:not(.mobscreen) .blk .bd .exg{margin-top:16px}
+  body.wkscreen:not(.mobscreen) .blk .bstat{font-size:22px;letter-spacing:.16em}
+  body.wkscreen:not(.mobscreen) .blk .bprog{height:8px}
+  body.wkscreen:not(.mobscreen) .ptag{font-size:17px;padding:2px 13px;margin-right:12px}
   body.wkscreen:not(.mobscreen) .blk .win{font-size:24px;letter-spacing:.16em}
   body.bigscreen:not(.mobscreen) #evSummary .schip b{font-size:34px}
   body.bigscreen:not(.mobscreen) #evSummary .schip i{font-size:17px;letter-spacing:.16em}
@@ -1890,8 +1914,11 @@
     return /^\d+(\.\d+)?(-\d+(\.\d+)?)?$/.test(s)?s:null; };
   const amtList=x=>(x.amounts||[]).map(amtVal).filter(v=>v!==null);
   const amtNum=a=>{ const v=amtVal(a); return v===null?NaN:parseFloat(v.split("-")[0]); };
+  const exRM=x=>{ const v=parseInt(x&&x.rm,10);
+    return (v>=1&&v<=100&&!machineOf(x&&x.name))?v:0; };
   const exTxt=x=>{ const w=whoShown(x); const a=x.max?"Max":amtList(x).join("/");
-    return `${w?w+" — ":""}${x.name}${a?" · "+a+exUnit(x.unit):""}`; };
+    const rm=exRM(x);
+    return `${w?w+" — ":""}${x.name}${a?" · "+a+exUnit(x.unit):""}${rm?" @ "+rm+"% 1RM":""}`; };
   // ONE label for a part, wherever the trainer reads a list of them. The exercise
   // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
   const partLabel=(it,ii)=>{
@@ -1910,15 +1937,24 @@
     const st=clamp(parseInt(it.stations,10)||0,0,60);
     if(st) nm+=" \u00b7 "+st+" station"+(st>1?"s":"");
     return nm; };
-  const exLines=b=>{
+  // Once the clock is running the card stops being a plan and becomes a position:
+  // this part NOW, that one NEXT. Nothing else about it changes.
+  const exLines=(b,seg)=>{
     const its=b.items||[];
     if(!its.length) return esc(b.desc||"—");
-    return its.map(it=>{
-      if(it.rest) return `<div class="exg"><span class="exg-h">Rest · ${fmtMS(it.dur)}</span></div>`;
+    const cur=(seg&&seg.i>=0)?seg.i:-1;
+    // nearest first: the next part of this block, else the top of the next round
+    const wrap=cur>=0&&cur+1>=its.length&&seg&&seg.rounds>seg.round+1;
+    const nxt=cur<0?-1:(cur+1<its.length?cur+1:(wrap?0:-1));
+    return its.map((it,i)=>{
+      const mk=i===cur?" pnow":i===nxt?" pnxt":"";
+      const tag=i===cur?`<em class="ptag">Now</em>`
+        :i===nxt?`<em class="ptag nx">Next${wrap?" round":""}</em>`:"";
+      if(it.rest) return `<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
       const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
       const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${it.exercises.length} stations · self-paced`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`:fmtMS(it.dur);
-      return `<div class="exg"><span class="exg-h">${label?label+" · ":""}${tlab}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
+      return `<div class="exg${mk}"><span class="exg-h">${tag}${label?label+" · ":""}${tlab}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
 
@@ -2091,9 +2127,24 @@
       const al=allocAt(bi);
       const seg=running?segAt(b,rot.elapsed):null;
       const hot=!!(seg&&seg.it.scored&&!seg.it.rest&&!cfg.noScore);
-      return `<div class="blk ${hot?"scoring":""} bcw">
-        <div class="bh"><b>${esc(b.name)}</b></div>
-        <div class="bd">${exLines(b)}</div>
+      // Everyone-together means one block is live at a time; split across blocks
+      // means they all are, each with its own class in it.
+      const live=!!(running&&seg&&(!cfg.together||bi===blockIdxOf(rot.round)));
+      const state=!running?"":live?"live"
+        :(cfg.together&&bi>blockIdxOf(rot.round))?"queued":"donez";
+      const its=(b.items||[]).length;
+      const pct=live?clamp(rot.elapsed/Math.max(1,blockLen(b))*100,0,100):(state==="donez"?100:0);
+      const bits=[];
+      if(live){
+        if(seg.rounds>1) bits.push(`Round ${seg.round+1}/${seg.rounds}`);
+        bits.push(seg.i<0?"Round rest":`Part ${seg.i+1} of ${its}`);
+        bits.push(`${fmtMS(Math.max(0,Math.ceil(seg.remain)))} left`);
+      }
+      const stat=live?bits.join(" \u00b7 "):state==="queued"?"Up next":state==="donez"?"Done":"";
+      return `<div class="blk ${hot?"scoring":""} ${state} bcw">
+        <div class="bh"><b>${esc(b.name)}</b>${stat?`<span class="bstat${live?"":" q"}">${stat}</span>`:""}</div>
+        ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
+        <div class="bd">${exLines(b,live?seg:null)}</div>
         <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
         <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span><b class="tn">${esc(t.e.name)}</b><em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
@@ -3041,6 +3092,20 @@
               <option value="cal" ${x.unit==="cal"?"selected":""}>calories</option>
               <option value="reps" ${x.unit==="reps"?"selected":""}>reps</option>
               <option value="sec" ${x.unit==="sec"?"selected":""}>seconds</option></select></div>`;
+        // How heavy, as a share of the athlete's own best single. Ergs have no 1RM,
+        // so the field is simply not there for Row/Ski/Bike/Run.
+        if(!machineOf(x.name)){
+          const rmOpts=()=>["\u2014 none"].concat([40,50,55,60,65,70,75,80,85,90,95,100].map(v=>v+"%"));
+          const rmCur=()=>{ const v=parseInt(x.rm,10); return (v>=1&&v<=100)?v+"%":"\u2014 none"; };
+          const rmFld=menuField(rmOpts, rmCur,
+            v=>{ const n=parseInt(String(v).replace(/[^0-9]/g,""),10);
+              x.rm=(n>=1&&n<=100)?n:0; save(); renderItems(); if(!sessionActive&&!running) build(); },
+            {numeric:true, addable:true, addLabel:"Use", cls:"time irm", searchPh:"% of 1RM\u2026"});
+          rmFld.title="Percentage of the athlete's one-rep max \u2014 shown with the work on the "
+            +"overview and the big screen.";
+          const w=lwrap("% 1RM","rm1",rmFld); w.classList.add("rmfld");
+          r2.appendChild(w);
+        }
         // The equipment this exercise needs \u2014 and therefore how many stations exist.
         // It lives on the wrapping row: .exr1 is a fixed four-column grid and a fifth
         // field simply pushed the card off the screen.
@@ -4016,6 +4081,7 @@
   const HELP={
     sharein:"Worked out for you: how many are in class today divided by how many of that equipment the gym has. Set the class size in Control and the equipment count in Layout \u203a Gym equipment \u2014 there is nothing to type here.\n\nHow many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
     rotby:"When people move on: When done \u2014 each athlete taps Done on their tablet and moves at their own pace \u00b7 On the clock \u2014 everyone swaps together on a fixed split.",
+    rm1:"How heavy, as a percentage of the athlete's one-rep max \u2014 65%, 80%, whatever you program. Leave it on none and nothing is printed. It rides with the work everywhere the prescription is shown: the overview card, the big screen, the station panels and the tablets. Ergs have no 1RM, so the field only appears for floor exercises.",
     equipment:"What this exercise needs \u2014 a squat rack, a bench, a sled. Add the kit and its count once in Layout \u203a Gym equipment; every exercise linked to it then shares it out automatically, and each athlete is told which one is theirs.",
     stations:"How many of these you have in the gym \u2014 squat racks, bars, benches. Leave it on One each if everybody gets their own. Set 4 with 12 athletes and they share three to a rack, and every screen says which one is theirs.",
     who:"Who inside the team does this part \u2014 everyone together, a pair, or one athlete. Type anything custom (e.g. Min 1 for EMOMs).",
@@ -4565,7 +4631,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=256;
+  const BUILD=257;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
