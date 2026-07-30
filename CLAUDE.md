@@ -61,6 +61,15 @@ copy for cache-free serving; `version.txt` holds the build number.
   differ only in reps must never render as three identical rows — `audit.js` walks
   every surface (timeline, start flow, NOW/NEXT, overview card, TV board, lane,
   tablet) with a 6/4/2-rep block and fails if any of them drops the prescription.
+- **Athletes who share an answer share a card.** Control > Athletes groups the rows
+  into one `.stgrp` per station: the heading is the place, the NOW/NEXT pair sits
+  under it once, then the name rows. `regroupCrews()` runs live (at build time the
+  engine has not placed anyone yet) and bails while an input has focus. The group
+  key is the WHOLE answer — now.where + both cells' work/where/note — because three
+  athletes can share a rack now and split across stations in the next block; keying
+  on the station alone would tell two of them the wrong thing. Cells drop a `where`
+  that merely repeats the heading. Anything reading these panels must select
+  `#crewList .stgrp`, not `.crew`.
 - **NOW and NEXT are one component used twice.** `crewWhere()` returns
   `{now,nxt}`, each `{lab, work, where, note}`: the work with its reps, the place
   (`Block A · Station 1`), one note. `crewStLine()` has a single `cell()` builder so

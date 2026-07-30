@@ -567,29 +567,41 @@
   /* no colour picker: lane colours are assigned automatically and nobody edits them */
   .crew{display:grid;grid-template-columns:1fr auto 44px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft)}
   /* where this athlete is now / where they go next — the trainer's main read */
-  .crew .cst{grid-column:1/-1;display:grid;gap:8px;margin:9px 0 3px;min-width:0;
+  #crewList .cst{grid-column:1/-1;display:grid;gap:8px;margin:9px 0 3px;min-width:0;
     grid-template-columns:repeat(auto-fit,minmax(min(100%,152px),1fr))}
-  .crew .cst>div{min-width:0;display:flex;flex-direction:column;gap:3px;
+  #crewList .cst>div{min-width:0;display:flex;flex-direction:column;gap:3px;
     background:rgba(255,255,255,.045);border:1px solid var(--line-soft);
     border-left:3px solid rgba(255,255,255,.22);border-radius:10px;padding:9px 12px}
-  .crew .cst>.cnow{border-left-color:#3ade6b;background:rgba(58,222,107,.07)}
-  .crew .cst span{font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.2em;
+  #crewList .cst>.cnow{border-left-color:#3ade6b;background:rgba(58,222,107,.07)}
+  #crewList .cst span{font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--ink-mute)}
-  .crew .cst>.cnow span{color:#3ade6b}
+  #crewList .cst>.cnow span{color:#3ade6b}
   /* two sizes only, and they mean the same thing in both cells: <b> is the answer,
      everything under it is context. Peers (the moves in a swap) are all <b>. */
-  .crew .cst b{font-family:var(--disp);font-weight:700;font-size:16.5px;line-height:1.2;
+  #crewList .cst b{font-family:var(--disp);font-weight:700;font-size:16.5px;line-height:1.2;
     letter-spacing:.02em;color:var(--ink);min-width:0;overflow-wrap:anywhere}
-  .crew .cst b+b{margin-top:2px}
+  #crewList .cst b+b{margin-top:2px}
   /* ONE size in the whole box. The trainer reads these at arm's length across a
      gym floor, so the station and the block are as big as the work above them —
      they are told apart by weight and colour, never by shrinking. */
-  .crew .cst i{font-style:normal;font-size:16.5px;font-weight:500;line-height:1.25;
+  #crewList .cst i{font-style:normal;font-size:16.5px;font-weight:500;line-height:1.25;
     color:var(--ink-mute);min-width:0;overflow-wrap:anywhere}
-  .crew .cst u{display:block;text-decoration:none;margin-top:6px;padding-top:6px;
+  #crewList .cst u{display:block;text-decoration:none;margin-top:6px;padding-top:6px;
     border-top:1px solid var(--line-soft);font-size:16.5px;font-weight:500;line-height:1.25;
     color:var(--ink-dim);min-width:0;overflow-wrap:anywhere}
   .crew:last-of-type{border-bottom:0}
+  /* one card per station: the heading is the place, the rows are who is on it */
+  .stgrp{border:1px solid var(--line-soft);border-radius:14px;padding:10px 12px 4px;
+    margin:0 0 12px;background:rgba(255,255,255,.022)}
+  .stgrp-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0;margin:0 0 2px}
+  .stgrp-h b{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+  .stgrp-h em{font-style:normal;font-family:var(--disp);font-weight:600;font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);margin-left:auto;
+    white-space:nowrap}
+  .stgrp .cst{margin:8px 0 10px}
+  .stgrp .crew{padding:7px 0;border-bottom:1px solid var(--line-soft)}
+  .stgrp .crew:last-child{border-bottom:0}
   .crew .del{border:1px solid var(--line);background:transparent;color:var(--ink-mute);border-radius:10px;height:40px;cursor:pointer;font-size:17px;transition:.14s}
   .crew .del:hover{color:#fff;border-color:rgba(255,255,255,.3)}
   .crew.solo{grid-template-columns:1fr 44px}
@@ -3415,17 +3427,83 @@
       where:`${nx.name} \u00b7 ${posShort(crewPosLabel(nxi,j))}`,
       note:`end of ${here.name}`}};
   }
-  function crewStLine(i){
+  function crewStLine(i,dropNowWhere){
     const w=crewWhere(i); if(!w) return "";
     // one cell builder, used twice \u2014 the two boxes cannot drift apart
     const cell=(c,cls)=>`<div class="${cls}"><span>${c.lab}</span>`
       +`<b>${esc(c.work||"\u2014")}</b>`
       +(c.where?`<i>${esc(c.where)}</i>`:"")+(c.note?`<u>${esc(c.note)}</u>`:"")+`</div>`;
-    return cell(w.now,"cnow")+cell(w.nxt,"cnxt");
+    // the group heading already names the station, so neither cell repeats it —
+    // NEXT keeps its where only when it is somewhere ELSE
+    const hd=dropNowWhere===true?(w.now?w.now.where:""):(dropNowWhere||"");
+    const trim=c=>hd&&c.where===hd?Object.assign({},c,{where:""}):c;
+    return cell(hd?trim(w.now):w.now,"cnow")+cell(hd?trim(w.nxt):w.nxt,"cnxt");
+  }
+  // Athletes who share a station share an answer, so they share one card. The
+  // heading is the station; the names under it are who is standing there.
+  // Group on the WHOLE answer, not just the station: three athletes can share a rack
+  // now and split across different stations in the next block, and one shared card
+  // would then be telling two of them the wrong thing.
+  const crewWhereKey=i=>{ const w=crewWhere(i); if(!w||!w.now||!w.now.where) return "";
+    const f=c=>c?[c.work,c.where,c.note].join("\u241f"):"";
+    return [w.now.where,f(w.now),f(w.nxt)].join("\u241e"); };
+  const crewWhereHead=i=>{ const w=crewWhere(i); return w&&w.now?(w.now.where||""):""; };
+  // Athletes who share a station share an answer, so they share ONE card. This runs
+  // live because at build time the engine has not placed anyone yet.
+  function regroupCrews(){
+    const list=$("crewList"); if(!list) return;
+    const rows=[...list.querySelectorAll(".crew")];
+    if(!rows.length) return;
+    // never re-parent the field someone is typing in
+    const a=document.activeElement;
+    if(a&&list.contains(a)&&/^(INPUT|TEXTAREA)$/.test(a.tagName)) return;
+    const keys=rows.map(r=>crewWhereKey(+r.dataset.i));
+    const sig=keys.join("|");
+    if(list.dataset.sig===sig) return;
+    list.dataset.sig=sig;
+    const frag=document.createDocumentFragment();
+    let grpKey=null, box=null;
+    rows.forEach((row,n)=>{
+      const key=keys[n];
+      const own=row.querySelector(":scope>.cst");
+      if(key){ if(own) own.style.display="none"; }
+      else if(own) own.style.display="";
+      if(!key){ grpKey=null; box=null; frag.appendChild(row); return; }
+      if(!box||key!==grpKey){
+        grpKey=key;
+        box=document.createElement("div"); box.className="stgrp"; box.dataset.i=row.dataset.i;
+        const hd=document.createElement("div"); hd.className="stgrp-h";
+        hd.innerHTML=`<b>${esc(crewWhereHead(+row.dataset.i))}</b><em></em>`;
+        const cst=document.createElement("div"); cst.className="cst";
+        box.append(hd,cst); frag.appendChild(box);
+      }
+      box.appendChild(row);
+    });
+    list.appendChild(frag);
+    list.querySelectorAll(".stgrp").forEach(g=>{
+      const n=g.querySelectorAll(".crew").length;
+      if(!n){ g.remove(); return; }
+      const em=g.querySelector(".stgrp-h em");
+      if(em) em.textContent=n>1?`${n} ${kws()}`:"";
+    });
   }
   function refreshCrewStations(){
-    document.querySelectorAll("#crewList .crew").forEach((row,k)=>{
-      const el=row.querySelector(".cst"); if(!el) return;
+    regroupCrews();
+    document.querySelectorAll("#crewList .stgrp").forEach(box=>{
+      const first=box.querySelector(".crew");
+      const i=first?(+first.dataset.i):(+box.dataset.i);
+      const el=box.querySelector(".cst"); if(!el) return;
+      const key=crewWhereHead(i);
+      const hd=box.querySelector(".stgrp-h b");
+      if(hd&&hd.textContent!==key) hd.textContent=key;
+      const h=crewStLine(i,key); if(el.innerHTML!==h) el.innerHTML=h;
+      el.style.display=h?"":"none";
+      const hw=box.querySelector(".stgrp-h");
+      if(hw) hw.style.display=key?"":"none";
+    });
+    // ungrouped fallback (nothing to group by)
+    document.querySelectorAll("#crewList>.crew>.cst").forEach(el=>{
+      const k=+el.closest(".crew").dataset.i;
       const h=crewStLine(k); if(el.innerHTML!==h) el.innerHTML=h;
       el.style.display=h?"":"none"; });
   }
@@ -3434,6 +3512,7 @@
     const list=$("crewList"); list.innerHTML="";
     cfg.crews.forEach((c,i)=>{
       const row=document.createElement("div"); row.className="crew"+(cfg.teamKind==="solo"?" solo":"");
+      row.dataset.i=String(i);
       const solo=cfg.teamKind==="solo";
       row.innerHTML=`<input type="text" class="cname" placeholder="${solo?"Athlete name":"Team name"}" value="${esc(c.name)}">
         ${solo?"":`<button class="mtog" type="button"></button>`}
@@ -4312,7 +4391,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=252;
+  const BUILD=253;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
