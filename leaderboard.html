@@ -168,6 +168,14 @@
   .btn:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.07)}
   .btn.primary{background:var(--ink);border-color:var(--ink);color:#0a0a0a;font-weight:700}
   .btn.primary:hover{background:#d7d9db;border-color:#d7d9db}
+  /* A start button should look like one. The triangle is drawn, not typed, so it
+     matches the label's weight and takes the button's own colour; it is absent
+     while the block is running, when tapping does nothing. */
+  #startBtn:not(:disabled)::before,#bdStart:not(:disabled)::before{
+    content:"";display:inline-block;vertical-align:-1px;margin-right:9px;
+    width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;
+    border-color:transparent transparent transparent currentColor}
+  #bdStart:not(:disabled)::before{margin-right:7px;border-width:5px 0 5px 8px}
   .btn:disabled{opacity:.35;cursor:default}
   .hint{font-size:12.5px;color:var(--ink-mute);margin-left:auto;max-width:340px;text-align:right;line-height:1.45}
 
@@ -4655,7 +4663,7 @@
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=259;
+  const BUILD=260;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
