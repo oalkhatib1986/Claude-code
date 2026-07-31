@@ -260,6 +260,14 @@
   .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(20px,5.2vw,34px);
     letter-spacing:.03em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1}
   .tk-who.unnamed{color:rgba(0,0,0,.35)}
+  /* Upright on a phone the machine name and the block pill already fill the row,
+     so the occupant was ellipsised down to a single letter. Give it its own line
+     rather than crushing it — a name is the one thing this strip exists to say. */
+  @media (max-width:640px){
+    body:not(.kioskon) .tk-id{flex-wrap:wrap;gap:8px 12px}
+    body:not(.kioskon) .tk-blk{margin-left:auto}
+    body:not(.kioskon) .tk-who{order:3;flex:1 1 100%;margin-left:0}
+  }
   .tk-blk{flex:none;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,20px);letter-spacing:.14em;
     text-transform:uppercase;color:#fff;background:#0a0a0b;border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
   .tk-name{display:flex;flex-direction:column;gap:8px;padding:13px 18px;flex:none}
@@ -268,6 +276,9 @@
   .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(0,0,0,.2);background:#fff;
     color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
   .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
+  /* mid-session the ask is a band, never a takeover: the work stays on screen */
+  .tk-name.up{background:rgba(28,160,70,.12)}
+  .tk-name.up label{color:#0e7434}
   /* claim: the machine offering itself to whoever walks up */
   .tk-claim{gap:11px}
   .tk-claim .tk-head{background:rgba(0,0,0,.07)}
@@ -504,7 +515,10 @@
   .twc.live{border-color:rgba(58,222,107,.5)}
   .twc.live .twc-m{color:#3ade6b}
   .tb-back{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  /* the stepper sits to the right only while it fits on the same line — pushed
+     right on a wrapped row it leaves a hole where nothing is */
   .tb-stepper{display:flex;align-items:center;gap:8px;margin-left:auto;min-width:0}
+  @media (max-width:640px){ .tb-stepper{margin-left:0} }
   .tb-stepper b{min-width:0;font-family:var(--disp);font-weight:700;font-size:11px;
     letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3069,7 +3083,12 @@
   const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:560px)";
   // The Erg Tablet tab exists to show what the tablet shows, and the tablet is a
   // landscape kiosk. Open on the real 1005x600 frame; the button flips to phone view.
-  let tbPrev=true;
+  // A PHONE IS HELD UPRIGHT. The tablet's own layout is landscape, and the only way
+  // to show it big enough to read on a phone is to turn it on its side — which means
+  // asking the trainer to rotate the phone just to look at a machine. So on a phone
+  // the drill-in opens the portrait layout and "Tablet preview" is one tap away in
+  // the back bar; anything wide enough to hold the real 1005x600 frame opens on it.
+  let tbPrev=(()=>{ try{ return window.innerWidth>=820; }catch(e){ return true; } })();
   function kioskOn(){ return !wallOn()&&document.body.classList.contains("tabkiosk")
     &&(tbPrev||matchMedia(TBKQ).matches); }
   function fitTablet(){
@@ -3247,8 +3266,12 @@
       // back) is the pre-clock state only — mid-block the work has to stay visible.
       const claimed=!!(team&&!unnamed(team.name));
       const preClock=!running&&!sessionActive&&phase==="pre";
-      const claiming=!!(team&&!finished&&(preClock||!claimed));
-      const needName=!!(team&&unnamed(team.name));
+      // ONCE THE CLOCK IS RUNNING, THE WORK COMES FIRST. Before it starts there is
+      // nothing else to show, so the claim card can own the instruction zone. After
+      // it starts, the person on this machine needs to know what they are doing —
+      // the name ask drops to a slim band above it and never covers the job.
+      const claiming=!!(team&&!finished&&preClock);
+      const needName=!!(team&&!finished&&unnamed(team.name));
       // machine metrics strip — warm-up before the start, live while working, frozen in rest
       const tsw=team?tbSwapInfo(sv,seg,team,b):null;
       let mts=null, mtag="", mcls="";
@@ -3365,14 +3388,14 @@
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
         nxEm=esc((amtList(cir.next).join("/")+exUnit(cir.next.unit)).trim()); }
       const nxtCard=`<div class="tk-card tk-nxt"><span>${nxSpan}</span><b>${nxB}</b>${nxEm?`<em>${nxEm}</em>`:""}</div>`;
-      const nameBand=(needName&&!claiming)?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button" data-tid="${team.id}">Save</button></div></div>`:"";
+      const nameBand=(needName&&!claiming)?`<div class="tk-card tk-name up"><label>You&rsquo;re up here now &mdash; tap your name in</label><div><input id="tbName" maxlength="18" placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}" autocomplete="off"><button class="btn" id="tbNameGo" type="button" data-tid="${team.id}">I&rsquo;m on</button></div></div>`:"";
       scr.innerHTML=`
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-card tk-id">
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
             <div class="tk-mach">${mLabel}</div>
             <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${
-              team?(claiming&&!claimed?"Nobody yet":esc(team.name)):`No ${kw()} here`}</div>
+              team?(claimed?esc(team.name):"Nobody yet"):`No ${kw()} here`}</div>
             <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
           </div>
           ${nameBand}
@@ -5255,7 +5278,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=272;
+  const BUILD=273;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

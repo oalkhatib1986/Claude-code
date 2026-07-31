@@ -188,6 +188,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   ALSO delegated to the container and carries its meaning in data attributes
   (`.tswp[data-k][data-a][data-who]`, `#tbClaimGo[data-tid|data-slot]`,
   `#tbFree[data-tid]`) — never bind a handler to an element a timer can replace.
+- **Once the clock runs, the work comes first.** Before the start there is nothing else
+  to show, so the claim card owns the instruction zone (`claiming = team && !finished &&
+  preClock`). After it starts, the person on the machine needs to know what they are
+  doing: the ask drops to a slim green band above the work (`.tk-name.up`, "You're up
+  here now — tap your name in") and never covers `tk-inst`. `.tk-who` reads
+  "Nobody yet" whenever the slot is unclaimed, in both states. `floorclaim.js` and
+  `claim.js` assert the band, the instruction and the work are all on screen together.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons
@@ -233,11 +240,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   wall and lands on its own machine. `kioskOn()` and `fitTablet()` both bail while the
   wall is up. Suites that read one machine's screen must call `window.__tbOpen(key)`
   after entering the tab. `tbwall.js` gates it.
-- **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
-  opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
-  button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go
-  stale. A real tablet in landscape kiosk gets there anyway via `TBKQ`. The rotated
-  frame is fitted to the PARENT's width minus 3 — at exactly the stage width it rounds
+- **A phone is held upright.** The tablet's own layout is landscape, and the only way
+  to show it big enough to read on a phone is to turn it on its side — which asks the
+  trainer to rotate the phone just to look at a machine. So `tbPrev` defaults to
+  `innerWidth>=820`: a phone drills in to the portrait layout and `Tablet preview` is
+  one tap away in the back bar; anything wide enough for the real 1005x600 frame opens
+  on it. `fitTablet()` re-labels the button every time so it cannot go stale, and a
+  real tablet in landscape kiosk gets the frame anyway via `TBKQ`. Upright, the id row
+  wraps so the occupant keeps its own line — squeezed onto one it ellipsised
+  "Nobody yet" down to "N.". The rotated frame is fitted to the PARENT's width minus 3 — at exactly the stage width it rounds
   a pixel past the viewport, and measuring the stage's own width (which `fitTablet`
   sets) shrank the frame 3px on every 400ms tick until it vanished. In phone view the
   target rail is short and wide, so `.tk-pills` turns into a ROW: stacked with
