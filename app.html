@@ -181,10 +181,14 @@
 
   /* ---------- leaderboard ---------- */
   .board{border:1px solid var(--line);border-radius:20px;background:var(--bg-2);box-shadow:var(--shadow);padding:18px 18px 10px;margin-top:16px}
-  .board-head{display:flex;justify-content:space-between;align-items:center;padding:2px 10px 14px;color:var(--ink-mute);
+  .board-head{display:grid;align-items:end;gap:16px;padding:2px 12px 14px;color:var(--ink-mute);
     font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.24em;text-transform:uppercase}
   .lanes{position:relative;transition:height .4s}
-  .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;grid-template-columns:64px 1fr minmax(0,236px);align-items:center;gap:16px;
+  /* A table has columns. The header row and every lane share ONE template, so a
+     value can never drift out from under its own heading. */
+  :root{--lanecols:64px minmax(0,1fr) 92px 92px 74px 62px 116px}
+  .board-head,.lane{grid-template-columns:var(--lanecols)}
+  .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;align-items:center;gap:16px;
     padding:0 12px;border-radius:14px;transition:transform .55s cubic-bezier(.4,1.05,.4,1),background .3s;will-change:transform}
   .lane::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:1px;background:var(--line-soft)}
   .lane.leader{background:linear-gradient(90deg,rgba(255,255,255,.055),transparent 60%)}
@@ -199,6 +203,12 @@
   .track{margin-top:8px;height:5px;border-radius:4px;background:rgba(255,255,255,.055);position:relative;overflow:hidden;max-width:520px}
   .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;transition:width .25s linear}
   .data{text-align:right;font-variant-numeric:tabular-nums}
+  /* every metric its own column, right-aligned so the digits stack */
+  .mcol{text-align:right;font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;
+    color:var(--ink-dim);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .mcol.k{color:var(--ink)}
+  .mcol em{font-style:normal;font-size:11px;color:var(--ink-mute);margin-left:2px}
+  .board-head .hcol{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hero{font-family:var(--mono);font-size:27px;font-weight:700;line-height:1;color:var(--accent);letter-spacing:-.01em}
   .hero small{font-family:var(--disp);font-weight:600;font-size:11px;color:var(--ink-mute);letter-spacing:.14em;text-transform:uppercase;margin-left:2px}
   /* the numbers wrap onto a second line rather than being cut off mid-figure */
@@ -1095,7 +1105,12 @@
   body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
   body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
   body.bigscreen:not(.mobscreen) .badge{height:168px;width:168px;margin:-32px 0 -32px -38px}
-  body.bigscreen:not(.mobscreen) .lane{grid-template-columns:80px 1fr 240px}
+  /* the TV has the room for every column — set the shared template, not the lane,
+     or the header stops lining up with the values under it */
+  /* proportional, not fixed: full screen lays the board out at whatever width
+     makes it fill the screen, and fixed columns would give it a floor it cannot
+     go under — which left half the screen black */
+  body.bigscreen:not(.mobscreen){--lanecols:5.5% minmax(0,1fr) 9% 9% 7% 5.5% 12%}
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
   body.bigscreen:not(.mobscreen) .loc{font-size:15px}
@@ -1147,7 +1162,15 @@
   body.wkscreen:not(.mobscreen) .phase .pdesc{font-size:18px}
   @media (max-width:720px){
     :root{--rowH:78px}
-    .lane{grid-template-columns:30px 1fr 104px;gap:9px;padding:0 4px}
+    /* A phone cannot carry six columns: keep who they are, the average, the score.
+       The ONE exception is the TV preview (body.tvprev), which lays the board out
+       at 1920 and scales it — that picture keeps every column. */
+    body:not(.tvprev){--lanecols:30px minmax(0,1fr) 74px 84px}
+    body:not(.tvprev) .lane{gap:9px;padding:0 4px}
+    body:not(.tvprev) .board-head{gap:9px;padding:2px 4px 10px}
+    body:not(.tvprev) .msplit,body:not(.tvprev) .mwatts,body:not(.tvprev) .mrate,
+    body:not(.tvprev) .hsplit,body:not(.tvprev) .hwatts,body:not(.tvprev) .hrate{display:none}
+    body:not(.tvprev) .mcol{font-size:12px}
     .lane.leader::before{top:12px;bottom:12px}
     .rank{font-size:20px}
     .team{font-size:17px;letter-spacing:.04em}
@@ -1158,7 +1181,10 @@
     .sub{font-size:9.5px;margin-top:4px}
     .data{min-width:0}
     .board{padding:12px 8px 6px;border-radius:14px}
-    .board-head{font-size:9px;letter-spacing:.16em;padding:2px 6px 10px}
+    /* the padding sets where the 1fr track starts, so it must match the lane's —
+       inside the TV preview the lane keeps its own, and so must the header */
+    .board-head{font-size:9px;letter-spacing:.16em}
+    body:not(.tvprev) .board-head{padding:2px 6px 10px}
     .subhead .ttl b{font-size:26px}
     .clock b{font-size:30px}
     .phase{padding:12px 14px}
@@ -1243,7 +1269,15 @@
     <div class="blocks" id="blockCards"></div>
 
     <div class="board">
-      <div class="board-head"><span id="rankHead">Rank · Team · Where they are</span><span id="scoreLabel">Score</span></div>
+      <div class="board-head">
+        <span></span>
+        <span id="rankHead">Rank &middot; Team &middot; Where they are</span>
+        <span class="hcol hsplit">Split /500</span>
+        <span class="hcol havg">Avg /500</span>
+        <span class="hcol hwatts">Watts</span>
+        <span class="hcol hrate">s/m</span>
+        <span class="hcol" id="scoreLabel">Score</span>
+      </div>
       <div class="lanes" id="lanes"></div>
     </div>
 
@@ -2301,20 +2335,14 @@
       e.el.querySelector(".fill").style.background = (running&&e.hot)?"var(--hot)":e.color;
       const val=e.score+e.blockCals;
       e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${scoreUnit()}</small>`;
-      const bits=[];
-      // the average is what a trainer reads across a block; the live split is only
-      // the last stroke
+      // one metric, one column \u2014 the average is what a trainer reads across a
+      // block, the live split is only the last stroke
       const avg=(e.wM>0&&e.wT>0)?500*e.wT/e.wM:0;
-      if(e.split>0){
-        if(d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
-        if(avg>0)   bits.push(`<em>avg</em>${fmtSplit(avg)}`);
-        if(d.watts) bits.push(`<span class="w">${Math.round(wattsFor(e.split))}</span>w`);
-        if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
-      } else if(avg>0) bits.push(`<em>avg</em>${fmtSplit(avg)}`);
-      else bits.push(`<em>erg idle</em>`);
-      if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
-      if(d.cals&&scoreUnit()==="m") bits.push(`<em>cal</em>${Math.round(e.cals)}`);
-      e.el.querySelector(".sub").innerHTML=bits.join(" · ");
+      const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
+      put(".msplit",e.split>0?fmtSplit(e.split):"\u2013");
+      put(".mavg",avg>0?fmtSplit(avg):"\u2013");
+      put(".mwatts",e.split>0?String(Math.round(wattsFor(e.split))):"\u2013");
+      put(".mrate",e.split>0?String(Math.round(e.spm)):"\u2013");
     });
   }
 
@@ -2569,7 +2597,11 @@
       el.innerHTML=`<div class="rank"><span></span></div>
         <div class="who"><div class="team"></div><div class="loc"></div>
           <div class="track"><div class="fill"></div></div></div>
-        <div class="data"><div class="hero"></div><div class="sub"></div></div>`;
+        <div class="mcol k msplit"></div>
+        <div class="mcol mavg"></div>
+        <div class="mcol mwatts"></div>
+        <div class="mcol mrate"></div>
+        <div class="data"><div class="hero"></div></div>`;
       el.querySelector(".team").textContent=e.name;
       el.querySelector(".team").classList.toggle("unnamed",unnamed(e.name));
       el.querySelector(".fill").style.background=e.color;
@@ -4874,7 +4906,7 @@
       if(cb&&cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=265;
+  const BUILD=266;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

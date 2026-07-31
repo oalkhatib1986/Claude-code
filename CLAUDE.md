@@ -148,6 +148,16 @@ copy for cache-free serving; `version.txt` holds the build number.
   in front of them and in the trainer's NOW/NEXT panel, never on the board. The average
   accumulates `e.wM`/`e.wT` in `frameRotation`, and BOTH must be scaled by `effort` or
   it counts seconds nobody was pulling for. `lanenext.js` gates it.
+- **A table has columns.** `--lanecols` is ONE grid template shared by `.board-head`
+  and every `.lane`, so a value can never drift out from under its heading — split,
+  avg, watts, s/m, score. Their paddings must match too (the padding sets where the
+  `1fr` track starts). The TV template is PROPORTIONAL (`%`), not px: `fillTvBoard()`
+  lays the board out at whatever width makes it fill the screen, and fixed columns
+  give it a floor it cannot go under. Narrow screens drop to who + avg + score,
+  scoped `body:not(.tvprev)` — the TV preview is laid out at 1920 and keeps them all.
+  `lanecols.js` gates it. When re-scoping a selector, check every rule that matches:
+  a blanket `body:not(.bigscreen)` -> `body:not(.tvprev)` also hit
+  `#viewBoard .board{display:none}` and hid the whole leaderboard on a real TV.
 - **The footer signs the work.** `#siteFoot`: hairline, company name, `© <year>, All
   rights reserved`, and the build in a pill on the right. Hidden on `body.bigscreen`
   and `body.tabkiosk` — a TV and an erg tablet are for the workout. `foot.js` gates it.
