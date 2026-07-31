@@ -39,9 +39,29 @@ copy for cache-free serving; `version.txt` holds the build number.
 
 1. Bump `const BUILD=N;` in leaderboard.html; `echo N > version.txt`;
    `cp leaderboard.html app.html`.
-2. Run the relevant Playwright suites in the session scratchpad (all green).
+2. Run the suites the change can actually affect (see below), all green.
 3. Commit + push to `claude/gym-erg-leaderboard-pyztry` from the repo root.
-4. Republish the artifact (same file path, favicon 🚣).
+
+Omar tests on https://oalkhatib1986.github.io/Claude-code/app.html. Do NOT publish
+a Claude artifact — he never opens it, and it is one more permission prompt.
+
+## Which suites to run
+
+There are ~41 suites and a full sweep is 8-10 minutes, so it is not the default.
+Run the ones the change can reach, plus `test_fitall.js` for ANY layout change:
+
+- board/lane/columns -> `lanecols` `lanenext` `livebd` `tvfit` `fsfill`
+- tablet -> `claim` `tbland` `tbtap` `steady`
+- setup/exercise fields -> `stnfield` `fmtalign` `rm1` `freshex` `amtrange`
+- stations/sharing/equipment -> `sharestn` `cardtag` `stncount` `gearlink` `ergauto`
+- NOW/NEXT, athlete cards -> `crewwhere` `grouped` `nextpart` `idlenext` `audit`
+- fullscreen/TV chrome -> `fsfill` `fsctl` `fsentry` `fsswitch` `tvfit`
+- footer/chrome -> `foot` `align` `cardtype`
+- class size / roster -> `latein` `gymfit` `freechip`
+
+Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
+`itStations`, `blockStations`, `spreadIx`), the rotation (`segAt`, `stationOf`,
+`setTeamCount`), or anything that moves who stands where.
 
 ## Architecture notes
 
