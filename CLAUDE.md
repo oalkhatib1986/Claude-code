@@ -137,6 +137,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   are still empty. Claiming is the FIRST placement only — every rotation after it is
   the same engine as before. The redraw guard must cover `#tbClaim` as well as
   `#tbName`, or the 400ms tick wipes what someone is typing. `claim.js` gates it.
+- **The gym owns the machines; the headcount is whoever turns up.** A tablet is bolted
+  to an erg and never moves, so EVERY erg today's workout can use is live and claimable
+  before the clock starts — including the ones the class size has not reached yet.
+  `claimSlots()` probes the floor at each hypothetical class size (`withCrews(n,fn)`
+  overrides `worstTeamsPerBlock` for the length of one read, nothing is rebuilt) and
+  records the smallest class each machine exists in as `need`; anything the gym does not
+  own (`num > invOf(type)`) is never offered. `takeFree()` grows the roster to `need`,
+  turns `cfg.autoCrews` off (a claim is a fact, not a proposal) and writes the name into
+  the slot that machine maps to. The team selector is now a starting number, not a gate.
+  The trainer's bar keeps the class as the denominator and counts spare machines
+  SEPARATELY — "2 more free if anyone else turns up" is an offer, not four missing people.
+  Clear the claim box BEFORE the redraw: a box with text in it reads as "someone is
+  mid-type" and freezes the picture. `openclaim.js` gates it.
 - **An unclaimed machine is a place, not a person.** The overview chip leads with the
   station and is tagged `free` while `unnamed()` holds the slot; a claim flips it to
   name + station. It is quiet before the clock starts and only goes red (`.late`) once

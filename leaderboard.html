@@ -291,6 +291,8 @@
   #claimBar b{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.18em;
     text-transform:uppercase;color:var(--ink-mute);margin-right:4px}
   #claimBar i{font-style:normal;color:var(--ink)}
+  /* spare machines are an offer, not a shortfall — kept quiet */
+  #claimBar u{text-decoration:none;color:var(--ink-mute)}
   .tk-main{display:flex;min-height:0;flex:1 1 auto}
   .tk-inst{padding:14px 18px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;flex:none}
 
@@ -1797,7 +1799,10 @@
   if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
   if(!cfg.waves) cfg.waves={waveSize:4,release:"auto"};
 
-  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
+  // Which machines can be claimed is a pure function of cfg \u2014 the gym\u2019s
+  // equipment and today\u2019s workout \u2014 so anything that writes cfg drops the map.
+  let claimCache=null;
+  const save=()=>{ claimCache=null; try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
   function syncCoLogo(){ const w=$("coLogoWrap"); if(!w) return;
     const on=!!cfg.collab, has=!!cfg.coLogo;
@@ -1916,7 +1921,13 @@
     const ts=teamsAt(bi); const cap=invOf(blockMachine(b));
     return { teams:ts.map((e,j)=>({e, j, from:j*k+1, to:(j+1)*k})), k, need:ts.length*k, cap, over:ts.length*k>cap }; };
   const mrange=t=>t.from===t.to?`M${t.from}`:`M${t.from}\u2013${t.to}`;
-  const worstTeamsPerBlock=()=>!nBlocks()?0:(cfg.together?cfg.crews.length:Math.ceil(cfg.crews.length/nBlocks()));
+  // "What would the floor look like for a class of N?" \u2014 asked when we need to
+  // know how many people a machine needs before it exists at all. Nothing is
+  // rebuilt; the answer is thrown away the moment it is read.
+  let crewsHyp=0;
+  const withCrews=(n,fn)=>{ const p=crewsHyp; crewsHyp=n; try{ return fn(); }finally{ crewsHyp=p; } };
+  const worstTeamsPerBlock=()=>{ const n=crewsHyp||cfg.crews.length;
+    return !nBlocks()?0:(cfg.together?n:Math.ceil(n/nBlocks())); };
   const curRoundLen=()=>cfg.together?Math.max(1,blockLen(R().blocks[blockIdxOf(rot.round)]||{items:[]})):roundLen();
   const itemTypes=it=>{ const s=new Set(); (it.exercises||[]).forEach(x=>{ const m=machineOf(x.name); if(m) s.add(m); }); return [...s]; };
   // peak simultaneous machines needed per type: walk every item boundary across all blocks
@@ -2017,6 +2028,39 @@
     // printed M1..M12 for four racks.
     if(!ks.length) return "Station "+stationNo(R().blocks[bi],j);
     return ks.map(t=>mInfo(t).short+" "+mm[t]).join(" + "); };
+
+  // THE GYM OWNS THE MACHINES; THE HEADCOUNT IS WHOEVER TURNS UP.
+  // A tablet is bolted to an erg and never moves, so every erg today\u2019s workout
+  // can use is live and claimable before the clock starts \u2014 including the ones
+  // the current class size has not reached yet. `need` is the smallest class this
+  // machine exists in, so claiming it can simply grow the class to that number.
+  const claimTop=()=>{ let mx=0;
+    R().blocks.forEach(b=>blockUsesTypes(b).forEach(tp=>{ const v=invOf(tp); if(v>mx) mx=v; }));
+    if(!mx) return 0;
+    return clamp(mx*(cfg.together?1:Math.max(1,nBlocks())),1,60); };
+  function claimSlots(){
+    if(claimCache) return claimCache;
+    const out=[], seen={};
+    if(cfg.mode!=="rotation"||!nBlocks()) return (claimCache=out);
+    const top=claimTop(); if(!top) return (claimCache=out);
+    const hi=Math.max(top,clamp(cfg.crews.length||1,1,60));
+    const ord=Object.keys(MACHINE);
+    for(let n=1;n<=hi;n++){
+      const bk=withCrews(n,()=>machSlots().byKey);
+      for(const k in bk){
+        // keep the freshest placement: a machine can move block as the class grows
+        if(seen[k]){ seen[k].bi=bk[k].bi; continue; }
+        const q=k.split(":"), tp=q[0], num=+q[1];
+        if(!(num>=1&&num<=invOf(tp))) continue;   // the gym does not own that one
+        seen[k]={key:k,type:tp,num,need:n,bi:bk[k].bi,label:mInfo(tp).label+" "+num};
+        out.push(seen[k]);
+      }
+    }
+    out.sort((a,b)=>ord.indexOf(a.type)-ord.indexOf(b.type)||a.num-b.num);
+    return (claimCache=out);
+  }
+  const claimSlotFor=key=>claimSlots().find(x=>x.key===key)||null;
+  try{ window.__claim=claimSlots; window.__slots=machSlots; window.__teamsAt=bi=>teamsAt(bi); }catch(e){}
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
     if(n.includes("gorilla")||n.includes("bent over")||n.includes("dumbbell row")||n.includes("db row")||n.includes("barbell row")||n.includes("kb row")||n.includes("ring row")) return null;
@@ -2919,6 +2963,60 @@
       const sv=String(tabletSel), mtype=sv.includes(":")?sv.split(":")[0]:null, mnum=sv.includes(":")?+sv.split(":")[1]:0;
       const mLabel=mtype?`${mInfo(mtype).label} ${mnum}`:"\u2014";
       const hit=mtype?machSlots().byKey[mtype+":"+mnum]:null;
+      // The class size has not reached this machine yet \u2014 but the machine is
+      // here and the workout uses it, so it offers itself like any other. Taking
+      // it grows the class; from then on it is an ordinary erg screen.
+      const openSlot=(!hit&&!running&&!sessionActive&&rot.phase==="pre")
+        ?claimSlotFor(mtype+":"+mnum):null;
+      if(openSlot){
+        const fb=R().blocks[openSlot.bi]||{name:"",items:[]};
+        // what they are signing up for — the same work list the claimed screen shows
+        const fIts=(fb.items||[]), fI=fIts.findIndex(x=>!x.rest), fIt=fI>=0?fIts[fI]:null;
+        const fSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
+          :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
+        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x))}</em>`);
+        if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
+        const fThen=fIts.slice(fI+1).map(fSum).join(" · ");
+        scr.innerHTML=`
+        <div class="tk">
+          <div class="tk-card tk-id">
+            ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
+            <div class="tk-mach">${mLabel}</div>
+            <div class="tk-who unnamed">Nobody yet</div>
+            <div class="tk-blk">${esc(fb.name||"")}</div>
+          </div>
+          <div class="tk-main">
+            <div class="tk-col">
+              <div class="tk-card tk-inst tk-claim">
+                <div class="tk-tag">Free \u2014 take it</div>
+                <div class="tk-head">Tap in to claim it</div>
+                <div class="tk-claimrow">
+                  <input id="tbClaim" maxlength="18" autocomplete="off"
+                    placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
+                  <button type="button" class="btn" id="tbClaimGo">I\u2019m on</button>
+                </div>
+              </div>
+              <div class="tk-card tk-work">
+                <div class="tk-now">${fLines.join("")}</div>
+                ${fThen?`<div class="tk-then"><span>then</span><i>${esc(fThen)}</i></div>`:""}
+              </div>
+            </div>
+            <div class="tk-side tk-info">
+              <div class="tk-card tk-cell tk-clk"><b>${fmtMS(blockLen(fb))}</b><i>This block lasts</i></div>
+              <div class="tk-card tk-nxt"><span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(bmLabel(fb))}</em></div>
+            </div>
+          </div>
+        </div>`;
+        fitTablet();
+        { const go=$("tbClaimGo"), inp=$("tbClaim");
+          // empty the box BEFORE the redraw: a box with text in it is read as
+          // "someone is mid-type" and holds the picture still
+          const take=()=>{ const v=(inp.value||"").trim(); if(!v) return;
+            inp.value=""; inp.blur(); takeFree(openSlot,v); };
+          if(go&&inp){ go.onclick=take; inp.onkeydown=ev=>{ if(ev.key==="Enter") take(); }; } }
+        fitTbText(scr);
+        return;
+      }
       if(!hit){ scr.innerHTML=`<div class="tb-top"><span class="bname">${mLabel}</span><span class="bmach">idle</span></div><div class="tb-note" style="padding:38px 12px;text-align:center">This machine isn&rsquo;t used in today&rsquo;s workout &mdash; nothing to do here.</div>`; return; }
       const bi=hit.bi, b=R().blocks[bi];
       const team=teamsAt(bi)[hit.j]||null;
@@ -3157,6 +3255,11 @@
         <div class="tb-work"><b>Session</b>${cfg.segments.map((x,i)=>`${i===seqIdx?"&#9654; ":""}${esc(x.name)||("Station "+(i+1))}`).join(" · ")}</div>
         ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     }
+    fitTbText(scr);
+  }
+  // Whatever the screen is showing, nothing on it may be wider or taller than its
+  // own box — every path that paints #tbScreen ends here.
+  function fitTbText(scr){
     // any tile value wider than its box shrinks until it fits — device metrics vary
     scr.querySelectorAll(".tb-stats b,.tb-stats span,.tk-vit b,.tk-vit span,.tk-cell b,.tk-cell i,.tk-pills .tswp b").forEach(el=>{
       el.style.fontSize="";
@@ -3677,6 +3780,18 @@
     else { syncRotChrome(); renderBlockCards(); renderLanesRot(); }
     renderTablet(true);
   }
+  // Someone tapping in on a machine past the current headcount IS the class
+  // growing. Set the number so that machine exists, then write the name into it.
+  // A claim is a fact, not a proposal, so it takes the count off "fit the gym".
+  function takeFree(slot,name){
+    if(!slot||!name) return;
+    const need=Math.max(cfg.crews.length,slot.need|0);
+    if(need!==cfg.crews.length){ cfg.autoCrews=false; save(); setTeamCount(need); }
+    const h=machSlots().byKey[slot.key];
+    const t=h?teamsAt(h.bi)[h.j]:null;
+    if(t&&cfg.crews[t.id]){ cfg.crews[t.id].name=name; t.name=name; }
+    save(); buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true);
+  }
   // How many people this gym can physically hold for THIS workout, one per
   // station. A part with nothing linked to it is unlimited; if the whole workout
   // is unlimited we simply cannot say, and we leave the trainer's number alone.
@@ -3738,8 +3853,8 @@
     ["tcNote","tcNote2"].forEach(id=>{ const el=$(id); if(!el) return;
       const n=gymFit();
       el.textContent=!n?""
-        :cfg.autoCrews?`Set from your equipment \u2014 whoever doesn\u2019t turn up just shows free.`
-        :`Your number. Tap ${unit(n)} to follow the gym again.`; });
+        :cfg.autoCrews?`Set from your equipment \u2014 every machine is live, and tapping in on one past this number raises it.`
+        :`Your number \u2014 tapping in on a machine past it raises it. Tap ${unit(n)} to follow the gym again.`; });
   }
   const posShort=s=>{ s=String(s||"");
     const cut=s.split(/\s+[@(·,]/)[0].split(" · ")[0].trim();
@@ -3984,6 +4099,7 @@
       list.appendChild(row);
     });
     refreshCrewStations();
+    syncClaimBar();
   }
   $("addCrew").onclick=()=>{ if(cfg.crews.length>=20)return;
     const pal=["#ffffff","#c2c8d0","#8fb0c9","#9aa0a8","#b6bcc4","#7f858d","#d0a58a","#8ac0a0"];
@@ -4709,21 +4825,33 @@
   function claimState(){
     if(cfg.mode!=="rotation"||!nBlocks()) return null;
     const ms=machSlots().byKey, keys=Object.keys(ms);
-    if(!keys.length) return null;
+    const all=claimSlots();
+    if(!keys.length&&!all.length) return null;
     const seen=new Set(); let got=0, tot=0; const free=[];
     keys.forEach(k=>{ const h=ms[k]; const t=teamsAt(h.bi)[h.j]; if(!t) return;
       const kk=t.id+":"+h.bi; if(seen.has(kk)) return; seen.add(kk);
       tot++;
       if(unnamed(t.name)){ const q=k.split(":"); free.push(mInfo(q[0]).label+" "+q[1]); }
       else got++; });
-    return {got,tot,free};
+    // Machines the class has not grown to yet. They are on, they are claimable,
+    // and they are NOT missing people \u2014 so they are counted apart.
+    const spare=all.filter(sl=>!ms[sl.key]).map(sl=>sl.label);
+    return {got,tot,free,spare};
   }
   function claimBarText(){
     if(sessionActive||running||finished) return "";
-    const c=claimState(); if(!c||!c.tot) return "";
-    if(c.got>=c.tot) return `<b>Tapped in</b> everyone \u2014 every machine has a name on it`;
+    const c=claimState(); if(!c||(!c.tot&&!c.spare.length)) return "";
+    const sp=c.spare.length
+      ? ` \u00b7 <u>${c.spare.length} more machine${c.spare.length>1?"s":""} free if anyone else turns up</u>`:"";
+    if(c.got>=c.tot) return `<b>Tapped in</b> everyone \u2014 every machine has a name on it${sp}`;
     const list=c.free.slice(0,4).join(" \u00b7 ")+(c.free.length>4?` +${c.free.length-4} more`:"");
-    return `<b>Tapped in</b> ${c.got} of ${c.tot} \u2014 still free: <i>${esc(list)}</i>`;
+    return `<b>Tapped in</b> ${c.got} of ${c.tot} \u2014 still free: <i>${esc(list)}</i>${sp}`;
+  }
+  // the panel is opened by a tap, not by the 400ms tick — draw it there and then
+  function syncClaimBar(){
+    const cb=$("claimBar"); if(!cb) return;
+    const t=claimBarText();
+    if(cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; }
   }
   function startFlowText(){
     if(cfg.mode!=="rotation"||!nBlocks()||finished) return "";
@@ -4903,11 +5031,10 @@
     if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
-    { const cb=$("claimBar"); const t=claimBarText();
-      if(cb&&cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
+    syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=268;
+  const BUILD=269;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
