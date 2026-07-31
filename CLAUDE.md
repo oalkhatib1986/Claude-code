@@ -150,6 +150,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   SEPARATELY — "2 more free if anyone else turns up" is an offer, not four missing people.
   Clear the claim box BEFORE the redraw: a box with text in it reads as "someone is
   mid-type" and freezes the picture. `openclaim.js` gates it.
+- **A name is taken where the person is, whenever they get there.** Someone who starts
+  on the floor has no tablet in front of them; they get one the moment the rotation puts
+  them on an erg, and THAT is when they tap in. So an unclaimed slot offers itself for
+  the whole session (`claiming = team && !finished && (preClock || !claimed)`), not just
+  before the clock — mid-block it reads "You're up here now / Tap your name in" and the
+  work list stays on screen underneath. Confirming ("you're on this one", with a way to
+  give it back) is the pre-clock state only. `floorclaim.js` gates it.
+- **The overview card lists the FLOOR, not the roster.** `renderBlockCards()` draws one
+  chip per crew slot AND one `.spare` chip per machine in `claimSlots()` the class size
+  has not reached. Leaving them off made a gym with five runners look like it had three.
+  A spare is quiet and never goes `.late` — it is an offer, not a missing person.
 - **An unclaimed machine is a place, not a person.** The overview chip leads with the
   station and is tagged `free` while `unnamed()` holds the slot; a claim flips it to
   name + station. It is quiet before the clock starts and only goes red (`.late`) once

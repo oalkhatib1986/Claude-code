@@ -1070,6 +1070,10 @@
      clock is running it IS one */
   .blk .teams .t.unnamed{color:var(--ink-mute);background:transparent}
   .blk .teams .t.unnamed .mtag{border-color:var(--line);color:var(--ink-mute)}
+  /* a machine beyond the class size is an offer, never a shortfall — it is quiet
+     and it never turns red */
+  .blk .teams .t.spare{opacity:.7}
+  .blk .teams .t.spare .mtag{border-style:dashed}
   .blk .teams .t.unnamed.late{color:#ff9490;background:rgba(255,70,64,.13)}
   .blk .teams .t.unnamed.late .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
   .tb-tinfo b.unnamed{color:#ff9490}
@@ -2052,7 +2056,8 @@
         if(seen[k]){ seen[k].bi=bk[k].bi; continue; }
         const q=k.split(":"), tp=q[0], num=+q[1];
         if(!(num>=1&&num<=invOf(tp))) continue;   // the gym does not own that one
-        seen[k]={key:k,type:tp,num,need:n,bi:bk[k].bi,label:mInfo(tp).label+" "+num};
+        seen[k]={key:k,type:tp,num,need:n,bi:bk[k].bi,
+          label:mInfo(tp).label+" "+num, short:mInfo(tp).short+" "+num};
         out.push(seen[k]);
       }
     }
@@ -2334,7 +2339,16 @@
           return `<span class="t${free?" unnamed":""}${free&&running?" late":""}"><span class="dot" style="background:${free?"currentColor":"#3ade6b"};color:${free?"currentColor":"#3ade6b"}"></span>`
             +(free?`<b class="tn">${where}</b><em class="mtag">free</em>`
                   :`<b class="tn">${esc(t.e.name)}</b><em class="mtag">${where}</em>`)+`</span>`;
-        }).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        }).join("")}${(()=>{
+          // THE CARD LISTS THE FLOOR, NOT THE ROSTER. Every machine this block can
+          // use is on it, including the ones the class size has not reached — they
+          // are claimable, so leaving them off makes the gym look smaller than it is.
+          if(finished) return "";
+          const ms=machSlots().byKey;
+          return claimSlots().filter(s=>s.bi===bi&&!ms[s.key]).map(s=>
+            `<span class="t unnamed spare"><span class="dot" style="background:currentColor;color:currentColor"></span>`
+            +`<b class="tn">${esc(s.short)}</b><em class="mtag">free</em></span>`).join("");
+        })()}${(!al.teams.length&&!claimSlots().some(s=>s.bi===bi))?`<span class="t" style="opacity:.55">no ${kws()} this round</span>`:""}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
   }
@@ -2965,9 +2979,9 @@
       const hit=mtype?machSlots().byKey[mtype+":"+mnum]:null;
       // The class size has not reached this machine yet \u2014 but the machine is
       // here and the workout uses it, so it offers itself like any other. Taking
-      // it grows the class; from then on it is an ordinary erg screen.
-      const openSlot=(!hit&&!running&&!sessionActive&&rot.phase==="pre")
-        ?claimSlotFor(mtype+":"+mnum):null;
+      // it grows the class; from then on it is an ordinary erg screen. Someone
+      // can walk up at any point in the session, so this is never gated on "pre".
+      const openSlot=(!hit&&!finished)?claimSlotFor(mtype+":"+mnum):null;
       if(openSlot){
         const fb=R().blocks[openSlot.bi]||{name:"",items:[]};
         // what they are signing up for — the same work list the claimed screen shows
@@ -3026,10 +3040,16 @@
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
-      const needName=!!(team&&/^(Team|Athlete) \d+$/.test(team.name));
-      // Claiming is the FIRST placement only, and only before the clock starts.
-      const claiming=!!(team&&!running&&!sessionActive&&phase==="pre");
+      // A NAME IS TAKEN WHERE THE PERSON IS, WHENEVER THEY GET THERE.
+      // Someone who started on the floor has no tablet in front of them; they get
+      // one the moment the rotation puts them on an erg, and that is when they tap
+      // in. So an unclaimed slot offers itself for the whole session, not just
+      // before the clock. Confirming ("you're on this one", with a way to give it
+      // back) is the pre-clock state only — mid-block the work has to stay visible.
       const claimed=!!(team&&!unnamed(team.name));
+      const preClock=!running&&!sessionActive&&phase==="pre";
+      const claiming=!!(team&&!finished&&(preClock||!claimed));
+      const needName=!!(team&&unnamed(team.name));
       // machine metrics strip — warm-up before the start, live while working, frozen in rest
       const tsw=team?tbSwapInfo(sv,seg,team,b):null;
       let mts=null, mtag="", mcls="";
@@ -3160,8 +3180,8 @@
           <div class="tk-main">
             <div class="tk-col">
               ${claiming?`<div class="tk-card tk-inst tk-claim${claimed?" got":""}">
-                <div class="tk-tag">${claimed?"You\u2019re on this one":"Free \u2014 take it"}</div>
-                <div class="tk-head">${claimed?esc(team.name):"Tap in to claim it"}</div>
+                <div class="tk-tag">${claimed?"You\u2019re on this one":preClock?"Free \u2014 take it":"You\u2019re up here now"}</div>
+                <div class="tk-head">${claimed?esc(team.name):preClock?"Tap in to claim it":"Tap your name in"}</div>
                 ${claimed
                   ? `<div class="tk-sub">Waiting for the trainer</div>
                      <button type="button" class="tk-free" id="tbFree">Not you? Free this ${esc(machShort.toLowerCase())}</button>`
@@ -5034,7 +5054,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=269;
+  const BUILD=270;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
