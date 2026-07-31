@@ -478,9 +478,48 @@
     letter-spacing:.24em;text-transform:uppercase;color:var(--ink-mute);margin-top:10px}
   /* tablet kiosk — the screen is authored on a fixed 1005x600 canvas and
      scaled to whatever device it lands on, so it can never overlap or clip */
+  /* THE WALL: every erg in the gym at a glance, because the trainer thinks in
+     machines, not in a dropdown. Tap one and it opens full size; the back bar
+     and a left/right swipe walk the row. */
+  .tbwall{display:grid;gap:10px;margin-bottom:6px;
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,164px),1fr))}
+  .twc{display:flex;flex-direction:column;gap:5px;min-width:0;text-align:left;cursor:pointer;
+    border:1px solid var(--line);border-radius:14px;padding:11px 12px 12px;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+    font-family:var(--ui);color:var(--ink)}
+  .twc:active{transform:translateY(1px)}
+  .twc-m{display:flex;align-items:center;gap:7px;min-width:0;
+    font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-mute)}
+  .twc-m i{flex:none;width:7px;height:7px;border-radius:50%;background:currentColor}
+  .twc-m b{min-width:0;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .twc-n{min-width:0;font-family:var(--disp);font-weight:700;font-size:15px;line-height:1.2;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .twc-w{min-width:0;font-size:11.5px;line-height:1.35;color:var(--ink-mute);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .twc-v{margin-top:1px;font-family:var(--mono);font-size:12px;color:var(--ink-dim);
+    font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .twc.free .twc-n{color:var(--ink-mute);font-weight:600}
+  .twc.spare{border-style:dashed;opacity:.72}
+  .twc.live{border-color:rgba(58,222,107,.5)}
+  .twc.live .twc-m{color:#3ade6b}
+  .tb-back{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .tb-stepper{display:flex;align-items:center;gap:8px;margin-left:auto;min-width:0}
+  .tb-stepper b{min-width:0;font-family:var(--disp);font-weight:700;font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tb-stepper .btn{padding:0 11px;min-width:0}
+  /* one view at a time */
+  body.tabone .tbwall,body.tabone .tb-wallnote{display:none}
+  body.tabwall .tb-back,body.tabwall #tbStage,body.tabwall #tbCap,
+  body.tabwall .tb-selrow,body.tabwall .tb-onenote{display:none}
+  body.tabone .tb-back{display:flex}
   body.kioskon{padding:0}
   body.kioskon .tb-wrap{max-width:none;margin:0;gap:0}
   body.kioskon .tb-note,body.kioskon .tb-selrow{display:none}
+  /* the back bar is the only chrome the preview keeps — without it there is no
+     way off a machine once the picker is hidden */
+  body.kioskon.tabone .tb-back{display:flex;padding:0 10px 8px}
   body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none;background:#fff;overflow:hidden}
   body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
@@ -1397,9 +1436,15 @@
   <!-- ============ ERG TABLET (what each athlete sees) ============ -->
   <section class="view" id="viewTablet">
     <div class="tb-wrap">
-      <div class="tb-note">This is the screen on <b>each Android tablet mounted on an erg</b>. Each tablet is fixed to one physical machine — set it once below (e.g. Rower 3) and the system does the rest: every round it shows who is assigned to this machine, and new teams or athletes type their name right here at their first station.</div>
+      <div class="tb-note tb-wallnote">Every erg in the gym, as its tablet sees it. Tap one to open that screen full size.</div>
+      <div class="tb-note tb-onenote">This is the screen on <b>the Android tablet mounted on this erg</b>. Swipe left or right to walk down the row.</div>
+      <div id="tbWall" class="tbwall"></div>
+      <div class="tb-back" id="tbBack">
+        <button class="btn small" id="tbBackBtn" type="button">&larr; All screens</button>
+        <button id="tbFit" type="button" class="btn small">Phone view</button>
+        <span class="tb-stepper"><button class="btn small" id="tbPrev" type="button" aria-label="Previous machine">&lsaquo;</button><b id="tbWhich">&mdash;</b><button class="btn small" id="tbNext" type="button" aria-label="Next machine">&rsaquo;</button></span>
+      </div>
       <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
-      <div class="tb-selrow" style="margin:-4px 0 12px"><button id="tbFit" type="button" class="btn small">Phone view</button></div>
       <div class="tbprev-stage" id="tbStage"><div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div></div>
       <div class="tbprev-cap" id="tbCap" hidden></div>
     </div>
@@ -2761,7 +2806,11 @@
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     document.body.classList.toggle("tabkiosk",which==="tablet");
-    if(which==="tablet"){ buildTabletSel(); renderTablet(); fitTablet(); }
+    if(which==="tablet"){
+      // a real tablet bolted to an erg in landscape is ALREADY at its machine;
+      // everyone else lands on the wall and picks
+      tbView=matchMedia(TBKQ).matches?"one":"wall";
+      buildTabletSel(); syncTbView(); renderWall(); renderTablet(true); fitTablet(); }
     { const fab=$("aiFab"); const onSetup=(which==="board"&&subTab==="setup");
       if(fab) fab.style.display=(onSetup&&fab.dataset.off!=="1")?"":"none";
       if(!onSetup) document.body.classList.remove("aiopen"); }
@@ -2820,6 +2869,62 @@
   const TKEY="af_tablet_sel";
   let tabletSel="0"; try{ tabletSel=localStorage.getItem(TKEY)||"0"; }catch(e){}
   let pickOpen=false;
+  // wall | one — the tab lands on the wall, because "which machine?" is the first
+  // question and a dropdown that the preview hides is no answer at all
+  let tbView="wall";
+  const wallOn=()=>tbView!=="one";
+  function syncTbView(){
+    const w=wallOn();
+    document.body.classList.toggle("tabwall",w);
+    document.body.classList.toggle("tabone",!w);
+    const wh=$("tbWhich");
+    if(wh){ const sl=claimSlotFor(String(tabletSel)); wh.textContent=sl?sl.label:String(tabletSel); }
+    fitTablet();
+  }
+  function openTablet(k){
+    if(!k) return;
+    tabletSel=String(k); try{ localStorage.setItem(TKEY,tabletSel); }catch(e){}
+    tbView="one"; buildTabletSel(); syncTbView(); renderTablet(true);
+    try{ $("viewTablet").scrollIntoView({block:"start"}); }catch(e){}
+  }
+  // the order the trainer walks the floor in: block by block, machine by machine.
+  // The wall, the stepper and a swipe all use it, so they can never disagree.
+  const wallOrder=()=>claimSlots().slice().sort((a,b)=>a.bi-b.bi||a.num-b.num
+    ||a.type.localeCompare(b.type));
+  function stepTablet(d){
+    const all=wallOrder(); if(!all.length) return;
+    let i=all.findIndex(x=>x.key===String(tabletSel));
+    if(i<0) i=0;
+    openTablet(all[(i+d+all.length)%all.length].key);
+  }
+  try{ window.__tbOpen=k=>openTablet(k||(wallOrder()[0]||{}).key);
+    window.__tbWall=()=>{ tbView="wall"; syncTbView(); renderWall(); }; }catch(e){}
+  function renderWall(){
+    const el=$("tbWall"); if(!el) return;
+    if(cfg.mode!=="rotation"||!nBlocks()||!hasErgs()){
+      const t=`<div class="tb-note" style="grid-column:1/-1">Today\u2019s workout has <b>no ergs</b> \u2014 these tablets aren\u2019t needed for it. Put the workout on the big screen and the class follows it.</div>`;
+      if(el.__s!==t){ el.__s=t; el.innerHTML=t; } return; }
+    const ms=machSlots().byKey;
+    const h=wallOrder().map(sl=>{
+      const hit=ms[sl.key], b=R().blocks[sl.bi]||{name:"",items:[]};
+      const team=hit?teamsAt(hit.bi)[hit.j]:null;
+      const free=!team||unnamed(team.name);
+      const live=!!(running&&(!cfg.together||sl.bi===blockIdxOf(rot.round)));
+      const seg=live?segAt(b,rot.elapsed):null;
+      const who=free?"Free":esc(team.name);
+      const where=seg?esc(seg.it.rest?"Rest":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working"))
+        :esc(b.name||"");
+      // one short line, never a sentence that has to be cut off mid-word
+      const val=(team&&running&&team.split>0)?`${fmtSplit(team.split)}<span> /500</span>`
+        :!hit?"Spare":free?"Nobody yet":"Tapped in";
+      return `<button type="button" class="twc${free?" free":""}${hit?"":" spare"}${live?" live":""}" data-k="${esc(sl.key)}">
+        <span class="twc-m"><i></i><b>${esc(sl.label)}</b></span>
+        <span class="twc-n">${who}</span>
+        <span class="twc-w">${where}</span>
+        <span class="twc-v">${val}</span></button>`;
+    }).join("");
+    if(el.__s!==h){ el.__s=h; el.innerHTML=h; }
+  }
   function buildTabletSel(){
     const sel=$("tabletSel");
     let opts = cfg.mode==="rotation"
@@ -2835,6 +2940,25 @@
     enhanceSelects(sel.closest(".fld")||document);
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
+  { const w=$("tbWall");
+    if(w) w.addEventListener("click",ev=>{ const c=ev.target.closest&&ev.target.closest(".twc");
+      if(c) openTablet(c.dataset.k); }); }
+  { const b=$("tbBackBtn"); if(b) b.onclick=()=>{ tbView="wall"; syncTbView(); renderWall(); };
+    const pv=$("tbPrev"); if(pv) pv.onclick=()=>stepTablet(-1);
+    const nx=$("tbNext"); if(nx) nx.onclick=()=>stepTablet(1); }
+  // A row of ergs is a row: swipe along it. The frame is drawn on its side on a
+  // phone, so the gesture is read in SCREEN space \u2014 what the thumb did, not what
+  // the rotated picture thinks it did.
+  { const st=$("tbStage");
+    if(st){ let x0=0,y0=0,t0s=0,on=false;
+      st.addEventListener("touchstart",e=>{ const t=e.touches[0]; if(!t) return;
+        x0=t.clientX; y0=t.clientY; t0s=Date.now(); on=true; },{passive:true});
+      st.addEventListener("touchend",e=>{ if(!on) return; on=false;
+        const t=e.changedTouches[0]; if(!t) return;
+        const dx=t.clientX-x0, dy=t.clientY-y0;
+        if(Date.now()-t0s>700) return;
+        if(Math.abs(dx)<56||Math.abs(dx)<Math.abs(dy)*1.6) return;
+        stepTablet(dx<0?1:-1); },{passive:true}); } }
   function tbSegLine(seg,segLabel,j,bi){
     if(seg.waves){ const n=teamsAt(bi).length||1;
       const perW=Math.max(1,Math.ceil(n/seg.waves));
@@ -2937,15 +3061,23 @@
     if(!v||!v.classList.contains("active")||cfg.mode!=="rotation"||running) return;
     if(!sessionActive&&rot.phase==="pre") tickTbVitals();
   },1000);
+  setInterval(()=>{ const v=$("viewTablet");
+    if(v&&v.classList.contains("active")&&wallOn()) renderWall();
+  },900);
   // on a landscape tablet the screen fills whatever height is left below the
   // header, so the whole readout fits with nothing to scroll
   const TBKQ="(orientation:landscape) and (min-width:720px) and (min-height:560px)";
   // The Erg Tablet tab exists to show what the tablet shows, and the tablet is a
   // landscape kiosk. Open on the real 1005x600 frame; the button flips to phone view.
   let tbPrev=true;
-  function kioskOn(){ return document.body.classList.contains("tabkiosk")&&(tbPrev||matchMedia(TBKQ).matches); }
+  function kioskOn(){ return !wallOn()&&document.body.classList.contains("tabkiosk")
+    &&(tbPrev||matchMedia(TBKQ).matches); }
   function fitTablet(){
     const d=document.querySelector(".tb-device"); if(!d) return;
+    if(wallOn()){ document.body.classList.remove("kioskon","tabprev");
+      d.style.transform=""; d.style.height="";
+      const sg=$("tbStage"); if(sg){ sg.style.width=""; sg.style.height=""; sg.style.margin=""; }
+      return; }
     const stage=$("tbStage");
     // the button names what it will do, so it can never go stale on re-entry
     { const tf=$("tbFit"); if(tf) tf.textContent=tbPrev?"Phone view":"Tablet preview"; }
@@ -2995,6 +3127,7 @@
   window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
   function renderTablet(force){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
+    if(wallOn()) return;
     if(cfg.mode==="rotation"&&nBlocks()&&!hasErgs()){
       const t=`<div class="tb-note" style="padding:38px 12px;text-align:center">Today\u2019s workout has <b>no ergs</b> \u2014 these tablets aren\u2019t needed for it. Put the workout on the big screen and the class follows it, splitting itself across the floor.</div>`;
       if(scr.innerHTML!==t) scr.innerHTML=t;
@@ -5122,7 +5255,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=271;
+  const BUILD=272;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

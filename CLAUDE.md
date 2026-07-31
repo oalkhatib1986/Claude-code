@@ -221,6 +221,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **The footer signs the work.** `#siteFoot`: hairline, company name, `© <year>, All
   rights reserved`, and the build in a pill on the right. Hidden on `body.bigscreen`
   and `body.tabkiosk` — a TV and an erg tablet are for the workout. `foot.js` gates it.
+- **The Erg Tablet tab opens on the WALL, not on one machine.** "Which erg?" is the
+  first question, and the dropdown that used to answer it is hidden by the preview
+  (`body.kioskon .tb-selrow{display:none}`) — so there was no way off a machine at all.
+  `renderWall()` draws one `.twc` per `claimSlots()` entry in `wallOrder()` (block by
+  block, the way the floor is walked): machine, who is on it, where, one short value
+  line — never a sentence that gets cut off. Tapping opens that screen (`tbView="one"`,
+  `body.tabone`); the back bar carries All screens · the view toggle · ‹ machine ›, and
+  a horizontal swipe on `#tbStage` steps the same order (read in SCREEN space — the
+  frame is drawn on its side on a phone). A real tablet in landscape (`TBKQ`) skips the
+  wall and lands on its own machine. `kioskOn()` and `fitTablet()` both bail while the
+  wall is up. Suites that read one machine's screen must call `window.__tbOpen(key)`
+  after entering the tab. `tbwall.js` gates it.
 - **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
   opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
   button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go
