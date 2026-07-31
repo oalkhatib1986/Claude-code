@@ -1031,8 +1031,12 @@
   #coLogoWrap i{font-style:normal;color:var(--ink-mute);font-size:20px;font-family:var(--disp)}
   #coLogoImg{height:38px;max-width:150px;object-fit:contain}
   body.bigscreen #coLogoImg{height:96px;max-width:340px}
-  .blk .teams .t.unnamed{color:#ff9490;background:rgba(255,70,64,.13)}
-  .blk .teams .t.unnamed .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
+  /* an empty machine before the class starts is normal, not an alarm; once the
+     clock is running it IS one */
+  .blk .teams .t.unnamed{color:var(--ink-mute);background:transparent}
+  .blk .teams .t.unnamed .mtag{border-color:var(--line);color:var(--ink-mute)}
+  .blk .teams .t.unnamed.late{color:#ff9490;background:rgba(255,70,64,.13)}
+  .blk .teams .t.unnamed.late .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
   .tb-tinfo b.unnamed{color:#ff9490}
   .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
   .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
@@ -2204,7 +2208,14 @@
         ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
         <div class="bd">${exLines(b,live?seg:null)}</div>
         <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
-        <div class="teams">${al.teams.map(t=>`<span class="t${unnamed(t.e.name)?" unnamed":""}"><span class="dot" style="background:${unnamed(t.e.name)?"#ffffff":"#3ade6b"};color:${unnamed(t.e.name)?"#ffffff":"#3ade6b"}"></span><b class="tn">${esc(t.e.name)}</b><em class="mtag">${slotLabel(bi,t.j)}</em></span>`).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        <div class="teams">${al.teams.map(t=>{
+          // Nobody has tapped in yet: the machine is the fact, the person is not.
+          // Printing an invented "Team 1" here is the very thing claiming removed.
+          const free=unnamed(t.e.name), where=slotLabel(bi,t.j);
+          return `<span class="t${free?" unnamed":""}${free&&running?" late":""}"><span class="dot" style="background:${free?"currentColor":"#3ade6b"};color:${free?"currentColor":"#3ade6b"}"></span>`
+            +(free?`<b class="tn">${where}</b><em class="mtag">free</em>`
+                  :`<b class="tn">${esc(t.e.name)}</b><em class="mtag">${where}</em>`)+`</span>`;
+        }).join("")||`<span class="t" style="opacity:.55">no ${kws()} this round</span>`}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
   }
@@ -2238,8 +2249,9 @@
         const w=crewWhere(e.id);
         // the lane stays a lane: rank, who, where, what is next. The work itself is
         // the Workout view's job — printing it here overflowed a phone row.
-        const nx=w&&w.nxt&&w.nxt.work&&w.nxt.work!=="—"
-          ?(w.nxt.short||w.nxt.work):(last?"":next.name);
+        const nx=(w&&w.nxt&&w.nxt.work&&w.nxt.work!=="—"
+          ?(w.nxt.short||w.nxt.work):(last?"":next.name))
+          .split("\u2028").join(" \u00b7 ");   // a lane is one line, whatever it was given
         loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)}${spot}</b>`
           +`${nx?` <span class="nx">&rarr; next ${esc(nx)}</span>`:""}`;
       }
@@ -2768,9 +2780,13 @@
     if(tbPrev&&document.body.classList.contains("tabkiosk")){
       // render at true tablet size, then scale the whole frame to the phone
       d.style.height=""; d.style.transform="";
-      // a hair under: at exactly the stage width the rotated frame rounds a pixel
-      // or two past the viewport and the page picks up a sideways scroll
-      const w=Math.max(120,(stage?stage.clientWidth:360)-3);
+      // NEVER read the stage's own width as "available" — we set it below, so
+      // measuring it again shrinks the frame a little on every 400ms tick until
+      // it disappears. Ask the free space, then take a hair off so the rotated
+      // frame cannot round past the viewport edge.
+      if(stage){ stage.style.width=""; stage.style.height=""; }
+      const room=stage?(stage.parentElement?stage.parentElement.clientWidth:stage.clientWidth):360;
+      const w=Math.max(120,room-3);
       const tall=window.innerWidth<820; // portrait phone: turn the frame on its side
       const k=tall?Math.min(1,Math.min(w/600,(window.innerHeight*0.82)/1005))
                   :Math.min(1,w/1005);
@@ -3602,6 +3618,10 @@
     if(blockUsesTypes(b).size) return slotLabel(bi,j);
     return "Station "+stationNo(b,j);
   }
+  // One job per line. It rides inside the work string so grouping keys still
+  // see one value, and every surface that prints work turns it into a break.
+  const BRK="\u2028";
+  const brk=t=>esc(t).split(BRK).join("<br>");
   // What this slot is actually doing, reps and all.
   const wkText=(it,j,swap)=>{
     if(!it) return "";
@@ -3609,11 +3629,13 @@
     const xs=(it.exercises||[]).filter(Boolean);
     if(!xs.length) return it.name||"Work";
     if(itRot(it)){ const x=xs[(Math.max(0,j)+(swap||0))%xs.length]; return x?exTxt(x):""; }
-    return xs.map(x=>exTxt(x)).join(" \u00b7 ");
+    // Pair 1 and Pair 2 are two people doing two different things. Running them
+    // together on one line reads as one instruction; they get a line each.
+    return xs.map(x=>exTxt(x)).join(BRK);
   };
   // the same part with every group moved on one \u2014 what a swap looks like
   const wkSwap=it=>{ const xs=(it.exercises||[]).filter(Boolean);
-    return xs.map((x,k)=>exTxt(Object.assign({},xs[(k+1)%xs.length],{who:x.who}))).join(" \u00b7 "); };
+    return xs.map((x,k)=>exTxt(Object.assign({},xs[(k+1)%xs.length],{who:x.who}))).join(BRK); };
   // A leaderboard lane has one line at 10.5px on a phone: names only, no amounts,
   // no group prefixes, and cut short rather than allowed to run past the row.
   const wkShort=(it,j,swap,rot2)=>{
@@ -3706,7 +3728,7 @@
     const w=crewWhere(i); if(!w) return "";
     // one cell builder, used twice \u2014 the two boxes cannot drift apart
     const cell=(c,cls)=>`<div class="${cls}"><span>${c.lab}</span>`
-      +`<b>${esc(c.work||"\u2014")}</b>`
+      +`<b>${brk(c.work||"\u2014")}</b>`
       +(c.where?`<i>${esc(c.where)}</i>`:"")+(c.note?`<u>${esc(c.note)}</u>`:"")+`</div>`;
     // the group heading already names the station, so neither cell repeats it —
     // NEXT keeps its where only when it is somewhere ELSE
@@ -4747,7 +4769,7 @@
       if(cb&&cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=262;
+  const BUILD=263;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"

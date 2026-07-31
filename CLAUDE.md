@@ -117,12 +117,24 @@ copy for cache-free serving; `version.txt` holds the build number.
   are still empty. Claiming is the FIRST placement only — every rotation after it is
   the same engine as before. The redraw guard must cover `#tbClaim` as well as
   `#tbName`, or the 400ms tick wipes what someone is typing. `claim.js` gates it.
+- **An unclaimed machine is a place, not a person.** The overview chip leads with the
+  station and is tagged `free` while `unnamed()` holds the slot; a claim flips it to
+  name + station. It is quiet before the clock starts and only goes red (`.late`) once
+  the session is running, when an empty machine really is a problem. Anything reading
+  station numbers off the card must take `.mtag` unless it says "free", then `.tn`.
+  `freechip.js` gates it.
+- **One job per line.** `wkText()`/`wkSwap()` join exercises with `BRK` (U+2028), not
+  " · " — Pair 1 and Pair 2 are two people, and one line reads as one instruction.
+  `crewStLine()`'s `cell()` runs it through `brk()`; the lane flattens it back because
+  a lane is one line. The character stays inside the grouping key, so `crewWhereKey()`
+  is unaffected.
 - **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
   opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
   button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go
   stale. A real tablet in landscape kiosk gets there anyway via `TBKQ`. The rotated
-  frame is fitted to `stage.clientWidth - 3` — at exactly the stage width it rounds a
-  pixel past the viewport and the page picks up a sideways scroll. In phone view the
+  frame is fitted to the PARENT's width minus 3 — at exactly the stage width it rounds
+  a pixel past the viewport, and measuring the stage's own width (which `fitTablet`
+  sets) shrank the frame 3px on every 400ms tick until it vanished. In phone view the
   target rail is short and wide, so `.tk-pills` turns into a ROW: stacked with
   `flex:1 1 0` its buttons collapsed into each other and printed 500 on top of 600.
   `tbland.js` gates both layouts.
