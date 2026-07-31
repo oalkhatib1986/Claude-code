@@ -423,7 +423,9 @@
     font-size:clamp(11px,2.8vw,16px);letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.55);white-space:nowrap}
   /* Tablet preview: render the real 1005x600 screen and scale it to the phone */
   body.tabprev .tb-note{display:none}
-  .tbprev-stage{overflow:hidden;border-radius:14px}
+  /* a sideways drag on the frame walks the row — it belongs to the app, not to the
+     browser's back-swipe, which drags the whole page out from under the tabs */
+  .tbprev-stage{overflow:hidden;border-radius:14px;touch-action:pan-y}
   body.tabprev .tb-device{width:1005px;height:600px;flex:none;transform-origin:top left}
   /* TV preview: render the board at its real 1560x878 (16:9) TV size and scale the
      whole frame down, so a phone sees exactly what the 70" screen shows */
@@ -2333,7 +2335,12 @@
       if(seg.swap!=null){ const al=allocAt(st); const j=Math.max(0,al.teams.findIndex(t2=>t2.e===e));
         const x=(seg.it.exercises||[])[(j+seg.swap)%seg.swaps];
         if(x){ e.segName=x.name; const m=machineOf(x.name); e.curTypes=m?[m]:[]; } }
-      let effort = hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12);
+      // NOBODY ON THE MACHINE, NOTHING COMING OFF IT. An erg with no name on it is
+      // an empty erg: no split, no watts, no metres, no calories, no score. Counting
+      // for a slot nobody has claimed is counting a ghost.
+      const manned=!unnamed(e.name);
+      e.hot=hot&&manned;
+      let effort = !manned ? 0 : (hot ? 1 : (Math.sin(e.phase*0.33+e.id)>0?0.72:0.12));
       e.phase+=0.12;
       if(effort>0.05){
         const target=(hot? 96*e.drift : 118*e.drift);
@@ -2441,6 +2448,11 @@
       e.el.classList.toggle("scoring", running&&!!e.hot);
       const rs=e.el.querySelector(".rank span");
       rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
+      // the name is repainted here, not written once at build: someone tapping in
+      // on the erg has to reach the board, or it calls them "Athlete 1" all session
+      { const tn=e.el.querySelector(".team");
+        if(tn&&tn.textContent!==e.name){ tn.textContent=e.name;
+          tn.classList.toggle("unnamed",unnamed(e.name)); } }
       const st=stationOf(e);
       const last=rot.round>=totalRounds()-1;
       let loc;
@@ -2820,6 +2832,10 @@
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     document.body.classList.toggle("tabkiosk",which==="tablet");
+    // Leaving the tab must take the kiosk with it. These classes are the erg
+    // tablet's own layout — body.kioskon strips the page's padding and pins a
+    // 1005x600 frame — and left behind they warp every other page instead.
+    if(which!=="tablet") document.body.classList.remove("kioskon","tabprev","tabwall","tabone");
     if(which==="tablet"){
       // a real tablet bolted to an erg in landscape is ALREADY at its machine;
       // everyone else lands on the wall and picks
@@ -3059,7 +3075,8 @@
     const sv=String(tabletSel);
     if(!sv.includes(":")) return;
     const hit=machSlots().byKey[sv]; if(!hit) return;
-    const team=teamsAt(hit.bi)[hit.j]; if(!team) return;
+    const team=teamsAt(hit.bi)[hit.j];
+    if(!team||unnamed(team.name)) return;   // nobody on it, nothing to tick
     const w=tbWuFor(sv), d=tbAcc("wu:"+sv,w.split,w.spm), avg=tbAvg(d);
     const put=(k,v)=>{ const c=strip.querySelector(`[data-v="${k}"] b`);
       if(c&&c.textContent!==String(v)) c.textContent=v; };
@@ -3275,7 +3292,10 @@
       // machine metrics strip — warm-up before the start, live while working, frozen in rest
       const tsw=team?tbSwapInfo(sv,seg,team,b):null;
       let mts=null, mtag="", mcls="";
-      if(team){
+      // No name on the machine, no numbers on the screen — not even a warm-up.
+      // A split and a metre count under "Nobody yet" is the machine claiming
+      // somebody is on it.
+      if(team&&claimed){
         if(running&&seg&&!seg.it.rest&&team.split>0){
           const ak=tsw?("sw:"+tsw.key+":"+tsw.st.n):("rd:"+team.id+":"+rot.round);
           const d=tbAcc(ak,team.split,team.spm);
@@ -5278,7 +5298,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=273;
+  const BUILD=274;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

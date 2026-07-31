@@ -195,6 +195,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   here now — tap your name in") and never covers `tk-inst`. `.tk-who` reads
   "Nobody yet" whenever the slot is unclaimed, in both states. `floorclaim.js` and
   `claim.js` assert the band, the instruction and the work are all on screen together.
+- **Nobody on the machine, nothing coming off it.** An erg with no name on it is an
+  empty erg: `frameRotation` sets `effort=0` and `e.hot=false` for any crew
+  `unnamed()` holds, so there is no split, no watts, no metres, no calories and no
+  score; the tablet draws no `.tk-vit` strip at all (not even a warm-up), and
+  `tickTbVitals()` bails. Counting for a slot nobody has claimed is counting a ghost.
+  The lane's name is repainted in `renderLanesRot()`, NOT written once in `build()` —
+  a claim has to reach the board or it calls them "Athlete 1" all session.
+  `noname.js` gates it.
+- **Leaving the Erg Tablet tab takes the kiosk with it.** `body.kioskon` strips the
+  page's padding and pins a 1005x600 frame; left on after `show()` moved to another
+  tab it warped every other page and the nav drifted out from under the taps. `show()`
+  removes `kioskon`/`tabprev`/`tabwall`/`tabone` whenever `which!=="tablet"`. The stage
+  is `touch-action:pan-y` so a sideways drag walks the row instead of becoming the
+  browser's back-swipe.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons
