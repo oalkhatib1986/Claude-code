@@ -172,6 +172,22 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `crewStLine()`'s `cell()` runs it through `brk()`; the lane flattens it back because
   a lane is one line. The character stays inside the grouping key, so `crewWhereKey()`
   is unaffected.
+- **No ergs, nothing to assign.** The tablets are bolted to the ergs, so a workout
+  without one carries no screens: nothing to claim, no station to hand out, nobody to
+  count. `hasErgs()` drives `body.noergs` (hide the card's `.teams` chips, the claim
+  bar; the Erg Tablet tab says it once instead of per machine) and `body.noroster`
+  (`noergs && !showLeaderboard()` — then the headcount goes too; a SCORED floor
+  workout keeps it, the leaderboard needs the rows). The class reads the big screen
+  and splits itself. `noergs.js` gates it.
+- **Before the clock, the only thing that moves is the warm-up numbers.** Repainting
+  the whole tablet once a second to animate them is what made the target pills, the
+  claim box and Save "not work": the element under the finger was a fresh one by the
+  time the tap landed. `tickTbVitals()` patches `[data-v=...] b` in place and the
+  pre-start screen stops moving at all. `stillpre.js` marks the buttons and fails if
+  they are not the SAME elements three ticks later. Every control on `#tbScreen` is
+  ALSO delegated to the container and carries its meaning in data attributes
+  (`.tswp[data-k][data-a][data-who]`, `#tbClaimGo[data-tid|data-slot]`,
+  `#tbFree[data-tid]`) — never bind a handler to an element a timer can replace.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons

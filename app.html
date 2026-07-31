@@ -284,6 +284,12 @@
     font-family:var(--disp);font-weight:700;font-size:clamp(11px,2.7vw,14px);
     letter-spacing:.12em;text-transform:uppercase}
   .tk-free:active{background:rgba(0,0,0,.07)}
+  /* No ergs, nothing to assign: no tablets, no claiming, no stations on the card.
+     What is left is the workout and the clock, which is all a floor class needs. */
+  .ergless{display:none}
+  body.noergs .ergless{display:block;margin-top:2px;font-size:12px;color:var(--ink-mute);line-height:1.45}
+  body.noergs .blk .teams,body.noergs #claimBar{display:none}
+  body.noroster .teamsbar,body.noroster .tcnote{display:none}
   .tcnote{margin-top:8px;font-size:12px;color:var(--ink-mute);line-height:1.45}
   .tcnote:empty{display:none}
   #claimBar{margin-top:9px;font-size:13px;color:var(--ink-dim);line-height:1.5}
@@ -1316,6 +1322,7 @@
         </div>
         <div id="tcNote" class="tcnote"></div>
         <div id="claimBar"></div>
+        <div class="ergless">No ergs in today&rsquo;s workout, so there are no tablets and nothing to hand out. Put the workout on the big screen &mdash; the class follows it and splits itself.</div>
       </div>
     </div>
 
@@ -1370,6 +1377,7 @@
             <span id="tcPick2"></span>
           </div>
           <div id="tcNote2" class="tcnote"></div>
+          <div class="ergless">No ergs in today&rsquo;s workout, so there are no tablets and nothing to hand out. Put the workout on the big screen &mdash; the class follows it and splits itself.</div>
         </div>
       </div>
       <div class="card wide">
@@ -2065,6 +2073,16 @@
     return (claimCache=out);
   }
   const claimSlotFor=key=>claimSlots().find(x=>x.key===key)||null;
+  // NO ERGS, NOTHING TO ASSIGN. The tablets are bolted to the ergs, so a workout
+  // without one carries no screens: there is no machine to claim, no station to
+  // hand out and nobody to count. The class reads the workout off the big screen
+  // and splits itself; the trainer just runs the clock.
+  const hasErgs=()=>cfg.mode!=="rotation"||R().blocks.some(b=>blockUsesTypes(b).size>0);
+  function syncErgless(){
+    const off=!hasErgs();
+    document.body.classList.toggle("noergs",off);
+    document.body.classList.toggle("noroster",off&&!showLeaderboard());
+  }
   try{ window.__claim=claimSlots; window.__slots=machSlots; window.__teamsAt=bi=>teamsAt(bi); }catch(e){}
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
@@ -2303,6 +2321,7 @@
   function renderBlockCards(){
     if(cfg.mode!=="rotation") return;
     updateCapBanner();
+    syncErgless();
     if(!nBlocks()){
       $("blockCards").innerHTML=`<div class="blk"><div class="bh"><b>No blocks yet</b></div><div class="bd">Open Setup and add blocks to build your workout from scratch.</div><div class="teams"></div></div>`;
       return;
@@ -2888,10 +2907,35 @@
     return {whos,onWho,offWhos,ergX,floorX,whoFor,st,key,live,
       m:live?Math.min(Math.round(tbDist["sw:"+key+":"+st.n]?tbDist["sw:"+key+":"+st.n].m:0),st.target):0};
   }
-  try{ window.__tbDist=tbDist; window.__tbSw=tbSw; }catch(e){}
+  try{ window.__tbDist=tbDist; window.__tbSw=tbSw;
+    window.__tbRender=()=>renderTablet(true); }catch(e){}
+  // BEFORE THE CLOCK, THE ONLY THING THAT MOVES IS THE WARM-UP NUMBERS.
+  // Repainting the whole screen once a second to animate them is what put buttons
+  // out from under fingers: the target pills, the claim box and Save all sat on
+  // elements that were replaced between the tap starting and the click firing, so
+  // the browser fired the click on the container \u2014 or on nothing at all. Patch the
+  // numbers in place instead and the pre-start screen stops moving entirely.
+  function tickTbVitals(){
+    const scr=$("tbScreen"); if(!scr) return;
+    const strip=scr.querySelector(".tk-vit"); if(!strip) return;   // nothing to animate
+    const sv=String(tabletSel);
+    if(!sv.includes(":")) return;
+    const hit=machSlots().byKey[sv]; if(!hit) return;
+    const team=teamsAt(hit.bi)[hit.j]; if(!team) return;
+    const w=tbWuFor(sv), d=tbAcc("wu:"+sv,w.split,w.spm), avg=tbAvg(d);
+    const put=(k,v)=>{ const c=strip.querySelector(`[data-v="${k}"] b`);
+      if(c&&c.textContent!==String(v)) c.textContent=v; };
+    put("split",fmtSplit(w.split));
+    put("avg",avg>0?fmtSplit(avg):"--:--");
+    put("watts",Math.round(wattsFor(w.split)));
+    put("spm",Math.round(w.spm));
+    put("strokes",Math.round(d.s||0));
+    put("el",fmtMS(Math.round(d.el||0)));
+    put("m",Math.round(d.m||0));
+  }
   setInterval(()=>{ const v=$("viewTablet");
     if(!v||!v.classList.contains("active")||cfg.mode!=="rotation"||running) return;
-    if(!sessionActive&&rot.phase==="pre") renderTablet();
+    if(!sessionActive&&rot.phase==="pre") tickTbVitals();
   },1000);
   // on a landscape tablet the screen fills whatever height is left below the
   // header, so the whole readout fits with nothing to scroll
@@ -2951,13 +2995,40 @@
   window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
   function renderTablet(force){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
+    if(cfg.mode==="rotation"&&nBlocks()&&!hasErgs()){
+      const t=`<div class="tb-note" style="padding:38px 12px;text-align:center">Today\u2019s workout has <b>no ergs</b> \u2014 these tablets aren\u2019t needed for it. Put the workout on the big screen and the class follows it, splitting itself across the floor.</div>`;
+      if(scr.innerHTML!==t) scr.innerHTML=t;
+      return; }
     if(!scr.__doneWired){ scr.__doneWired=1;
       // the screen redraws on a timer, so bind the tap to the container, never to
       // the button itself — otherwise a tap landing mid-redraw is lost
-      scr.addEventListener("click",ev=>{ const d=ev.target.closest&&ev.target.closest(".tk-done");
-        if(!d) return;
-        circAdd(+d.dataset.bi,+d.dataset.i,d.dataset.tid);
-        renderTablet(true); renderLanesRot(); });
+      // EVERY control on this screen is delegated to the container. The picture
+      // repaints on a timer (the warm-up numbers tick once a second before the
+      // start), so a handler bound to the button itself is attached to an element
+      // that is already gone by the time the finger lands \u2014 and the browser then
+      // fires no click at all. The button carries its meaning in data attributes
+      // instead, so whichever copy is on screen works.
+      scr.addEventListener("click",ev=>{
+        const c=ev.target.closest&&ev.target.closest(".tk-done,.tswp,#tbClaimGo,#tbFree,#tbNameGo");
+        if(!c) return;
+        if(c.classList.contains("tk-done")){
+          circAdd(+c.dataset.bi,+c.dataset.i,c.dataset.tid);
+          renderTablet(true); renderLanesRot(); return; }
+        if(c.classList.contains("tswp")){
+          const st=tbSw[c.dataset.k]; if(!st) return;
+          const a=+c.dataset.a; st.target=a;
+          if(c.dataset.who) st.pick[c.dataset.who]=a;
+          renderTablet(true); return; }
+        if(c.id==="tbFree"){ tbGiveBack(+c.dataset.tid); return; }
+        const inp=scr.querySelector("#tbClaim")||scr.querySelector("#tbName");
+        const v=inp?(inp.value||"").trim():"";
+        if(!v) return;
+        // empty the box BEFORE the redraw: text in it reads as "someone is
+        // mid-type" and holds the picture still
+        inp.value=""; inp.blur();
+        if(c.dataset.slot){ const sl=claimSlotFor(c.dataset.slot); if(sl) takeFree(sl,v); return; }
+        tbTakeName(+c.dataset.tid,v);
+      });
       // ...and a redraw that lands BETWEEN the finger going down and coming up
       // removes the element under it, so the browser fires no click at all. Hold
       // the picture still for the length of a tap.
@@ -3007,7 +3078,7 @@
                 <div class="tk-claimrow">
                   <input id="tbClaim" maxlength="18" autocomplete="off"
                     placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
-                  <button type="button" class="btn" id="tbClaimGo">I\u2019m on</button>
+                  <button type="button" class="btn" id="tbClaimGo" data-slot="${esc(openSlot.key)}">I\u2019m on</button>
                 </div>
               </div>
               <div class="tk-card tk-work">
@@ -3022,12 +3093,7 @@
           </div>
         </div>`;
         fitTablet();
-        { const go=$("tbClaimGo"), inp=$("tbClaim");
-          // empty the box BEFORE the redraw: a box with text in it is read as
-          // "someone is mid-type" and holds the picture still
-          const take=()=>{ const v=(inp.value||"").trim(); if(!v) return;
-            inp.value=""; inp.blur(); takeFree(openSlot,v); };
-          if(go&&inp){ go.onclick=take; inp.onkeydown=ev=>{ if(ev.key==="Enter") take(); }; } }
+        bindTbEnter(scr);
         fitTbText(scr);
         return;
       }
@@ -3076,14 +3142,14 @@
       const onTarget=!!(tsw&&tsw.live);
       const vit=[];
       if(mts){
-        vit.push({v:fmtSplit(mts.split),l:"split /500m"});
-        vit.push({v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1});
-        vit.push({v:Math.round(wattsFor(mts.split)),l:"watts"});
-        vit.push({v:Math.round(mts.spm),l:"strokes/min"});
-        vit.push({v:Math.round(mts.strokes||0),l:"strokes",opt:1});
-        vit.push({v:fmtMS(Math.round(mts.el||0)),l:"time on erg",opt:1});
-        if(!onTarget) vit.push({v:Math.round(mts.m||0),l:"metres"});
-        if(scored) vit.push({v:scoreVal,l:scoreUnit()});
+        vit.push({k:"split",v:fmtSplit(mts.split),l:"split /500m"});
+        vit.push({k:"avg",v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1});
+        vit.push({k:"watts",v:Math.round(wattsFor(mts.split)),l:"watts"});
+        vit.push({k:"spm",v:Math.round(mts.spm),l:"strokes/min"});
+        vit.push({k:"strokes",v:Math.round(mts.strokes||0),l:"strokes",opt:1});
+        vit.push({k:"el",v:fmtMS(Math.round(mts.el||0)),l:"time on erg",opt:1});
+        if(!onTarget) vit.push({k:"m",v:Math.round(mts.m||0),l:"metres"});
+        if(scored) vit.push({k:"score",v:scoreVal,l:scoreUnit()});
       }
       const machShort=mtype?mInfo(mtype).label:"this machine";
       const goNext=`${esc(nxBlock.name)} · ${bmLabel(nxBlock)}`;
@@ -3106,7 +3172,7 @@
       const tgtRail=tsw?`
         <div class="tk-card tk-rail tk-side">
           <span>Target</span>
-          <div class="tk-pills">${amtList(tsw.ergX).map(amtNum).filter(a=>isFinite(a)).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
+          <div class="tk-pills">${amtList(tsw.ergX).map(amtNum).filter(a=>isFinite(a)).sort((x,y)=>x-y).map(a=>`<button type="button" class="tswp ${a===tsw.st.target?"on":""}" data-a="${a}" data-k="${esc(tsw.key)}" data-who="${esc(tsw.onWho||"")}"><b>${a}</b><em>metres</em></button>`).join("")}</div>
         </div>`:"";
       // in an AMRAP or a self-paced circuit the lap length is an internal detail —
       // what the athlete is racing is the block's own clock
@@ -3166,7 +3232,7 @@
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
         nxEm=esc((amtList(cir.next).join("/")+exUnit(cir.next.unit)).trim()); }
       const nxtCard=`<div class="tk-card tk-nxt"><span>${nxSpan}</span><b>${nxB}</b>${nxEm?`<em>${nxEm}</em>`:""}</div>`;
-      const nameBand=(needName&&!claiming)?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button">Save</button></div></div>`:"";
+      const nameBand=(needName&&!claiming)?`<div class="tk-card tk-name"><label>${cfg.teamKind==="solo"?"Type your name":"Type your team name"}</label><div><input id="tbName" maxlength="18" placeholder="${esc(team.name)}" autocomplete="off"><button class="btn" id="tbNameGo" type="button" data-tid="${team.id}">Save</button></div></div>`:"";
       scr.innerHTML=`
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-card tk-id">
@@ -3184,11 +3250,11 @@
                 <div class="tk-head">${claimed?esc(team.name):preClock?"Tap in to claim it":"Tap your name in"}</div>
                 ${claimed
                   ? `<div class="tk-sub">Waiting for the trainer</div>
-                     <button type="button" class="tk-free" id="tbFree">Not you? Free this ${esc(machShort.toLowerCase())}</button>`
+                     <button type="button" class="tk-free" id="tbFree" data-tid="${team.id}">Not you? Free this ${esc(machShort.toLowerCase())}</button>`
                   : `<div class="tk-claimrow">
                        <input id="tbClaim" maxlength="18" autocomplete="off"
                          placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
-                       <button type="button" class="btn" id="tbClaimGo">I\u2019m on</button>
+                       <button type="button" class="btn" id="tbClaimGo" data-tid="${team.id}">I\u2019m on</button>
                      </div>`}
               </div>`:`<div class="tk-card tk-inst">
                 <div class="tk-tag">${(mts&&mtag&&!running)?mtag:jTag}</div>
@@ -3215,30 +3281,12 @@
               ${nxtCard}
             </div>`}
           </div>
-          ${vit.length?`<div class="tk-card tk-vit">${vit.map(x=>`<div class="${x.opt?"opt":""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>`:""}
+          ${vit.length?`<div class="tk-card tk-vit">${vit.map(x=>`<div class="${x.opt?"opt":""}" data-v="${x.k||""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>`:""}
         </div>`;
       scr.classList.toggle("has-swap",!!tsw);
       fitTablet();
 
-      if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
-        const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(true); }; }); }
-      { const go=$("tbClaimGo"), inp=$("tbClaim");
-        const take=()=>{ const v=(inp.value||"").trim(); if(!v||!team) return;
-          cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
-          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true); };
-        if(go&&inp){ go.onclick=take; inp.onkeydown=ev=>{ if(ev.key==="Enter") take(); }; } }
-      { const fr=$("tbFree");
-        if(fr) fr.onclick=()=>{ if(!team) return;
-          // back to the placeholder the roster started with, so the slot reads as free
-          const nm=(cfg.teamKind==="solo"?"Athlete ":"Team ")+(team.id+1);
-          cfg.crews[team.id].name=nm; team.name=nm; save();
-          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true); }; }
-      const gi=$("tbNameGo");
-      if(gi){ const commit=()=>{ const inp=$("tbName"); const v=(inp.value||"").trim(); if(!v||!team) return;
-          cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
-          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true); };
-        gi.onclick=commit;
-        $("tbName").onkeydown=ev=>{ if(ev.key==="Enter") commit(); }; }
+      bindTbEnter(scr);
     } else if(cfg.mode==="waves"){
       const si=clamp(+tabletSel||0,0,cfg.segments.length-1), s=cfg.segments[si];
       const here=ergs.filter(e=>e.released&&e.finT==null&&e.stage===si);
@@ -3276,6 +3324,25 @@
         ${nxt&&!finished?`<div class="tb-next">next &rarr; <b>${esc(nxt.name)} · ${mInfo(nxt.machine).label}</b></div>`:""}`;
     }
     fitTbText(scr);
+  }
+  // Enter is the one binding that can stay on the element: while the box has text
+  // in it the redraw is held off, so the handler cannot be swept away mid-type.
+  function bindTbEnter(scr){
+    const inp=scr.querySelector("#tbClaim")||scr.querySelector("#tbName");
+    const go=scr.querySelector("#tbClaimGo")||scr.querySelector("#tbNameGo");
+    if(inp&&go) inp.onkeydown=ev=>{ if(ev.key==="Enter") go.click(); };
+  }
+  function tbTakeName(id,v){
+    const c=cfg.crews[id]; if(!c||!v) return;
+    c.name=v; const e=ergs.find(x=>x.id===id); if(e) e.name=v;
+    save(); buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true);
+  }
+  function tbGiveBack(id){
+    const c=cfg.crews[id]; if(!c) return;
+    // back to the placeholder the roster started with, so the slot reads as free
+    c.name=(cfg.teamKind==="solo"?"Athlete ":"Team ")+(id+1);
+    const e=ergs.find(x=>x.id===id); if(e) e.name=c.name;
+    save(); buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true);
   }
   // Whatever the screen is showing, nothing on it may be wider or taller than its
   // own box — every path that paints #tbScreen ends here.
@@ -3838,6 +3905,7 @@
   }
   function syncTeamCount(){
     applyGymFit();
+    syncErgless();
     const solo=cfg.teamKind==="solo";
     ["tcLabel","tcLabel2"].forEach(id=>{ const lb=$(id); if(lb) lb.textContent=solo?"Athletes today":"Teams today"; });
     { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
@@ -5054,7 +5122,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=270;
+  const BUILD=271;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
