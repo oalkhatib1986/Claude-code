@@ -128,6 +128,20 @@ copy for cache-free serving; `version.txt` holds the build number.
   `crewStLine()`'s `cell()` runs it through `brk()`; the lane flattens it back because
   a lane is one line. The character stays inside the grouping key, so `crewWhereKey()`
   is unaffected.
+- **A tap must survive the redraw.** `renderTablet()` repaints four times every two
+  seconds; a repaint between finger-down and finger-up removes the element and the
+  browser fires NO click at all — which is why the name box and the target buttons
+  silently did nothing. `#tbScreen` records the last pointer event and `renderTablet`
+  returns early for 650ms after it; anything the athlete themselves triggered calls
+  `renderTablet(true)` to skip that hold. `tbtap.js` taps at six different points in
+  the tick and expects six hits.
+- **The class size is editable mid-class.** `setTeamCount()` while running keeps each
+  erg's metres/score, rebuilds the floor, then puts `rot`/`t0`/`running` back and
+  restarts the rAF loop (`build()` kills it, and the start button's label with it).
+  Late arrivals get a lane and a free spot without the clock resetting. `latein.js`
+  gates it. `gymFit()` can propose the number from the equipment — one per station,
+  min across blocks when together, sum when split — but `cfg.autoCrews` is FALSE by
+  default: the trainer sets the number, and "Fit the gym" is one tap in the picker.
 - **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
   opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
   button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go

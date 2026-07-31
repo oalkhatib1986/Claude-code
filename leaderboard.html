@@ -272,6 +272,8 @@
     font-family:var(--disp);font-weight:700;font-size:clamp(11px,2.7vw,14px);
     letter-spacing:.12em;text-transform:uppercase}
   .tk-free:active{background:rgba(0,0,0,.07)}
+  .tcnote{margin-top:8px;font-size:12px;color:var(--ink-mute);line-height:1.45}
+  .tcnote:empty{display:none}
   #claimBar{margin-top:9px;font-size:13px;color:var(--ink-dim);line-height:1.5}
   #claimBar:empty{display:none}
   #claimBar b{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.18em;
@@ -1251,6 +1253,7 @@
           <label id="tcLabel">Teams today</label>
           <span id="tcPick"></span>
         </div>
+        <div id="tcNote" class="tcnote"></div>
         <div id="claimBar"></div>
       </div>
     </div>
@@ -1305,6 +1308,7 @@
             <label id="tcLabel2">Teams today</label>
             <span id="tcPick2"></span>
           </div>
+          <div id="tcNote2" class="tcnote"></div>
         </div>
       </div>
       <div class="card wide">
@@ -1659,6 +1663,7 @@
         ]},
       ],
     },
+    autoCrews:false,
     inventory:{Row:5,Ski:5,Bike:5,Run:5,Echo:0},
     gear:[{name:"Squat Rack",n:4},{name:"Bench",n:4},{name:"Sled",n:2}],
     exGear:{},
@@ -1690,6 +1695,7 @@
   normCrewNames();
   if(!cfg.teamSize) cfg.teamSize=4;
   if(cfg.noScore===undefined) cfg.noScore=false;
+  if(cfg.autoCrews===undefined) cfg.autoCrews=false;
   if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
   if(cfg.mode==="sequence"){ cfg.mode="rotation"; cfg.together=true; }
   // upgrade a loaded v1 Full Body working copy to real block rounds
@@ -2815,7 +2821,7 @@
   }
   window.addEventListener("resize",fitTablet);
   window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
-  function renderTablet(){
+  function renderTablet(force){
     const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
     if(!scr.__doneWired){ scr.__doneWired=1;
       // the screen redraws on a timer, so bind the tap to the container, never to
@@ -2823,8 +2829,17 @@
       scr.addEventListener("click",ev=>{ const d=ev.target.closest&&ev.target.closest(".tk-done");
         if(!d) return;
         circAdd(+d.dataset.bi,+d.dataset.i,d.dataset.tid);
-        renderTablet(); renderLanesRot(); });
+        renderTablet(true); renderLanesRot(); });
+      // ...and a redraw that lands BETWEEN the finger going down and coming up
+      // removes the element under it, so the browser fires no click at all. Hold
+      // the picture still for the length of a tap.
+      const hold=()=>{ scr.__hold=performance.now(); };
+      ["pointerdown","touchstart","mousedown"].forEach(t=>scr.addEventListener(t,hold,{passive:true}));
+      ["pointerup","touchend","mouseup"].forEach(t=>scr.addEventListener(t,hold,{passive:true}));
     }
+    // a redraw the athlete just asked for is never "under their finger"
+    if(force) scr.__hold=0;
+    else if(scr.__hold&&performance.now()-scr.__hold<650) return;
     if(cfg.mode==="rotation"){
       // never redraw over someone mid-type: the screen refreshes on a timer
       { const typing=[...scr.querySelectorAll("#tbName,#tbClaim")]
@@ -3018,22 +3033,22 @@
       fitTablet();
 
       if(tsw){ scr.querySelectorAll(".tswp").forEach(bt=>{ bt.onclick=()=>{
-        const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(); }; }); }
+        const a=+bt.dataset.a; tsw.st.target=a; tsw.st.pick[tsw.onWho]=a; renderTablet(true); }; }); }
       { const go=$("tbClaimGo"), inp=$("tbClaim");
         const take=()=>{ const v=(inp.value||"").trim(); if(!v||!team) return;
           cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
-          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(); };
+          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true); };
         if(go&&inp){ go.onclick=take; inp.onkeydown=ev=>{ if(ev.key==="Enter") take(); }; } }
       { const fr=$("tbFree");
         if(fr) fr.onclick=()=>{ if(!team) return;
           // back to the placeholder the roster started with, so the slot reads as free
           const nm=(cfg.teamKind==="solo"?"Athlete ":"Team ")+(team.id+1);
           cfg.crews[team.id].name=nm; team.name=nm; save();
-          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(); }; }
+          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true); }; }
       const gi=$("tbNameGo");
       if(gi){ const commit=()=>{ const inp=$("tbName"); const v=(inp.value||"").trim(); if(!v||!team) return;
           cfg.crews[team.id].name=v; team.name=v; save(); inp.value="";
-          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(); };
+          buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true); };
         gi.onclick=commit;
         $("tbName").onkeydown=ev=>{ if(ev.key==="Enter") commit(); }; }
     } else if(cfg.mode==="waves"){
@@ -3572,9 +3587,52 @@
     while(cfg.crews.length<n) cfg.crews.push({name:crewPrefix()+" "+(cfg.crews.length+1),ath:"",color:TEAMPAL[cfg.crews.length%TEAMPAL.length]});
     if(cfg.crews.length>n) cfg.crews.length=n;
     save(); buildCrews(); buildRankGrid(); updateCapReport();
-    if(!sessionActive&&!running) build();
+    if(!sessionActive&&!running){ build(); return; }
+    // Someone walked in late, or didn't turn up. The trainer changes the number
+    // mid-class and the floor has to follow WITHOUT resetting the clock: rebuild
+    // the athletes and their lanes, then put the running state back.
+    const was={round:rot.round, phase:rot.phase, elapsed:rot.elapsed, remain:rot.remain,
+      act:sessionActive, run:running, fin:finished, t:t0, rt:restT0};
+    const keep={}; ergs.forEach(e=>{ keep[e.id]={m:e.m,cals:e.cals,score:e.score,blockCals:e.blockCals}; });
+    build();
+    ergs.forEach(e=>{ const k=keep[e.id]; if(k) Object.assign(e,k); });
+    rot.round=was.round; rot.phase=was.phase; rot.elapsed=was.elapsed; rot.remain=was.remain;
+    sessionActive=was.act; running=was.run; finished=was.fin; t0=was.t; restT0=was.rt;
+    resetBtn.disabled=!was.act;
+    // build() stopped the loop that owns the clock and the button; start it again
+    if(running&&!paused){
+      startBtn.disabled=true;
+      startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running\u2026`;
+      cancelAnimationFrame(raf); raf=requestAnimationFrame(frameRotation); }
+    else { syncRotChrome(); renderBlockCards(); renderLanesRot(); }
+    renderTablet(true);
+  }
+  // How many people this gym can physically hold for THIS workout, one per
+  // station. A part with nothing linked to it is unlimited; if the whole workout
+  // is unlimited we simply cannot say, and we leave the trainer's number alone.
+  function gymFit(){
+    if(cfg.mode!=="rotation"||!nBlocks()) return 0;
+    const caps=R().blocks.map(b=>{ let n=Infinity;
+      ((b&&b.items)||[]).forEach(it=>{ if(it.rest) return;
+        const g=itGear(it); if(g>0&&g<n) n=g; });
+      return n; });
+    const fin=caps.filter(isFinite);
+    if(!fin.length) return 0;
+    // everyone together means the class must fit in EVERY block; split across the
+    // blocks means each block carries its own group, so they add up
+    const top=Math.max(...fin);
+    const v=cfg.together?Math.min(...fin)
+                        :caps.reduce((a,c)=>a+(isFinite(c)?c:top),0);
+    return clamp(Math.round(v),1,60);
+  }
+  let fitBusy=false;
+  function applyGymFit(){
+    if(fitBusy||cfg.autoCrews===false) return;
+    const n=gymFit(); if(!n||n===cfg.crews.length) return;
+    fitBusy=true; setTeamCount(n); fitBusy=false;
   }
   function syncTeamCount(){
+    applyGymFit();
     const solo=cfg.teamKind==="solo";
     ["tcLabel","tcLabel2"].forEach(id=>{ const lb=$(id); if(lb) lb.textContent=solo?"Athletes today":"Teams today"; });
     { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
@@ -3594,14 +3652,24 @@
       ?"Athletes are <b>assigned automatically in order</b>: Athletes 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next athletes take Block 2, and so on. Every round the groups move together to the next block; the screens tell everyone where to go. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
       :"Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.")); }
     const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
+    const FITLAB=()=>{ const n=gymFit(); return n?`Fit the gym \u2014 ${unit(n)}`:""; };
     ["tcPick","tcPick2"].forEach(id=>{ const wp=$(id); if(!wp) return;
       wp.innerHTML="";
       wp.appendChild(menuField(
-        ()=>Array.from({length:60},(_,i)=>unit(i+1)),
-        ()=>unit(clamp(cfg.crews.length,1,60)),
-        v=>{ const n=clamp(parseInt(v,10)||1,1,60); if(n!==cfg.crews.length) setTeamCount(n); else syncTeamCount(); },
+        ()=>{ const f=FITLAB(); return (f?[f]:[]).concat(Array.from({length:60},(_,i)=>unit(i+1))); },
+        ()=>unit(clamp(cfg.crews.length,1,60))+(cfg.autoCrews&&gymFit()?" \u00b7 gym fit":""),
+        v=>{ if(/^Fit the gym/.test(String(v))){ cfg.autoCrews=true; save(); applyGymFit(); syncTeamCount(); return; }
+          const n=clamp(parseInt(v,10)||1,1,60);
+          // a number typed by hand is the trainer taking it over
+          cfg.autoCrews=false;
+          if(n!==cfg.crews.length) setTeamCount(n); else { save(); syncTeamCount(); } },
         {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
       )); });
+    ["tcNote","tcNote2"].forEach(id=>{ const el=$(id); if(!el) return;
+      const n=gymFit();
+      el.textContent=!n?""
+        :cfg.autoCrews?`Set from your equipment \u2014 whoever doesn\u2019t turn up just shows free.`
+        :`Your number. Tap ${unit(n)} to follow the gym again.`; });
   }
   const posShort=s=>{ s=String(s||"");
     const cut=s.split(/\s+[@(·,]/)[0].split(" · ")[0].trim();
@@ -4769,7 +4837,7 @@
       if(cb&&cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=263;
+  const BUILD=264;
   { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
