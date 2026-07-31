@@ -142,6 +142,15 @@ copy for cache-free serving; `version.txt` holds the build number.
   gates it. `gymFit()` can propose the number from the equipment — one per station,
   min across blocks when together, sum when split — but `cfg.autoCrews` is FALSE by
   default: the trainer sets the number, and "Fit the gym" is one tap in the picker.
+- **A leaderboard lane is a STANDING, not an instruction.** It says where each team
+  IS (`On Block 1 · Run 1`) and what their machine is producing — live split, running
+  `avg`, watts, rate — with the score in its own column. "Next" belongs on the tablet
+  in front of them and in the trainer's NOW/NEXT panel, never on the board. The average
+  accumulates `e.wM`/`e.wT` in `frameRotation`, and BOTH must be scaled by `effort` or
+  it counts seconds nobody was pulling for. `lanenext.js` gates it.
+- **The footer signs the work.** `#siteFoot`: hairline, company name, `© <year>, All
+  rights reserved`, and the build in a pill on the right. Hidden on `body.bigscreen`
+  and `body.tabkiosk` — a TV and an erg tablet are for the workout. `foot.js` gates it.
 - **The Erg Tablet tab shows the erg tablet.** `tbPrev` defaults to TRUE, so the tab
   opens on the real 1005x600 landscape frame (turned on its side under 820px) and the
   button offers `Phone view`; `fitTablet()` re-labels it every time so it cannot go

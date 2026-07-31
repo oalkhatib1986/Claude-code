@@ -184,7 +184,7 @@
   .board-head{display:flex;justify-content:space-between;align-items:center;padding:2px 10px 14px;color:var(--ink-mute);
     font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.24em;text-transform:uppercase}
   .lanes{position:relative;transition:height .4s}
-  .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;grid-template-columns:64px 1fr 200px;align-items:center;gap:16px;
+  .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;grid-template-columns:64px 1fr minmax(0,236px);align-items:center;gap:16px;
     padding:0 12px;border-radius:14px;transition:transform .55s cubic-bezier(.4,1.05,.4,1),background .3s;will-change:transform}
   .lane::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:1px;background:var(--line-soft)}
   .lane.leader{background:linear-gradient(90deg,rgba(255,255,255,.055),transparent 60%)}
@@ -201,7 +201,9 @@
   .data{text-align:right;font-variant-numeric:tabular-nums}
   .hero{font-family:var(--mono);font-size:27px;font-weight:700;line-height:1;color:var(--accent);letter-spacing:-.01em}
   .hero small{font-family:var(--disp);font-weight:600;font-size:11px;color:var(--ink-mute);letter-spacing:.14em;text-transform:uppercase;margin-left:2px}
-  .sub{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* the numbers wrap onto a second line rather than being cut off mid-figure */
+  .sub{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);margin-top:5px;
+    line-height:1.5;overflow-wrap:anywhere}
   .sub .w{color:var(--ink)}.sub em{color:var(--ink-mute);font-style:normal}
   .tag{display:inline-block;font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
     padding:2px 10px;border-radius:999px;margin-left:8px;vertical-align:3px;background:var(--gold);color:#171100}
@@ -886,9 +888,27 @@
     font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
     box-shadow:0 12px 40px -8px rgba(0,0,0,.8)}
   #updBar[hidden]{display:none}
-  .buildfoot{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.3em;
-    text-transform:uppercase;color:#33373c;padding:6px 0 30px}
-  body.bigscreen .buildfoot{display:none}
+  /* The footer signs the work: who owns it, and which build you are looking at.
+     A hairline, two quiet lines, and the build number kept to one side. */
+  .foot{margin-top:34px}
+  .foot-rule{height:1px;background:linear-gradient(90deg,transparent,var(--line) 18%,
+    var(--line) 82%,transparent)}
+  .foot-in{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;
+    max-width:980px;margin:0 auto;padding:18px 18px 34px}
+  .foot-id{min-width:0;display:flex;flex-direction:column;gap:5px}
+  .foot-id b{font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-dim);line-height:1.5;overflow-wrap:anywhere}
+  .foot-id span{font-size:12px;color:var(--ink-mute);line-height:1.4}
+  .foot-id i{font-style:normal}
+  .buildfoot{margin-left:auto;flex:none;font-family:var(--mono);font-weight:700;font-size:10px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+  @media (max-width:520px){
+    .foot-in{gap:12px;padding:16px 16px 30px}
+    .buildfoot{margin-left:0}
+  }
+  /* a TV and an erg tablet are for the workout, and nothing else */
+  body.bigscreen .foot,body.tabkiosk .foot{display:none}
   .transport{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 4px}
   .trow{display:flex;align-items:center;justify-content:center}
   .trow.main{gap:34px}
@@ -1541,7 +1561,16 @@
         </div>
       </div>
     </div>
-  <div id="buildTag" class="buildfoot"></div>
+  <footer class="foot" id="siteFoot">
+    <div class="foot-rule"></div>
+    <div class="foot-in">
+      <div class="foot-id">
+        <b>ATHLETE STUDIO MEN PHYSICAL FITNESS CLUB L.L.C</b>
+        <span>&copy; <i id="footYear">2025</i>, All rights reserved</span>
+      </div>
+      <div id="buildTag" class="buildfoot"></div>
+    </div>
+  </footer>
   <button id="updBar" hidden type="button">&#10227; <b></b> is live &mdash; tap to update</button>
 
 </div>
@@ -2152,6 +2181,11 @@
         const w=wattsFor(e.split)*effort;
         const dm=(500/e.split)*effort*(1/60), dc=calRate(w)*(1/60);
         e.m+=dm; e.cals+=dc;
+        // what the machine has actually produced, so the board can show an average
+        // instead of only the split of this instant
+        // the metres already carry the effort, so the time must too or the average
+        // counts seconds nobody was pulling for
+        e.wM=(e.wM||0)+dm; e.wT=(e.wT||0)+effort*(1/60);
         if(hot) e.blockCals += ((seg.it.metric||"calories")==="metres"? dm : dc) * Math.max(1,itemTypes(seg.it).length);
       } else { e.split=0; e.spm=0; }
     }
@@ -2255,11 +2289,9 @@
         const w=crewWhere(e.id);
         // the lane stays a lane: rank, who, where, what is next. The work itself is
         // the Workout view's job — printing it here overflowed a phone row.
-        const nx=(w&&w.nxt&&w.nxt.work&&w.nxt.work!=="—"
-          ?(w.nxt.short||w.nxt.work):(last?"":next.name))
-          .split("\u2028").join(" \u00b7 ");   // a lane is one line, whatever it was given
-        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)}${spot}</b>`
-          +`${nx?` <span class="nx">&rarr; next ${esc(nx)}</span>`:""}`;
+        // A leaderboard is a standing, not an instruction: it says where each
+        // team IS. The tablet in front of them already carries what comes next.
+        loc=`<i class="bdot" style="background:rgb(${BLKCOL[st%6]})"></i>On <b>${esc(here.name)}${spot}</b>`;
       }
       e.el.querySelector(".loc").innerHTML=loc;
       const st2=stationOf(e);
@@ -2270,11 +2302,16 @@
       const val=e.score+e.blockCals;
       e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${scoreUnit()}</small>`;
       const bits=[];
+      // the average is what a trainer reads across a block; the live split is only
+      // the last stroke
+      const avg=(e.wM>0&&e.wT>0)?500*e.wT/e.wM:0;
       if(e.split>0){
         if(d.split) bits.push(`${fmtSplit(e.split)}<em>/500</em>`);
+        if(avg>0)   bits.push(`<em>avg</em>${fmtSplit(avg)}`);
         if(d.watts) bits.push(`<span class="w">${Math.round(wattsFor(e.split))}</span>w`);
         if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
-      } else bits.push(`<em>erg idle</em>`);
+      } else if(avg>0) bits.push(`<em>avg</em>${fmtSplit(avg)}`);
+      else bits.push(`<em>erg idle</em>`);
       if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
       if(d.cals&&scoreUnit()==="m") bits.push(`<em>cal</em>${Math.round(e.cals)}`);
       e.el.querySelector(".sub").innerHTML=bits.join(" · ");
@@ -4837,8 +4874,9 @@
       if(cb&&cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=264;
-  { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD; }
+  const BUILD=265;
+  { const bt=$("buildTag"); if(bt) bt.textContent="Build "+BUILD;
+    const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
     ? "version.txt"
     : "https://raw.githubusercontent.com/oalkhatib1986/Claude-code/claude/gym-erg-leaderboard-pyztry/version.txt";
