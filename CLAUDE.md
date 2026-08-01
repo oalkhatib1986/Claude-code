@@ -106,6 +106,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   Other blocks dim to `.queued`/`.donez`. The big screen shows no standing advice line
   (`body.wkscreen .phase .pdesc{display:none}`) — a TV across the gym is for the workout.
   `livebd.js` gates it.
+- **The parts sit in one row while they fit, and in EVEN rows when they do not.**
+  `repeat(auto-fit,minmax(230px,1fr))` packs as many cards across as will go and drops
+  the remainder underneath, so four parts printed A · B · C with D orphaned below.
+  `fitBlockCols()` measures the box, works out how many columns it can really hold,
+  and spreads the parts over the fewest rows that need — `--bcols` is that balanced
+  count. It is re-run by a `ResizeObserver` on `#blockCards` WIDTH only: the height
+  changes as a result of the fit, so watching it would chase its own tail.
+  On the WALL the count comes from the count alone, capped at 3: `fillTvBoard()`
+  chooses the width that makes the board fill the screen, so measuring that width to
+  pick the columns — which changes the height, which changes the width it picks — is
+  a loop with no fixed point, and four wide cards leave a band of empty floor
+  (`fsfill` drops to 90%). A · B · C across, four as a square. `bcols.js` gates it.
 - **The running part is a slab, not a shade of grey.** `.exg.pnow` is a solid light
   ground with black type; `.exg.pnxt` is the same shape drawn in outline, so the pair
   reads as one control. The part's countdown is its own headline (`.bclk`, 52px on TV)
@@ -252,8 +264,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   and a `seedSig` of the rotation as loaded; on boot `refreshSeeded()` adopts a newer
   library version only while the signature still matches — edit one number in Setup
   and the workout is the trainer's for good. The roster is kept across the swap: the
-  people in the room are not part of the board. A copy saved before the stamp existed
-  is adopted at `seedV 0`. `reseed.js` gates it.
+  people in the room are not part of the board.
+- **An unstamped copy is of unknown parentage, so it is nobody's to replace.** Only a
+  board PICKED from the library carries a stamp; a cfg that merely shares a `wkName`
+  with a preset is just as likely to be the trainer's own work, and adopting on the
+  strength of the name threw it away — silently, on the next reload. `refreshSeeded()`
+  returns immediately without one. Picking the board again is one tap, and that tap
+  is what stamps it.
+- **One cfg, one migration pass.** Every config that arrives from anywhere — storage,
+  a library board, an import — goes through `migrateLoaded()`, which now owns the
+  rotation defaults (`scorers`/`laps`/`blockRest`, per-item `metric`/`scorers`) as
+  well as the top-level ones. Boot used to fill them inline in a second, slightly
+  different shape, so a picked board was stamped BEFORE its defaults existed: one
+  reload later `seedSig` no longer matched and the copy read as edited, which is why
+  a corrected board never actually reached it. `reseed.js` gates both.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons

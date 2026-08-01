@@ -102,7 +102,11 @@
     font-size:14px;line-height:1.5}
   #capBanner b{color:var(--hot)}
   #capBanner[hidden]{display:none}
-  .blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+  /* THE PARTS SIT IN ONE ROW WHILE THEY FIT, AND IN EVEN ROWS WHEN THEY DO NOT.
+     auto-fit packs as many as will go and drops the remainder underneath, so four
+     parts came out three-and-a-stray. --bcols is the balanced count (see
+     fitBlockCols) — one row of four, or two rows of two, never 3+1. */
+  .blocks{display:grid;grid-template-columns:repeat(var(--bcols,1),minmax(0,1fr));gap:14px;margin-top:16px}
   .blk{border:1px solid var(--line);border-left:3px solid var(--bl,var(--line));border-radius:16px;background:linear-gradient(90deg,var(--blbg,transparent),transparent 55%),var(--card);box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s}
   .blk.scoring{border-color:rgba(255,45,45,.55);box-shadow:0 0 34px -10px rgba(255,45,45,.3),var(--shadow)}
   .blk .bh{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
@@ -1201,11 +1205,11 @@
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
   body.bigscreen:not(.mobscreen) .subhead .ttl b{font-size:52px}
-  body.wkscreen:not(.mobscreen) .blocks{display:flex!important;flex-wrap:wrap;
-    justify-content:center;align-content:center;gap:26px;margin-top:26px}
-  body.wkscreen:not(.mobscreen) .blocks>.blk{flex:1 1 calc(50% - 26px);max-width:calc(50% - 13px);min-width:0}
-  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child{flex:1 1 100%;max-width:100%}
-  body.wkscreen:not(.mobscreen) .blocks>.blkrest{flex:1 1 100%}
+  /* On the wall the same balanced columns, with the room a TV card needs. */
+  body.wkscreen:not(.mobscreen) .blocks{display:grid!important;
+    grid-template-columns:repeat(var(--bcols,1),minmax(0,1fr));
+    align-content:center;gap:26px;margin-top:26px}
+  body.wkscreen:not(.mobscreen) .blocks>.blkrest{grid-column:1/-1}
   body.bigscreen:not(.mobscreen) .subhead .ttl{flex-direction:row;align-items:baseline;
     gap:12px 34px;flex-wrap:wrap;overflow:visible}
   body.bigscreen:not(.mobscreen) .subhead .ttl b{flex:none}
@@ -1839,16 +1843,6 @@
   const KEY="af_erg_cfg_v8";
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
-  if(cfg.rotation&&!cfg.rotation.scorers) cfg.rotation.scorers=4;
-  if(cfg.rotation&&!cfg.rotation.laps) cfg.rotation.laps=1;
-  if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
-  if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
-  if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
-  if(!cfg.exGear||typeof cfg.exGear!=="object") cfg.exGear=structuredClone(DEFAULTS.exGear);
-  if(!cfg.teamKind) cfg.teamKind="teams";
-  normCrewNames();
-  if(!cfg.teamSize) cfg.teamSize=4;
-  if(cfg.noScore===undefined) cfg.noScore=false;
   if(cfg.autoCrews===undefined) cfg.autoCrews=false;
   if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
   if(cfg.mode==="sequence"){ cfg.mode="rotation"; cfg.together=true; }
@@ -1881,9 +1875,12 @@
       });
       delete cfg.rotation.parts;
     }
-    cfg.rotation.blocks.forEach(b=>{ if(!b.items) b.items=[];
-      b.items.forEach(it=>{ if(it.scored){ if(!it.metric) it.metric=(cfg.rotation.metric||"calories"); if(!it.scorers) it.scorers=(cfg.rotation.scorers||4); } }); });
   }
+  // Every cfg that arrives from anywhere — storage, a library board, an import —
+  // is filled in by the SAME pass. Doing it twice, in two shapes, is what let a
+  // board picked out of the library be stamped before its defaults were filled:
+  // one reload later it no longer matched its own signature and read as edited.
+  migrateLoaded();
   if(!cfg.library) cfg.library=structuredClone(DEFAULTS.library);
   if(!cfg.waves) cfg.waves={waveSize:4,release:"auto"};
 
@@ -2508,6 +2505,31 @@
         })()}</div>
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
+    fitBlockCols();
+  }
+
+  // ONE ROW WHILE THEY FIT, EVEN ROWS WHEN THEY DO NOT. Packing as many cards as
+  // will go across and letting the rest fall underneath is what printed A · B · C
+  // with D orphaned below them. Work out how many columns the box can actually
+  // hold, then spread the parts over the fewest rows that need — four across, or
+  // two and two, but never three and a stray.
+  function fitBlockCols(){
+    const el=$("blockCards"); if(!el) return;
+    const n=el.querySelectorAll(":scope > .blk").length;
+    if(!n){ el.style.removeProperty("--bcols"); return; }
+    const wall=document.body.classList.contains("wkscreen")
+      &&!document.body.classList.contains("mobscreen");
+    // On the wall the count comes from the COUNT alone. `fillTvBoard()` chooses the
+    // width that makes the board fill the screen, so measuring that width to decide
+    // the columns — which changes the height, which changes the width it picks — is
+    // a loop with no fixed point. Three across is the most a TV card can carry and
+    // still fill the screen's height — four wide cards leave a band of empty floor.
+    let fit=3;
+    if(!wall){ const gap=14, min=230;
+      const w=el.clientWidth||el.getBoundingClientRect().width||0;
+      fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
+    const rows=Math.ceil(n/Math.min(n,fit));
+    el.style.setProperty("--bcols",Math.max(1,Math.ceil(n/rows)));
   }
 
   function renderLanesRot(){
@@ -4657,11 +4679,12 @@
     cfg.seedFrom=p.name; cfg.seedV=p.seedV; cfg.seedSig=seedSig(cfg);
   }
   (function refreshSeeded(){
-    // a copy loaded before the stamp existed still came out of the library, and the
-    // trainer has no other way to get the corrected board
-    if(!cfg.seedFrom&&cfg.wkName&&presets.some(x=>x.name===cfg.wkName&&x.seedV)){
-      cfg.seedFrom=cfg.wkName; cfg.seedV=0; cfg.seedSig=seedSig(cfg);
-    }
+    // AN UNSTAMPED COPY IS OF UNKNOWN PARENTAGE, SO IT IS NOBODY'S TO REPLACE.
+    // Sharing a name with a library board proves nothing — it is just as likely to be
+    // the trainer's own work saved under that name, or a library copy they have since
+    // rewritten, and adopting on the strength of the name threw that work away. Only
+    // a board PICKED from the library is the library's to correct; picking it again
+    // is one tap, and that tap is what stamps it.
     if(!cfg.seedFrom||!cfg.seedSig) return;
     const p=presets.find(x=>x.name===cfg.seedFrom);
     if(!p||!p.seedV||p.seedV<=(cfg.seedV||0)) return;
@@ -4681,12 +4704,20 @@
   }
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
-  if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
-  if(!cfg.exGear||typeof cfg.exGear!=="object") cfg.exGear=structuredClone(DEFAULTS.exGear);
+    if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
+    if(!cfg.exGear||typeof cfg.exGear!=="object") cfg.exGear=structuredClone(DEFAULTS.exGear);
     if(!cfg.teamKind) cfg.teamKind="teams";
     if(!cfg.teamSize) cfg.teamSize=4;
-    if(cfg.rotation&&cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
     if(cfg.noScore===undefined) cfg.noScore=false;
+    if(cfg.rotation){
+      if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
+      if(!cfg.rotation.laps) cfg.rotation.laps=1;
+      if(cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
+      (cfg.rotation.blocks||[]).forEach(b=>{ if(!b.items) b.items=[];
+        b.items.forEach(it=>{ if(it.scored){
+          if(!it.metric) it.metric=(cfg.rotation.metric||"calories");
+          if(!it.scorers) it.scorers=(cfg.rotation.scorers||4); } }); });
+    }
     normCrewNames();
   }
   function buildPresetSel(){
@@ -5497,7 +5528,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=283;
+  const BUILD=284;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -5559,6 +5590,14 @@
       else fitTvBoard(0);
     });
     const f=$("tvFit"); if(f) ro.observe(f);
+    // The number of columns depends on the room the cards are given, and that room
+    // arrives late: the page is laid out with the view hidden, then shown. Re-fit
+    // whenever the box's own WIDTH changes — the height changes as a result of the
+    // fit, so watching it too would chase its own tail.
+    let bw=-1;
+    const bo=new ResizeObserver(()=>{ const el=$("blockCards"); if(!el) return;
+      const w=Math.round(el.clientWidth); if(w===bw) return; bw=w; fitBlockCols(); });
+    const bc=$("blockCards"); if(bc) bo.observe(bc);
   }
   // FILL a box, don't fit inside it. A uniform scale can only ever match one axis, so
   // instead of shrinking the picture until it fits (and leaving bands on the other
