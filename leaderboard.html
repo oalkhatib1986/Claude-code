@@ -4602,6 +4602,35 @@
     savePresets();
   })();
 
+  // A LIBRARY BOARD THAT CHANGES HAS TO REACH THE COPY ALREADY LOADED.
+  // Loading a preset copies it into cfg, so fixing the library afterwards changed
+  // nothing on screen — the trainer was still looking at the old shape and had to
+  // know to pick it again. The loaded copy remembers which board it came from and
+  // the exact rotation it was given; if the library moves on and the workout has
+  // NOT been edited since (the signature still matches), it follows. Touch one
+  // number in Setup and it is yours — the signature stops matching and it is left
+  // alone for good.
+  const seedSig=c=>{ try{ return JSON.stringify(c&&c.rotation); }catch(e){ return ""; } };
+  function stampSeed(p){
+    if(!p||!p.seedV) return;
+    cfg.seedFrom=p.name; cfg.seedV=p.seedV; cfg.seedSig=seedSig(cfg);
+  }
+  (function refreshSeeded(){
+    // a copy loaded before the stamp existed still came out of the library, and the
+    // trainer has no other way to get the corrected board
+    if(!cfg.seedFrom&&cfg.wkName&&presets.some(x=>x.name===cfg.wkName&&x.seedV)){
+      cfg.seedFrom=cfg.wkName; cfg.seedV=0; cfg.seedSig=seedSig(cfg);
+    }
+    if(!cfg.seedFrom||!cfg.seedSig) return;
+    const p=presets.find(x=>x.name===cfg.seedFrom);
+    if(!p||!p.seedV||p.seedV<=(cfg.seedV||0)) return;
+    if(seedSig(cfg)!==cfg.seedSig) return;          // the trainer has made it theirs
+    const keep=structuredClone(cfg.crews||[]);
+    cfg=structuredClone(p.cfg); cfg.wkName=p.name;
+    if(keep.length) cfg.crews=keep;                 // the roster is the room, not the board
+    migrateLoaded(); stampSeed(p); save();
+  })();
+
   // Placeholder crew names have to follow the format. A preset saved as Solo still
   // carries "Team 1..4" from DEFAULTS, deleting a crew leaves a gap in the numbering,
   // and switching format has to relabel them. Real typed names are never touched.
@@ -4627,7 +4656,8 @@
       ()=>cfg.wkName||"Unsaved workout",
       v=>{
         const p=presets.find(x=>x.name===v);
-        if(p){ cfg=structuredClone(p.cfg); cfg.wkName=p.name; migrateLoaded(); save(); applyAccent();
+        if(p){ cfg=structuredClone(p.cfg); cfg.wkName=p.name; migrateLoaded();
+          stampSeed(p); save(); applyAccent();
           buildControlRoom(); if(!running&&!sessionActive) build(); }
         else { cfg.wkName=v; const entry={name:v,cfg:structuredClone(cfg)};
           presets.push(entry); savePresets(); save(); buildPresetSel(); }
@@ -5426,7 +5456,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=278;
+  const BUILD=279;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

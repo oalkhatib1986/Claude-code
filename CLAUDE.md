@@ -242,6 +242,14 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   is what the round loop repeats, `finItems()` runs once after it, `blockLen` adds
   `finLen(b)`, and `segAt` walks the finish when `t` passes the last round. `seg.i` is
   always the index in `b.items`, never in the filtered list. `finisher.js` gates it.
+- **A corrected library board has to reach the copy already loaded.** Loading a preset
+  COPIES it into cfg, so fixing the library afterwards changed nothing on screen and
+  the trainer had to know to pick it again. `stampSeed()` records `seedFrom`/`seedV`
+  and a `seedSig` of the rotation as loaded; on boot `refreshSeeded()` adopts a newer
+  library version only while the signature still matches — edit one number in Setup
+  and the workout is the trainer's for good. The roster is kept across the swap: the
+  people in the room are not part of the board. A copy saved before the stamp existed
+  is adopted at `seedV 0`. `reseed.js` gates it.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons
