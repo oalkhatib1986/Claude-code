@@ -516,7 +516,9 @@
   .twc.spare{border-style:dashed;opacity:.72}
   .twc.live{border-color:rgba(58,222,107,.5)}
   .twc.live .twc-m{color:#3ade6b}
-  .tb-back{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .tb-back{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
+    position:relative;z-index:6}
+  .tb-back .btn{min-height:38px}
   /* the stepper sits to the right only while it fits on the same line — pushed
      right on a wrapped row it leaves a hole where nothing is */
   .tb-stepper{display:flex;align-items:center;gap:8px;margin-left:auto;min-width:0}
@@ -3043,9 +3045,23 @@
   { const w=$("tbWall");
     if(w) w.addEventListener("click",ev=>{ const c=ev.target.closest&&ev.target.closest(".twc");
       if(c) openTablet(c.dataset.k); }); }
-  { const b=$("tbBackBtn"); if(b) b.onclick=()=>{ tbView="wall"; syncTbView(); renderWall(); };
-    const pv=$("tbPrev"); if(pv) pv.onclick=()=>stepTablet(-1);
-    const nx=$("tbNext"); if(nx) nx.onclick=()=>stepTablet(1); }
+  // The way OFF a machine must never depend on anything else succeeding. Delegated
+  // to the bar (so no redraw can take the handler with the button), the view state
+  // and the body classes are set FIRST, and the redraw that follows cannot strand
+  // the trainer on a screen with no way back if it throws.
+  { const bar=$("tbBack");
+    if(bar) bar.addEventListener("click",ev=>{
+      const t=ev.target.closest&&ev.target.closest("button"); if(!t) return;
+      if(t.id==="tbBackBtn"){
+        tbView="wall";
+        document.body.classList.add("tabwall");
+        document.body.classList.remove("tabone","kioskon","tabprev");
+        try{ syncTbView(); }catch(e){}
+        try{ renderWall(); }catch(e){}
+        return; }
+      if(t.id==="tbPrev"){ stepTablet(-1); return; }
+      if(t.id==="tbNext"){ stepTablet(1); return; }
+    }); }
   // A row of ergs is a row: swipe along it. The frame is drawn on its side on a
   // phone, so the gesture is read in SCREEN space \u2014 what the thumb did, not what
   // the rotated picture thinks it did.
@@ -5481,7 +5497,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=282;
+  const BUILD=283;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
