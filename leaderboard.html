@@ -852,8 +852,12 @@
   .restins button.holdtg{border-color:rgba(255,255,255,.18);color:var(--ink-mute)}
   .restins button.holdtg:hover{border-color:rgba(255,255,255,.45);color:var(--ink-dim)}
   .restins button.holdtg.on{border-style:solid;border-color:rgba(255,90,90,.55);color:var(--hot)}
-  /* the finish is a shape, not a warning: it sits outside the rounds */
-  .restins button.fintg.on{border-color:rgba(58,222,107,.6);color:#3ade6b}
+  /* the finish is a shape, not a warning: it sits outside the rounds, and it says so
+     in a word only when it IS the finish */
+  .iconbtn.ifin{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+  .iconbtn.ifin.on{width:auto;padding:0 10px;border-color:rgba(58,222,107,.55);color:#3ade6b}
+  .iconbtn.ifin i{font-style:normal;font-family:var(--disp);font-weight:700;font-size:9px;
+    letter-spacing:.14em;text-transform:uppercase}
   .scrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .spill{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:6px 12px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .spill.on{background:var(--hot);border-color:var(--hot);color:#fff}
@@ -3912,6 +3916,18 @@
           itools.appendChild(sc);
           }
           const mkBtn=(cls,html,title,disabled)=>{ const bt=document.createElement("button"); bt.className="iconbtn "+cls; bt.innerHTML=html; bt.title=title; if(disabled) bt.disabled=true; return bt; };
+          // ROUNDS REPEAT THE BLOCK, so every part in it repeats \u2014 unless it is the
+          // finish. It belongs on the part's OWN button row, beside scored and the
+          // movers: it is a property of the part, not something between two of them.
+          if(!isRest&&bRounds(b)>1){
+            const fb=mkBtn("ifin"+(it.fin?" on":""),
+              it.fin?"&#9673;<i>finish</i>":"&#8635;",
+              it.fin?"The finish: the block repeats every other part, then ends with this one."
+                    :"Runs every round. Tap to make it the finish \u2014 once, after the last round.");
+            fb.onclick=()=>{ it.fin=!it.fin; save(); renderItems(); buildBlocks();
+              if(!sessionActive&&!running) build(); };
+            itools.appendChild(fb);
+          }
           const iup=mkBtn("iup","&#9650;","Move up",ii===0);
           const idown=mkBtn("idown","&#9660;","Move down",ii===b.items.length-1);
           const idel=mkBtn("idel","&times;","Remove");
@@ -3977,20 +3993,6 @@
               hb.title="Does the clock roll straight into the next part, or stop and wait for the trainer?";
               hb.onclick=()=>{ it.hold=!it.hold; save(); renderItems(); };
               ri.appendChild(hb);
-            }
-            // ROUNDS REPEAT THE BLOCK, so every part in it repeats \u2014 unless it is the
-            // finish. Without a control for that the trainer cannot see why one part
-            // runs once, let alone build a "4 rounds then a finisher" block themselves.
-            if(!isRest&&bRounds(b)>1){
-              const fb=document.createElement("button"); fb.type="button";
-              fb.className="holdtg fintg"+(it.fin?" on":"");
-              fb.textContent=it.fin?"\u25C9 finish \u00B7 runs once at the end":"\u21BB runs every round";
-              fb.title=it.fin
-                ?"This part sits outside the rounds: the block repeats everything else, then finishes with this."
-                :"This part repeats with every round. Make it the finish to run it once, after the last round.";
-              fb.onclick=()=>{ it.fin=!it.fin; save(); renderItems(); buildBlocks();
-                if(!sessionActive&&!running) build(); };
-              ri.appendChild(fb);
             }
             if(ri.childNodes.length) partsEl.appendChild(ri);
           }
@@ -5472,7 +5474,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=280;
+  const BUILD=281;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

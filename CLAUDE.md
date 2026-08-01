@@ -241,10 +241,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   lose its place in the rotation. `it.fin` marks an item as the finish: `roundItems()`
   is what the round loop repeats, `finItems()` runs once after it, `blockLen` adds
   `finLen(b)`, and `segAt` walks the finish when `t` passes the last round. `seg.i` is
-  always the index in `b.items`, never in the filtered list. Setup shows it per part
-  (`.fintg`: "↻ runs every round" / "◉ finish · runs once at the end") whenever the
-  block has rounds — an engine flag with no control is a workout nobody can build.
-  `finisher.js` gates it.
+  always the index in `b.items`, never in the filtered list. Setup shows it on the
+  part's OWN button row (`.iconbtn.ifin`, beside scored and the movers) whenever the
+  block has rounds — it is a property of the part, not something between two of them.
+  Icon-only while it repeats, widening to "◉ finish" in green when it is the finish.
+  An engine flag with no control is a workout nobody can build. `finisher.js` gates it.
 - **A corrected library board has to reach the copy already loaded.** Loading a preset
   COPIES it into cfg, so fixing the library afterwards changed nothing on screen and
   the trainer had to know to pick it again. `stampSeed()` records `seedFrom`/`seedV`
