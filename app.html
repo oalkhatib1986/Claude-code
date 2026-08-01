@@ -183,14 +183,14 @@
 
   /* ---------- leaderboard ---------- */
   .board{border:1px solid var(--line);border-radius:20px;background:var(--bg-2);box-shadow:var(--shadow);padding:18px 18px 10px;margin-top:16px}
-  .board-head{display:grid;align-items:end;gap:16px;padding:2px 12px 14px;color:var(--ink-mute);
+  .board-head{display:grid;align-items:end;gap:2px var(--lanegap,16px);padding:2px 12px 14px;color:var(--ink-mute);
     font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.24em;text-transform:uppercase}
   .lanes{position:relative;transition:height .4s}
   /* A table has columns. The header row and every lane share ONE template, so a
      value can never drift out from under its own heading. */
   :root{--lanecols:64px minmax(0,1fr) 92px 92px 74px 62px 116px}
   .board-head,.lane{grid-template-columns:var(--lanecols)}
-  .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;align-items:center;gap:16px;
+  .lane{position:absolute;left:0;right:0;top:0;height:var(--rowH);display:grid;align-items:center;gap:var(--lanegap,16px);
     padding:0 12px;border-radius:14px;transition:transform .55s cubic-bezier(.4,1.05,.4,1),background .3s;will-change:transform}
   .lane::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:1px;background:var(--line-soft)}
   .lane.leader{background:linear-gradient(90deg,rgba(255,255,255,.055),transparent 60%)}
@@ -202,18 +202,26 @@
   .team{font-family:var(--disp);font-weight:600;font-size:26px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.02;color:var(--accent)}
   .loc{font-family:var(--disp);font-weight:500;font-size:13px;color:var(--ink-mute);letter-spacing:.14em;text-transform:uppercase;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .loc b{color:var(--ink-dim);font-weight:600}.loc .nx{color:var(--ink-mute)}
-  /* WHAT THEY HAVE PUT ON EACH MACHINE — one group per erg, the machine named in
-     the accent and its numbers beside it. A standing, like the rest of the lane, so
-     it is quiet: it sits under the place, above the bar. */
-  .mstrip{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:4px;font-family:var(--disp);
-    font-weight:600;font-size:12.5px;letter-spacing:.09em;color:var(--ink-dim);
-    font-variant-numeric:tabular-nums;min-width:0}
-  .mstrip:empty{display:none}
-  .mstrip .mgrp{white-space:nowrap}
-  .mstrip .mgrp.idle{opacity:.42}
-  .mstrip u{text-decoration:none;color:var(--ink-mute);opacity:.75}
-  .mstrip i{font-style:normal;color:var(--ink-mute);letter-spacing:.16em;margin-right:6px;
-    text-transform:uppercase}
+  /* WHAT IS BEING SCORED IS THE ERG, so each machine heads its own group of three
+     columns and every team reads straight down them. The group label spans the three
+     and is ruled underneath, so the eye ties "1240m 1:52 86cal" to ROWER and not to
+     the machine beside it. */
+  .hgrp{color:var(--ink-dim)}
+  /* the three numbers stack under the machine's name: the distance is the headline,
+     the pace it was held at and the calories it made sit under it */
+  .mcol.mgc{display:flex;flex-direction:column;align-items:flex-end;gap:2px;
+    font-variant-numeric:tabular-nums;line-height:1.15}
+  .mcol.mgc b{font-weight:600;color:var(--ink);font-size:1.06em}
+  .mcol.mgc b.none{color:var(--ink-mute);opacity:.4;font-weight:500}
+  .mcol.mgc span{color:var(--ink-mute);font-size:.78em;white-space:nowrap}
+  .mcol.mgc em{font-style:normal;color:var(--ink-mute);opacity:.8;font-size:.8em;margin-left:1px}
+  /* only the columns that fit: a heading and its values go together, or a number
+     would end up sitting under somebody else's title */
+  #board.no-mach .hgrp,#board.no-mach .mgc,
+  #board.no-split .hsplit,#board.no-split .msplit,
+  #board.no-avg .havg,#board.no-avg .mavg,
+  #board.no-watts .hwatts,#board.no-watts .mwatts,
+  #board.no-rate .hrate,#board.no-rate .mrate{display:none}
   .track{margin-top:8px;height:5px;border-radius:4px;background:rgba(255,255,255,.055);position:relative;overflow:hidden;max-width:520px}
   .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;transition:width .25s linear}
   .data{text-align:right;font-variant-numeric:tabular-nums}
@@ -1208,11 +1216,11 @@
   body.bigscreen .blocks,body.bigscreen .controls{display:none}
   /* projection styles apply on any device; narrow screens get a scaled preview */
   body.bigscreen:not(.mobscreen){--rowH:104px}
-    body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
-  /* THE WORKOUT BOARD IS A LIST OF SENTENCES, SO GIVE IT THE ROOM. A leaderboard is
-     columns of numbers and reads better inside a measure; a part's line is prose and
-     360px of side margin is what pushed "20 reps" onto a line of its own. */
-  body.bigscreen:not(.mobscreen).wkscreen .wrap{max-width:1820px}
+    /* A TABLE WANTS WIDTH. The board is a row of numbers per team and the workout
+       board a list of sentences; both were held inside a 1560 measure that suited
+       neither — it cost the machine columns their room and pushed "20 reps" onto a
+       line of its own. */
+    body.bigscreen:not(.mobscreen) .wrap{max-width:1820px}
   body.tvprev.wkscreen #viewBoard{padding-left:50px;padding-right:50px}
   /* on a TV the board is the whole picture: it carries the mark and centres itself */
   body.bigscreen:not(.mobscreen) .tvfit>.mark{flex:none;align-self:flex-start;margin:0 0 18px}
@@ -1233,7 +1241,6 @@
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
   body.bigscreen:not(.mobscreen) .loc{font-size:15px}
-  body.bigscreen:not(.mobscreen) .mstrip{font-size:14.5px;gap:3px 20px;margin-top:5px}
   body.bigscreen:not(.mobscreen) .hero{font-size:36px}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
@@ -1284,21 +1291,16 @@
   body.wkscreen:not(.mobscreen) .phase .pdesc{font-size:18px}
   @media (max-width:720px){
     :root{--rowH:78px}
-    /* A phone cannot carry six columns: keep who they are, the average, the score.
-       The ONE exception is the TV preview (body.tvprev), which lays the board out
-       at 1920 and scales it — that picture keeps every column. */
-    body:not(.tvprev){--lanecols:30px minmax(0,1fr) 74px 84px}
-    body:not(.tvprev) .lane{gap:9px;padding:0 4px}
-    body:not(.tvprev) .board-head{gap:9px;padding:2px 4px 10px}
-    body:not(.tvprev) .msplit,body:not(.tvprev) .mwatts,body:not(.tvprev) .mrate,
-    body:not(.tvprev) .hsplit,body:not(.tvprev) .hwatts,body:not(.tvprev) .hrate{display:none}
+    /* A phone cannot carry the machine groups AND the instant metrics: fitLaneCols()
+       drops them in order and writes the template to match, so the CSS only has to
+       set the sizes. The TV preview lays the board out at 1920 and keeps the lot. */
+    body:not(.tvprev) .lane{padding:0 4px}
+    body:not(.tvprev) .board-head{padding:2px 4px 10px}
     body:not(.tvprev) .mcol{font-size:12px}
     .lane.leader::before{top:12px;bottom:12px}
     .rank{font-size:20px}
     .team{font-size:17px;letter-spacing:.04em}
     .loc{font-size:10.5px;letter-spacing:.06em;margin-top:2px}
-    /* a phone lane is who + avg + score; the machine strip goes with the columns */
-    body:not(.tvprev) .mstrip{display:none}
     .track{margin-top:6px;height:4px}
     .hero{font-size:19px}
     .hero small{font-size:9px}
@@ -1392,16 +1394,8 @@
     <div id="capBanner" hidden></div>
     <div class="blocks" id="blockCards"></div>
 
-    <div class="board">
-      <div class="board-head">
-        <span></span>
-        <span id="rankHead">Rank &middot; Team &middot; Where they are</span>
-        <span class="hcol hsplit">Split /500</span>
-        <span class="hcol havg">Avg /500</span>
-        <span class="hcol hwatts">Watts</span>
-        <span class="hcol hrate">s/m</span>
-        <span class="hcol" id="scoreLabel">Score</span>
-      </div>
+    <div class="board" id="board">
+      <div class="board-head" id="boardHead"></div>
       <div class="lanes" id="lanes"></div>
     </div>
 
@@ -2651,26 +2645,69 @@
     if(k<1) bc.style.setProperty("--bfs",Math.max(min,Math.floor(BFS*k))+"px");
   }
 
-  // One machine, one group: its name, then what this team has taken off it. The
-  // Metres and Calories switches in Layout choose which numbers ride along — they
-  // drove only the old everyone-together board before this, so ticking them on a
-  // rotation changed nothing at all.
-  const machStrip=e=>{
-    const d=cfg.display||{}, ts=wkTypes();
-    if(!ts.length||(!d.metres&&!d.cals)) return "";
-    const bt=e.byType||{};
-    const parts=ts.map(t=>{
-      const b=bt[t]||{m:0,cals:0,wM:0,wT:0};
-      const bits=[];
-      if(d.metres){ bits.push(`${Math.round(b.m)}m`);
-        const pace=(b.wM>0&&b.wT>0)?500*b.wT/b.wM:0;
-        // a bare time beside a distance could be anything — say what it is per
-        if(pace>0) bits.push(fmtSplit(pace)+"<u>/500</u>"); }
-      if(d.cals) bits.push(`${Math.round(b.cals)}cal`);
-      return `<span class="mgrp${b.m>0||b.cals>0?"":" idle"}"><i>${esc(mInfo(t).short)}</i>${bits.join(" ")}</span>`;
-    });
-    return parts.join("");
-  };
+  // WHAT IS BEING SCORED IS THE ERG, SO THE BOARD IS A TABLE OF ERGS. Every machine
+  // the workout uses gets its own column, headed by its name, and under that heading
+  // the three numbers that answer "what did they do on it": the distance, the pace
+  // they held, the calories. Three separate sub-columns per machine is the prettier
+  // table and does not survive contact with a real gym — four ergs would need twelve
+  // columns and a 1080p board has room for about six. Stacked, four ergs fit.
+  let headTypes=[];
+  const laneCells=ts=>ts.map(t=>`<div class="mcol mgc" data-t="${esc(t)}"></div>`).join("");
+  function buildBoardHead(){
+    const h=$("boardHead"); if(!h) return;
+    headTypes=cfg.mode==="rotation"?wkTypes().slice(0,5):[];
+    h.innerHTML=`<span></span><span id="rankHead">Rank &middot; Team &middot; Where they are</span>`
+      +headTypes.map(t=>`<span class="hcol hgrp" data-t="${esc(t)}">${esc(mInfo(t).label)}</span>`).join("")
+      +`<span class="hcol hsplit">Split /500</span><span class="hcol havg">Avg /500</span>`
+      +`<span class="hcol hwatts">Watts</span><span class="hcol hrate">s/m</span>`
+      +`<span class="hcol" id="scoreLabel">Score</span>`;
+    fitLaneCols();
+  }
+
+  // ONE TEMPLATE, AND ONLY THE COLUMNS THAT FIT. The machines are the point of the
+  // board, so the instant metrics give way to them: rate first, then watts, then the
+  // overall average (every machine now carries its own pace), then the live split. A
+  // screen too narrow even for the machines falls back to who + avg + score.
+  const LCW={rank:64,who:280,mach:168,split:92,avg:92,watts:74,rate:62,score:116};
+  const LCW_TV={rank:74,who:330,mach:196,split:104,avg:104,watts:86,rate:74,score:150};
+  const LCW_SM={rank:30,who:130,mach:132,split:74,avg:74,watts:64,rate:54,score:84};
+  function fitLaneCols(){
+    const bd=$("board"); if(!bd) return;
+    const w=bd.clientWidth||bd.getBoundingClientRect().width||0;
+    if(!w) return;
+    const tv=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen");
+    // A board too narrow for the machines at TV sizes is not a board without
+    // machines — it is a board with smaller ones. Try each size down before giving
+    // any of them up, or a 1440 laptop showed the columns a 1920 TV did.
+    const sets=tv?[[LCW_TV,18,0],[LCW,16,0],[LCW_SM,9,1]]
+                 :(w<620?[[LCW_SM,9,1]]:[[LCW,16,0],[LCW_SM,9,1]]);
+    const plan=(W,gap,bare,wantMach)=>{
+      const on={split:!bare,avg:!bare,watts:!bare,rate:!bare,mach:wantMach&&headTypes.length>0};
+      const need=()=>{
+        let px=W.rank+W.score+W.who, n=3;
+        if(on.mach){ px+=headTypes.length*W.mach; n+=headTypes.length; }
+        ["split","avg","watts","rate"].forEach(k=>{ if(on[k]){ px+=W[k]; n++; } });
+        return px+gap*(n-1);
+      };
+      if(bare){ // the smallest board keeps the machines and adds back what still fits
+        for(const k of ["avg","split"]){ on[k]=true; if(need()>w){ on[k]=false; break; } }
+      } else for(const k of ["rate","watts","avg","split"]){ if(need()<=w) break; on[k]=false; }
+      if(!on.mach&&!on.avg) on.avg=true;
+      return {on,W,gap,fits:need()<=w};
+    };
+    let pick=null;
+    for(const [W,gap,bare] of sets){ const t=plan(W,gap,bare,true); if(t.fits){ pick=t; break; } }
+    if(!pick){ const [W,gap]=sets[sets.length-1]; pick=plan(W,gap,0,false); }
+    const {on,W,gap}=pick;
+    const tpl=[W.rank+"px","minmax(0,1fr)"]
+      .concat(on.mach?headTypes.map(()=>W.mach+"px"):[])
+      .concat(["split","avg","watts","rate"].filter(k=>on[k]).map(k=>W[k]+"px"))
+      .concat([W.score+"px"]).join(" ");
+    bd.style.setProperty("--lanecols",tpl);
+    bd.style.setProperty("--lanegap",gap+"px");
+    bd.style.setProperty("--machfs",(W===LCW_TV?1:W===LCW?.86:.72)+"em");
+    ["split","avg","watts","rate","mach"].forEach(k=>bd.classList.toggle("no-"+k,!on[k]));
+  }
 
   function renderLanesRot(){
     if(cfg.mode!=="rotation") return;
@@ -2722,11 +2759,14 @@
       // block, the live split is only the last stroke
       const avg=(e.wM>0&&e.wT>0)?500*e.wT/e.wM:0;
       const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
-      // WHAT THEY HAVE PUT ON EACH MACHINE. The score column is one number and the
-      // pace columns are this instant \u2014 neither answers "how far did they run".
-      // One quiet line under the name names every machine the workout uses and what
-      // this team has taken off it. It is a standing, like the rest of the lane.
-      put(".mstrip",machStrip(e));
+      // WHAT THEY HAVE PUT ON EACH MACHINE, under that machine's own heading.
+      headTypes.forEach(t=>{
+        const b=(e.byType||{})[t]||{m:0,cals:0,wM:0,wT:0};
+        const pace=(b.wM>0&&b.wT>0)?500*b.wT/b.wM:0;
+        put(`.mgc[data-t="${t}"]`, (b.m>0||b.cals>0)
+          ? `<b>${Math.round(b.m)}<em>m</em></b><span>${pace>0?fmtSplit(pace)+"<em>/500</em> \u00b7 ":""}${Math.round(b.cals)}<em>cal</em></span>`
+          : `<b class="none">\u2013</b>`);
+      });
       put(".msplit",e.split>0?fmtSplit(e.split):"\u2013");
       put(".mavg",avg>0?fmtSplit(avg):"\u2013");
       put(".mwatts",e.split>0?String(Math.round(wattsFor(e.split))):"\u2013");
@@ -2979,12 +3019,15 @@
     makeErgs();
     rot.round=0; rot.phase="pre";
     $("evName").textContent=cfg.name;
+    // the head names the machines, and every lane is built to match it
+    buildBoardHead();
     lanesEl.innerHTML="";
     ergs.forEach(e=>{
       const el=document.createElement("div"); el.className="lane";
       el.innerHTML=`<div class="rank"><span></span></div>
-        <div class="who"><div class="team"></div><div class="loc"></div><div class="mstrip"></div>
+        <div class="who"><div class="team"></div><div class="loc"></div>
           <div class="track"><div class="fill"></div></div></div>
+        ${laneCells(headTypes)}
         <div class="mcol k msplit"></div>
         <div class="mcol mavg"></div>
         <div class="mcol mwatts"></div>
@@ -5696,7 +5739,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=286;
+  const BUILD=287;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -5766,6 +5809,11 @@
     const bo=new ResizeObserver(()=>{ const el=$("blockCards"); if(!el) return;
       const w=Math.round(el.clientWidth); if(w===bw) return; bw=w; fitBlockCols(); });
     const bc=$("blockCards"); if(bc) bo.observe(bc);
+    // the same for the board: how many columns it can hold is a question about width
+    let lw=-1;
+    const lo=new ResizeObserver(()=>{ const el=$("board"); if(!el) return;
+      const w=Math.round(el.clientWidth); if(w===lw) return; lw=w; fitLaneCols(); });
+    const bq=$("board"); if(bq) lo.observe(bq);
   }
   // FILL a box, don't fit inside it. A uniform scale can only ever match one axis, so
   // instead of shrinking the picture until it fits (and leaving bands on the other
