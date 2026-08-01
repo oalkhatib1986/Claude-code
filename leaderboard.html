@@ -206,17 +206,23 @@
      columns and every team reads straight down them. The group label spans the three
      and is ruled underneath, so the eye ties "1240m 1:52 86cal" to ROWER and not to
      the machine beside it. */
-  .hgrp{color:var(--ink-dim)}
-  /* the three numbers stack under the machine's name: the distance is the headline,
-     the pace it was held at and the calories it made sit under it */
-  .mcol.mgc{display:flex;flex-direction:column;align-items:flex-end;gap:2px;
-    font-variant-numeric:tabular-nums;line-height:1.15}
-  .mcol.mgc b{font-weight:600;color:var(--ink);font-size:1.06em}
-  .mcol.mgc b.none{color:var(--ink-mute);opacity:.4;font-weight:500}
-  .mcol.mgc span{color:var(--ink-mute);font-size:.78em;white-space:nowrap}
-  .mcol.mgc em{font-style:normal;color:var(--ink-mute);opacity:.8;font-size:.8em;margin-left:1px}
-  /* only the columns that fit: a heading and its values go together, or a number
-     would end up sitting under somebody else's title */
+  /* THE BOARD IS THE PICTURE PEOPLE PHOTOGRAPH. One column per erg, the machine's
+     name over it, and under that the three numbers that say what the team did on it:
+     the distance as the headline, the pace they held and the calories beneath. Ruled
+     between the machines so the eye never carries a number into the wrong column. */
+  .hgrp{color:var(--ink-dim);letter-spacing:.2em}
+  .mgc{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;
+    font-variant-numeric:tabular-nums;line-height:1.1;min-width:0;
+    border-left:1px solid var(--line-soft);padding-left:var(--lanegap,16px);height:100%}
+  .board-head .hgrp{border-left:1px solid transparent;padding-left:var(--lanegap,16px)}
+  .mgc b{font-family:var(--disp);font-weight:700;font-size:24px;color:var(--ink);letter-spacing:.01em}
+  .mgc b em{font-style:normal;font-size:.5em;color:var(--ink-mute);margin-left:2px;letter-spacing:.06em}
+  .mgc b.none{color:var(--ink-mute);opacity:.3;font-size:20px}
+  .mgc b.onit{color:var(--accent);font-size:13px;letter-spacing:.18em;text-transform:uppercase;opacity:.9}
+  .mgc span{font-family:var(--disp);font-weight:500;font-size:13px;letter-spacing:.06em;
+    color:var(--ink-mute);white-space:nowrap}
+  .mgc span em{font-style:normal;opacity:.62;margin-left:1px}
+  .mgc.empty{opacity:.8}
   #board.no-mach .hgrp,#board.no-mach .mgc,
   #board.no-split .hsplit,#board.no-split .msplit,
   #board.no-avg .havg,#board.no-avg .mavg,
@@ -1241,7 +1247,26 @@
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
   body.bigscreen:not(.mobscreen) .loc{font-size:15px}
-  body.bigscreen:not(.mobscreen) .hero{font-size:36px}
+  body.bigscreen:not(.mobscreen) .hero{font-size:44px}
+  /* on the wall the numbers are the point: give them the size */
+  body.bigscreen:not(.mobscreen) .mgc b{font-size:34px}
+  body.bigscreen:not(.mobscreen) .mgc b.none{font-size:28px}
+  body.bigscreen:not(.mobscreen) .mgc b.onit{font-size:16px}
+  body.bigscreen:not(.mobscreen) .mgc span{font-size:17px}
+  body.bigscreen:not(.mobscreen) .mgc{gap:5px}
+  body.bigscreen:not(.mobscreen) .hgrp{font-size:14px;letter-spacing:.24em;color:var(--ink-dim)}
+  /* A BOARD SOMEBODY PHOTOGRAPHS. The leader is unmistakable, the score is the loudest
+     thing on the row, and the crawling progress bar — a live element on a board that
+     has none — comes off the wall entirely. */
+  body.bigscreen:not(.mobscreen) .lane .track{display:none}
+  body.bigscreen:not(.mobscreen) .rank{font-size:46px}
+  body.bigscreen:not(.mobscreen) .lane.leader .rank span{color:var(--accent)}
+  body.bigscreen:not(.mobscreen) .lane .hero{color:var(--ink)}
+  body.bigscreen:not(.mobscreen) .lane.leader .hero{color:var(--accent)}
+  body.bigscreen:not(.mobscreen) .lane.leader{background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 13%,transparent),transparent 62%)}
+  body.bigscreen:not(.mobscreen) .lane:nth-child(even){background-color:rgba(255,255,255,.018)}
+  body.bigscreen:not(.mobscreen) .team{font-size:30px}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
@@ -1947,7 +1972,7 @@
     ergs=cfg.crews.map((c,i)=>({
       name:c.name, ath:c.ath, color:c.color, id:i,
       split:0, spm:0, phase:Math.random()*6.28, drift:0.92+Math.random()*0.16,
-      score:0, m:0, cals:0, blockCals:0, byType:{},
+      score:0, m:0, cals:0, blockCals:0, byType:{}, shown:{}, lastMach:"",
       released:false, relT:0, stage:0, stageM:0, stageT0:0, elapsed:0, finT:null,
       tot:{m:0,cals:0,time:0,pts:0}, cur:{m:0,cals:0,elapsed:0,done:false,finT:null},
     }));
@@ -2203,6 +2228,18 @@
   const machBucket=(e,bi)=>{ const tp=machNow(e,bi); if(!tp) return null;
     const b=e.byType||(e.byType={});
     return b[tp]||(b[tp]={m:0,cals:0,wM:0,wT:0}); };
+  // A STATION'S NUMBERS LAND WHEN THE ATHLETE LEAVES IT. A total that ticks upward
+  // while someone is still pulling is a live readout, and a board full of live
+  // readouts is unreadable from across a gym and worthless in a photograph. The
+  // counters run continuously; what the board SHOWS is published — once, when they
+  // come off that machine, and again when the session ends.
+  const publishMach=e=>{ e.shown=structuredClone(e.byType||{}); };
+  const publishAll=()=>ergs.forEach(publishMach);
+  // Row and ski are read per 500m, a bike per 1000, a runner per kilometre.
+  const PACE={Row:[500,"/500"],Ski:[500,"/500"],Bike:[1000,"/1000"],Run:[1000,"/km"],Echo:[1000,"/km"]};
+  const paceOf=(t,b)=>{ if(!b||!(b.wM>0)||!(b.wT>0)) return null;
+    const [per,lab]=PACE[t]||[500,"/500"];
+    return {t:per*b.wT/b.wM, lab}; };
   // the machines this workout actually uses, in the order the floor is walked
   const wkTypes=()=>{ const out=[];
     R().blocks.forEach(b=>blockUsesTypes(b).forEach(t=>{ if(!out.includes(t)) out.push(t); }));
@@ -2364,7 +2401,9 @@
       +(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`)
       +`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`;
     fitSummary();
-    $("scoreLabel").textContent=({cal:"TOTAL MAX-CAL SCORE",m:"TOTAL SCORED METRES",pts:"TOTAL SCORE"})[scoreUnit()];
+    // the unit rides with the number ("9 CAL"), so the heading is one word — a
+    // three-word title ellipsised itself down to "TOTAL MAX-C…" on a phone
+    $("scoreLabel").textContent="Score";
     $("phaseBanner").hidden=false;
     clockEl.textContent=fmtMS(curRoundLen()); clockEl.classList.remove("hot");
     syncRotChrome();
@@ -2443,7 +2482,9 @@
       return;
     }
     if(t>=curRoundLen()){
+      // the block is over, so every station in it is over: the numbers land
       for(const e of ergs){ e.score+=e.blockCals; e.blockCals=0; e.split=0; e.spm=0; e.hot=false; }
+      publishAll();
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; maybeSaveResult(); }
       else { rot.round++;
@@ -2489,7 +2530,10 @@
         // the ski added together, so "how far did they run" had no answer anywhere.
         // The same four counters are kept per machine as well, and every surface can
         // name it: metres, calories, and the metre/second pair a pace is read from.
-        { const bt=machBucket(e,st);
+        { const tp=machNow(e,st);
+          if(tp&&e.lastMach&&tp!==e.lastMach) publishMach(e);   // off that one, on to this
+          if(tp) e.lastMach=tp;
+          const bt=machBucket(e,st);
           if(bt){ bt.m+=dm; bt.cals+=dc; bt.wM+=dm; bt.wT+=effort*(1/60); } }
         // what the machine has actually produced, so the board can show an average
         // instead of only the split of this instant
@@ -2645,14 +2689,14 @@
     if(k<1) bc.style.setProperty("--bfs",Math.max(min,Math.floor(BFS*k))+"px");
   }
 
-  // WHAT IS BEING SCORED IS THE ERG, SO THE BOARD IS A TABLE OF ERGS. Every machine
-  // the workout uses gets its own column, headed by its name, and under that heading
-  // the three numbers that answer "what did they do on it": the distance, the pace
-  // they held, the calories. Three separate sub-columns per machine is the prettier
-  // table and does not survive contact with a real gym — four ergs would need twelve
-  // columns and a 1080p board has room for about six. Stacked, four ergs fit.
+  // WHAT IS BEING SCORED IS THE ERG, SO THE BOARD IS A TABLE OF ERGS — and NOTHING
+  // ELSE. Watts, stroke rate and the split of this instant are a rowing computer's
+  // readout: they change four times a second, they mean nothing from across a gym,
+  // and they make the board unphotographable. What belongs here is what each team
+  // DID on each machine — the distance, the pace they held, the calories — and the
+  // score. Nothing on this board moves except when somebody finishes a station.
   let headTypes=[];
-  const laneCells=ts=>ts.map(t=>`<div class="mcol mgc" data-t="${esc(t)}"></div>`).join("");
+  const laneCells=ts=>ts.map(t=>`<div class="mgc" data-t="${esc(t)}"></div>`).join("");
   function buildBoardHead(){
     const h=$("boardHead"); if(!h) return;
     headTypes=cfg.mode==="rotation"?wkTypes().slice(0,5):[];
@@ -2664,49 +2708,31 @@
     fitLaneCols();
   }
 
-  // ONE TEMPLATE, AND ONLY THE COLUMNS THAT FIT. The machines are the point of the
-  // board, so the instant metrics give way to them: rate first, then watts, then the
-  // overall average (every machine now carries its own pace), then the live split. A
-  // screen too narrow even for the machines falls back to who + avg + score.
-  const LCW={rank:64,who:280,mach:168,split:92,avg:92,watts:74,rate:62,score:116};
-  const LCW_TV={rank:74,who:330,mach:196,split:104,avg:104,watts:86,rate:74,score:150};
-  const LCW_SM={rank:30,who:130,mach:132,split:74,avg:74,watts:64,rate:54,score:84};
+  // ONE TEMPLATE FOR THE HEAD AND THE LANES, sized to the room there is. The machines
+  // are the board; only a screen too narrow to carry them at all falls back to the
+  // score alone. Never put a --lanecols in a media query: CSS cannot count the ergs.
+  const LCW={rank:56,who:250,mach:170,score:126};
+  const LCW_TV={rank:70,who:330,mach:224,score:180};
+  const LCW_SM={rank:26,who:104,mach:96,score:74};
   function fitLaneCols(){
     const bd=$("board"); if(!bd) return;
     const w=bd.clientWidth||bd.getBoundingClientRect().width||0;
     if(!w) return;
     const tv=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen");
-    // A board too narrow for the machines at TV sizes is not a board without
-    // machines — it is a board with smaller ones. Try each size down before giving
-    // any of them up, or a 1440 laptop showed the columns a 1920 TV did.
-    const sets=tv?[[LCW_TV,18,0],[LCW,16,0],[LCW_SM,9,1]]
-                 :(w<620?[[LCW_SM,9,1]]:[[LCW,16,0],[LCW_SM,9,1]]);
-    const plan=(W,gap,bare,wantMach)=>{
-      const on={split:!bare,avg:!bare,watts:!bare,rate:!bare,mach:wantMach&&headTypes.length>0};
-      const need=()=>{
-        let px=W.rank+W.score+W.who, n=3;
-        if(on.mach){ px+=headTypes.length*W.mach; n+=headTypes.length; }
-        ["split","avg","watts","rate"].forEach(k=>{ if(on[k]){ px+=W[k]; n++; } });
-        return px+gap*(n-1);
-      };
-      if(bare){ // the smallest board keeps the machines and adds back what still fits
-        for(const k of ["avg","split"]){ on[k]=true; if(need()>w){ on[k]=false; break; } }
-      } else for(const k of ["rate","watts","avg","split"]){ if(need()<=w) break; on[k]=false; }
-      if(!on.mach&&!on.avg) on.avg=true;
-      return {on,W,gap,fits:need()<=w};
-    };
+    const sets=tv?[[LCW_TV,20],[LCW,16],[LCW_SM,8]]:(w<640?[[LCW_SM,8]]:[[LCW,16],[LCW_SM,8]]);
+    const n=headTypes.length;
+    const need=(W,gap,mach)=>W.rank+W.who+W.score+(mach?n*W.mach:0)+gap*(2+(mach?n:0));
     let pick=null;
-    for(const [W,gap,bare] of sets){ const t=plan(W,gap,bare,true); if(t.fits){ pick=t; break; } }
-    if(!pick){ const [W,gap]=sets[sets.length-1]; pick=plan(W,gap,0,false); }
-    const {on,W,gap}=pick;
-    const tpl=[W.rank+"px","minmax(0,1fr)"]
-      .concat(on.mach?headTypes.map(()=>W.mach+"px"):[])
-      .concat(["split","avg","watts","rate"].filter(k=>on[k]).map(k=>W[k]+"px"))
-      .concat([W.score+"px"]).join(" ");
-    bd.style.setProperty("--lanecols",tpl);
+    for(const [W,gap] of sets){ if(n&&need(W,gap,true)<=w){ pick=[W,gap,true]; break; } }
+    if(!pick){ const [W,gap]=sets[sets.length-1]; pick=[W,gap,false]; }
+    const [W,gap,mach]=pick;
+    bd.style.setProperty("--lanecols",
+      [W.rank+"px","minmax(0,1fr)"].concat(mach?headTypes.map(()=>W.mach+"px"):[])
+        .concat([W.score+"px"]).join(" "));
     bd.style.setProperty("--lanegap",gap+"px");
-    bd.style.setProperty("--machfs",(W===LCW_TV?1:W===LCW?.86:.72)+"em");
-    ["split","avg","watts","rate","mach"].forEach(k=>bd.classList.toggle("no-"+k,!on[k]));
+    bd.classList.toggle("no-mach",!mach);
+    // the instant metrics are gone from this board for good
+    ["split","avg","watts","rate"].forEach(k=>bd.classList.add("no-"+k));
   }
 
   function renderLanesRot(){
@@ -2755,22 +2781,20 @@
       e.el.querySelector(".fill").style.background = (running&&e.hot)?"var(--hot)":e.color;
       const val=e.score+e.blockCals;
       e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${scoreUnit()}</small>`;
-      // one metric, one column \u2014 the average is what a trainer reads across a
-      // block, the live split is only the last stroke
-      const avg=(e.wM>0&&e.wT>0)?500*e.wT/e.wM:0;
       const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
-      // WHAT THEY HAVE PUT ON EACH MACHINE, under that machine's own heading.
+      // WHAT THEY DID ON EACH MACHINE, under that machine's own heading — and only
+      // once they are off it. The machine they are on right now says so instead.
       headTypes.forEach(t=>{
-        const b=(e.byType||{})[t]||{m:0,cals:0,wM:0,wT:0};
-        const pace=(b.wM>0&&b.wT>0)?500*b.wT/b.wM:0;
-        put(`.mgc[data-t="${t}"]`, (b.m>0||b.cals>0)
-          ? `<b>${Math.round(b.m)}<em>m</em></b><span>${pace>0?fmtSplit(pace)+"<em>/500</em> \u00b7 ":""}${Math.round(b.cals)}<em>cal</em></span>`
-          : `<b class="none">\u2013</b>`);
+        const b=(e.shown||{})[t], pc=paceOf(t,b);
+        const on=running&&e.lastMach===t&&stationOf(e)>=0;
+        put(`.mgc[data-t="${t}"]`, (b&&(b.m>0||b.cals>0))
+          ? `<b>${Math.round(b.m)}<em>m</em></b>`
+            +`<span>${pc?fmtSplit(pc.t)+`<em>${pc.lab}</em>`+" \u00b7 ":""}${Math.round(b.cals)}<em>cal</em></span>`
+          : (on?`<b class="onit">On it</b>`:`<b class="none">\u2013</b>`));
+        const c=e.el.querySelector(`.mgc[data-t="${t}"]`);
+        if(c){ c.classList.toggle("live",on&&!(b&&(b.m>0||b.cals>0)));
+               c.classList.toggle("empty",!(b&&(b.m>0||b.cals>0))); }
       });
-      put(".msplit",e.split>0?fmtSplit(e.split):"\u2013");
-      put(".mavg",avg>0?fmtSplit(avg):"\u2013");
-      put(".mwatts",e.split>0?String(Math.round(wattsFor(e.split))):"\u2013");
-      put(".mrate",e.split>0?String(Math.round(e.spm)):"\u2013");
     });
   }
 
@@ -3028,10 +3052,6 @@
         <div class="who"><div class="team"></div><div class="loc"></div>
           <div class="track"><div class="fill"></div></div></div>
         ${laneCells(headTypes)}
-        <div class="mcol k msplit"></div>
-        <div class="mcol mavg"></div>
-        <div class="mcol mwatts"></div>
-        <div class="mcol mrate"></div>
         <div class="data"><div class="hero"></div></div>`;
       el.querySelector(".team").textContent=e.name;
       el.querySelector(".team").classList.toggle("unnamed",unnamed(e.name));
@@ -4353,7 +4373,7 @@
     const was={round:rot.round, phase:rot.phase, elapsed:rot.elapsed, remain:rot.remain,
       act:sessionActive, run:running, fin:finished, t:t0, rt:restT0};
     const keep={}; ergs.forEach(e=>{ keep[e.id]={m:e.m,cals:e.cals,score:e.score,blockCals:e.blockCals,
-      byType:structuredClone(e.byType||{})}; });
+      byType:structuredClone(e.byType||{}),shown:structuredClone(e.shown||{}),lastMach:e.lastMach}; });
     build();
     ergs.forEach(e=>{ const k=keep[e.id]; if(k) Object.assign(e,k); });
     rot.round=was.round; rot.phase=was.phase; rot.elapsed=was.elapsed; rot.remain=was.remain;
@@ -5452,13 +5472,15 @@
   let resultSaved=false;
   function maybeSaveResult(){
     if(resultSaved||!ergs.length||!showLeaderboard()) return; resultSaved=true;
+    publishAll();   // the last station ends with the session
     // The score is what they won on; the machines are what they did. Both are saved,
     // or the morning after there is no way to answer "how far did we run".
     const rows=ergs.map(e=>({name:e.name,score:Math.round((e.score||0)+(e.blockCals||0)),
       m:Math.round(e.m||0), cals:Math.round(e.cals||0),
-      by:Object.fromEntries(Object.entries(e.byType||{}).map(([t,b])=>[t,{
-        m:Math.round(b.m||0), cals:Math.round(b.cals||0),
-        pace:(b.wM>0&&b.wT>0)?Math.round(500*b.wT/b.wM):0 }]))}))
+      by:Object.fromEntries(Object.entries(e.byType||{}).map(([t,b])=>{
+        const pc=paceOf(t,b);
+        return [t,{ m:Math.round(b.m||0), cals:Math.round(b.cals||0),
+          pace:pc?Math.round(pc.t):0, pl:pc?pc.lab:"" }]; }))}))
       .sort((a,b)=>b.score-a.score);
     results.unshift({t:Date.now(),name:cfg.name||"Session",wk:cfg.wkName||"",mode:cfg.mode,
       unit:scoreUnit(),types:cfg.mode==="rotation"?wkTypes():[],rows});
@@ -5482,7 +5504,7 @@
         ts.map(t=>`<td class="rbyh">${esc(mInfo(t).label)}</td>`).join("")}<td>${esc(r.unit||"Score")}</td></tr>`:"";
       const cell=w=>ts.map(t=>{ const b=(w.by||{})[t];
         if(!b||(!b.m&&!b.cals)) return `<td class="rby"><span class="none">&ndash;</span></td>`;
-        return `<td class="rby"><b>${b.m}m</b>${b.pace?`<span>${fmtSplit(b.pace)}/500</span>`:""}${
+        return `<td class="rby"><b>${b.m}m</b>${b.pace?`<span>${fmtSplit(b.pace)}${esc(b.pl||"/500")}</span>`:""}${
           b.cals?`<span>${b.cals} cal</span>`:""}</td>`; }).join("");
       return `<details class="res"><summary><b>${esc(r.name||"Session")}</b><span>${ds}</span><i>${esc(win.name||"")} ${win.score!=null?win.score+" "+esc(r.unit||""):""}</i><button class="resdel" data-i="${i}" type="button" aria-label="Delete result">&times;</button></summary>
         <div class="restabw"><table class="restab">${head}${r.rows.map((w,j)=>`<tr><td>${j+1}</td><td>${esc(w.name)}</td>${cell(w)}<td>${w.score} ${esc(r.unit||"")}</td></tr>`).join("")}</table></div></details>`;
@@ -5739,7 +5761,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=287;
+  const BUILD=288;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

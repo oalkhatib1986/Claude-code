@@ -118,10 +118,6 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   pick the columns — which changes the height, which changes the width it picks — is
   a loop with no fixed point, and four wide cards leave a band of empty floor
   (`fsfill` drops to 90%). A · B · C across, four as a square. `bcols.js` gates it.
-- **A table wants width.** The board is a row of numbers per team and the workout board
-  a list of sentences; both were held inside a 1560 measure that suited neither. On a TV
-  `.wrap` is 1820 — it is what gives the machine columns their room and what stopped
-  "20 reps" landing on a line of its own.
 - **A line of work is read in one go, so it sits on one line.** At a fixed 34px the
   longest exercise ran past the card and the wrap stranded the unit — "20" ending one
   line and "reps" starting the next. Three things together: the workout board gets a
@@ -309,8 +305,8 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   min across blocks when together, sum when split — but `cfg.autoCrews` is FALSE by
   default: the trainer sets the number, and "Fit the gym" is one tap in the picker.
 - **A leaderboard lane is a STANDING, not an instruction.** It says where each team
-  IS (`On Block 1 · Run 1`) and what their machine is producing — live split, running
-  `avg`, watts, rate — with the score in its own column. "Next" belongs on the tablet
+  IS (`On Block 1 · Run 1`) and what they have put on each machine, with the score in
+  its own column. "Next" belongs on the tablet
   in front of them and in the trainer's NOW/NEXT panel, never on the board. The average
   accumulates `e.wM`/`e.wT` in `frameRotation`, and BOTH must be scaled by `effort` or
   it counts seconds nobody was pulling for. `lanenext.js` gates it.
@@ -324,27 +320,36 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `lanecols.js` gates it. When re-scoping a selector, check every rule that matches:
   a blanket `body:not(.bigscreen)` -> `body:not(.tvprev)` also hit
   `#viewBoard .board{display:none}` and hid the whole leaderboard on a real TV.
-- **What is being scored is the erg, so the board is a table of ERGS.** `e.m` was one
-  number with the run, the row and the ski added together, so "how far did they run"
-  had no answer anywhere. `e.byType[t]` keeps the same four counters per machine
-  (`m`/`cals`/`wM`/`wT`); `machNow()` resolves which erg a crew is on — one type on the
-  part is the whole answer, and where a part splits people across ergs the crew's own
-  slot in `machSlots()` decides, the same map the station number comes from. Every
-  machine in `wkTypes()` heads its own column (`buildBoardHead()`), and under that
-  heading the three numbers that answer what they did on it: distance, the pace held,
-  calories. THREE sub-columns per machine is the prettier table and does not survive a
-  real gym — four ergs would want twelve columns and a 1080p board holds about six.
-  `maybeSaveResult()` stores `by` per row and `types` per session, so Results draws the
-  same column per erg the morning after. `permach.js` gates it.
-- **Only the columns that fit, and the machines are the point.** `fitLaneCols()` owns
-  `--lanecols` for the head AND the lanes: it tries each size set from TV down, and
-  inside each drops the instant metrics in order — rate, watts, avg (every machine now
-  carries its own pace), then the live split. A board too narrow for the machines at
-  TV sizes is not a board without machines, it is a board with smaller ones; only when
-  even the smallest set fails do they go, falling back to who + avg + score. A heading
-  and its values are hidden by the SAME `no-*` class or a number ends up under someone
-  else's title. Never put a `--lanecols` in a media query again — CSS cannot count the
-  machines. `lanecols.js` gates it.
+- **What is being scored is the erg, so the board is a table of ERGS — and nothing
+  else.** Watts, stroke rate and the split of this instant are a rowing computer's
+  readout: they change four times a second, mean nothing from across a gym, and make
+  the board unphotographable. They are GONE from the rotation lane. What it carries is
+  what each team DID on each machine — distance, the pace they held, calories — plus
+  the score. `e.byType[t]` keeps the counters per machine; `machNow()` resolves which
+  erg a crew is on (one type on the part is the answer; where a part splits people
+  across ergs the crew's own slot in `machSlots()` decides).
+- **A station's numbers land when the athlete leaves it.** A total that ticks upward
+  while somebody is still pulling is a live readout by another name. The counters run
+  continuously but the board reads `e.shown`, published by `publishMach()` when the
+  crew changes machine, by `publishAll()` at every block end, and once more when the
+  session saves. The machine they are on right now says `On it` — never a
+  half-finished total.
+- **A pace is per something, and the something depends on the machine.** `paceOf()`:
+  row and ski per 500m, a bike per 1000, a runner per kilometre. `2:57.0/km` for a
+  runner and `1:28.5/500` for a rower, on the same row.
+- **Only the columns that fit.** `fitLaneCols()` owns `--lanecols` for the head AND
+  the lanes together — it tries each size set from TV down and only a screen too
+  narrow to carry the machines at all falls back to who + score. A heading and its
+  values are hidden by the SAME `no-*` class, or a number ends up under someone
+  else's title. Never put a `--lanecols` in a media query: CSS cannot count the ergs.
+- **The board is the picture people photograph.** The leader takes the accent — left
+  bar, tinted row, gold rank and score. The crawling progress bar comes off the wall
+  (`body.bigscreen .lane .track{display:none}`) because it is a live element on a
+  board that has none. The machine columns are ruled apart so the eye never carries a
+  number into the wrong one. The score heading is one word — the unit rides with the
+  number ("9 CAL"), and "TOTAL MAX-CAL SCORE" ellipsised itself to "TOTAL MAX-C…".
+  On a TV `.wrap` is 1820: a lane is a row of numbers per team and the workout board a
+  list of sentences, and 1560 suited neither. `permach.js` and `lanecols.js` gate it.
 - **The small print is one piece of small print.** `#siteFoot`: hairline, company name,
   then the year and the build as one line in one voice — same face, same size, same
   colour, one at each end. A version set in a wide mono at its own size read as a label
