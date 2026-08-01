@@ -852,12 +852,9 @@
   .restins button.holdtg{border-color:rgba(255,255,255,.18);color:var(--ink-mute)}
   .restins button.holdtg:hover{border-color:rgba(255,255,255,.45);color:var(--ink-dim)}
   .restins button.holdtg.on{border-style:solid;border-color:rgba(255,90,90,.55);color:var(--hot)}
-  /* the finish is a shape, not a warning: it sits outside the rounds, and it says so
-     in a word only when it IS the finish */
-  .iconbtn.ifin{display:inline-flex;align-items:center;justify-content:center;gap:5px}
-  .iconbtn.ifin.on{width:auto;padding:0 10px;border-color:rgba(58,222,107,.55);color:#3ade6b}
-  .iconbtn.ifin i{font-style:normal;font-family:var(--disp);font-weight:700;font-size:9px;
-    letter-spacing:.14em;text-transform:uppercase}
+  /* the finish is a shape, not a warning \u2014 green, and named in full */
+  .finrow{margin:0 0 10px}
+  .spill.finpill.on{background:#3ade6b;border-color:#3ade6b;color:#06210f}
   .scrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .spill{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:6px 12px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .spill.on{background:var(--hot);border-color:var(--hot);color:#fff}
@@ -3916,18 +3913,7 @@
           itools.appendChild(sc);
           }
           const mkBtn=(cls,html,title,disabled)=>{ const bt=document.createElement("button"); bt.className="iconbtn "+cls; bt.innerHTML=html; bt.title=title; if(disabled) bt.disabled=true; return bt; };
-          // ROUNDS REPEAT THE BLOCK, so every part in it repeats \u2014 unless it is the
-          // finish. It belongs on the part's OWN button row, beside scored and the
-          // movers: it is a property of the part, not something between two of them.
-          if(!isRest&&bRounds(b)>1){
-            const fb=mkBtn("ifin"+(it.fin?" on":""),
-              it.fin?"&#9673;<i>finish</i>":"&#8635;",
-              it.fin?"The finish: the block repeats every other part, then ends with this one."
-                    :"Runs every round. Tap to make it the finish \u2014 once, after the last round.");
-            fb.onclick=()=>{ it.fin=!it.fin; save(); renderItems(); buildBlocks();
-              if(!sessionActive&&!running) build(); };
-            itools.appendChild(fb);
-          }
+
           const iup=mkBtn("iup","&#9650;","Move up",ii===0);
           const idown=mkBtn("idown","&#9660;","Move down",ii===b.items.length-1);
           const idel=mkBtn("idel","&times;","Remove");
@@ -3947,6 +3933,27 @@
           head.appendChild(itools);
           sec.appendChild(head);
           if(fmtRow) sec.appendChild(fmtRow);
+          // ROUNDS REPEAT THE BLOCK, so every part in it repeats \u2014 unless it is the
+          // finish. A glyph cannot say that: a circular arrow reads as undo. Name both
+          // states outright, in the same shape as Scored directly below.
+          if(!isRest&&bRounds(b)>1){
+            const rrow=document.createElement("div"); rrow.className="scrow finrow";
+            const rtag=document.createElement("i"); rtag.className="slab";
+            rtag.textContent="This part:"; rrow.appendChild(rtag);
+            const mkR=(fin,label,tip)=>{ const b3=document.createElement("button"); b3.type="button";
+              b3.className="spill"+(!!it.fin===fin?" on":"")+(fin?" finpill":"");
+              b3.textContent=label; b3.title=tip;
+              b3.onclick=()=>{ if(!!it.fin===fin) return;
+                if(fin) it.fin=true; else delete it.fin;
+                save(); renderItems(); buildBlocks(); if(!sessionActive&&!running) build(); };
+              return b3; };
+            rrow.append(
+              mkR(false,`Repeats \u00d7 ${bRounds(b)}`,
+                "Runs in every round of this block."),
+              mkR(true,"Runs once at the end",
+                "The finish: the block repeats every other part, then ends with this one."));
+            sec.appendChild(rrow);
+          }
           if(it.scored&&!isRest&&!cfg.noScore){
             const srow=document.createElement("div"); srow.className="scrow";
             const tag=document.createElement("i"); tag.className="slab hotlab"; tag.textContent="Scored:"; srow.appendChild(tag);
@@ -5474,7 +5481,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=281;
+  const BUILD=282;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
