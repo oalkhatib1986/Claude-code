@@ -225,6 +225,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   placeholder and every machine back on offer, without touching the clock. It is
   offered on the trainer's Session page only while there is a name to clear
   (`claimState().got>0`) and always in Control > Athletes. `clearall.js` gates it.
+- **The class library ships with the gym's own boards.** `seedLibrary()` seeds
+  `af_presets_v1`; bump the `seedV` on EVERY entry when adding one, and gate the
+  early return on that same number, or existing users never see the new workout.
+  `W()` is a solo/unscored board, `WT(name,size,...)` a team one with a scored piece.
+  "Send It Saturday" is the shape to copy for a swap board: four 4-minute swap items
+  plus a scored finish, one block per part. `sis.js` gates it.
+- **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
+  against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
+  Max metres, Max cal, Max reps, Max seconds.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons

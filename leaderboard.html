@@ -2199,9 +2199,13 @@
   const amtNum=a=>{ const v=amtVal(a); return v===null?NaN:parseFloat(v.split("-")[0]); };
   const exRM=x=>{ const v=parseInt(x&&x.rm,10);
     return (v>=1&&v<=100&&!machineOf(x&&x.name))?v:0; };
+  // "Max" is a word, so the unit has to be one too — the metre suffix is written
+  // tight against a number (500m) and glued onto Max it read "Maxm".
+  const maxUnit=u=>u==="m"?" metres":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" seconds":"";
   const exTxt=x=>{ const w=whoShown(x); const a=x.max?"Max":amtList(x).join("/");
     const rm=exRM(x);
-    return `${w?w+" — ":""}${x.name}${a?" · "+a+exUnit(x.unit):""}${rm?" @ "+rm+"% 1RM":""}`; };
+    const u=x.max?maxUnit(x.unit):exUnit(x.unit);
+    return `${w?w+" — ":""}${x.name}${a?" · "+a+u:""}${rm?" @ "+rm+"% 1RM":""}`; };
   // ONE label for a part, wherever the trainer reads a list of them. The exercise
   // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
   const partLabel=(it,ii)=>{
@@ -4447,7 +4451,7 @@
 
   // ---- ATHL3TE class library (from the gym's own boards) ----
   (function seedLibrary(){
-    if(presets.some(p=>p.seedV===5)) return;
+    if(presets.some(p=>p.seedV===6)) return;
     presets=presets.filter(p=>p.seedV!==3&&p.seedV!==4);
     const E=(name,amounts,unit,who)=>({who:who||"",name:name,amounts:amounts||[],unit:unit||"reps",max:false});
     const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:false});
@@ -4457,9 +4461,36 @@
     const W=(name,blocks)=>{ const c=structuredClone(DEFAULTS);
       c.name=name; c.wkName=name; c.noScore=true; c.together=true; c.teamKind="solo";
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:5,cfg:c}; };
+      return {name:name,seedV:6,cfg:c}; };
+    // some of the boards are team workouts with a scored finish — same shape, but
+    // the class is in fours and the last piece counts
+    const WT=(name,size,blocks)=>{ const c=structuredClone(DEFAULTS);
+      c.name=name; c.wkName=name; c.noScore=false; c.together=true;
+      c.teamKind="teams"; c.teamSize=size;
+      c.rotation={laps:1,blockRest:0,blocks:blocks};
+      return {name:name,seedV:6,cfg:c}; };
+    const SC=(dur,exs,label)=>Object.assign(I(dur,exs,label),{scored:true,metric:"calories"});
+
+    // SEND IT SATURDAY — teams of four, three 20-minute parts. Two on the erg for
+    // max distance, two sharing an AMRAP; they swap every four minutes, four times,
+    // then the whole team is on the erg for the last four, and that piece scores.
+    const SIS=(erg,a,b,c)=>{
+      const swap=n=>I(240,[
+        {who:"2 people",name:"Max distance "+erg,amounts:[],unit:"m",max:true},
+        {who:"2 people",name:a[0],amounts:[a[1]],unit:"reps",max:false},
+        {who:"2 people",name:b[0],amounts:[b[1]],unit:"reps",max:false},
+        {who:"2 people",name:c[0],amounts:[c[1]],unit:"reps",max:false}
+      ],`Swap ${n} of 4 · AMRAP shared`);
+      return [swap(1),swap(2),swap(3),swap(4),
+        SC(240,[{who:"All 4",name:erg,amounts:[],unit:"cal",max:true}],"Final 4:00 — everyone on")];
+    };
 
     const lib=[
+      WT("Send It Saturday",4,[
+        B("Part A",SIS("Run",["Air Squats",30],["HR Press Ups",20],["Burpees",10]),0,"Run"),
+        B("Part B",SIS("Row",["DBall Box Step Overs",30],["DBall Reverse Lunge",20],["DBall Over Shoulder",10]),0,"Row"),
+        B("Part C",SIS("Ski",["Goblet Squats",30],["DB Snatches",20],["SA Devil Press",10]),0,"Ski")
+      ]),
       W("Slow It or Send It",[
         B("Part A",[I(120,[E("Alt DB Snatches",[20]),E("Lateral Up-Down over DB",[12])],"E2MOM 16 min · 10/15/20kg")],8),
         B("Part B",[I(120,[E("Run",[250,325,400],"m")]),I(120,[E("Row",[250,325,400],"m")])],4),
@@ -5361,7 +5392,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=276;
+  const BUILD=277;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
