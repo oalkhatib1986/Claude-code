@@ -229,11 +229,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `af_presets_v1`; bump the `seedV` on EVERY entry when adding one, and gate the
   early return on that same number, or existing users never see the new workout.
   `W()` is a solo/unscored board, `WT(name,size,...)` a team one with a scored piece.
-  "Send It Saturday" is the shape to copy for a swap board: four 4-minute swap items
-  plus a scored finish, one block per part. `sis.js` gates it.
+  "Send It Saturday" is the shape to copy for a swap board: one block per part, four
+  rounds of a Pair 1 / Pair 2 group, then a scored `fin:true` finish. The class is
+  SPLIT across the parts (`together:false`) and rotates. `sis.js` gates it.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.
+- **A finisher runs once, after the rounds.** "Four rounds of this, then four minutes
+  all together" is on the gym's wall constantly, and a block could only ever repeat ALL
+  of its items — so the last piece repeated too, or had to become a block of its own and
+  lose its place in the rotation. `it.fin` marks an item as the finish: `roundItems()`
+  is what the round loop repeats, `finItems()` runs once after it, `blockLen` adds
+  `finLen(b)`, and `segAt` walks the finish when `t` passes the last round. `seg.i` is
+  always the index in `b.items`, never in the filtered list. `finisher.js` gates it.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons

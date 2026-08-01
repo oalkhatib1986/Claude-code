@@ -1961,7 +1961,16 @@
   const itRotBy=it=>(it&&it.rotBy==="done")?"done":(it&&it.rotBy==="clock")?"clock":"clock";
   const itSelf=it=>itRot(it)&&itRotBy(it)==="done";
   const itLen=it=>!it?0:(it.fmt==="waves"?it.dur*itWaves(it):it.dur);
-  const oneRound=b=>(b.items||[]).reduce((a,it)=>a+itLen(it),0);
+  // A FINISHER RUNS ONCE, AFTER THE ROUNDS. "Four rounds of this, then four
+  // minutes all together" is a shape the gym writes on the wall constantly, and a
+  // block could only repeat ALL of its items \u2014 so the last piece got repeated too,
+  // or had to be split into a block of its own and lose its place in the rotation.
+  // `it.fin` marks an item as the finish: it sits outside the round loop.
+  const isFin=it=>!!(it&&it.fin);
+  const roundItems=b=>((b&&b.items)||[]).filter(it=>!isFin(it));
+  const finItems=b=>((b&&b.items)||[]).filter(isFin);
+  const oneRound=b=>roundItems(b).reduce((a,it)=>a+itLen(it),0);
+  const finLen=b=>finItems(b).reduce((a,it)=>a+itLen(it),0);
   // AMRAP: the block loops its items until a time cap instead of a fixed count.
   // bRounds() derives how many laps fit so every round-indexed path keeps working.
   const isAmrap=b=>!!(b&&b.rounds==="amrap");
@@ -1971,19 +1980,32 @@
       return Math.max(1,Math.ceil(bCap(b)/(one+bRRestRaw(b)))); }
     return clamp(parseInt(b&&b.rounds,10)||1,1,30); };
   const bRRest=b=>bRounds(b)>1?bRRestRaw(b):0;
-  const blockLen=b=>isAmrap(b)?bCap(b):oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1);
+  const blockLen=b=>isAmrap(b)?bCap(b)+finLen(b)
+    :oneRound(b)*bRounds(b)+bRRest(b)*(bRounds(b)-1)+finLen(b);
   const roundLen=()=>Math.max(1,...R().blocks.map(blockLen));
-  const segAt=(b,t)=>{ const one=oneRound(b); if(one<=0) return null;
+  const segAt=(b,t)=>{ const one=oneRound(b); const its=roundItems(b);
     const n=bRounds(b), rr=bRRest(b), per=one+rr, amr=isAmrap(b);
-    if(amr){ if(t>=bCap(b)) return null; }
-    else if(t>=one*n+rr*(n-1)) return null;
+    // past the last round the finish is what is left \u2014 walked once, no round index
+    const loopEnd=amr?bCap(b):(one>0?one*n+rr*(n-1):0);
+    if(t>=loopEnd){
+      const fin=finItems(b); if(!fin.length) return null;
+      let fa=0, ft=t-loopEnd;
+      for(let i=0;i<fin.length;i++){ const it=fin[i], L=itLen(it); fa+=L;
+        if(ft<fa){ const ii=(b.items||[]).indexOf(it);
+          return {it, i:ii, round:n-1, rounds:n, amrap:false, fin:true,
+            remain:fa-ft, wave:0, waves:0}; } }
+      return null; }
+    if(one<=0) return null;
     // an AMRAP's last lap is cut short by the cap — never promise more time than is left
     const cap=amr?bCap(b)-t:Infinity;
-    const r=amr?Math.floor(t/per):Math.min(n-1,Math.floor(t/per)), tt=t-r*per;
+    // the first frame can arrive a hair before t0, and a negative round index
+    // flashed "Round 0/3" on the card
+    const r=Math.max(0,amr?Math.floor(t/per):Math.min(n-1,Math.floor(t/per))), tt=t-r*per;
     if(tt>=one) return {it:{rest:true,rrest:true,dur:rr}, i:-1, remain:Math.min(cap,per-tt), round:r, rounds:n, amrap:amr};
-    let acc=0; const its=b.items||[];
+    let acc=0;
     for(let i=0;i<its.length;i++){ const it=its[i], L=itLen(it); acc+=L;
-      if(tt<acc){ const off=tt-(acc-L), base={it, i, round:r, rounds:n, amrap:amr};
+      if(tt<acc){ const off=tt-(acc-L);
+        const base={it, i:(b.items||[]).indexOf(it), round:r, rounds:n, amrap:amr};
         if(it.fmt==="waves"){ const wN=itWaves(it), w=Math.min(wN-1,Math.floor(off/it.dur));
           return {...base, remain:Math.min(cap,it.dur-(off-w*it.dur)), wave:w, waves:wN}; }
         if(itRot(it)){ const ex=it.exercises.length;
@@ -2040,7 +2062,9 @@
         const per=seg.waves?Math.ceil(wt/seg.waves):Math.min(wt,itStations(seg.it,wt));
         itemTypes(seg.it).forEach(m=>{ use[m]=(use[m]||0)+per; }); } };
     const blkBounds=b=>{ const s=new Set([0]); const n=bRounds(b), per=oneRound(b)+bRRest(b);
-      for(let r=0;r<n;r++){ let acc=r*per; (b.items||[]).forEach(it=>{ acc+=itLen(it); s.add(acc); }); } return s; };
+      for(let r=0;r<n;r++){ let acc=r*per; roundItems(b).forEach(it=>{ acc+=itLen(it); s.add(acc); }); }
+      { let acc=n*per-bRRest(b); finItems(b).forEach(it=>{ acc+=itLen(it); s.add(acc); }); }
+      return s; };
     if(cfg.together){
       R().blocks.forEach(b=>{ [...blkBounds(b)].forEach(t=>{
         const seg=segAt(b,t+0.5); if(!seg||seg.it.rest) return;
@@ -2448,7 +2472,7 @@
         ${live?`<div class="bwhere">${bits.join(" \u00b7 ")}</div>`:""}
         ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
         <div class="bd">${exLines(b,live?seg:null)}</div>
-        <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
+        <div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${finLen(b)?`then ${fmtMS(finLen(b))} finish · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>
         <div class="teams">${al.teams.map(t=>{
           // Nobody has tapped in yet: the machine is the fact, the person is not.
           // Printing an invented "Team 1" here is the very thing claiming removed.
@@ -4451,7 +4475,7 @@
 
   // ---- ATHL3TE class library (from the gym's own boards) ----
   (function seedLibrary(){
-    if(presets.some(p=>p.seedV===6)) return;
+    if(presets.some(p=>p.seedV===8)) return;
     presets=presets.filter(p=>p.seedV!==3&&p.seedV!==4);
     const E=(name,amounts,unit,who)=>({who:who||"",name:name,amounts:amounts||[],unit:unit||"reps",max:false});
     const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:false});
@@ -4461,35 +4485,42 @@
     const W=(name,blocks)=>{ const c=structuredClone(DEFAULTS);
       c.name=name; c.wkName=name; c.noScore=true; c.together=true; c.teamKind="solo";
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:6,cfg:c}; };
+      return {name:name,seedV:8,cfg:c}; };
     // some of the boards are team workouts with a scored finish — same shape, but
     // the class is in fours and the last piece counts
     const WT=(name,size,blocks)=>{ const c=structuredClone(DEFAULTS);
-      c.name=name; c.wkName=name; c.noScore=false; c.together=true;
+      c.name=name; c.wkName=name; c.noScore=false;
+      // the class spreads across the parts from the start and rotates through them
+      c.together=false;
       c.teamKind="teams"; c.teamSize=size;
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:6,cfg:c}; };
+      return {name:name,seedV:8,cfg:c}; };
     const SC=(dur,exs,label)=>Object.assign(I(dur,exs,label),{scored:true,metric:"calories"});
 
-    // SEND IT SATURDAY — teams of four, three 20-minute parts. Two on the erg for
-    // max distance, two sharing an AMRAP; they swap every four minutes, four times,
-    // then the whole team is on the erg for the last four, and that piece scores.
-    const SIS=(erg,a,b,c)=>{
-      const swap=n=>I(240,[
-        {who:"2 people",name:"Max distance "+erg,amounts:[],unit:"m",max:true},
-        {who:"2 people",name:a[0],amounts:[a[1]],unit:"reps",max:false},
-        {who:"2 people",name:b[0],amounts:[b[1]],unit:"reps",max:false},
-        {who:"2 people",name:c[0],amounts:[c[1]],unit:"reps",max:false}
-      ],`Swap ${n} of 4 · AMRAP shared`);
-      return [swap(1),swap(2),swap(3),swap(4),
-        SC(240,[{who:"All 4",name:erg,amounts:[],unit:"cal",max:true}],"Final 4:00 — everyone on")];
-    };
+    // SEND IT SATURDAY — teams of four, three 20-minute parts, one block each.
+    // Pair 1 goes for max distance on the erg while Pair 2 shares the AMRAP; the
+    // pairs swap on the round, then the whole team is on the erg together before
+    // the next swap. Four rounds of 5:00 makes the 20, and the team keeps ONE
+    // machine all part — split across two blocks the allocator would number the
+    // finish as a different erg, and the gym would need eight runners for four teams.
+    const SISpart=(erg,a,b,c)=>[
+      I(240,[
+        {who:"Pair 1",name:erg,amounts:[],unit:"m",max:true},
+        {who:"Pair 2",name:a[0],amounts:[a[1]],unit:"reps",max:false},
+        {who:"Pair 2",name:b[0],amounts:[b[1]],unit:"reps",max:false},
+        {who:"Pair 2",name:c[0],amounts:[c[1]],unit:"reps",max:false}
+      ],"Pairs swap on the round"),
+      Object.assign(
+        SC(240,[{who:"All 4",name:erg,amounts:[],unit:"cal",max:true}],
+          "Finish — all 4 on one machine, alternating"),
+        {fin:true})
+    ];
 
     const lib=[
       WT("Send It Saturday",4,[
-        B("Part A",SIS("Run",["Air Squats",30],["HR Press Ups",20],["Burpees",10]),0,"Run"),
-        B("Part B",SIS("Row",["DBall Box Step Overs",30],["DBall Reverse Lunge",20],["DBall Over Shoulder",10]),0,"Row"),
-        B("Part C",SIS("Ski",["Goblet Squats",30],["DB Snatches",20],["SA Devil Press",10]),0,"Ski")
+        B("Part A",SISpart("Run",["Air Squats",30],["HR Press Ups",20],["Burpees",10]),4,"Run"),
+        B("Part B",SISpart("Row",["DBall Box Step Overs",30],["DBall Reverse Lunge",20],["DBall Over Shoulder",10]),4,"Row"),
+        B("Part C",SISpart("Ski",["Goblet Squats",30],["DB Snatches",20],["SA Devil Press",10]),4,"Ski")
       ]),
       W("Slow It or Send It",[
         B("Part A",[I(120,[E("Alt DB Snatches",[20]),E("Lateral Up-Down over DB",[12])],"E2MOM 16 min · 10/15/20kg")],8),
@@ -4564,7 +4595,10 @@
         B("Part C",[I(900,[E("Erg",[60,40,20,10],"cal"),E("DB Snatches",[60,40,20,10]),E("Burpee over Dumbbell",[60,40,20,10])],"In pairs · 60-40-20-10 · YGIG · 15 min cap")])
       ])
     ];
-    lib.forEach(w=>{ if(!presets.some(p=>p.name===w.name)) presets.push(w); });
+    // a re-seed must REPLACE a board that changed shape, not skip it because the
+    // name is already there
+    lib.forEach(w=>{ const i=presets.findIndex(p=>p.name===w.name);
+      if(i<0) presets.push(w); else if((presets[i].seedV||0)<w.seedV) presets[i]=w; });
     savePresets();
   })();
 
@@ -5392,7 +5426,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=277;
+  const BUILD=278;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
