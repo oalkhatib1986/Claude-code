@@ -209,6 +209,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   removes `kioskon`/`tabprev`/`tabwall`/`tabone` whenever `which!=="tablet"`. The stage
   is `touch-action:pan-y` so a sideways drag walks the row instead of becoming the
   browser's back-swipe.
+- **Sharing is a fact, not a fault.** The allocator caps stations at what the gym
+  owns and quietly puts several people on each, so `anyOver()` can no longer fire —
+  the old "over capacity" banner is unreachable for ergs. The block card states the
+  split instead: `.shareline` ("4 per station · 2 stations"), a footnote under the
+  chips. It is NOT a `.t` — anything counting machines must not pick it up.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons

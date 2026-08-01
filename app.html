@@ -529,6 +529,10 @@
   body.tabone .tbwall,body.tabone .tb-wallnote{display:none}
   body.tabwall .tb-back,body.tabwall #tbStage,body.tabwall #tbCap,
   body.tabwall .tb-selrow,body.tabwall .tb-onenote{display:none}
+  /* the drill-in is for LOOKING at the machine, so the frame starts as high up the
+     page as it can: the wall, the stepper and a swipe already choose it, and the
+     dropdown that used to say so just pushed the screen below the fold */
+  body.tabone .tb-selrow{display:none}
   body.tabone .tb-back{display:flex}
   body.kioskon{padding:0}
   body.kioskon .tb-wrap{max-width:none;margin:0;gap:0}
@@ -1133,6 +1137,11 @@
   .blk .teams .t.unnamed .mtag{border-color:var(--line);color:var(--ink-mute)}
   /* a machine beyond the class size is an offer, never a shortfall — it is quiet
      and it never turns red */
+  /* sharing is a fact, not a fault: stated plainly, never in warning colours */
+  .blk .teams .shareline{grid-column:1/-1;min-width:0;
+    font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-mute);
+    border-top:1px solid var(--line-soft);padding-top:7px;margin-top:2px}
   .blk .teams .t.spare{opacity:.7}
   .blk .teams .t.spare .mtag{border-style:dashed}
   .blk .teams .t.unnamed.late{color:#ff9490;background:rgba(255,70,64,.13)}
@@ -1453,7 +1462,7 @@
   <section class="view" id="viewTablet">
     <div class="tb-wrap">
       <div class="tb-note tb-wallnote">Every erg in the gym, as its tablet sees it. Tap one to open that screen full size.</div>
-      <div class="tb-note tb-onenote">This is the screen on <b>the Android tablet mounted on this erg</b>. Swipe left or right to walk down the row.</div>
+      <div class="tb-note tb-onenote">What <b>this erg&rsquo;s tablet</b> is showing &mdash; swipe to walk the row.</div>
       <div id="tbWall" class="tbwall"></div>
       <div class="tb-back" id="tbBack">
         <button class="btn small" id="tbBackBtn" type="button">&larr; All screens</button>
@@ -2433,7 +2442,18 @@
           return claimSlots().filter(s=>s.bi===bi&&!ms[s.key]).map(s=>
             `<span class="t unnamed spare"><span class="dot" style="background:currentColor;color:currentColor"></span>`
             +`<b class="tn">${esc(s.short)}</b><em class="mtag">free</em></span>`).join("");
-        })()}${(!al.teams.length&&!claimSlots().some(s=>s.bi===bi))?`<span class="t" style="opacity:.55">no ${kws()} this round</span>`:""}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>
+        })()}${(!al.teams.length&&!claimSlots().some(s=>s.bi===bi))?`<span class="t" style="opacity:.55">no ${kws()} this round</span>`:""}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}${(()=>{
+          // MORE PEOPLE THAN STATIONS IS NOT AN ERROR, BUT IT IS A FACT. The
+          // allocator caps stations at what the gym owns and quietly puts several
+          // people on each, so nothing ever reads "over capacity" — say the number
+          // instead, or the trainer walks into four athletes on one rower blind.
+          const wt=worstTeamsPerBlock(), nSt=blockStations(b);
+          if(!(wt>nSt)||!nSt) return "";
+          const per=Math.ceil(wt/nSt);
+          // NOT a .t — a chip is a machine, and anything counting machines must not
+          // pick this up. It is a footnote under them.
+          return `<span class="shareline">${per} per station &middot; ${nSt} ${nSt===1?"station":"stations"}</span>`;
+        })()}</div>
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
   }
@@ -3134,8 +3154,13 @@
       const room=stage?(stage.parentElement?stage.parentElement.clientWidth:stage.clientWidth):360;
       const w=Math.max(120,room-3);
       const tall=window.innerWidth<820; // portrait phone: turn the frame on its side
-      const k=tall?Math.min(1,Math.min(w/600,(window.innerHeight*0.82)/1005))
-                  :Math.min(1,w/1005);
+      // ...and by the height that is actually LEFT under the chrome above it, or a
+      // landscape window ends up scrolling to show the bottom of the frame. The top
+      // is a position, never a size we set, so this cannot feed back on itself.
+      const top=stage?stage.getBoundingClientRect().top+window.scrollY:0;
+      const availH=Math.max(120,window.innerHeight-top-34);
+      const k=tall?Math.min(1,w/600,(window.innerHeight*0.82)/1005)
+                  :Math.min(1,w/1005,availH/600);
       d.style.transform=tall
         ? "scale("+k.toFixed(4)+") translate(600px,0) rotate(90deg)"
         : "scale("+k.toFixed(4)+")";
@@ -5298,7 +5323,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=274;
+  const BUILD=275;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
