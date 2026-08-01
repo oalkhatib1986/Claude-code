@@ -100,8 +100,9 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **Start the clock and the board stops being a plan.** `renderBlockCards()` marks the
   block the class is in `.live` (all of them when `cfg.together===false`), heads it with
   round · part n of m · time left over a `.bprog` bar, and hands `segAt()` to
-  `exLines(b,seg)` so the running part is `.pnow` (tag NOW) and the one after it `.pnxt`
-  (tag NEXT — the next PART of this block, or the top of the next round when it repeats).
+  `exLines(b,seg)` so the running part is `.pnow` (tag NOW). ONLY the running part is
+  marked — the card already lists the parts in order, so boxing the one after it just
+  repeats the list; "next" belongs on the tablet and in the trainer's NOW/NEXT panel.
   Other blocks dim to `.queued`/`.donez`. The big screen shows no standing advice line
   (`body.wkscreen .phase .pdesc{display:none}`) — a TV across the gym is for the workout.
   `livebd.js` gates it.
@@ -214,6 +215,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   the old "over capacity" banner is unreachable for ergs. The block card states the
   split instead: `.shareline` ("4 per station · 2 stations"), a footnote under the
   chips. It is NOT a `.t` — anything counting machines must not pick it up.
+- **All blocks at once means there is no "current block".** With `cfg.together===false`
+  every block runs simultaneously, so "Block 1 of 4 — working" is simply false.
+  `whereNow(short)` names the ROUND in that flow ("All 4 blocks · round 2/3") and the
+  block only when the class is together; `nextTag()` does the same for what comes next.
+  Every banner, clock state and start-button label goes through them — never write
+  `Block ${blockIdxOf(rot.round)+1}` into user-facing text again.
+- **One class ends, the next walks in.** `clearAllNames()` puts every slot back to its
+  placeholder and every machine back on offer, without touching the clock. It is
+  offered on the trainer's Session page only while there is a name to clear
+  (`claimState().got>0`) and always in Control > Athletes. `clearall.js` gates it.
 - **A tap must survive the redraw.** `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons

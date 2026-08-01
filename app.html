@@ -131,7 +131,6 @@
   .ptag{font-style:normal;display:inline-block;vertical-align:baseline;margin-right:7px;
     padding:1px 7px;border-radius:99px;background:var(--ink);color:#000;
     font-family:var(--disp);font-weight:700;font-size:9px;letter-spacing:.18em}
-  .ptag.nx{background:transparent;color:var(--ink-dim);box-shadow:inset 0 0 0 1px var(--line)}
   /* the one thing you should be able to find from anywhere in the gym */
   .exg.pnow{background:var(--ink);border-radius:12px;padding:9px 12px 11px}
   .blk .bd .exg.pnow .exg-h,
@@ -141,7 +140,6 @@
   .blk.scoring .exg.pnow{background:var(--hot)}
   .blk.scoring .exg.pnow .exl{color:#000}
   /* NEXT is the same shape, quietly drawn, so the two read as a pair */
-  .exg.pnxt{border-radius:12px;padding:9px 12px 11px;box-shadow:inset 0 0 0 1px var(--line)}
   .blk .bh b{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase}
   .blk .bh .mc{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:11px;color:var(--ink-dim);letter-spacing:.14em;text-transform:uppercase;
     border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap}
@@ -305,6 +303,8 @@
   .tcnote:empty{display:none}
   #claimBar{margin-top:9px;font-size:13px;color:var(--ink-dim);line-height:1.5}
   #claimBar:empty{display:none}
+  .clearrow{margin-top:9px}
+  .clearrow button[hidden]{display:none}
   #claimBar b{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.18em;
     text-transform:uppercase;color:var(--ink-mute);margin-right:4px}
   #claimBar i{font-style:normal;color:var(--ink)}
@@ -1223,7 +1223,6 @@
   body.wkscreen:not(.mobscreen) .blk .bclk i{font-size:18px}
   body.wkscreen:not(.mobscreen) .blk .bwhere{font-size:22px;letter-spacing:.18em;margin-top:-8px}
   body.wkscreen:not(.mobscreen) .exg.pnow,
-  body.wkscreen:not(.mobscreen) .exg.pnxt{border-radius:20px;padding:16px 22px 20px}
   body.wkscreen:not(.mobscreen) .blk .bprog{height:8px}
   body.wkscreen:not(.mobscreen) .ptag{font-size:17px;padding:2px 13px;margin-right:12px}
   body.wkscreen:not(.mobscreen) .blk .win{font-size:24px;letter-spacing:.16em}
@@ -1386,6 +1385,7 @@
         </div>
         <div id="tcNote" class="tcnote"></div>
         <div id="claimBar"></div>
+        <div class="clearrow"><button class="btn small" id="clearNames" type="button" hidden>Clear all names</button></div>
         <div class="ergless">No ergs in today&rsquo;s workout, so there are no tablets and nothing to hand out. Put the workout on the big screen &mdash; the class follows it and splits itself.</div>
       </div>
     </div>
@@ -1450,6 +1450,7 @@
           <div id="crewList"></div>
           <div class="addbtns">
             <button class="btn" id="addCrew">+ Add team</button>
+            <button class="btn" id="clearNames2" type="button">Clear all names</button>
             <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
           </div>
           <div class="note" id="crewNote"></div>
@@ -1923,6 +1924,21 @@
   const blockIdxOf=r=>nBlocks()? r%nBlocks() : 0;
   const lapOf=r=>nBlocks()? Math.floor(r/nBlocks()) : 0;
   const roundTag=r=>laps()>1?` · round ${lapOf(r)+1}/${laps()}`:"";
+  // EVERY BLOCK RUNS AT ONCE when the class is split across them, so there is no
+  // "current block" to name — printing "Block 1 of 4" while all four are working
+  // is simply wrong. In that flow the honest answer is the ROUND; the block cards
+  // say the rest, each with its own clock.
+  const whereNow=short=>{
+    if(!nBlocks()) return "";
+    const rt=laps()>1
+      ? (short?` · R${lapOf(rot.round)+1}`:` · round ${lapOf(rot.round)+1}/${laps()}`) : "";
+    if(!cfg.together) return `All ${nBlocks()} blocks${rt}`;
+    return short?`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${rt}`
+                :`Block ${blockIdxOf(rot.round)+1} of ${nBlocks()}${rt}`;
+  };
+  const nextTag=()=>cfg.together
+    ? `Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)}`
+    : (laps()>1?`round ${lapOf(rot.round)+1}/${laps()}`:"the next block");
   const restAfterBlock=bi=>{ const b=R().blocks[bi]; if(!b) return 0;
     return R().sameRest===false? clamp(parseInt(b.aRest,10)||0,0,1800) : (R().blockRest||0); };
   const sessionTotal=()=>{ const n=totalRounds();
@@ -2210,13 +2226,13 @@
     const its=b.items||[];
     if(!its.length) return esc(b.desc||"—");
     const cur=(seg&&seg.i>=0)?seg.i:-1;
-    // nearest first: the next part of this block, else the top of the next round
-    const wrap=cur>=0&&cur+1>=its.length&&seg&&seg.rounds>seg.round+1;
-    const nxt=cur<0?-1:(cur+1<its.length?cur+1:(wrap?0:-1));
+    // ONLY the running part is marked. The card already lists the parts in order,
+    // so drawing a box round the one after it just says the same thing twice —
+    // "next" belongs on the tablet in front of the athlete and in the trainer's
+    // NOW/NEXT panel, where it is an instruction rather than a repeat of the list.
     return its.map((it,i)=>{
-      const mk=i===cur?" pnow":i===nxt?" pnxt":"";
-      const tag=i===cur?`<em class="ptag">Now</em>`
-        :i===nxt?`<em class="ptag nx">Next${wrap?" round":""}</em>`:"";
+      const mk=i===cur?" pnow":"";
+      const tag=i===cur?`<em class="ptag">Now</em>`:"";
       if(it.rest) return `<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
       const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
@@ -2252,18 +2268,21 @@
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
       const over=!empty&&anyOver();
       startBtn.disabled=empty||over;
-      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Layout":`Start block ${blockIdxOf(k)+1}${roundTag(k)}`;
+      startBtn.textContent=empty?"Build blocks first":over?"Over machine capacity — see Layout"
+        :(cfg.together?`Start block ${blockIdxOf(k)+1}${roundTag(k)}`
+          :(k===0&&!sessionActive?"Start the session":`Start ${nextTag()}`));
       clockState.textContent=k===0&&!sessionActive?"Block time · ready":(cfg.teamKind==="solo"?"Athletes rotating":"Teams rotating");
       $("phaseBanner").classList.remove("scoring");
-      $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — machines assigned" : `Rotate — Block ${blockIdxOf(k)+1}${roundTag(k)} up next`;
+      $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — machines assigned"
+        : `Rotate — ${cfg.together?`Block ${blockIdxOf(k)+1}${roundTag(k)}`:nextTag()} up next`;
       $("phaseDesc").textContent = `Every screen shows each ${kw()} their machine · trainer starts the block`;
       clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="rest"){
       $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
-      startBtn.disabled=false; startBtn.textContent=`Start block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} early`;
+      startBtn.disabled=false; startBtn.textContent=`Start ${nextTag()} early`;
       clockState.textContent="Rest & rotate";
       $("phaseBanner").classList.remove("scoring");
-      $("phaseLabel").textContent=`Rest & rotate — Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} next`;
+      $("phaseLabel").textContent=`Rest & rotate — ${nextTag()} next`;
       $("phaseDesc").textContent="Move to your next station · the clock counts down the rest";
     } else if(rot.phase==="done"){
       $("phaseBanner").hidden=false; clockEl.parentElement.hidden=true;
@@ -2294,7 +2313,7 @@
     holding=false; holdPend=holdBounds();
     rot.phase="run"; t0=performance.now();
     circReset();
-    startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running…`;
+    startBtn.disabled=true; startBtn.textContent=`${whereNow(false)} running…`;
     resetBtn.disabled=false;
     if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
     else raf=requestAnimationFrame(frameRotation);
@@ -2373,10 +2392,10 @@
     const leadDone=t>=leadLen;
     clockEl.textContent=fmtMS((leadDone?curRoundLen():leadLen)-t);
     clockEl.classList.toggle("hot",hotAny);
-    clockState.textContent=leadDone?"Other stations finishing":`Block ${blockIdxOf(rot.round)+1}/${nBlocks()}${laps()>1?` · R${lapOf(rot.round)+1}`:""}`;
+    clockState.textContent=leadDone?"Other stations finishing":whereNow(true);
     $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
     $("phaseBanner").classList.toggle("scoring",hotAny);
-    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:(leadDone?`${leadB?leadB.name:"Block"} done — stations finishing`:`Block ${blockIdxOf(rot.round)+1} of ${nBlocks()}${roundTag(rot.round)} — working`);
+    $("phaseLabel").textContent = hotAny?`${(hotName||"SCORE").toUpperCase()} — SCORING`:(leadDone?`${leadB?leadB.name:"Block"} done — stations finishing`:`${whereNow(false)} — working`);
     const hm=(ergs.find(e=>e.hot)||{}).curMetric||"calories";
     $("phaseDesc").textContent = hotAny?`Every ${hm==="calories"?"calorie":"metre"} counts NOW`:(leadDone?"Longer stations are still working — everyone rotates when the clock hits 0:00":"Follow your station's screen · scored parts turn red");
     renderBlockCards(); renderLanesRot(); renderTablet();
@@ -2798,7 +2817,7 @@
     }
     if(cfg.mode==="rotation"&&holding){
       holding=false; t0=performance.now()-rot.elapsed*1000;
-      startBtn.disabled=true; startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running\u2026`;
+      startBtn.disabled=true; startBtn.textContent=`${whereNow(false)} running\u2026`;
       if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
       else raf=requestAnimationFrame(frameRotation);
       return;
@@ -4063,7 +4082,7 @@
     // build() stopped the loop that owns the clock and the button; start it again
     if(running&&!paused){
       startBtn.disabled=true;
-      startBtn.textContent=`Block ${blockIdxOf(rot.round)+1}${roundTag(rot.round)} running\u2026`;
+      startBtn.textContent=`${whereNow(false)} running\u2026`;
       cancelAnimationFrame(raf); raf=requestAnimationFrame(frameRotation); }
     else { syncRotChrome(); renderBlockCards(); renderLanesRot(); }
     renderTablet(true);
@@ -5138,10 +5157,29 @@
   }
   // the panel is opened by a tap, not by the 400ms tick — draw it there and then
   function syncClaimBar(){
-    const cb=$("claimBar"); if(!cb) return;
-    const t=claimBarText();
-    if(cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; }
+    const cb=$("claimBar");
+    if(cb){ const t=claimBarText();
+      if(cb.dataset.s!==t){ cb.dataset.s=t; cb.innerHTML=t; } }
+    // ONE CLASS ENDS, THE NEXT WALKS IN. Offer the reset only when there is
+    // actually a name to clear, so it is never just another button in the way.
+    const c=claimState();
+    const on=!!(c&&c.got>0);
+    const b=$("clearNames"); if(b) b.hidden=!on;
   }
+  // Put every machine back on offer: each slot returns to the placeholder the
+  // roster started with, so the floor reads as free again. The clock is never
+  // touched — this is between classes, or a trainer undoing a wrong tap.
+  function clearAllNames(){
+    if(!cfg.crews.length) return;
+    const c=claimState();
+    if(c&&c.got>0&&!confirm(`Clear all ${c.got} name${c.got>1?"s":""}? Every machine goes back to free.`)) return;
+    const pre=cfg.teamKind==="solo"?"Athlete ":"Team ";
+    cfg.crews.forEach((cr,i)=>{ cr.name=pre+(i+1);
+      const e=ergs.find(x=>x.id===i); if(e) e.name=cr.name; });
+    save(); buildCrews(); buildRankGrid();
+    renderBlockCards(); renderLanesRot(); renderTablet(true); renderWall(); syncClaimBar();
+  }
+  ["clearNames","clearNames2"].forEach(id=>{ const b=$(id); if(b) b.onclick=clearAllNames; });
   function startFlowText(){
     if(cfg.mode!=="rotation"||!nBlocks()||finished) return "";
     if(running&&!holding) return "";
@@ -5323,7 +5361,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=275;
+  const BUILD=276;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
