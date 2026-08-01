@@ -321,8 +321,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `lanecols.js` gates it. When re-scoping a selector, check every rule that matches:
   a blanket `body:not(.bigscreen)` -> `body:not(.tvprev)` also hit
   `#viewBoard .board{display:none}` and hid the whole leaderboard on a real TV.
-- **The footer signs the work.** `#siteFoot`: hairline, company name, `© <year>, All
-  rights reserved`, and the build in a pill on the right. Hidden on `body.bigscreen`
+- **What came off WHICH machine.** `e.m` was one number with the run, the row and the
+  ski added together, so "how far did they run" had no answer anywhere. `e.byType[t]`
+  keeps the same four counters per machine (`m`/`cals`/`wM`/`wT`); `machNow()` resolves
+  which erg a crew is on — one type on the part is the whole answer, and where a part
+  splits people across ergs the crew's own slot in `machSlots()` decides, the same map
+  the station number comes from. The lane carries `machStrip()` under the name (one
+  group per machine in `wkTypes()`, quiet, `.idle` until they get there) and it goes
+  with the columns on a phone; `maybeSaveResult()` stores `by` per row and `types` per
+  session so Results draws a column per erg. The Metres/Calories switches in Layout
+  choose what rides along — they drove only the old everyone-together board before, so
+  Metres is turned on once by `cfg.dispV`. `permach.js` gates it.
+- **The small print is one piece of small print.** `#siteFoot`: hairline, company name,
+  then the year and the build as one line in one voice — same face, same size, same
+  colour, one at each end. A version set in a wide mono at its own size read as a label
+  stuck on afterwards. Hidden on `body.bigscreen`
   and `body.tabkiosk` — a TV and an erg tablet are for the workout. `foot.js` gates it.
 - **The Erg Tablet tab opens on the WALL, not on one machine.** "Which erg?" is the
   first question, and the dropdown that used to answer it is hidden by the preview
