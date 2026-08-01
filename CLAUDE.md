@@ -118,6 +118,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   pick the columns — which changes the height, which changes the width it picks — is
   a loop with no fixed point, and four wide cards leave a band of empty floor
   (`fsfill` drops to 90%). A · B · C across, four as a square. `bcols.js` gates it.
+- **A line of work is read in one go, so it sits on one line.** At a fixed 34px the
+  longest exercise ran past the card and the wrap stranded the unit — "20" ending one
+  line and "reps" starting the next. Three things together: the workout board gets a
+  wider measure than the leaderboard (`.wkscreen .wrap{max-width:1820px}` — a lane is
+  columns of numbers, a part is prose); the prescription is one atom (`exHtml()` wraps
+  `· 30 reps` and `@ 75% 1RM` in `.amt{white-space:nowrap}`, and a heading glues its
+  LAST WORD to `· 4:00` so a wrapped title never opens on a dot); and `fitBlockText()`
+  measures the longest line with wrapping switched off and sets `--bfs` to the largest
+  size at which every line still fits — ONE size for all the cards, or the columns
+  stop looking like columns. The floor is a proportion of the board's own authored
+  width, not a pixel count: 24px on an 1820 board and on a 1302 one are two different
+  sizes to the eye. Measured at authored width, so it never chases `fitTvBoard`.
+  `wallfit.js` gates it on 1920/2560/1366 and the phone preview.
 - **The running part is a slab, not a shade of grey.** `.exg.pnow` is a solid light
   ground with black type; `.exg.pnxt` is the same shape drawn in outline, so the pair
   reads as one control. The part's countdown is its own headline (`.bclk`, 52px on TV)

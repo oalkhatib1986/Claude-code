@@ -968,6 +968,9 @@
   .exsc:hover{border-color:rgba(255,255,255,.25)}
   .exsc.on{color:var(--hot);border-color:rgba(255,45,45,.55);background:rgba(255,45,45,.08)}
   .exl{padding:1px 0}
+  .exl .amt,.exg-h .amt{white-space:nowrap}
+  /* measured with the wrapping off, so scrollWidth is the true one-line width */
+  #blockCards.measuring .exl{white-space:nowrap}
   .exl i{color:var(--hot);font-style:normal;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-left:7px}
   #updBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;
     background:var(--accent);color:#000;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;
@@ -1181,6 +1184,11 @@
   /* projection styles apply on any device; narrow screens get a scaled preview */
   body.bigscreen:not(.mobscreen){--rowH:104px}
     body.bigscreen:not(.mobscreen) .wrap{max-width:1560px}
+  /* THE WORKOUT BOARD IS A LIST OF SENTENCES, SO GIVE IT THE ROOM. A leaderboard is
+     columns of numbers and reads better inside a measure; a part's line is prose and
+     360px of side margin is what pushed "20 reps" onto a line of its own. */
+  body.bigscreen:not(.mobscreen).wkscreen .wrap{max-width:1820px}
+  body.tvprev.wkscreen #viewBoard{padding-left:50px;padding-right:50px}
   /* on a TV the board is the whole picture: it carries the mark and centres itself */
   body.bigscreen:not(.mobscreen) .tvfit>.mark{flex:none;align-self:flex-start;margin:0 0 18px}
 
@@ -1217,7 +1225,10 @@
   body.wkscreen:not(.mobscreen) .blk{padding:28px 32px;gap:16px}
   body.wkscreen:not(.mobscreen) .blk .bh b{font-size:40px}
   body.bigscreen:not(.mobscreen) .blk .bh .mc{display:none}
-  body.wkscreen:not(.mobscreen) .blk .bd{font-size:34px;line-height:1.55}
+  /* --bfs is chosen by fitBlockText(): the largest size at which the longest line
+     in ANY card still lands on one line. A part read from across the gym must not
+     break mid-prescription. */
+  body.wkscreen:not(.mobscreen) .blk .bd{font-size:var(--bfs,34px);line-height:1.55}
   /* a single block has ~1500px of width and a tall thin list — run it in two columns
      so the type can be twice the size instead of the card being mostly empty */
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd{column-count:2;column-gap:60px;
@@ -2232,6 +2243,17 @@
     const rm=exRM(x);
     const u=x.max?maxUnit(x.unit):exUnit(x.unit);
     return `${w?w+" — ":""}${x.name}${a?" · "+a+u:""}${rm?" @ "+rm+"% 1RM":""}`; };
+  // THE PRESCRIPTION IS ONE THING, SO IT WRAPS AS ONE THING. Left to itself the line
+  // broke wherever it ran out of room and stranded the unit on a line of its own —
+  // "20" at the end of one line and "reps" at the start of the next, or a separator
+  // hanging off the end with nothing after it. The amount, its unit and the dot in
+  // front of them move together or not at all; the break lands after the exercise.
+  const exHtml=x=>{ const w=whoShown(x); const a=x.max?"Max":amtList(x).join("/");
+    const rm=exRM(x);
+    const u=x.max?maxUnit(x.unit):exUnit(x.unit);
+    return `${w?esc(w)+" — ":""}${esc(x.name)}`
+      +(a?` <span class="amt">· ${esc(a+u)}</span>`:"")
+      +(rm?` <span class="amt">@ ${rm}% 1RM</span>`:""); };
   // ONE label for a part, wherever the trainer reads a list of them. The exercise
   // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
   const partLabel=(it,ii)=>{
@@ -2264,10 +2286,22 @@
       const mk=i===cur?" pnow":"";
       const tag=i===cur?`<em class="ptag">Now</em>`:"";
       if(it.rest) return `<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
-      const lines=(it.exercises||[]).map(x=>`<div class="exl">${esc(exTxt(x))}</div>`).join("");
+      const lines=(it.exercises||[]).map(x=>`<div class="exl">${exHtml(x)}</div>`).join("");
       const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
       const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${it.exercises.length} stations · self-paced`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`:fmtMS(it.dur);
-      return `<div class="exg${mk}"><span class="exg-h">${tag}${label?label+" · ":""}${tlab}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
+      // A heading breaks at a WORD, never in front of its own separator. The last
+      // word of the name travels with "· 4:00" so a wrapped title reads
+      // "FINISH — ALL 4 ON ONE MACHINE, / ALTERNATING · 4:00" rather than leaving a
+      // line that opens on a dot. Only while the pair is short enough to fit a card
+      // on its own — an unbreakable run wider than its box is the other bug.
+      const head=(()=>{
+        if(!label) return tlab;
+        const sp=label.lastIndexOf(" "), tail=sp<0?label:label.slice(sp+1);
+        const glue=`${tail} &middot; ${tlab}`;
+        if(glue.replace(/&[a-z]+;/g,"x").length>26) return `${label} &middot;&nbsp;${tlab}`;
+        return `${sp<0?"":label.slice(0,sp)+" "}<span class="amt">${glue}</span>`;
+      })();
+      return `<div class="exg${mk}"><span class="exg-h">${tag}${head}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
     }).join("");
   };
 
@@ -2530,6 +2564,35 @@
       fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
     const rows=Math.ceil(n/Math.min(n,fit));
     el.style.setProperty("--bcols",Math.max(1,Math.ceil(n/rows)));
+    fitBlockText();
+  }
+
+  // A LINE OF WORK IS READ IN ONE GO, SO IT SITS ON ONE LINE. At a fixed 34px the
+  // longest exercise ran past the card and the wrap stranded the unit on a line of
+  // its own. Measure the longest line with the wrapping switched off, then pick the
+  // largest size at which every one of them still fits — the same size for every
+  // card, or the columns stop looking like columns. The scale the board is drawn at
+  // does not enter into it: the cards are measured at their authored width, so this
+  // cannot chase fitTvBoard round in a circle.
+  const BFS=34, BFS_MIN=24;
+  function fitBlockText(){
+    const bc=$("blockCards"); if(!bc) return;
+    bc.style.removeProperty("--bfs");
+    if(!document.body.classList.contains("wkscreen")
+       ||document.body.classList.contains("mobscreen")) return;
+    const lines=bc.querySelectorAll(".blk .bd .exl");
+    if(!lines.length) return;
+    bc.classList.add("measuring");
+    let k=1;
+    lines.forEach(el=>{ const room=el.clientWidth, need=el.scrollWidth;
+      if(room>0&&need>room) k=Math.min(k,room/need); });
+    bc.classList.remove("measuring");
+    // The floor is a proportion, not a number of pixels. The board is authored at
+    // whatever width the screen gives it and then scaled to fit, so 24px on a 1820
+    // board and 24px on a 1302 one are two different sizes to the eye — pinning the
+    // floor at the larger of them is what made a 1366 TV wrap where a 1920 did not.
+    const min=Math.max(13,Math.round(BFS_MIN*Math.min(1,(bc.clientWidth||1820)/1820)));
+    if(k<1) bc.style.setProperty("--bfs",Math.max(min,Math.floor(BFS*k))+"px");
   }
 
   function renderLanesRot(){
@@ -5528,7 +5591,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=284;
+  const BUILD=285;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
