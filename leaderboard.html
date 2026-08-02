@@ -2725,7 +2725,7 @@
       +`<span class="hsub mc" data-t="${esc(t)}">cal</span>`).join("");
     h.innerHTML=
       `<span class="grank"></span><span class="gwho"></span>${grp}<span class="gscore">Score</span>`
-      +`<span class="hsub"></span><span class="hsub hwho">Team</span>${sub}`
+      +`<span class="hsub"></span><span class="hsub hwho" id="rankHead">${esc(Kw())}</span>${sub}`
       +`<span class="hsub hscore" id="scoreLabel">Score</span>`;
     fitLaneCols();
   }
@@ -4488,7 +4488,7 @@
     { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
     { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
-    { const x=$("rankHead"); if(x) x.textContent=solo?"Rank · Athlete · Where they are":"Rank · Team · Where they are"; }
+    { const x=$("rankHead"); if(x) x.textContent=solo?"Athlete":"Team"; }
     // the two flows differ in HOW MANY BLOCKS RUN AT ONCE — lead with that, and name
     // who gets split in the class's own word
     { const sel=$("rFlow"); if(sel&&sel.options.length>1){
@@ -5821,7 +5821,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=292;
+  const BUILD=293;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
