@@ -337,6 +337,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **A pace is per something, and the something depends on the machine.** `paceOf()`:
   row and ski per 500m, a bike per 1000, a runner per kilometre. `2:57.0/km` for a
   runner and `1:28.5/500` for a rower, on the same row.
+- **The room left over belongs to the numbers.** With the name column as the only
+  flexible track it swallowed everything a wide screen had spare — a third of the board
+  was empty between "TEAM 2" and the first figure, and the figures were squeezed into
+  what was left. The name gets `W.who` px and every machine column is a
+  `minmax(Wpx,1fr)`, so the slack is shared by the values. `fitLaneCols()` reads the
+  BOARD's own width, never the parent's: `#tvFit` still carries the width the last fit
+  authored, and a stale number lets the tracks overflow a phone.
+- **Read from across the gym.** The board is scaled to fill the screen, so what makes a
+  number big is not its pixel size but its share of the row: distance and score are the
+  headline (46/56px against a 104px row), the pace-and-calorie line serves under it.
+- **A board of zeros says nothing about how it will look.** `cfg.display.demo` (Layout >
+  Display > Sample numbers, on by default) draws plausible figures while nothing has
+  started — the same every time, since a preview that flickers is not a preview — and
+  `demoOn()` is false the instant a session is live, so a real board can never show a
+  made-up number. `permach.js` gates both halves.
 - **Only the columns that fit.** `fitLaneCols()` owns `--lanecols` for the head AND
   the lanes together — it tries each size set from TV down and only a screen too
   narrow to carry the machines at all falls back to who + score. A heading and its

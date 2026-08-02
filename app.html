@@ -1246,27 +1246,29 @@
   body.bigscreen:not(.mobscreen){--lanecols:5.5% minmax(0,1fr) 9% 9% 7% 5.5% 12%}
   body.bigscreen:not(.mobscreen) .rank{font-size:44px}
   body.bigscreen:not(.mobscreen) .team{font-size:32px}
-  body.bigscreen:not(.mobscreen) .loc{font-size:15px}
-  body.bigscreen:not(.mobscreen) .hero{font-size:44px}
-  /* on the wall the numbers are the point: give them the size */
-  body.bigscreen:not(.mobscreen) .mgc b{font-size:34px}
-  body.bigscreen:not(.mobscreen) .mgc b.none{font-size:28px}
-  body.bigscreen:not(.mobscreen) .mgc b.onit{font-size:16px}
-  body.bigscreen:not(.mobscreen) .mgc span{font-size:17px}
-  body.bigscreen:not(.mobscreen) .mgc{gap:5px}
-  body.bigscreen:not(.mobscreen) .hgrp{font-size:14px;letter-spacing:.24em;color:var(--ink-dim)}
-  /* A BOARD SOMEBODY PHOTOGRAPHS. The leader is unmistakable, the score is the loudest
-     thing on the row, and the crawling progress bar — a live element on a board that
-     has none — comes off the wall entirely. */
+  /* READ FROM ACROSS THE GYM. The board is scaled to fill the screen, so what makes a
+     number big is not its pixel size but the share of the row it takes. These are the
+     proportions: the distance and the score are the headline, everything else serves. */
+  body.bigscreen:not(.mobscreen) .hero{font-size:56px;line-height:1}
+  body.bigscreen:not(.mobscreen) .hero small{font-size:16px}
+  body.bigscreen:not(.mobscreen) .mgc b{font-size:46px;line-height:1}
+  body.bigscreen:not(.mobscreen) .mgc b em{font-size:.42em}
+  body.bigscreen:not(.mobscreen) .mgc b.none{font-size:34px}
+  body.bigscreen:not(.mobscreen) .mgc b.onit{font-size:19px}
+  body.bigscreen:not(.mobscreen) .mgc span{font-size:20px}
+  body.bigscreen:not(.mobscreen) .mgc{gap:6px}
+  body.bigscreen:not(.mobscreen) .hgrp{font-size:16px;letter-spacing:.22em;color:var(--ink-dim)}
+  body.bigscreen:not(.mobscreen) .board-head{padding-bottom:18px}
   body.bigscreen:not(.mobscreen) .lane .track{display:none}
-  body.bigscreen:not(.mobscreen) .rank{font-size:46px}
+  body.bigscreen:not(.mobscreen) .rank{font-size:52px}
   body.bigscreen:not(.mobscreen) .lane.leader .rank span{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .lane .hero{color:var(--ink)}
   body.bigscreen:not(.mobscreen) .lane.leader .hero{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .lane.leader{background:linear-gradient(90deg,
     color-mix(in srgb,var(--accent) 13%,transparent),transparent 62%)}
   body.bigscreen:not(.mobscreen) .lane:nth-child(even){background-color:rgba(255,255,255,.018)}
-  body.bigscreen:not(.mobscreen) .team{font-size:30px}
+  body.bigscreen:not(.mobscreen) .team{font-size:34px}
+  body.bigscreen:not(.mobscreen) .loc{font-size:16px;margin-top:5px}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
@@ -1689,6 +1691,7 @@
               <label class="chk"><input type="checkbox" data-d="rate"   checked> Rate</label>
               <label class="chk"><input type="checkbox" data-d="metres"> Metres</label>
               <label class="chk"><input type="checkbox" data-d="cals" checked> Calories</label>
+              <label class="chk"><input type="checkbox" data-d="demo"> Sample numbers</label>
             </div>
           </div>
           <div class="fld"><label>Accent colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"></div>
@@ -2711,12 +2714,14 @@
   // ONE TEMPLATE FOR THE HEAD AND THE LANES, sized to the room there is. The machines
   // are the board; only a screen too narrow to carry them at all falls back to the
   // score alone. Never put a --lanecols in a media query: CSS cannot count the ergs.
-  const LCW={rank:56,who:250,mach:170,score:126};
-  const LCW_TV={rank:70,who:330,mach:224,score:180};
+  const LCW={rank:52,who:230,mach:172,score:150};
+  const LCW_TV={rank:62,who:250,mach:196,score:196};
   const LCW_SM={rank:26,who:104,mach:96,score:74};
   function fitLaneCols(){
     const bd=$("board"); if(!bd) return;
-    const w=bd.clientWidth||bd.getBoundingClientRect().width||0;
+    // the board's OWN width: its parent may still carry an authored width from the
+    // last time the picture was fitted, and a stale number lets the tracks overflow
+    const w=bd.clientWidth||0;
     if(!w) return;
     const tv=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen");
     const sets=tv?[[LCW_TV,20],[LCW,16],[LCW_SM,8]]:(w<640?[[LCW_SM,8]]:[[LCW,16],[LCW_SM,8]]);
@@ -2726,22 +2731,39 @@
     for(const [W,gap] of sets){ if(n&&need(W,gap,true)<=w){ pick=[W,gap,true]; break; } }
     if(!pick){ const [W,gap]=sets[sets.length-1]; pick=[W,gap,false]; }
     const [W,gap,mach]=pick;
+    // THE ROOM LEFT OVER BELONGS TO THE NUMBERS. With the name column as the only
+    // flexible track it swallowed everything a wide screen had going spare — a third
+    // of the board was empty between "TEAM 2" and the first figure, and the figures
+    // were squeezed into what was left. The name gets what a name needs; every
+    // machine column shares the rest.
     bd.style.setProperty("--lanecols",
-      [W.rank+"px","minmax(0,1fr)"].concat(mach?headTypes.map(()=>W.mach+"px"):[])
+      [W.rank+"px",mach?W.who+"px":"minmax(0,1fr)"]
+        .concat(mach?headTypes.map(()=>`minmax(${W.mach}px,1fr)`):[])
         .concat([W.score+"px"]).join(" "));
     bd.style.setProperty("--lanegap",gap+"px");
     bd.classList.toggle("no-mach",!mach);
-    // the instant metrics are gone from this board for good
     ["split","avg","watts","rate"].forEach(k=>bd.classList.add("no-"+k));
   }
+
+  // SAMPLE NUMBERS, so the trainer can see the board before a class ever runs. They
+  // are drawn only while nothing has started, they are the same every time (a board
+  // that flickers is not a preview), and the first real metre wipes them out.
+  const demoOn=()=>!!(cfg.display&&cfg.display.demo)&&!sessionActive&&!running&&!finished;
+  const DEMO={Run:[1180,178],Row:[1420,108],Ski:[1180,116],Bike:[2600,102],Echo:[2400,106]};
+  const demoFor=(e,t)=>{ const i=e.id||0, [m0,p0]=DEMO[t]||[1200,112];
+    const m=Math.round(m0*(1-i*0.055)), sec=p0*(1+i*0.035);
+    return {m, cals:Math.round(m/13.5), wM:m, wT:sec*m/((PACE[t]||[500])[0]) };};
+  const demoScore=e=>Math.max(0,Math.round(214-(e.id||0)*17));
 
   function renderLanesRot(){
     if(cfg.mode!=="rotation") return;
     const d=cfg.display;
-    const orderArr=[...ergs].sort((a,b)=>(b.score+b.blockCals)-(a.score+a.blockCals));
+    const demo=demoOn();
+    const orderArr=[...ergs].sort((a,b)=>demo?(a.id-b.id)
+      :(b.score+b.blockCals)-(a.score+a.blockCals));
     orderArr.forEach((e,idx)=>{
       e.el.style.transform=`translateY(${idx*ROW}px)`;
-      e.el.classList.toggle("leader", idx===0&&sessionActive);
+      e.el.classList.toggle("leader", idx===0&&(sessionActive||demo));
       e.el.classList.toggle("scoring", running&&!!e.hot);
       const rs=e.el.querySelector(".rank span");
       rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
@@ -2779,13 +2801,13 @@
       const pct = running ? clamp(rot.elapsed/Math.max(1,bl)*100,0,100) : (finished?100:0);
       e.el.querySelector(".fill").style.width=pct+"%";
       e.el.querySelector(".fill").style.background = (running&&e.hot)?"var(--hot)":e.color;
-      const val=e.score+e.blockCals;
+      const val=demo?demoScore(e):(e.score+e.blockCals);
       e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${scoreUnit()}</small>`;
       const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
       // WHAT THEY DID ON EACH MACHINE, under that machine's own heading — and only
       // once they are off it. The machine they are on right now says so instead.
       headTypes.forEach(t=>{
-        const b=(e.shown||{})[t], pc=paceOf(t,b);
+        const b=demo?demoFor(e,t):(e.shown||{})[t], pc=paceOf(t,b);
         const on=running&&e.lastMach===t&&stationOf(e)>=0;
         put(`.mgc[data-t="${t}"]`, (b&&(b.m>0||b.cals>0))
           ? `<b>${Math.round(b.m)}<em>m</em></b>`
@@ -4923,6 +4945,8 @@
     // on once, for configs saved before there was anything to see.
     if(!cfg.display) cfg.display=structuredClone(DEFAULTS.display);
     if(!cfg.dispV){ cfg.display.metres=true; cfg.dispV=1; }
+    // a board of zeros tells the trainer nothing about how it will look
+    if(cfg.dispV<2){ cfg.display.demo=true; cfg.dispV=2; }
     if(cfg.rotation){
       if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
       if(!cfg.rotation.laps) cfg.rotation.laps=1;
@@ -5428,7 +5452,8 @@
       save(); syncCoLogo(); };
     syncCoLogo();
     document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
-      c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();}; });
+      c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();
+        if(!running&&!sessionActive) renderLanesRot(); }; });
     $("exportCfg").onclick=async()=>{
       const code=JSON.stringify(cfg);
       let copied=false;
@@ -5761,7 +5786,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=288;
+  const BUILD=289;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
