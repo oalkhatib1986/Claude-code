@@ -335,48 +335,45 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **What is being scored is the erg, so the board is a table of ERGS — and nothing
   else.** Watts, stroke rate and the split of this instant are a rowing computer's
   readout: they change four times a second, mean nothing from across a gym, and make
-  the board unphotographable. They are GONE from the rotation lane. What it carries is
-  what each team DID on each machine — distance, the pace they held, calories — plus
-  the score. `e.byType[t]` keeps the counters per machine; `machNow()` resolves which
-  erg a crew is on (one type on the part is the answer; where a part splits people
-  across ergs the crew's own slot in `machSlots()` decides).
+  the board unphotographable. They are GONE from the rotation lane. `e.byType[t]`
+  keeps the counters per machine; `machNow()` resolves which erg a crew is on (one
+  type on the part is the answer; where a part splits people across ergs the crew's
+  own slot in `machSlots()` decides).
 - **A station's numbers land when the athlete leaves it.** A total that ticks upward
   while somebody is still pulling is a live readout by another name. The counters run
   continuously but the board reads `e.shown`, published by `publishMach()` when the
   crew changes machine, by `publishAll()` at every block end, and once more when the
-  session saves. The machine they are on right now says `On it` — never a
-  half-finished total.
+  session saves.
+- **EVERY FIGURE THE SAME SIZE, IN ITS OWN COLUMN.** A leaderboard is read across, so
+  the numbers line up and match: distance, pace and calories for each erg are three
+  columns of the same figure (`.mv`, `--mvfs`), and so is the score. The unit is said
+  ONCE in the heading (`M` / `500` / `KM` / `CAL`) instead of being shrunk onto every
+  row — nothing in the data area is set small. The machine name spans its three
+  columns (`.hgrp`, `grid-column:span var(--mspan)`).
+- **A leaderboard is a table of results, not a route card.** Where a team is standing
+  right now belongs on the tablet in front of them and in the trainer's NOW/NEXT
+  panel. On the board it is a line of small print between the name and the numbers,
+  and the numbers are the point. The lane has no `.loc` and no progress `.track`;
+  every other mode shares that markup, so those writes are guarded.
+- **Size first, then how much.** `fitLaneCols()` walks a ladder of (column width,
+  figure size) tiers, largest first, and inside each tier tries 3 metrics, then 2,
+  then 1. A tier is only taken if its size clears `FLOOR[mk]` (22/26/30 on a TV) —
+  a number too small to read from the floor is not information, and a metric dropped
+  from a board that had room for it is not either. The tracks live inside the lane's
+  own padding, so the width it measures is the LANE's, minus that padding.
 - **A pace is per something, and the something depends on the machine.** `paceOf()`:
-  row and ski per 500m, a bike per 1000, a runner per kilometre. `2:57.0/km` for a
-  runner and `1:28.5/500` for a rower, on the same row.
-- **The room left over belongs to the numbers.** With the name column as the only
-  flexible track it swallowed everything a wide screen had spare — a third of the board
-  was empty between "TEAM 2" and the first figure, and the figures were squeezed into
-  what was left. The name gets `W.who` px and every machine column is a
-  `minmax(Wpx,1fr)`, so the slack is shared by the values. `fitLaneCols()` reads the
-  BOARD's own width, never the parent's: `#tvFit` still carries the width the last fit
-  authored, and a stale number lets the tracks overflow a phone.
-- **Read from across the gym.** The board is scaled to fill the screen, so what makes a
-  number big is not its pixel size but its share of the row: distance and score are the
-  headline (46/56px against a 104px row), the pace-and-calorie line serves under it.
+  row and ski per 500m, a bike per 1000, a runner per kilometre — said in the heading.
 - **A board of zeros says nothing about how it will look.** `cfg.display.demo` (Layout >
   Display > Sample numbers, on by default) draws plausible figures while nothing has
   started — the same every time, since a preview that flickers is not a preview — and
   `demoOn()` is false the instant a session is live, so a real board can never show a
   made-up number. `permach.js` gates both halves.
-- **Only the columns that fit.** `fitLaneCols()` owns `--lanecols` for the head AND
-  the lanes together — it tries each size set from TV down and only a screen too
-  narrow to carry the machines at all falls back to who + score. A heading and its
-  values are hidden by the SAME `no-*` class, or a number ends up under someone
-  else's title. Never put a `--lanecols` in a media query: CSS cannot count the ergs.
 - **The board is the picture people photograph.** The leader takes the accent — left
-  bar, tinted row, gold rank and score. The crawling progress bar comes off the wall
-  (`body.bigscreen .lane .track{display:none}`) because it is a live element on a
-  board that has none. The machine columns are ruled apart so the eye never carries a
-  number into the wrong one. The score heading is one word — the unit rides with the
-  number ("9 CAL"), and "TOTAL MAX-CAL SCORE" ellipsised itself to "TOTAL MAX-C…".
-  On a TV `.wrap` is 1820: a lane is a row of numbers per team and the workout board a
-  list of sentences, and 1560 suited neither. `permach.js` and `lanecols.js` gate it.
+  bar, tinted row, gold rank and score. The crawling progress bar is off the wall
+  entirely. The machine columns are ruled apart so the eye never carries a number into
+  the wrong one. On a TV `.wrap` is 1820: a lane is a row of numbers per team and the
+  workout board a list of sentences, and 1560 suited neither. `permach.js` and
+  `lanecols.js` gate it.
 - **The small print is one piece of small print.** `#siteFoot`: hairline, company name,
   then the year and the build as one line in one voice — same face, same size, same
   colour, one at each end. A version set in a wide mono at its own size read as a label
