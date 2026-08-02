@@ -130,6 +130,10 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   width, not a pixel count: 24px on an 1820 board and on a 1302 one are two different
   sizes to the eye. Measured at authored width, so it never chases `fitTvBoard`.
   `wallfit.js` gates it on 1920/2560/1366 and the phone preview.
+- **A slab is as tall as the work it holds.** `.exg.pnow` shared a `height:8px` rule
+  with `.bprog` — the running part was squashed to a stripe and painted its own light
+  ground straight across the words. A height that belongs to a progress bar belongs to
+  nothing else; `livebd.js` now measures the slab and fails if any line spills out.
 - **The running part is a slab, not a shade of grey.** `.exg.pnow` is a solid light
   ground with black type; `.exg.pnxt` is the same shape drawn in outline, so the pair
   reads as one control. The part's countdown is its own headline (`.bclk`, 52px on TV)

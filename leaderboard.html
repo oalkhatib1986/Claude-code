@@ -1302,7 +1302,9 @@
   body.wkscreen:not(.mobscreen) .blk .bclk b{font-size:52px}
   body.wkscreen:not(.mobscreen) .blk .bclk i{font-size:18px}
   body.wkscreen:not(.mobscreen) .blk .bwhere{font-size:22px;letter-spacing:.18em;margin-top:-8px}
-  body.wkscreen:not(.mobscreen) .exg.pnow,
+  /* the PROGRESS BAR is 8px tall. The running part is a slab and is as tall as the
+     work it contains — sharing the rule forced it to 8px and painted its own white
+     ground straight across the words. */
   body.wkscreen:not(.mobscreen) .blk .bprog{height:8px}
   body.wkscreen:not(.mobscreen) .ptag{font-size:17px;padding:2px 13px;margin-right:12px}
   body.wkscreen:not(.mobscreen) .blk .win{font-size:24px;letter-spacing:.16em}
@@ -5786,7 +5788,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=289;
+  const BUILD=290;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
