@@ -223,6 +223,12 @@
     color:var(--ink-mute);white-space:nowrap}
   .mgc span em{font-style:normal;opacity:.62;margin-left:1px}
   .mgc.empty{opacity:.8}
+  /* the machine they are ON is still counting: a quiet mark, so a settled total is
+     never mistaken for one that is still climbing */
+  .mgc.live b{color:var(--accent)}
+  .mgc.live span::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--accent);margin-left:8px;vertical-align:middle;animation:mgcp 1.6s ease-in-out infinite}
+  @keyframes mgcp{0%,100%{opacity:.25}50%{opacity:1}}
   #board.no-mach .hgrp,#board.no-mach .mgc,
   #board.no-split .hsplit,#board.no-split .msplit,
   #board.no-avg .havg,#board.no-avg .mavg,
@@ -284,7 +290,7 @@
     align-items:center;justify-content:center;overflow:hidden}
   .tk-logo img{height:186%;width:auto;max-width:none;display:block}
   .tk-mach{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;
-    font-size:clamp(26px,7vw,44px);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;line-height:1}
+    font-size:clamp(26px,7vw,44px);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;line-height:1.14}
   .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(20px,5.2vw,34px);
     letter-spacing:.03em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1}
   .tk-who.unnamed{color:rgba(0,0,0,.35)}
@@ -413,7 +419,7 @@
   .tk.hot .tk-head{background:rgba(255,45,45,.12);color:#c81111}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase}
-  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
+  .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.16;
     letter-spacing:.03em;text-transform:uppercase;color:rgba(0,0,0,.5);padding:0 15px;margin:0 -15px;align-self:stretch}
   .tk-goal{display:flex;align-items:baseline;gap:11px;min-width:0}
   .tk-goal b{font-family:var(--mono);font-weight:700;font-size:clamp(42px,11.5vw,86px);line-height:.95;
@@ -446,7 +452,7 @@
   .tk-vit>div{padding:12px 7px 14px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
   .tk-vit>div:first-child{border-left:none}
   .tk-vit .opt{display:none}
-  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(20px,5vw,38px);
+  .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(20px,5vw,38px);line-height:1.16;
     line-height:1.02;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
   .tk.hot .tk-vit b{color:#c81111}
   .tk-vit span{display:block;margin-top:5px;font-family:var(--disp);font-weight:600;
@@ -2807,17 +2813,18 @@
       e.el.querySelector(".hero").innerHTML=`${Math.round(val)}<small> ${scoreUnit()}</small>`;
       const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
       // WHAT THEY DID ON EACH MACHINE, under that machine's own heading — and only
-      // once they are off it. The machine they are on right now says so instead.
+      // once they are off it. Nothing on this board moves while somebody is pulling:
+      // the machine they are on says so, and its numbers land when they leave it.
       headTypes.forEach(t=>{
         const b=demo?demoFor(e,t):(e.shown||{})[t], pc=paceOf(t,b);
-        const on=running&&e.lastMach===t&&stationOf(e)>=0;
-        put(`.mgc[data-t="${t}"]`, (b&&(b.m>0||b.cals>0))
+        const on=running&&!demo&&e.lastMach===t&&stationOf(e)>=0;
+        const got=!!(b&&(b.m>0||b.cals>0));
+        put(`.mgc[data-t="${t}"]`, got
           ? `<b>${Math.round(b.m)}<em>m</em></b>`
             +`<span>${pc?fmtSplit(pc.t)+`<em>${pc.lab}</em>`+" \u00b7 ":""}${Math.round(b.cals)}<em>cal</em></span>`
           : (on?`<b class="onit">On it</b>`:`<b class="none">\u2013</b>`));
         const c=e.el.querySelector(`.mgc[data-t="${t}"]`);
-        if(c){ c.classList.toggle("live",on&&!(b&&(b.m>0||b.cals>0)));
-               c.classList.toggle("empty",!(b&&(b.m>0||b.cals>0))); }
+        if(c){ c.classList.toggle("live",on); c.classList.toggle("empty",!got); }
       });
     });
   }
@@ -3873,7 +3880,10 @@
       el.style.fontSize="";
       let fs=parseFloat(getComputedStyle(el).fontSize);
       let floor=el.tagName==="B"?12:9;
-      while(fs>floor&&el.scrollWidth>el.clientWidth){ fs-=1; el.style.fontSize=fs+"px"; }
+      // a value that stops exactly at its own edge reads as touching the one beside
+      // it — "2:11.8 2:10.9 153" ran together as one number. Keep a gutter.
+      const pad=el.tagName==="B"?8:4;
+      while(fs>floor&&el.scrollWidth>el.clientWidth-pad){ fs-=1; el.style.fontSize=fs+"px"; }
     });
     // the work list shrinks to whatever the block needs — a 4-part block must
     // still show every line rather than clip the tail off the bottom
@@ -3885,9 +3895,14 @@
         nw.style.gap="";
         // measure by rects: a centred flex column overflows both ends, and
         // scrollHeight silently under-reports that
+        // MEASURE THE HEIGHT, NOT ONLY THE WIDTH. .tk-now clips its own overflow, so
+        // a list too tall for it never reached wk.scrollHeight and the rects of a
+        // centred column read as inside the box — four lines of work were simply cut
+        // off at the bottom and nothing here noticed.
         const over=()=>{ const r=nw.getBoundingClientRect();
-          return els.some(e=>{ const q=e.getBoundingClientRect();
-            return q.top<r.top-.5||q.bottom>r.bottom+.5||e.scrollWidth>e.clientWidth+1; })
+          return nw.scrollHeight>nw.clientHeight+1
+            ||els.some(e=>{ const q=e.getBoundingClientRect();
+              return q.top<r.top-.5||q.bottom>r.bottom+.5||e.scrollWidth>e.clientWidth+1; })
             ||nw.scrollWidth>nw.clientWidth+1||wk.scrollHeight>wk.clientHeight+1; };
         const size=()=>parseFloat(getComputedStyle(els[0]).fontSize);
         const set=v=>els.forEach(e=>e.style.fontSize=v+"px");
@@ -5788,7 +5803,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=290;
+  const BUILD=291;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

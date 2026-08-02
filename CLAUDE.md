@@ -294,7 +294,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   different shape, so a picked board was stamped BEFORE its defaults existed: one
   reload later `seedSig` no longer matched and the copy read as edited, which is why
   a corrected board never actually reached it. `reseed.js` gates both.
-- **A tap must survive the redraw.** `renderTablet()` repaints four times every two
+- **Text fits by SHRINKING, and height counts as fitting.** `fitTbText()` grows the
+  work list into whatever room the block leaves and pulls it back until it fits — but
+  `over()` only ever compared widths, and `.tk-now` clips its own overflow, so a
+  four-part block was simply cut off at the bottom and nothing noticed. It now tests
+  `scrollHeight` too. A value that stops exactly at its own edge reads as touching the
+  one beside it ("2:11.8 2:10.9 153" ran together), so the fit keeps an 8px gutter. And
+  a line box has to contain its own glyphs: `line-height:1` on a 46px display face left
+  the descenders outside the box for `overflow:hidden` to clip. `tabfit2.js` walks
+  phone/sideways/desktop × pre/running × normal/long names × tablet/phone view. `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons
   silently did nothing. `#tbScreen` records the last pointer event and `renderTablet`
