@@ -1028,6 +1028,14 @@
   #updBar[hidden]{display:none}
   /* The footer signs the work: who owns it, and which build you are looking at.
      A hairline, two quiet lines, and the build number kept to one side. */
+  /* the workout this page is driving, said once at the top */
+  .wknow{display:flex;flex-direction:column;gap:3px;padding:0 0 13px;margin:0 0 13px;
+    border-bottom:1px solid var(--line-soft)}
+  .wknow b{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--ink);line-height:1.15;overflow-wrap:anywhere}
+  .wknow span{font-family:var(--disp);font-weight:600;font-size:11.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-mute)}
+  .wknow span:empty{display:none}
   .foot{margin-top:34px}
   .foot-rule{height:1px;background:linear-gradient(90deg,transparent,var(--line) 18%,
     var(--line) 82%,transparent)}
@@ -1519,6 +1527,7 @@
   <section class="view" id="viewTrainer">
     <div class="card" style="max-width:560px;margin:6px auto 0">
       <div class="body" style="padding-top:14px;padding-bottom:14px">
+        <div class="wknow"><b id="tcWk"></b><span id="tcWkSub"></span></div>
         <div class="teamsbar">
           <label id="tcLabel">Teams today</label>
           <span id="tcPick"></span>
@@ -4597,6 +4606,17 @@
   function syncTeamCount(){
     applyGymFit();
     syncErgless();
+    // THE TRAINER'S PAGE NAMES THE WORKOUT. The big screen carries it and the tablet
+    // carries it, but Control — the page the trainer actually stands on — said only
+    // how many teams there were, so there was nothing to check the board against.
+    { const w=$("tcWk"), sub=$("tcWkSub");
+      if(w) w.textContent=cfg.name||cfg.wkName||"Unsaved workout";
+      if(sub) sub.textContent=cfg.mode==="rotation"
+        ? `${nBlocks()} block${nBlocks()===1?"":"s"} \u00b7 `
+          +`${laps()} round${laps()!==1?"s":""} \u00b7 `
+          +(cfg.teamKind==="solo"?"solo":`${cfg.teamSize||4} per team`)
+          +` \u00b7 ${fmtLong(sessionTotal())}`
+        : ""; }
     const solo=cfg.teamKind==="solo";
     ["tcLabel","tcLabel2"].forEach(id=>{ const lb=$(id); if(lb) lb.textContent=solo?"Athletes today":"Teams today"; });
     { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
@@ -5942,7 +5962,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=296;
+  const BUILD=297;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

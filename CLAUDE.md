@@ -407,6 +407,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   the wrong one. On a TV `.wrap` is 1820: a lane is a row of numbers per team and the
   workout board a list of sentences, and 1560 suited neither. `permach.js` and
   `lanecols.js` gate it.
+- **The trainer's page names the workout it is driving.** The big screen carries it
+  and the tablet carries it, but Control — the page the trainer actually stands on —
+  said only how many teams there were, so there was nothing to check the board
+  against. `.wknow` heads Control > Session with `cfg.name` and the session's shape
+  (blocks · rounds · per team · total), kept in step by `syncTeamCount()`.
+  `ctlwk.js` gates it.
 - **The small print is one piece of small print.** `#siteFoot`: hairline, company name,
   then the year and the build as one line in one voice — same face, same size, same
   colour, one at each end. A version set in a wide mono at its own size read as a label
