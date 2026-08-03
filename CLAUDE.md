@@ -381,6 +381,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   is a white card with black type and it reads from anywhere in the gym, so the board
   is too. `#board` re-declares the ink variables on the TV, which flips names, rules,
   headings and figures together — never restyle them one at a time.
+- **A WALL SHOWS EIGHT TEAMS, NOT TWENTY.** Twenty rows on a 1080 screen is a 52px
+  row and type nobody can read from the floor. `fitRowH()` keeps the rows above
+  `PAGEAT` and, when the class is bigger than that allows, shows a page at a time —
+  `showPage()` hides the rest and turns the page every 7s, with `1–7 of 20` in the
+  head. The lane's place comes from `data-pos` (the rank it was given), never its DOM
+  order, so the pager and the sort cannot disagree.
+- **The row fills the board.** Every track a fixed pixel width left the slack piled up
+  after the last column as a block of empty white; the metric tracks are
+  `minmax(Npx,1fr)` so the figures share it out.
 - **A leaderboard gives up ROW HEIGHT before it gives up WIDTH.** Scaling the picture
   down to fit sixteen teams shrinks it sideways too and leaves black bars either side.
   `fitRowH()` shrinks `--rowH` to the room there is (floor 52px) and the type follows
