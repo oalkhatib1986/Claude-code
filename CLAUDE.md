@@ -368,6 +368,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   started — the same every time, since a preview that flickers is not a preview — and
   `demoOn()` is false the instant a session is live, so a real board can never show a
   made-up number. `permach.js` gates both halves.
+- **A scoreboard is LIGHT.** A wall of black on black is a screensaver; the erg tablet
+  is a white card with black type and it reads from anywhere in the gym, so the board
+  is too. `#board` re-declares the ink variables on the TV, which flips names, rules,
+  headings and figures together — never restyle them one at a time.
+- **A leaderboard gives up ROW HEIGHT before it gives up WIDTH.** Scaling the picture
+  down to fit sixteen teams shrinks it sideways too and leaves black bars either side.
+  `fitRowH()` shrinks `--rowH` to the room there is (floor 52px) and the type follows
+  it (`min(var(--mvfs),calc(var(--rowH)*.34))`), or a squeezed row draws outside its
+  own lane. The lanes are placed by transform, so `rowH()` reads the height the lane
+  is ACTUALLY drawn at — a hard-coded 92 against a 104px lane overlapped every row.
+- **The switches in Layout are the board's columns.** Split/Watts/Rate/Metres were
+  switches for a board that no longer exists and changed nothing at all. Layout >
+  Board display now offers Distance · Average pace · Calories (the three columns per
+  machine, `MK()`) and Sample numbers, and changing one rebuilds the head rather than
+  repainting the lanes. `dispsw.js` gates it.
 - **The board is the picture people photograph.** The leader takes the accent — left
   bar, tinted row, gold rank and score. The crawling progress bar is off the wall
   entirely. The machine columns are ruled apart so the eye never carries a number into

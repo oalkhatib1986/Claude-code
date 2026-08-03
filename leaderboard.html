@@ -221,7 +221,8 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hsub.hwho{text-align:left}
   .hsub.hscore{text-align:right}
-  .mv{font-family:var(--disp);font-weight:700;font-size:var(--mvfs,26px);line-height:1.14;
+  .mv{font-family:var(--disp);font-weight:700;line-height:1.14;
+    font-size:min(var(--mvfs,26px),calc(var(--rowH,92px)*.34));
     text-align:center;font-variant-numeric:tabular-nums;color:var(--ink);
     white-space:nowrap;min-width:0}
   .mv.none{color:var(--ink-mute);opacity:.35;font-weight:500}
@@ -230,8 +231,9 @@
   .board-head .hsub.md{border-left:1px solid transparent}
   #board.no-mach .hgrp,#board.no-mach .hsub.md,#board.no-mach .hsub.mp,#board.no-mach .hsub.mc,
   #board.no-mach .mv,
-  #board.no-cal .hsub.mc,#board.no-cal .mv.mc,
-  #board.no-pace .hsub.mp,#board.no-pace .mv.mp,
+  #board.no-c .hsub.mc,#board.no-c .mv.mc,
+  #board.no-p .hsub.mp,#board.no-p .mv.mp,
+  #board.no-d .hsub.md,#board.no-d .mv.md,
   #board.no-split .hsplit,#board.no-split .msplit,
   #board.no-avg .havg,#board.no-avg .mavg,
   #board.no-watts .hwatts,#board.no-watts .mwatts,
@@ -245,7 +247,8 @@
   .mcol.k{color:var(--ink)}
   .mcol em{font-style:normal;font-size:11px;color:var(--ink-mute);margin-left:2px}
   .board-head .hcol{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hero{font-family:var(--disp);font-size:var(--mvfs,26px);font-weight:700;line-height:1.14;color:var(--accent);
+  .hero{font-family:var(--disp);font-weight:700;line-height:1.14;color:var(--accent);
+    font-size:min(var(--mvfs,26px),calc(var(--rowH,92px)*.34));
     letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
   .hero small{font-family:var(--disp);font-weight:600;font-size:11px;color:var(--ink-mute);letter-spacing:.14em;text-transform:uppercase;margin-left:2px}
   /* the numbers wrap onto a second line rather than being cut off mid-figure */
@@ -1236,6 +1239,12 @@
        neither — it cost the machine columns their room and pushed "20 reps" onto a
        line of its own. */
     body.bigscreen:not(.mobscreen) .wrap{max-width:1820px}
+    /* the leaderboard is a table: it takes the whole width the screen offers, and
+       the wider it is the bigger the figures fitLaneCols can choose */
+    body.bigscreen:not(.mobscreen):not(.wkscreen) .wrap{max-width:none}
+    /* the margin is for a real screen; the phone preview is already a frame inside a
+       frame and every pixel it loses comes off the picture */
+    body.bigscreen:not(.mobscreen):not(.wkscreen):not(.tvprev) .wrap{padding:0 26px}
   body.tvprev.wkscreen #viewBoard{padding-left:50px;padding-right:50px}
   /* on a TV the board is the whole picture: it carries the mark and centres itself */
   body.bigscreen:not(.mobscreen) .tvfit>.mark{flex:none;align-self:flex-start;margin:0 0 18px}
@@ -1263,14 +1272,38 @@
   body.bigscreen:not(.mobscreen) .hsub{font-size:14px}
   body.bigscreen:not(.mobscreen) .board-head{padding-bottom:16px;row-gap:6px}
   body.bigscreen:not(.mobscreen) .lane .track{display:none}
-  body.bigscreen:not(.mobscreen) .rank{font-size:46px}
+  /* THE ROW IS THE CEILING. With sixteen teams the rows shrink to keep the board on
+     the wall, and type that ignored that simply drew outside its own lane. */
+  body.bigscreen:not(.mobscreen) .rank{font-size:min(46px,calc(var(--rowH,104px)*.44))}
   body.bigscreen:not(.mobscreen) .lane.leader .rank span{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .lane .hero{color:var(--ink)}
   body.bigscreen:not(.mobscreen) .lane.leader .hero{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .lane.leader{background:linear-gradient(90deg,
     color-mix(in srgb,var(--accent) 13%,transparent),transparent 62%)}
   body.bigscreen:not(.mobscreen) .lane:nth-child(even){background-color:rgba(255,255,255,.018)}
-  body.bigscreen:not(.mobscreen) .team{font-size:36px}
+  body.bigscreen:not(.mobscreen) .team{font-size:min(36px,calc(var(--rowH,104px)*.35))}
+  /* A SCOREBOARD IS LIGHT. A whole wall of black on black is a screensaver; the erg
+     tablet is a white card with black type and it reads from anywhere in the gym, so
+     the board is too. The page stays dark and the board sits on it as a photograph
+     would. Everything inside runs off the ink variables, so flipping them flips the
+     table — names, rules, headings and figures together. */
+  body.bigscreen:not(.mobscreen) #board{
+    --ink:#0a0a0b; --ink-dim:rgba(10,10,11,.74); --ink-mute:rgba(10,10,11,.5);
+    --line:rgba(10,10,11,.14); --line-soft:rgba(10,10,11,.11);
+    background:#f4f4f5; border-color:rgba(255,255,255,.16);
+    box-shadow:0 28px 90px rgba(0,0,0,.55); padding:22px 20px 14px}
+  body.bigscreen:not(.mobscreen) #board .team{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .rank{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .lane:nth-child(even){background-color:rgba(10,10,11,.035)}
+  body.bigscreen:not(.mobscreen) #board .lane.leader{
+    background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 26%,transparent),
+      color-mix(in srgb,var(--accent) 6%,transparent) 70%)}
+  body.bigscreen:not(.mobscreen) #board .lane.leader .rank span,
+  body.bigscreen:not(.mobscreen) #board .lane.leader .team{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .lane .hero{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .lane.leader .hero{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .lane.leader::before{background:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .mv.live{color:#0a0a0b;opacity:.55}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
@@ -1688,13 +1721,15 @@
       <div class="card">
         <h3>Board display · Brand</h3>
         <div class="body">
-          <div class="fld"><label>Show under each score</label>
+          <div class="fld"><label>Columns for each machine</label>
             <div class="checks" id="dispChecks">
-              <label class="chk"><input type="checkbox" data-d="split"  checked> Split</label>
-              <label class="chk"><input type="checkbox" data-d="watts"  checked> Watts</label>
-              <label class="chk"><input type="checkbox" data-d="rate"   checked> Rate</label>
-              <label class="chk"><input type="checkbox" data-d="metres"> Metres</label>
+              <label class="chk"><input type="checkbox" data-d="dist" checked> Distance</label>
+              <label class="chk"><input type="checkbox" data-d="pace" checked> Average pace</label>
               <label class="chk"><input type="checkbox" data-d="cals" checked> Calories</label>
+            </div>
+          </div>
+          <div class="fld"><label>Before a session starts</label>
+            <div class="checks" id="dispChecks2">
               <label class="chk"><input type="checkbox" data-d="demo"> Sample numbers</label>
             </div>
           </div>
@@ -1971,6 +2006,12 @@
   const calRate=w=>(4*w*0.8604+300)/3600;
 
   const ROW=92;
+  // THE ROW HEIGHT IS WHATEVER THE CSS SAYS IT IS. The lanes are placed by transform
+  // and the container is sized by hand, so both have to use the SAME number the lane
+  // is actually drawn at — a hard-coded 92 against a 104px lane overlapped every row
+  // on the TV by twelve pixels.
+  const rowH=()=>{ const l=lanesEl&&lanesEl.firstElementChild;
+    return (l&&l.offsetHeight)||ROW; };
   let running=false, sessionActive=false, finished=false, t0=0, raf=0, ticker=0, ergs=[];
   const lanesEl=$("lanes"), clockEl=$("clock"), clockState=$("clockState"),
         startBtn=$("startBtn"), resetBtn=$("resetBtn");
@@ -2708,9 +2749,14 @@
   // heading rather than shrunk down and repeated on every row. Nothing on this board
   // is set small — a label is a label, a number is a number.
   let headTypes=[];
-  const MK=["d","p","c"];                       // distance · pace · calories
-  const laneCells=ts=>ts.map(t=>MK.map(k=>
-    `<div class="mv m${k}" data-t="${esc(t)}"></div>`).join("")).join("");
+  // distance · pace · calories — the trainer chooses which of them the board carries
+  const MKALL=[["d","dist"],["p","pace"],["c","cals"]];
+  const MK=()=>{ const d=cfg.display||{};
+    const on=MKALL.filter(([k,f])=>d[f]!==false).map(([k])=>k);
+    return on.length?on:["d"]; };
+  const laneCells=ts=>{ const mk=MK();
+    return ts.map(t=>mk.map(k=>
+      `<div class="mv m${k}" data-t="${esc(t)}"></div>`).join("")).join(""); };
   function buildBoardHead(){
     const h=$("boardHead"); if(!h) return;
     headTypes=cfg.mode==="rotation"?wkTypes().slice(0,5):[];
@@ -2719,10 +2765,10 @@
       `<span class="hgrp" data-t="${esc(t)}">${esc(mInfo(t).label)}</span>`).join("");
     // the heading carries the machine too, so a value can be checked against the
     // title it actually sits under, not the group label centred over all three
-    const sub=headTypes.map(t=>
-      `<span class="hsub md" data-t="${esc(t)}">m</span>`
-      +`<span class="hsub mp" data-t="${esc(t)}">${esc(paceLab(t))}</span>`
-      +`<span class="hsub mc" data-t="${esc(t)}">cal</span>`).join("");
+    const LAB={d:()=>"m",p:paceLab,c:()=>"cal"};
+    const mk=MK();
+    const sub=headTypes.map(t=>mk.map(k=>
+      `<span class="hsub m${k}" data-t="${esc(t)}">${esc(LAB[k](t))}</span>`).join("")).join("");
     h.innerHTML=
       `<span class="grank"></span><span class="gwho"></span>${grp}<span class="gscore">Score</span>`
       +`<span class="hsub"></span><span class="hsub hwho" id="rankHead">${esc(Kw())}</span>${sub}`
@@ -2755,28 +2801,30 @@
     const fams=tv?[[FRAME_TV,TIER_TV],[FRAME,TIER],[FRAME_SM,TIER_SM]]
                  :(w<640?[[FRAME_SM,TIER_SM]]:[[FRAME,TIER],[FRAME_SM,TIER_SM]]);
     const n=headTypes.length;
-    // ALL THREE METRICS, DOWN TO A SIZE THAT CAN STILL BE READ — and only then one
-    // fewer. A number too small to read from the floor is not information; a metric
-    // missing from a board that had room for it is not either. The floor rises as
-    // metrics are given up: if a board only carries two, they had better be big.
+    const keys=MK();
+    // EVERY METRIC THE TRAINER ASKED FOR, DOWN TO A SIZE THAT CAN STILL BE READ — and
+    // only then one fewer, from the end of the list. A number too small to read from
+    // the floor is not information; a metric missing from a board that had room for
+    // it is not either. The floor rises as metrics are given up: if a board only
+    // carries two, they had better be big.
     const FLOOR={3:22,2:26,1:30};
     let pick=null;
-    for(const mk of [3,2,1]){
+    for(let cnt=keys.length;cnt>=1;cnt--){
       for(const [F,tiers] of fams){
         for(const [mv,fs] of tiers){
-          const need=F.rank+F.who+F.score+n*mk*mv+F.gap*(2+n*mk);
-          if(n&&need<=w&&fs>=(tv?FLOOR[mk]:0)){ pick={F,mv,fs,mk}; break; }
+          const need=F.rank+F.who+F.score+n*cnt*mv+F.gap*(2+n*cnt);
+          if(n&&need<=w&&fs>=(tv?(FLOOR[cnt]||22):0)){ pick={F,mv,fs,mk:cnt}; break; }
         }
         if(pick) break;
       }
       if(pick) break;
     }
     if(!pick){ // nothing cleared the floor: take the biggest that simply fits
-      for(const mk of [3,2,1]){
+      for(let cnt=keys.length;cnt>=1;cnt--){
         for(const [F,tiers] of fams){
           for(const [mv,fs] of tiers){
-            const need=F.rank+F.who+F.score+n*mk*mv+F.gap*(2+n*mk);
-            if(n&&need<=w){ pick={F,mv,fs,mk}; break; }
+            const need=F.rank+F.who+F.score+n*cnt*mv+F.gap*(2+n*cnt);
+            if(n&&need<=w){ pick={F,mv,fs,mk:cnt}; break; }
           }
           if(pick) break;
         }
@@ -2786,6 +2834,7 @@
     // no machines at all: the score is the only figure left, so it takes the size
     if(!pick){ const [F]=fams[fams.length-1]; pick={F,mv:0,fs:tv?36:22,mk:0}; }
     const {F,mv,fs,mk}=pick;
+    const shown=keys.slice(0,mk);
     bd.style.setProperty("--lanecols",
       [F.rank+"px",mk?F.who+"px":"minmax(0,1fr)"]
         .concat(mk?headTypes.map(()=>Array(mk).fill(mv+"px").join(" ")):[])
@@ -2794,8 +2843,7 @@
     bd.style.setProperty("--mvfs",fs+"px");
     bd.style.setProperty("--mspan",String(mk||1));
     bd.classList.toggle("no-mach",!mk);
-    bd.classList.toggle("no-cal",mk<3);
-    bd.classList.toggle("no-pace",mk<2);
+    ["d","p","c"].forEach(k=>bd.classList.toggle("no-"+k,!shown.includes(k)));
   }
 
   // SAMPLE NUMBERS, so the trainer can see the board before a class ever runs. They
@@ -2815,7 +2863,7 @@
     const orderArr=[...ergs].sort((a,b)=>demo?(a.id-b.id)
       :(b.score+b.blockCals)-(a.score+a.blockCals));
     orderArr.forEach((e,idx)=>{
-      e.el.style.transform=`translateY(${idx*ROW}px)`;
+      e.el.style.transform=`translateY(${idx*rowH()}px)`;
       e.el.classList.toggle("leader", idx===0&&(sessionActive||demo));
       e.el.classList.toggle("scoring", running&&!!e.hot);
       const rs=e.el.querySelector(".rank span");
@@ -2842,7 +2890,7 @@
         put(`.md[data-t="${t}"]`,got?String(Math.round(b.m)):"\u2013");
         put(`.mp[data-t="${t}"]`,pc?fmtSplit(pc.t):"\u2013");
         put(`.mc[data-t="${t}"]`,got?String(Math.round(b.cals)):"\u2013");
-        MK.forEach(k=>{ const c=e.el.querySelector(`.m${k}[data-t="${t}"]`);
+        ["d","p","c"].forEach(k=>{ const c=e.el.querySelector(`.m${k}[data-t="${t}"]`);
           if(c){ c.classList.toggle("live",on&&!got); c.classList.toggle("none",!got); } });
       });
     });
@@ -2931,7 +2979,7 @@
     if(cfg.mode!=="sequence") return;
     const d=cfg.display, s=seg(), dir=SCORE[cfg.scoring.mode].lowBest?1:-1, unit=SCORE[cfg.scoring.mode].unit;
     [...ergs].sort((a,b)=>(seqScoreOf(a)-seqScoreOf(b))*dir).forEach((e,idx)=>{
-      e.el.style.transform=`translateY(${idx*ROW}px)`;
+      e.el.style.transform=`translateY(${idx*rowH()}px)`;
       e.el.classList.toggle("leader",idx===0&&(running||finished));
       const rs=e.el.querySelector(".rank span");
       rs.className= idx===0?"p1":idx===1?"p2":idx===2?"p3":""; rs.textContent=idx+1;
@@ -3050,7 +3098,7 @@
       return b.stageM-a.stageM;
     });
     orderArr.forEach((e,idx)=>{
-      e.el.style.transform=`translateY(${idx*ROW}px)`;
+      e.el.style.transform=`translateY(${idx*rowH()}px)`;
       e.el.classList.toggle("leader", idx===0&&sessionActive);
       e.el.classList.remove("scoring");
       const rs=e.el.querySelector(".rank span");
@@ -3107,7 +3155,7 @@
       (el.querySelector(".fill")||{style:{}}).style.background=e.color;
       lanesEl.appendChild(el); e.el=el;
     });
-    lanesEl.style.height=ROW*ergs.length+"px";
+    lanesEl.style.height=rowH()*ergs.length+"px";
     resetBtn.disabled=true;
     wavesReleased=0;
     if(cfg.mode==="rotation"){ buildRotationBoard(); renderLanesRot(); }
@@ -4982,6 +5030,12 @@
     if(!cfg.dispV){ cfg.display.metres=true; cfg.dispV=1; }
     // a board of zeros tells the trainer nothing about how it will look
     if(cfg.dispV<2){ cfg.display.demo=true; cfg.dispV=2; }
+    // SPLIT / WATTS / RATE / METRES were switches for a board that no longer exists.
+    // What the board has now is three columns per machine, so those are the switches.
+    if(cfg.dispV<3){ const d=cfg.display;
+      d.dist=d.metres!==false; d.pace=true; d.cals=d.cals!==false;
+      delete d.split; delete d.watts; delete d.rate; delete d.metres;
+      cfg.dispV=3; }
     if(cfg.rotation){
       if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
       if(!cfg.rotation.laps) cfg.rotation.laps=1;
@@ -5486,9 +5540,10 @@
       if(!cfg.collab) cfg.coLogo=null;
       save(); syncCoLogo(); };
     syncCoLogo();
-    document.querySelectorAll("#dispChecks input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
-      c.onchange=()=>{cfg.display[c.dataset.d]=c.checked;save();
-        if(!running&&!sessionActive) renderLanesRot(); }; });
+    document.querySelectorAll("#dispChecks input,#dispChecks2 input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
+      c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save();
+        // a switch on the board's columns has to rebuild the head, not just repaint
+        buildBoardHead(); renderLanesRot(); }; });
     $("exportCfg").onclick=async()=>{
       const code=JSON.stringify(cfg);
       let copied=false;
@@ -5821,7 +5876,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=293;
+  const BUILD=294;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -5861,6 +5916,25 @@
   // vertical centring is applied as an explicit translate.
   // The room we were given is remembered ON the element: this runs before the
   // closure's own initialisers do, so a module-level `let` would be in its dead zone.
+  // A LEADERBOARD GIVES UP ROW HEIGHT BEFORE IT GIVES UP WIDTH. Scaling the whole
+  // picture down to fit sixteen teams shrinks it sideways too, and the board stops
+  // filling the screen — a table of numbers with black bars either side. The rows
+  // shrink instead, down to a floor, and the picture keeps the wall.
+  function fitRowH(A){
+    const bd=$("board"), lanes=$("lanes"), f=$("tvFit");
+    if(!bd||!lanes||!f) return;
+    if(document.body.classList.contains("wkscreen")
+       ||!document.body.classList.contains("bigscreen")
+       ||document.body.classList.contains("mobscreen")){ bd.style.removeProperty("--rowH"); return; }
+    const n=lanes.children.length; if(!n||!(A>0)) return;
+    bd.style.removeProperty("--rowH");
+    const rest=f.scrollHeight-lanes.clientHeight;      // everything that is not lanes
+    const room=Math.max(0,A-rest-6);
+    const h=Math.max(52,Math.min(112,Math.floor(room/n)));
+    bd.style.setProperty("--rowH",h+"px");
+    lanes.style.height=(h*n)+"px";
+    [...lanes.children].forEach((el,i)=>{ el.style.transform=`translateY(${i*h}px)`; });
+  }
   function fitTvBoard(availH){
     const f=$("tvFit"); if(!f) return;
     if(availH>0) f._avail=availH;
@@ -5868,6 +5942,7 @@
     f.style.transform=""; f.style.width="";
     if(!(A>0)||!document.body.classList.contains("bigscreen")
        ||document.body.classList.contains("mobscreen")) return;
+    fitRowH(A);
     const need=f.scrollHeight; if(!need) return;
     const k=Math.min(1,A/need);
     const dy=Math.max(0,(A-need*k)/2);
@@ -5906,6 +5981,7 @@
     const f=$("tvFit"); if(!f||!(cw>0)||!(ch>0)) return;
     f._fill=[cw,ch];
     f.style.transform=""; f.style.width=cw+"px";
+    fitRowH(ch);
     let W=cw;
     for(let i=0;i<4;i++){
       const H=f.scrollHeight; if(!(H>0)) return;
