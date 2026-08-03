@@ -213,22 +213,30 @@
   .gscore{font-family:var(--disp);font-weight:600;font-size:inherit;letter-spacing:.2em;
     text-transform:uppercase;color:var(--ink-dim);text-align:right;white-space:nowrap;
     padding-bottom:4px;border-bottom:1px solid var(--line-soft)}
-  .hgrp{grid-column:span var(--mspan,3);text-align:center;color:var(--ink-dim);
-    letter-spacing:.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    padding-bottom:4px;border-bottom:1px solid var(--line-soft)}
-  .hsub{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.16em;
+  /* NOT A SPREADSHEET. No grid of hairlines and no grey micro-labels: the machine
+     wears its name as a chip, its three figures sit under it with air either side,
+     and every team is a card of its own. What separates one erg from the next is
+     SPACE, not a rule. */
+  .hgrp{grid-column:span var(--mspan,3);justify-self:center;align-self:end;
+    background:var(--ink);color:var(--bg);border-radius:999px;
+    padding:5px 15px 6px;letter-spacing:.16em;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .gscore{justify-self:center;align-self:end;background:var(--accent);color:#08130a;
+    border-radius:999px;padding:5px 15px 6px;letter-spacing:.16em;white-space:nowrap;
+    font-family:var(--disp);font-weight:700;font-size:inherit;text-transform:uppercase}
+  .hsub{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.12em;
     text-transform:uppercase;color:var(--ink-mute);text-align:center;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hsub.hwho{text-align:left}
-  .hsub.hscore{text-align:right}
+  .hsub.hwho{text-align:left;letter-spacing:.2em}
+  .hsub.hscore{text-align:center;letter-spacing:.2em}
   .mv{font-family:var(--disp);font-weight:700;line-height:1.14;
     font-size:min(var(--mvfs,26px),calc(var(--rowH,92px)*.34));
     text-align:center;font-variant-numeric:tabular-nums;color:var(--ink);
     white-space:nowrap;min-width:0}
-  .mv.none{color:var(--ink-mute);opacity:.35;font-weight:500}
+  .mv.none{color:var(--ink-mute);opacity:.3;font-weight:500}
   .mv.live{color:var(--accent);opacity:.9}
-  .mv.md{border-left:1px solid var(--line-soft)}
-  .board-head .hsub.md{border-left:1px solid transparent}
+  /* the space that opens a new machine, in the head and on every lane alike */
+  .mv.md,.board-head .hsub.md{padding-left:calc(var(--lanegap,16px)*1.1)}
   #board.no-mach .hgrp,#board.no-mach .hsub.md,#board.no-mach .hsub.mp,#board.no-mach .hsub.mc,
   #board.no-mach .mv,
   #board.no-c .hsub.mc,#board.no-c .mv.mc,
@@ -1292,17 +1300,40 @@
     --line:rgba(10,10,11,.14); --line-soft:rgba(10,10,11,.11);
     background:#f4f4f5; border-color:rgba(255,255,255,.16);
     box-shadow:0 28px 90px rgba(0,0,0,.55); padding:22px 20px 14px}
+  body.bigscreen:not(.mobscreen) #board{--bg:#f4f4f5}
   body.bigscreen:not(.mobscreen) #board .team{color:#0a0a0b}
+  /* EVERY TEAM IS A CARD. Transparent borders give the rows air without moving the
+     lane's own box, which is what the transform positions them by. */
+  body.bigscreen:not(.mobscreen) #board .lane{
+    border-top:5px solid transparent;border-bottom:5px solid transparent;
+    background-clip:padding-box;border-radius:16px;background-color:#fff;
+    box-shadow:0 1px 0 rgba(10,10,11,.05)}
+  body.bigscreen:not(.mobscreen) #board .lane:nth-child(even){background-color:#fafafb}
+  body.bigscreen:not(.mobscreen) #board .lane::after{display:none}
+  /* the rank is a badge, and the podium wears it in colour */
   body.bigscreen:not(.mobscreen) #board .rank{color:#0a0a0b}
-  body.bigscreen:not(.mobscreen) #board .lane:nth-child(even){background-color:rgba(10,10,11,.035)}
+  body.bigscreen:not(.mobscreen) #board .rank span{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:calc(var(--rowH,104px)*.54);height:calc(var(--rowH,104px)*.54);
+    border-radius:14px;background:rgba(10,10,11,.06);line-height:1;padding:0 6px}
+  body.bigscreen:not(.mobscreen) #board .lane:nth-child(1) .rank span{background:var(--accent);color:#08130a}
+  body.bigscreen:not(.mobscreen) #board .lane:nth-child(2) .rank span{background:rgba(10,10,11,.14)}
+  body.bigscreen:not(.mobscreen) #board .lane:nth-child(3) .rank span{background:rgba(10,10,11,.09)}
+  /* the leader is unmistakable: a wash of the accent and a bar down its edge */
   body.bigscreen:not(.mobscreen) #board .lane.leader{
-    background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 26%,transparent),
-      color-mix(in srgb,var(--accent) 6%,transparent) 70%)}
+    background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 30%,#fff),
+      color-mix(in srgb,var(--accent) 7%,#fff) 68%)}
+  body.bigscreen:not(.mobscreen) #board .lane.leader::before{
+    background:#0a0a0b;left:0;top:12px;bottom:12px;width:5px;border-radius:0 4px 4px 0}
   body.bigscreen:not(.mobscreen) #board .lane.leader .rank span,
   body.bigscreen:not(.mobscreen) #board .lane.leader .team{color:#0a0a0b}
-  body.bigscreen:not(.mobscreen) #board .lane .hero{color:#0a0a0b}
-  body.bigscreen:not(.mobscreen) #board .lane.leader .hero{color:#0a0a0b}
-  body.bigscreen:not(.mobscreen) #board .lane.leader::before{background:#0a0a0b}
+  /* the score is the loudest thing on the row */
+  /* the score block fills its column, so the heading sits over its middle like
+     every other column on the board */
+  body.bigscreen:not(.mobscreen) #board .data{display:block}
+  body.bigscreen:not(.mobscreen) #board .lane .hero{color:#fff;background:#0a0a0b;
+    border-radius:12px;padding:6px 10px;display:block;width:100%;text-align:center}
+  body.bigscreen:not(.mobscreen) #board .lane.leader .hero{background:var(--accent);color:#08130a}
   body.bigscreen:not(.mobscreen) #board .mv.live{color:#0a0a0b;opacity:.55}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
@@ -2284,9 +2315,12 @@
   const publishMach=e=>{ e.shown=structuredClone(e.byType||{}); };
   const publishAll=()=>ergs.forEach(publishMach);
   // Row and ski are read per 500m, a bike per 1000, a runner per kilometre.
-  const PACE={Row:[500,"/500"],Ski:[500,"/500"],Bike:[1000,"/1000"],Run:[1000,"/km"],Echo:[1000,"/km"]};
+  // THE UNIT IS WHATEVER THE MACHINE'S OWN CONSOLE CALLS IT — a rower says /500m, a
+  // BikeErg says /1000m, a runner says /km. Nothing here is invented.
+  const PACE={Row:[500,"/500m"],Ski:[500,"/500m"],Bike:[1000,"/1000m"],
+              Run:[1000,"/km"],Echo:[1000,"/km"]};
   const paceOf=(t,b)=>{ if(!b||!(b.wM>0)||!(b.wT>0)) return null;
-    const [per,lab]=PACE[t]||[500,"/500"];
+    const [per,lab]=PACE[t]||[500,"/500m"];
     return {t:per*b.wT/b.wM, lab}; };
   // the machines this workout actually uses, in the order the floor is walked
   const wkTypes=()=>{ const out=[];
@@ -2760,12 +2794,12 @@
   function buildBoardHead(){
     const h=$("boardHead"); if(!h) return;
     headTypes=cfg.mode==="rotation"?wkTypes().slice(0,5):[];
-    const paceLab=t=>((PACE[t]||[500,"/500"])[1]).replace("/","").toUpperCase();
+    const paceLab=t=>(PACE[t]||[500,"/500m"])[1];
     const grp=headTypes.map(t=>
       `<span class="hgrp" data-t="${esc(t)}">${esc(mInfo(t).label)}</span>`).join("");
     // the heading carries the machine too, so a value can be checked against the
     // title it actually sits under, not the group label centred over all three
-    const LAB={d:()=>"m",p:paceLab,c:()=>"cal"};
+    const LAB={d:()=>"metres",p:paceLab,c:()=>"cal"};
     const mk=MK();
     const sub=headTypes.map(t=>mk.map(k=>
       `<span class="hsub m${k}" data-t="${esc(t)}">${esc(LAB[k](t))}</span>`).join("")).join("");
@@ -5876,7 +5910,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=294;
+  const BUILD=295;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

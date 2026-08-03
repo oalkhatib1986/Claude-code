@@ -361,8 +361,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   a number too small to read from the floor is not information, and a metric dropped
   from a board that had room for it is not either. The tracks live inside the lane's
   own padding, so the width it measures is the LANE's, minus that padding.
-- **A pace is per something, and the something depends on the machine.** `paceOf()`:
-  row and ski per 500m, a bike per 1000, a runner per kilometre — said in the heading.
+- **A pace is per something, and the unit is WHATEVER THE MACHINE'S OWN CONSOLE SAYS.**
+  `PACE`: a rower and a ski say `/500m`, a BikeErg says `/1000m`, a runner says `/km`.
+  Never invent a unit or abbreviate one into something the athlete has to decode —
+  `M` over `500` read as neither. The heading spells them: `METRES · /500M · CAL`.
+- **A board is not a spreadsheet.** No grid of hairlines and no grey micro-labels:
+  the machine wears its name as a CHIP over its own figures, what separates one erg
+  from the next is space (`.mv.md` padding) rather than a rule, every team is a card
+  (`.lane` with transparent borders so the transform still positions it), the rank is
+  a badge that goes accent for the leader, and the score is a filled block filling its
+  column. A heading sits over the MIDDLE of what it heads, which is why the score
+  block spans its track instead of hugging the edge.
 - **A board of zeros says nothing about how it will look.** `cfg.display.demo` (Layout >
   Display > Sample numbers, on by default) draws plausible figures while nothing has
   started — the same every time, since a preview that flickers is not a preview — and
