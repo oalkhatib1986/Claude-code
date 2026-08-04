@@ -386,7 +386,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `PAGEAT` and, when the class is bigger than that allows, shows a page at a time —
   `showPage()` hides the rest and turns the page every 7s, with `1–7 of 20` in the
   head. The lane's place comes from `data-pos` (the rank it was given), never its DOM
-  order, so the pager and the sort cannot disagree.
+  order, so the pager and the sort cannot disagree. Never fewer than three on screen:
+  a phone in full screen has room for one row at the wall's row height, and one row
+  blown up to fill the screen is a poster of whoever is winning, not a leaderboard.
+- **Measure the room against a picture the lanes are NOT in.** `fitRowH()` took the
+  leftover height as `#tvFit.scrollHeight - lanes.clientHeight`, but `.lanes` ANIMATES
+  its height (.4s), so every re-fit read a value part-way through the easing and got a
+  different answer: the board flipped 4 rows / 3 rows / 4 rows for as long as it was on
+  screen, and a class that fitted was paged anyway. It now hides `#lanes` outright for
+  the measurement — collapsing it to 0 is not enough, the lanes are absolutely
+  positioned and go on overflowing the box into `scrollHeight`.
+- **Each row wears its own colour.** `ROWT` is a wash per place, set per lane in
+  `renderLanesRot()` so it keeps going past the eighth row (a CSS `nth-child` list
+  cannot), and the leader still takes the accent over the top of it. Everything on the
+  board is a SQUARE — 3-5px radii, the machine chips, the rank badge, the score block,
+  the leader's full-height bar. Pills belong on the setup pages.
+- **The machine somebody is on shows its total climbing.** `e.shown` is still what a
+  finished station publishes, but the erg the crew is on right now reads `e.byType`
+  live and is underlined in accent, so a block in progress is not a board of dashes.
+  A machine nobody is on keeps the number it was left with.
 - **The row fills the board.** Every track a fixed pixel width left the slack piled up
   after the last column as a block of empty white; the metric tracks are
   `minmax(Npx,1fr)` so the figures share it out.

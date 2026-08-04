@@ -217,12 +217,13 @@
      wears its name as a chip, its three figures sit under it with air either side,
      and every team is a card of its own. What separates one erg from the next is
      SPACE, not a rule. */
+  /* SQUARES, NOT PILLS. A scoreboard is built out of blocks. */
   .hgrp{grid-column:span var(--mspan,3);justify-self:center;align-self:end;
-    background:var(--ink);color:var(--bg);border-radius:999px;
-    padding:5px 15px 6px;letter-spacing:.16em;white-space:nowrap;
+    background:var(--ink);color:var(--bg);border-radius:3px;
+    padding:6px 15px;letter-spacing:.16em;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .gscore{justify-self:center;align-self:end;background:var(--accent);color:#08130a;
-    border-radius:999px;padding:5px 15px 6px;letter-spacing:.16em;white-space:nowrap;
+    border-radius:3px;padding:6px 15px;letter-spacing:.16em;white-space:nowrap;
     font-family:var(--disp);font-weight:700;font-size:inherit;text-transform:uppercase}
   .hsub{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.12em;
     text-transform:uppercase;color:var(--ink-mute);text-align:center;
@@ -1297,9 +1298,6 @@
   body.bigscreen:not(.mobscreen) .lane.leader .rank span{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .lane .hero{color:var(--ink)}
   body.bigscreen:not(.mobscreen) .lane.leader .hero{color:var(--accent)}
-  body.bigscreen:not(.mobscreen) .lane.leader{background:linear-gradient(90deg,
-    color-mix(in srgb,var(--accent) 13%,transparent),transparent 62%)}
-  body.bigscreen:not(.mobscreen) .lane:nth-child(even){background-color:rgba(255,255,255,.018)}
   body.bigscreen:not(.mobscreen) .team{font-size:min(36px,calc(var(--rowH,104px)*.35))}
   /* A SCOREBOARD IS LIGHT. A whole wall of black on black is a screensaver; the erg
      tablet is a white card with black type and it reads from anywhere in the gym, so
@@ -1317,25 +1315,29 @@
      lane's own box, which is what the transform positions them by. */
   body.bigscreen:not(.mobscreen) #board .lane{
     border-top:5px solid transparent;border-bottom:5px solid transparent;
-    background-clip:padding-box;border-radius:16px;background-color:#fff;
+    background-clip:padding-box;border-radius:5px;background-color:#fff;
     box-shadow:0 1px 0 rgba(10,10,11,.05)}
-  body.bigscreen:not(.mobscreen) #board .lane:nth-child(even){background-color:#fafafb}
+  /* EACH ROW ITS OWN COLOUR. A wall of identical white rows is a printout; a wash of
+     colour per place makes the board scannable from across the gym and photographs
+     well. The tint is faint on purpose — the numbers still have to be the loudest
+     thing on the row. It is set per lane in renderLanesRot so it keeps going past
+     the eighth row, which a CSS nth-child list cannot. */
+  body.bigscreen:not(.mobscreen) #board .lane{background-color:var(--rowT,#fff)}
   body.bigscreen:not(.mobscreen) #board .lane::after{display:none}
   /* the rank is a badge, and the podium wears it in colour */
   body.bigscreen:not(.mobscreen) #board .rank{color:#0a0a0b}
   body.bigscreen:not(.mobscreen) #board .rank span{
     display:inline-flex;align-items:center;justify-content:center;
     width:min(calc(var(--rowH,104px)*.54),100%);aspect-ratio:1;min-width:0;
-    border-radius:14px;background:rgba(10,10,11,.06);line-height:1}
+    border-radius:4px;background:rgba(10,10,11,.08);line-height:1}
   body.bigscreen:not(.mobscreen) #board .lane:nth-child(1) .rank span{background:var(--accent);color:#08130a}
   body.bigscreen:not(.mobscreen) #board .lane:nth-child(2) .rank span{background:rgba(10,10,11,.14)}
   body.bigscreen:not(.mobscreen) #board .lane:nth-child(3) .rank span{background:rgba(10,10,11,.09)}
   /* the leader is unmistakable: a wash of the accent and a bar down its edge */
   body.bigscreen:not(.mobscreen) #board .lane.leader{
-    background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 30%,#fff),
-      color-mix(in srgb,var(--accent) 7%,#fff) 68%)}
+    background-color:color-mix(in srgb,var(--accent) 22%,#fff)}
   body.bigscreen:not(.mobscreen) #board .lane.leader::before{
-    background:#0a0a0b;left:0;top:12px;bottom:12px;width:5px;border-radius:0 4px 4px 0}
+    background:#0a0a0b;left:0;top:0;bottom:0;width:6px;border-radius:0}
   body.bigscreen:not(.mobscreen) #board .lane.leader .rank span,
   body.bigscreen:not(.mobscreen) #board .lane.leader .team{color:#0a0a0b}
   /* the score is the loudest thing on the row */
@@ -1343,9 +1345,13 @@
      every other column on the board */
   body.bigscreen:not(.mobscreen) #board .data{display:block}
   body.bigscreen:not(.mobscreen) #board .lane .hero{color:#fff;background:#0a0a0b;
-    border-radius:12px;padding:6px 10px;display:block;width:100%;text-align:center}
+    border-radius:4px;padding:7px 10px;display:block;width:100%;text-align:center}
   body.bigscreen:not(.mobscreen) #board .lane.leader .hero{background:var(--accent);color:#08130a}
-  body.bigscreen:not(.mobscreen) #board .mv.live{color:#0a0a0b;opacity:.55}
+  /* the machine they are on is still counting — a quiet mark, so a settled total is
+     never mistaken for one that is still climbing */
+  body.bigscreen:not(.mobscreen) #board .mv.live{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .mv.live.md::after{content:"";display:block;
+    height:3px;border-radius:2px;background:var(--accent);margin:5px auto 0;width:38%}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
@@ -2909,6 +2915,10 @@
   // their turn. Nothing else in the app knows or cares — the lanes are all still
   // there, sorted, they are simply not on screen.
   // a row this tall or the wall is unreadable; past that the board pages instead
+  // one wash per place, repeating down the field
+  const ROWT=["rgba(126,230,64,.16)","rgba(96,165,250,.13)","rgba(251,146,60,.13)",
+    "rgba(167,139,250,.13)","rgba(45,212,191,.13)","rgba(244,114,182,.12)",
+    "rgba(250,204,21,.15)","rgba(129,140,248,.13)"];
   const MINROW=84, PAGEAT=64;
   let bdPer=0, bdPage=0, bdTimer=0;
   function showPage(){
@@ -2938,6 +2948,7 @@
       :(b.score+b.blockCals)-(a.score+a.blockCals));
     orderArr.forEach((e,idx)=>{
       e.el.dataset.pos=idx;
+      e.el.style.setProperty("--rowT",ROWT[idx%ROWT.length]);
       e.el.classList.toggle("leader", idx===0&&(sessionActive||demo));
       e.el.classList.toggle("scoring", running&&!!e.hot);
       const rs=e.el.querySelector(".rank span");
@@ -2954,18 +2965,21 @@
       const val=demo?demoScore(e):(e.score+e.blockCals);
       e.el.querySelector(".hero").textContent=String(Math.round(val));
       const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
-      // WHAT THEY DID ON EACH MACHINE — three figures of the same size under that
-      // machine's name, and only once they are off it. Nothing here moves while
-      // somebody is pulling; the erg they are on is marked instead.
+      // WHAT THEY HAVE DONE ON EACH MACHINE. A machine they have finished with is
+      // settled and never moves again. The one they are ON keeps counting — it is a
+      // TOTAL climbing, not a rowing computer's readout, and a board that shows
+      // nothing at all until the first station ends is a board nobody can read for
+      // the first four minutes of the class.
       headTypes.forEach(t=>{
-        const b=demo?demoFor(e,t):(e.shown||{})[t], pc=paceOf(t,b);
-        const on=running&&!demo&&e.lastMach===t&&stationOf(e)>=0;
+        const on0=running&&!demo&&e.lastMach===t&&stationOf(e)>=0;
+        const b=demo?demoFor(e,t):((on0?(e.byType||{}):(e.shown||{}))[t]), pc=paceOf(t,b);
+        const on=on0;
         const got=!!(b&&(b.m>0||b.cals>0));
         put(`.md[data-t="${t}"]`,got?String(Math.round(b.m)):"\u2013");
         put(`.mp[data-t="${t}"]`,pc?fmtSplit(pc.t):"\u2013");
         put(`.mc[data-t="${t}"]`,got?String(Math.round(b.cals)):"\u2013");
         ["d","p","c"].forEach(k=>{ const c=e.el.querySelector(`.m${k}[data-t="${t}"]`);
-          if(c){ c.classList.toggle("live",on&&!got); c.classList.toggle("none",!got); } });
+          if(c){ c.classList.toggle("live",on); c.classList.toggle("none",!got); } });
       });
     });
     showPage();
@@ -3347,7 +3361,10 @@
       if(on){ const el=document.documentElement; if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); }
       else if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{});
     }catch(e){}
+    // ...and it keeps changing for a moment: the fullscreen transition, then the URL
+    // bar going. Re-fit as it settles rather than once against a stale window.
     fitScreen(); requestAnimationFrame(fitScreen);
+    [60,220,500,1000].forEach(ms=>setTimeout(fitScreen,ms));
     // show them once on the way in so you know they are there, then let them fade
     if(on) tvctlPoke(2200);
   }
@@ -3363,7 +3380,12 @@
       if(scrMode==="lead"&&!showLeaderboard()) scrMode="work";
       show("screen"); fitScreen(); requestAnimationFrame(fitScreen); }; }
   document.addEventListener("fullscreenchange",()=>{
-    if(!document.fullscreenElement&&document.body.classList.contains("tvfull")) setFull(false); });
+    if(!document.fullscreenElement&&document.body.classList.contains("tvfull")) setFull(false);
+    else { fitScreen(); requestAnimationFrame(fitScreen); setTimeout(fitScreen,220); } });
+  // a phone reports the real picture here, and nowhere else
+  if(window.visualViewport){
+    ["resize","scroll"].forEach(ev=>window.visualViewport.addEventListener(ev,()=>{
+      if(document.body.classList.contains("bigscreen")) fitScreen(); },{passive:true})); }
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"&&document.body.classList.contains("tvfull")) setFull(false); });
   $("ctWork").onclick=()=>{ ctlTab="session"; show("trainer"); };
@@ -5962,7 +5984,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=297;
+  const BUILD=298;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -6019,15 +6041,32 @@
       bd.style.removeProperty("--rowH"); bdPer=0; showPage(); return; }
     const n=lanes.children.length; if(!n||!(A>0)) return;
     bd.style.removeProperty("--rowH");
-    const rest=f.scrollHeight-lanes.clientHeight;      // everything that is not lanes
+    // WHAT IS LEFT OVER IS MEASURED AGAINST A BOX WITH NOTHING IN IT. The lanes box
+    // ANIMATES its height (.4s), so subtracting the height it happens to be part-way
+    // through gives a different answer every tick: the re-fit chased its own easing,
+    // flipping 4 rows / 3 rows / 4 rows for as long as the board was on screen.
+    // Take it out of the picture, read what is left, put it back. Collapsing it to
+    // 0 is not enough: the lanes themselves are absolutely positioned, so they go on
+    // overflowing the box and counting towards scrollHeight.
+    const tr=lanes.style.transition, dsp=lanes.style.display;
+    lanes.style.transition="none"; lanes.style.display="none";
+    const rest=f.scrollHeight;                         // everything that is not lanes
+    lanes.style.display=dsp;
     const room=Math.max(0,A-rest-6);
-    // all of them while the rows stay readable; past that, a page at a time
+    // All of them while the rows stay readable; past that, a page at a time — but
+    // NEVER fewer than three on screen. A phone in full screen has room for one row
+    // at the wall's row height, and one row scaled up to fill the screen is not a
+    // leaderboard, it is a poster of whoever is winning.
     let per=n, h=Math.floor(room/n);
-    if(h<PAGEAT){ per=Math.max(1,Math.floor(room/MINROW)); h=Math.floor(room/Math.max(1,per)); }
-    h=Math.max(PAGEAT,Math.min(168,h));
+    if(h<PAGEAT){
+      per=Math.min(n,Math.max(3,Math.floor(room/MINROW)));
+      h=Math.floor(room/per);
+    }
+    h=Math.max(34,Math.min(168,h));
     bd.style.setProperty("--rowH",h+"px");
     bdPer=per;
     lanes.style.height=(h*Math.min(n,per))+"px";
+    void lanes.offsetHeight; lanes.style.transition=tr;
     showPage();
   }
   function fitTvBoard(availH){
@@ -6119,7 +6158,13 @@
     // Full screen: no frame, no letterbox. Lay the board out at the screen's own
     // aspect — turned on its side if the device is being held upright — and fill it.
     if(full&&view){
-      const vw=lw, vh=window.innerHeight;
+      // THE SCREEN IS WHAT THE BROWSER IS ACTUALLY GIVING US. Entering full screen
+      // changes the viewport asynchronously — and on a phone the URL bar leaves
+      // afterwards — so a fit measured off the layout viewport is a fit against the
+      // window as it was a moment ago, which is what left the picture zoomed in.
+      const vvp=window.visualViewport;
+      const vw=Math.round(vvp&&vvp.width?vvp.width:lw);
+      const vh=Math.round(vvp&&vvp.height?vvp.height:window.innerHeight);
       const rot=vh>vw*1.04;
       const FW=rot?vh:vw, FH=rot?vw:vh;
       const padX=Math.max(12,Math.round(FW*0.016)), padY=Math.max(10,Math.round(FH*0.022));
