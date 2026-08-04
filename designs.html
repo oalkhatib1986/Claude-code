@@ -9,8 +9,7 @@
 html,body{background:#0a0a0b;color:#f4f4f5;font-family:'Barlow',system-ui,sans-serif;
   -webkit-text-size-adjust:100%}
 body{min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
-:root{--disp:'Barlow Condensed','Arial Narrow',sans-serif;
-  --mono:ui-monospace,'SF Mono','Roboto Mono',Menlo,Consolas,monospace;--acc:#7ee640}
+:root{--disp:'Barlow Condensed','Arial Narrow',sans-serif;--acc:#7ee640}
 
 /* ---------- chrome ---------- */
 .top{flex:none;padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,.12)}
@@ -29,13 +28,11 @@ body{min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
   border-bottom:1px solid rgba(255,255,255,.12)}
 .bar b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.1em;
   text-transform:uppercase;flex:1 1 auto;min-width:0}
-.bar b i{font-style:normal;color:rgba(255,255,255,.45);font-weight:500}
 .bar button{background:transparent;color:#f4f4f5;border:1px solid rgba(255,255,255,.28);
   border-radius:4px;padding:6px 10px;font-family:var(--disp);font-weight:600;font-size:11px;
   letter-spacing:.12em;text-transform:uppercase;cursor:pointer;flex:none}
 .stage{flex:1 1 auto;position:relative;overflow:hidden}
 #fit{position:absolute;top:0;left:0;transform-origin:0 0}
-/* a phone is mostly board and very little chrome */
 @media (max-width:820px){
   .top{padding:7px 10px 5px} .top h1{font-size:16px} .top p{display:none}
   .picks{padding:6px 10px;gap:5px} .picks button{padding:5px 9px;font-size:11px}
@@ -45,167 +42,89 @@ body{min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .note{flex:none;padding:9px 12px 14px;font-family:var(--disp);font-weight:500;font-size:12px;
   letter-spacing:.06em;color:rgba(255,255,255,.55);border-top:1px solid rgba(255,255,255,.12)}
 
-/* ---------- the board, authored at 1820 ---------- */
-.bd{width:1820px;background:#fff;color:#0a0a0b;padding:26px 26px 24px;
-  font-family:var(--disp);--cols:78px minmax(255px,1.5fr) repeat(12,minmax(70px,1fr)) 168px}
-.bd .ttl{display:flex;align-items:baseline;gap:18px;margin-bottom:18px}
-.bd .ttl b{font-weight:700;font-size:44px;letter-spacing:.03em;text-transform:uppercase;line-height:1}
-.bd .ttl span{font-weight:600;font-size:15px;letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(10,10,11,.45)}
-.hd,.r{display:grid;grid-template-columns:var(--cols);align-items:stretch}
-.hg{display:grid;grid-template-columns:var(--cols);align-items:end}
-.mn{grid-column:span 3;font-weight:700;font-size:17px;letter-spacing:.18em;text-transform:uppercase;
-  text-align:center}
-.sub{font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
-  color:rgba(10,10,11,.5);text-align:center;padding:6px 4px}
-.sub.who{text-align:left}
-.v{font-weight:700;font-size:34px;text-align:center;font-variant-numeric:tabular-nums;
-  line-height:1;padding:0 4px;display:flex;align-items:center;justify-content:center}
-.nm{font-weight:700;font-size:34px;letter-spacing:.02em;text-transform:uppercase;
-  display:flex;align-items:center;padding-left:14px;min-width:0}
+/* ================================================================
+   THE BOARD — the erg tablet's own kit of parts.
+   --rule  the tablet's 2px divider          --slab  its light ground
+   --fig   ONE size for every figure         --lab   ONE size for every label
+   ================================================================ */
+.bd{width:1820px;background:#fff;color:#0a0a0b;font-family:var(--disp);
+  --rule:2px solid rgba(0,0,0,.12);
+  --slab:rgba(10,10,11,.09);
+  --fig:38px; --lab:19px;
+  --cols:86px minmax(300px,1.6fr) repeat(12,minmax(74px,1fr)) 190px}
+
+/* the tablet's identity band: mark, name, and the state on the right */
+.idb{display:flex;align-items:center;gap:16px;padding:16px 26px;border-bottom:var(--rule)}
+.idb .mk{width:52px;height:52px;background:#0a0a0b;color:#fff;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:26px;letter-spacing:.02em;flex:none}
+.idb .wk{font-weight:700;font-size:44px;letter-spacing:.03em;text-transform:uppercase;
+  line-height:1;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.idb .st{font-weight:700;font-size:var(--lab);letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(10,10,11,.42);flex:none}
+.idb .blk{font-weight:700;font-size:var(--lab);letter-spacing:.2em;text-transform:uppercase;
+  background:#0a0a0b;color:#fff;padding:9px 15px;flex:none}
+
+.pad{padding:0 26px 22px}
+.hg,.hd,.r{display:grid;grid-template-columns:var(--cols);align-items:stretch}
+.mn{grid-column:span 3;font-weight:700;font-size:var(--lab);letter-spacing:.2em;
+  text-transform:uppercase;text-align:center;padding:16px 4px 6px}
+.sub{font-weight:700;font-size:var(--lab);letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(10,10,11,.42);text-align:center;padding:0 4px 12px}
+.sub.who{text-align:left;padding-left:16px}
+.hd{border-bottom:var(--rule)}
+.r{border-bottom:var(--rule)}
+.r:last-child{border-bottom:none}
+.r>*{padding-top:14px;padding-bottom:14px}
+.v,.sc,.rk{font-weight:700;font-size:var(--fig);text-align:center;line-height:1;
+  font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;
+  padding-left:4px;padding-right:4px}
+.nm{font-weight:700;font-size:var(--fig);letter-spacing:.02em;text-transform:uppercase;
+  display:flex;align-items:center;padding-left:16px;min-width:0;line-height:1}
 .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rk{font-weight:700;font-size:30px;display:flex;align-items:center;justify-content:center;
-  font-variant-numeric:tabular-nums}
-.sc{font-weight:700;font-size:38px;display:flex;align-items:center;justify-content:center;
-  font-variant-numeric:tabular-nums}
+/* the machines are told apart by a rule, exactly as the tablet splits its panels */
+.m3{border-right:var(--rule)}
+.hd .who,.r .nm{border-right:var(--rule)}
+.hd .sub:last-child,.r .sc{border-left:var(--rule)}
 
-/* ================= A — TABLE ================= */
-.d-a .grid{border:2px solid #0a0a0b}
-.d-a .hg{border-bottom:2px solid #0a0a0b}
-.d-a .mn{background:#0a0a0b;color:#fff;padding:8px 0;margin:0;
-  box-shadow:inset -1px 0 0 rgba(255,255,255,.3)}
-.d-a .hg>.pad{background:#0a0a0b}
-.d-a .sub{border-right:1px solid rgba(10,10,11,.22);padding:9px 4px}
-.d-a .sub:last-child{border-right:none}
-.d-a .r{border-bottom:1px solid rgba(10,10,11,.22)}
-.d-a .r:last-child{border-bottom:none}
-.d-a .r>*{border-right:1px solid rgba(10,10,11,.14);padding-top:11px;padding-bottom:11px}
-.d-a .r>*:last-child{border-right:none}
-.d-a .r .m3{border-right:2px solid rgba(10,10,11,.5)}
-.d-a .rk{background:rgba(10,10,11,.06)}
-.d-a .sc{background:#0a0a0b;color:#fff}
-.d-a .r.lead .rk{background:var(--acc)}
-.d-a .r.lead .sc{background:var(--acc);color:#08130a}
+/* ---------- T1 · LIVE SLAB ---------------------------------------
+   The leader wears the ground the tablet gives the job being done now:
+   a light slab with a green edge. The score sits in a black block, the
+   way the tablet blacks out the target you are on. */
+.d-t1 .r.lead{background:var(--slab)}
+.d-t1 .r.lead .rk{box-shadow:inset 6px 0 0 var(--acc)}
+.d-t1 .sc{background:#0a0a0b;color:#fff;margin:6px 0 6px 2px;padding-top:8px;padding-bottom:8px}
+.d-t1 .r.lead .sc{background:var(--acc);color:#08130a}
+.d-t1 .rk{color:rgba(10,10,11,.5)}
+.d-t1 .r.lead .rk{color:#0a0a0b}
 
-/* ================= B — INVERTED HEAD ================= */
-.d-b .hg,.d-b .hd{background:#0a0a0b;color:#fff}
-.d-b .mn{padding:10px 0;border-right:2px solid #fff}
-.d-b .mn:last-of-type{border-right:none}
-.d-b .sub{color:rgba(255,255,255,.62);padding:0 4px 10px;border-right:2px solid rgba(255,255,255,.25)}
-.d-b .sub.m3{border-right:2px solid #fff}
-.d-b .sub:last-child{border-right:none}
-.d-b .r{border-bottom:2px solid #0a0a0b}
-.d-b .r>*{padding-top:13px;padding-bottom:13px}
-.d-b .r .m3{border-right:2px solid rgba(10,10,11,.85)}
-.d-b .r .nm{border-right:2px solid rgba(10,10,11,.85)}
-.d-b .r .rk{border-right:2px solid rgba(10,10,11,.85)}
-.d-b .r .sc{border-left:2px solid rgba(10,10,11,.85)}
-.d-b .r.lead{background:var(--acc)}
+/* ---------- T2 · BLACK LEADER ------------------------------------
+   The tablet blacks out the target the athlete is on. Same here: the
+   team in front is the black block, and every other row is plain. */
+.d-t2 .sc{font-weight:700}
+.d-t2 .r.lead{background:#0a0a0b;color:#fff;border-bottom-color:#0a0a0b}
+.d-t2 .r.lead .m3,.d-t2 .r.lead .nm,.d-t2 .r.lead .sc{border-color:rgba(255,255,255,.3)}
+.d-t2 .r.lead .sc{color:var(--acc)}
+.d-t2 .rk{color:rgba(10,10,11,.5)}
+.d-t2 .r.lead .rk{color:#fff}
+.d-t2 .r .sc{background:rgba(10,10,11,.05)}
+.d-t2 .r.lead .sc{background:transparent}
 
-/* ================= C — BOX PER VALUE ================= */
-.d-c .hg{gap:0 8px;margin-bottom:8px}
-.d-c .mn{border:2px solid #0a0a0b;padding:7px 0;background:#0a0a0b;color:#fff;
-  margin:0 4px}
-.d-c .sub{padding:7px 4px 0}
-.d-c .hd{gap:0 8px}
-.d-c .r{gap:0 8px;margin-bottom:8px}
-.d-c .r>.v{border:2px solid rgba(10,10,11,.5);border-radius:4px;padding:13px 4px}
-.d-c .r>.nm{border:2px solid #0a0a0b;border-radius:4px}
-.d-c .r>.rk{border:2px solid #0a0a0b;border-radius:4px;background:#0a0a0b;color:#fff}
-.d-c .r>.sc{border:2px solid #0a0a0b;border-radius:4px;background:#0a0a0b;color:#fff}
-.d-c .r.lead>.rk,.d-c .r.lead>.sc{background:var(--acc);color:#08130a;border-color:var(--acc)}
-.d-c .r.lead>.nm{border-width:3px}
-
-/* ================= D — CARD PER TEAM ================= */
-.d-d .hg{padding:0 0 8px}
-.d-d .mn{border:2px solid #0a0a0b;padding:6px 0;margin:0 6px}
-.d-d .sub{padding:7px 4px 0}
-.d-d .r{border:2px solid #0a0a0b;margin-bottom:10px}
-.d-d .r>*{padding-top:14px;padding-bottom:14px}
-.d-d .rk{background:#0a0a0b;color:#fff;font-size:40px}
-.d-d .nm{border-right:2px solid #0a0a0b}
-.d-d .v{border-right:1px solid rgba(10,10,11,.16)}
-.d-d .v.m3{border-right:2px solid #0a0a0b}
-.d-d .sc{background:rgba(10,10,11,.07);border-left:2px solid #0a0a0b}
-.d-d .r.lead{border-width:4px}
-.d-d .r.lead .rk{background:var(--acc);color:#08130a}
-.d-d .r.lead .sc{background:var(--acc);color:#08130a}
-
-/* ================= E — BIG SCORE ================= */
-.d-e{--cols:70px minmax(255px,1.5fr) repeat(12,minmax(64px,1fr)) 230px}
-.d-e .hg{border-bottom:3px solid #0a0a0b;padding-bottom:8px}
-.d-e .mn{border:2px solid #0a0a0b;padding:6px 0;margin:0 5px;font-size:16px}
-.d-e .sub{padding:8px 4px 0}
-.d-e .r{border-bottom:1px solid rgba(10,10,11,.2)}
-.d-e .r>*{padding-top:10px;padding-bottom:10px}
-.d-e .v{font-size:29px;color:rgba(10,10,11,.82)}
-.d-e .v.m3{border-right:2px solid rgba(10,10,11,.35)}
-.d-e .sc{font-size:66px;border-left:3px solid #0a0a0b;letter-spacing:-.01em}
-.d-e .rk{font-size:26px;color:rgba(10,10,11,.5)}
-.d-e .r.lead .sc{color:#08130a;background:var(--acc)}
-.d-e .r.lead .rk{background:#0a0a0b;color:#fff}
-
-/* ================= F — TWO-TIER ROW ================= */
-.d-f .r{display:block;border:2px solid #0a0a0b;margin-bottom:9px}
-.d-f .t1{display:flex;align-items:center;gap:16px;padding:9px 14px;
-  border-bottom:2px solid #0a0a0b;background:rgba(10,10,11,.05)}
-.d-f .t1 .rk{width:52px;height:52px;background:#0a0a0b;color:#fff;font-size:30px;flex:none}
-.d-f .t1 .nm{padding:0;font-size:38px;flex:1 1 auto}
-.d-f .t1 .sc{font-size:44px;padding:0 16px;flex:none}
-.d-f .t1 .sct{font-weight:600;font-size:13px;letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(10,10,11,.5);flex:none}
-.d-f .t2{display:grid;grid-template-columns:repeat(4,1fr)}
-.d-f .mg{border-right:2px solid #0a0a0b;padding:10px 12px 12px}
-.d-f .mg:last-child{border-right:none}
-.d-f .mg b{display:block;font-weight:700;font-size:17px;letter-spacing:.2em;
-  text-transform:uppercase;color:rgba(10,10,11,.55);margin-bottom:6px}
-.d-f .mg .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.d-f .mg .cell{text-align:center}
-.d-f .mg .cell i{display:block;font-style:normal;font-weight:600;font-size:14px;
-  letter-spacing:.14em;text-transform:uppercase;color:rgba(10,10,11,.42)}
-.d-f .mg .cell u{display:block;text-decoration:none;font-weight:700;font-size:32px;
-  font-variant-numeric:tabular-nums;line-height:1.05}
-.d-f .r.lead{border-width:4px}
-.d-f .r.lead .t1{background:var(--acc)}
-
-/* ================= G — MONO LEDGER ================= */
-.d-g .hg{border-bottom:3px solid #0a0a0b}
-.d-g .mn{font-family:var(--mono);font-size:14px;letter-spacing:.1em;padding:6px 0;
-  border:1px solid #0a0a0b;margin:0 3px 6px}
-.d-g .sub{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.06em;
-  padding-bottom:7px}
-.d-g .r{border-bottom:1px solid rgba(10,10,11,.28)}
-.d-g .r:nth-child(even){background:rgba(10,10,11,.045)}
-.d-g .r>*{padding-top:9px;padding-bottom:9px}
-.d-g .v,.d-g .sc,.d-g .rk{font-family:var(--mono);font-weight:700}
-.d-g .v{font-size:26px}
-.d-g .sc{font-size:30px;border-left:1px solid rgba(10,10,11,.28)}
-.d-g .rk{font-size:22px;color:rgba(10,10,11,.55)}
-.d-g .nm{font-family:var(--mono);font-weight:700;font-size:26px;letter-spacing:0}
-.d-g .v.m3{border-right:1px solid rgba(10,10,11,.28)}
-.d-g .r.lead{background:var(--acc)}
-.d-g .r.lead .rk{color:#08130a}
-
-/* ================= H — HEAVY RULE ================= */
-.d-h .hg{margin-bottom:6px}
-.d-h .mn{border:3px solid #0a0a0b;padding:8px 0;margin:0 6px;font-size:18px}
-.d-h .sub{padding:9px 4px 0;font-size:14px}
-.d-h .hd{border-bottom:5px solid #0a0a0b;padding-bottom:6px}
-.d-h .r{border-bottom:5px solid #0a0a0b}
-.d-h .r>*{padding-top:16px;padding-bottom:16px}
-.d-h .v{font-size:40px}
-.d-h .nm{font-size:36px}
-.d-h .rk{font-size:34px;background:rgba(10,10,11,.08)}
-.d-h .sc{font-size:48px;background:#0a0a0b;color:#fff}
-.d-h .v.m3{border-right:5px solid #0a0a0b}
-.d-h .r.lead{background:#0a0a0b;color:#fff}
-.d-h .r.lead .rk{background:var(--acc);color:#08130a}
-.d-h .r.lead .sc{background:var(--acc);color:#08130a}
+/* ---------- T3 · BOXED SCORE -------------------------------------
+   The tablet stacks its targets as boxes divided by the same rule. The
+   score column is that stack: one box per team, the leader’s filled. */
+.d-t3{--cols:86px minmax(300px,1.6fr) repeat(12,minmax(74px,1fr)) 210px}
+.d-t3 .sc{border:var(--rule);margin:5px 0 5px 6px}
+.d-t3 .r.lead .sc{background:#0a0a0b;color:#fff;border-color:#0a0a0b}
+.d-t3 .r.lead .nm{box-shadow:inset 5px 0 0 var(--acc)}
+.d-t3 .rk{color:rgba(10,10,11,.5)}
+.d-t3 .r.lead .rk{color:#0a0a0b}
+.d-t3 .r .sc{border-left:var(--rule)}
 </style>
 </head><body>
 <div class="top">
   <h1>ATHL3TE — leaderboard designs</h1>
-  <p>Same class, same numbers, eight ways. Pick one.</p>
+  <p>Built from the erg tablet. Two type sizes, nothing else.</p>
 </div>
 <div class="picks" id="picks"></div>
 <div class="bar"><b id="dname"></b>
@@ -225,42 +144,19 @@ const TEAMS=[
  ['Team Mo',       726,'3:41.6',54,  873,'2:14.5', 65, 1599,'2:07.0',118,  726,'2:24.4',54,  95]];
 const MACH=[['Assault Runner','/km'],['Rower','/500m'],['Bike','/1000m'],['SkiErg','/500m']];
 const DESIGNS=[
- ['A','Table','A true table. Two-pixel frame, every figure in its own ruled cell, the machine name a filled box over its three columns. The erg tablet, ruled.'],
- ['B','Inverted head','The heading is one solid black band; the body is white and split by heavy rules. Nothing else drawn — the numbers carry the row.'],
- ['C','Boxed values','Every figure sits in its own outlined box, exactly like the tablet’s target strip. No rules at all — space and boxes do the work.'],
- ['D','Card per team','Each team is a bordered card with a black rank block on the left and its score panel on the right. Reads as eight objects, not sixteen lines.'],
- ['E','Big score','The score is the point, so it is enormous and in its own bordered column. Everything else is small, uniform and quiet.'],
- ['F','Two tier','Name and score on one line, the four machines in bordered panels underneath. The only shape that survives six machines on a narrow TV.'],
- ['G','Ledger','Typewriter figures, hairline rules, a quiet zebra. A results sheet, printed. Nothing decorative anywhere.'],
- ['H','Heavy rule','Five-pixel rules and huge type. Made to be read from the far wall of the gym; the leader row inverts to black.']];
+ ['T1','Live slab','The leader wears the light ground the tablet gives the job being done now, with the same green edge. The score is a black block — the tablet’s way of saying “this one”.'],
+ ['T2','Black leader','The tablet blacks out the target you are on. The team in front is that black block; every other row is left plain so it stands alone from across the gym.'],
+ ['T3','Boxed score','The tablet stacks its targets as boxes split by the same rule. The score column is that stack — one box per team, the leader’s filled in.']];
 
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function board(k){
-  const d=DESIGNS.find(x=>x[0]===k), i=DESIGNS.indexOf(d);
-  let h='<div class="bd d-'+k.toLowerCase()+'"><div class="ttl"><b>Send It Saturday</b>'
-    +'<span>4 blocks &middot; 3 rounds &middot; 8 teams</span></div>';
-  if(k==='F'){
-    h+='<div class="rows">';
-    TEAMS.forEach((t,ix)=>{
-      h+='<div class="r'+(ix?'':' lead')+'"><div class="t1"><div class="rk">'+(ix+1)+'</div>'
-        +'<div class="nm"><span>'+esc(t[0])+'</span></div>'
-        +'<div class="sct">Score</div><div class="sc">'+t[13]+'</div></div><div class="t2">';
-      MACH.forEach((m,j)=>{
-        const b=1+j*3;
-        h+='<div class="mg"><b>'+m[0]+'</b><div class="row3">'
-          +'<div class="cell"><i>metres</i><u>'+t[b]+'</u></div>'
-          +'<div class="cell"><i>'+m[1]+'</i><u>'+t[b+1]+'</u></div>'
-          +'<div class="cell"><i>cal</i><u>'+t[b+2]+'</u></div></div></div>';
-      });
-      h+='</div></div>';
-    });
-    return h+'</div></div>';
-  }
-  h+='<div class="grid"><div class="hg"><div class="pad"></div><div class="pad"></div>';
+  let h='<div class="bd d-'+k.toLowerCase()+'">'
+   +'<div class="idb"><div class="mk">A3</div><div class="wk">Send It Saturday</div>'
+   +'<div class="st">8 teams &middot; round 2 of 3</div><div class="blk">Block 2</div></div>'
+   +'<div class="pad"><div class="hg"><div></div><div></div>';
   MACH.forEach(m=>{h+='<div class="mn">'+m[0]+'</div>';});
-  h+='<div class="pad"></div></div><div class="hd"><div class="sub"></div>'
-    +'<div class="sub who">Team</div>';
-  MACH.forEach((m,j)=>{ h+='<div class="sub">metres</div><div class="sub">'+m[1]
+  h+='<div></div></div><div class="hd"><div class="sub"></div><div class="sub who">Team</div>';
+  MACH.forEach(m=>{ h+='<div class="sub">metres</div><div class="sub">'+m[1]
     +'</div><div class="sub m3">cal</div>'; });
   h+='<div class="sub">Score &middot; cal</div></div>';
   TEAMS.forEach((t,ix)=>{
@@ -274,7 +170,7 @@ function board(k){
   return h+'</div></div>';
 }
 
-let cur='A', turned=null;
+let cur='T1', turned=null;
 const $=id=>document.getElementById(id);
 DESIGNS.forEach(d=>{ const b=document.createElement('button');
   b.textContent=d[0]+' · '+d[1]; b.dataset.k=d[0];
