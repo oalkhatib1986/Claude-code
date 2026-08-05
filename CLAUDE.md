@@ -488,6 +488,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   or via the corner control when already projecting; `.tvctl` then offers switch-view
   and exit. Never read a stage's own inline width as "available" —
   measure the free space or the frame can never grow back.
+- **The Big Screen tab fills its box the same way full screen does.** `fitTvBoard`
+  (shrink a 1820 picture until its HEIGHT fits) left a third of a laptop empty on
+  either side of the workout board; the tab now calls `fillTvBoard(view.clientWidth,
+  availH)` and full screen differs only in the chrome it drops. Three consequences:
+  the filled board scales about `top left` (a box authored wider than its container
+  and scaled about `top center` hangs off the right edge); `fitTvBoard` clears
+  `f._fill` so the two modes cannot fight over the ResizeObserver; and OUTSIDE
+  tvfull the authored width has a floor of `min(cw,1820)` — solve a wide 16:9 TV
+  against four short cards and the fixed point lands near 1100, where the longest
+  line of work wraps at its own floor size. Full screen keeps the free floor
+  (edge-to-edge is its contract, `fsfill` holds it); the tab centres its slack.
+  The main tabs stay visible on the Big Screen tab (`opacity:1`) — only `tvfull`
+  drops the chrome, and that is the mode to cast from.
 - **Full screen FILLS the screen, edge to edge.** `body.tvfull` drops the 1920x1080
   conceit entirely: `#viewBoard` is sized to the real viewport (turned on its side
   when the device is held upright) and `fillTvBoard()` picks the width the board is

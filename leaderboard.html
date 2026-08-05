@@ -1282,7 +1282,11 @@
   body.bigscreen:not(.mobscreen) #viewBoard.active{display:block;padding-bottom:0;overflow:hidden}
   body.bigscreen:not(.mobscreen) .tvfit{display:flex;flex-direction:column;width:100%;
     transform-origin:top center}
-  body.bigscreen:not(.mobscreen) .tabs{opacity:0;transition:opacity .2s}
+  /* THE NAV IS NOT CHROME UNTIL YOU ARE PROJECTING. Faded out on the Big Screen tab,
+     the only way back to Control or the Erg Tablet was to know it was still there and
+     click into blank space. Full screen (body.tvfull) already drops every control it
+     has, and that is the mode you cast from. */
+  body.bigscreen:not(.mobscreen) .tabs{opacity:1;transition:opacity .2s}
   body.bigscreen:not(.mobscreen) .tabs:hover{opacity:1}
   body.bigscreen:not(.mobscreen) .badge{height:168px;width:168px;margin:-32px 0 -32px -38px}
   /* the TV has the room for every column — set the shared template, not the lane,
@@ -5993,7 +5997,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=300;
+  const BUILD=301;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -6081,8 +6085,9 @@
   function fitTvBoard(availH){
     const f=$("tvFit"); if(!f) return;
     if(availH>0) f._avail=availH;
+    f._fill=null;
     const A=f._avail||0;
-    f.style.transform=""; f.style.width="";
+    f.style.transform=""; f.style.width=""; f.style.transformOrigin="";
     if(!(A>0)||!document.body.classList.contains("bigscreen")
        ||document.body.classList.contains("mobscreen")) return;
     fitRowH(A);
@@ -6097,7 +6102,7 @@
       const b=document.body;
       if(!b.classList.contains("bigscreen")||b.classList.contains("mobscreen")) return;
       const g=$("tvFit"), fl=g&&g._fill;
-      if(b.classList.contains("tvfull")){ if(fl) fillTvBoard(fl[0],fl[1]); }
+      if(fl) fillTvBoard(fl[0],fl[1]);
       else fitTvBoard(0);
     });
     const f=$("tvFit"); if(f) ro.observe(f);
@@ -6123,16 +6128,27 @@
   function fillTvBoard(cw,ch){
     const f=$("tvFit"); if(!f||!(cw>0)||!(ch>0)) return;
     f._fill=[cw,ch];
+    // A BOX WIDER THAN ITS CONTAINER MUST BE SCALED FROM ITS CORNER. Authored at
+    // 3255 inside an 1820 column and scaled about `top center`, the picture keeps the
+    // LAYOUT box's centre — which is half a screen to the right — so it hung off the
+    // edge with a band of empty floor on the left.
+    f.style.transformOrigin="top left";
     f.style.transform=""; f.style.width=cw+"px";
     // TWO PHASES, or the solver chases its own tail. The row height is decided
     // against the height available (never the width), the width is then solved for
     // that content, and the rows are re-fitted once against the width that settled.
+    // OUTSIDE FULL SCREEN THE AUTHORED WIDTH HAS A FLOOR. The workout board is a
+    // list of sentences: solve a wide 16:9 TV against four short cards and the fixed
+    // point lands near 1100, where the longest line wraps at its own floor size.
+    // Full screen keeps the free floor — edge-to-edge coverage is its contract and
+    // fsfill holds it to that; the tab centres any slack instead.
+    const minW=document.body.classList.contains("tvfull")?320:Math.min(cw,1820);
     let W=cw;
     for(let phase=0;phase<3;phase++){
       fitRowH(ch);
       for(let i=0;i<5;i++){
         const H=f.scrollHeight; if(!(H>0)) return;
-        const nW=Math.max(320,Math.round(cw*H/ch));
+        const nW=Math.max(minW,Math.round(cw*H/ch));
         if(Math.abs(nW-W)<3){ W=nW; break; }
         W=nW; f.style.width=W+"px";
       }
@@ -6219,7 +6235,13 @@
       const padB=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
       const availH=Math.max(120,window.innerHeight-top-padB-8);
       view.style.height=availH+"px";
-      fitTvBoard(availH);
+      // THE BIG SCREEN TAB IS THE BIG SCREEN, so it fills the room it is given
+      // instead of shrinking a 1820-wide picture until its HEIGHT fits and leaving
+      // a third of a laptop empty on either side. Same solver as full screen: the
+      // width the board is authored at is chosen so the uniform scale lands on the
+      // box exactly. Full screen then differs only in the chrome it drops.
+      const availW=Math.max(320,Math.round(view.clientWidth));
+      fillTvBoard(availW,availH);
     } else {
       const f=$("tvFit"); if(f){ f.style.transform=""; f.style.width=""; }
       if(view) view.style.height="";
