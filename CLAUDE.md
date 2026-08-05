@@ -437,6 +437,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   against. `.wknow` heads Control > Session with `cfg.name` and the session's shape
   (blocks · rounds · per team · total), kept in step by `syncTeamCount()`.
   `ctlwk.js` gates it.
+- **Everything on the page starts and ends in the same place.** `.foot-in` was capped
+  at 980px and centred inside a 1220px column and `.foot-rule` was a gradient fading
+  out at 18%/82%, so on any laptop the small print was visibly narrower than the cards
+  above it; Control's two cards carried an inline `max-width:560px;margin:auto` and sat
+  in the middle of the screen with the nav on the left. Both run the page's own width
+  now. `edges.js` walks every tab at four widths and compares the footer, its rule and
+  the leftmost card against `.wrap`.
 - **The small print is one piece of small print.** `#siteFoot`: hairline, company name,
   then the year and the build as one line in one voice — same face, same size, same
   colour, one at each end. A version set in a wide mono at its own size read as a label
