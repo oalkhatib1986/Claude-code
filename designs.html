@@ -142,6 +142,8 @@ const DESIGNS=[
  ['G2','Quiet score','The same grid with nothing filled in \u2014 the rules alone hold the numbers apart, the way the tablet\u2019s target stack does. Only the leader is picked out.'],
  ['G3','Black leader','The tablet blacks out the target you are on. The leading team is that black block, straight across the row.']];
 
+// A FIGURE IS GROUPED. 2600 is a string of digits to count; 2,600 is a number.
+const N=v=>typeof v==='number'?v.toLocaleString('en-US'):v;
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function board(k){
   let h='<div class="bd d-'+k.toLowerCase()+'">'
@@ -158,9 +160,9 @@ function board(k){
     h+='<div class="r'+(ix?'':' lead')+'"><div class="rk">'+(ix+1)+'</div>'
       +'<div class="nm"><span>'+esc(t[0])+'</span></div>';
     for(let j=0;j<4;j++){ const b=1+j*3;
-      h+='<div class="v">'+t[b]+'</div><div class="v">'+t[b+1]+'</div>'
-        +'<div class="v m3">'+t[b+2]+'</div>'; }
-    h+='<div class="sc">'+t[13]+'</div></div>';
+      h+='<div class="v">'+N(t[b])+'</div><div class="v">'+t[b+1]+'</div>'
+        +'<div class="v m3">'+N(t[b+2])+'</div>'; }
+    h+='<div class="sc">'+N(t[13])+'</div></div>';
   });
   return h+'</div></div></div>';
 }
