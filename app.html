@@ -44,12 +44,19 @@
   .wrap{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 
   /* ---------- header ---------- */
-  header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:6px 0 0}
-  .mark{display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:8px}
+  header{display:flex;align-items:center;gap:10px 22px;flex-wrap:wrap;padding:6px 0 0}
+  /* the mark owns the first row outright, so the tabs wrap under it and keep
+     their own width instead of stretching into an empty capsule */
+  .mark{display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:8px;flex:0 0 100%}
   .badge{height:100px;width:100px;margin:-24px 0 -24px -23px;filter:invert(1);mix-blend-mode:screen;display:block}
   .tagline{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.42em;color:var(--ink-mute);text-transform:uppercase;display:flex;align-items:center;gap:8px;white-space:nowrap;padding-left:4px}
   .tagline i{font-style:normal;color:#3d4046;letter-spacing:-.08em}
-  .tabs{margin-left:auto;display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--line-soft)}
+  /* THE TWO MENUS READ AS ONE, SO THEY START AT THE SAME PLACE. Pinned right by
+     margin-left:auto, the main tabs sat on the far side of a wide laptop while the
+     sub-tabs sat on the left — two rows of pills, one at each end of the screen,
+     and the eye has to cross the page to get from one to the other. It takes its
+     own row and starts where everything else on the page starts. */
+  .tabs{flex:0 0 auto;display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--line-soft)}
   .tabs button{background:transparent;color:var(--ink-dim);border:0;padding:8px 19px;border-radius:999px;
     font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s}
   .tabs button:hover{color:var(--ink)}
@@ -5984,7 +5991,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=298;
+  const BUILD=299;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

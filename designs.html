@@ -72,11 +72,12 @@ body{min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .tbl{border-top:2px solid var(--rule);border-left:2px solid var(--rule)}
 .hg,.hd,.r{display:grid;grid-template-columns:var(--cols);align-items:stretch}
 .hg>*,.hd>*,.r>*{border-right:2px solid var(--rule);border-bottom:2px solid var(--rule)}
-.mn{grid-column:span 3;font-weight:700;font-size:var(--lab);letter-spacing:.2em;
-  text-transform:uppercase;text-align:center;padding:9px 4px;background:var(--slab)}
+.mn{grid-column:span 3;font-weight:700;font-size:var(--fig);letter-spacing:.03em;
+  text-transform:uppercase;text-align:center;padding:8px 4px;line-height:1;
+  display:flex;align-items:center;justify-content:center}
 .hg>.cnr{background:var(--slab)}
-.sub{font-weight:700;font-size:var(--lab);letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(10,10,11,.45);text-align:center;padding:8px 4px;
+.sub{font-weight:700;font-size:var(--fig);letter-spacing:.03em;text-transform:uppercase;
+  text-align:center;padding:8px 4px;line-height:1;
   display:flex;align-items:center;justify-content:center}
 .sub.who{justify-content:flex-start;padding-left:14px}
 .v,.sc,.rk{font-weight:700;font-size:var(--fig);line-height:1;font-variant-numeric:tabular-nums;
@@ -90,8 +91,7 @@ body{min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
    to change colour with the ground, or the cells lose their borders. */
 .hg>*,.hd>*{background:#0a0a0b;color:#fff;border-color:rgba(255,255,255,.28)}
 .hg>.cnr,.hd>.sub{background:#0a0a0b}
-.sub{color:rgba(255,255,255,.7)}
-.mn{color:#fff}
+.mn,.sub{color:#fff}
 .tbl{border-top-color:#0a0a0b;border-left-color:#0a0a0b}
 .hd>*{border-bottom-color:#0a0a0b}
 /* every cell of the table itself is white; the leader is an edge, not a fill */

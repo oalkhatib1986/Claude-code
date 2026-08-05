@@ -30,6 +30,12 @@ copy for cache-free serving; `version.txt` holds the build number.
 - **No fixed widths on value-bearing fields.** iOS draws text wider than headless
   Chromium; a field that "just fits" in tests clips on iPhone. Use
   `width:auto;min-width:Npx` (see `.ifmt`/`.ifn`/`.brounds`/`.brrest`).
+- **The two menus read as one, so they start at the same place.** The main tabs were
+  pinned right (`margin-left:auto`); on a laptop that put them on the far side of the
+  screen while the sub-tabs sat on the left, and the eye had to cross the page to get
+  from one row of pills to the other. `.mark` takes the first row outright
+  (`flex:0 0 100%`) so `.tabs` wraps under it at its own width, left edge shared with
+  the sub-tabs, the title and the cards. `align.js` gates it.
 - **Consistency tiers:** pills 12px/34px · primary .btn 13px/38px · secondary
   .btn.small 12px/30px · nav tabs/subtabs 11px/29px. All left edges align.
 - Wording: use **Solo** (never "Single") for the one-athlete who-option; wording
