@@ -1301,16 +1301,11 @@
      a number big is its share of the row, not its pixel size. Every figure is one
      size; the rank and the name are the only things bigger. */
   body.bigscreen:not(.mobscreen) .hero small{font-size:15px}
-  body.bigscreen:not(.mobscreen) .hgrp{font-size:16px;letter-spacing:.24em;padding-bottom:6px}
-  body.bigscreen:not(.mobscreen) .hsub{font-size:14px}
-  body.bigscreen:not(.mobscreen) .board-head{padding-bottom:16px;row-gap:6px}
   body.bigscreen:not(.mobscreen) .lane .track{display:none}
   /* THE ROW IS THE CEILING. With sixteen teams the rows shrink to keep the board on
      the wall, and type that ignored that simply drew outside its own lane. */
   body.bigscreen:not(.mobscreen) .rank{font-size:min(46px,calc(var(--rowH,104px)*.44))}
-  body.bigscreen:not(.mobscreen) .lane.leader .rank span{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .lane .hero{color:var(--ink)}
-  body.bigscreen:not(.mobscreen) .lane.leader .hero{color:var(--accent)}
   body.bigscreen:not(.mobscreen) .team{font-size:min(36px,calc(var(--rowH,104px)*.35))}
   /* A SCOREBOARD IS LIGHT. A whole wall of black on black is a screensaver; the erg
      tablet is a white card with black type and it reads from anywhere in the gym, so
@@ -1324,47 +1319,66 @@
     box-shadow:0 28px 90px rgba(0,0,0,.55); padding:22px 20px 14px}
   body.bigscreen:not(.mobscreen) #board{--bg:#f4f4f5}
   body.bigscreen:not(.mobscreen) #board .team{color:#0a0a0b}
-  /* EVERY TEAM IS A CARD. Transparent borders give the rows air without moving the
-     lane's own box, which is what the transform positions them by. */
+  /* THE BOARD IS THE ERG TABLET'S TABLE. Black heading band in white type, every
+     cell of the body white, and the tablet's own 2px light rule around all of them —
+     turning white inside the head so those cells keep their borders too. No tints,
+     no badges, no filled score blocks, and NO COLOUR anywhere in the table: first
+     place is read off the top of the list. The head and the lanes share one grid
+     template and zero padding, so the rules land in one straight line. */
+  body.bigscreen:not(.mobscreen) #board{--tbrule:rgba(10,10,11,.12)}
   body.bigscreen:not(.mobscreen) #board .lane{
-    border-top:5px solid transparent;border-bottom:5px solid transparent;
-    background-clip:padding-box;border-radius:5px;background-color:#fff;
-    box-shadow:0 1px 0 rgba(10,10,11,.05)}
-  /* EACH ROW ITS OWN COLOUR. A wall of identical white rows is a printout; a wash of
-     colour per place makes the board scannable from across the gym and photographs
-     well. The tint is faint on purpose — the numbers still have to be the loudest
-     thing on the row. It is set per lane in renderLanesRot so it keeps going past
-     the eighth row, which a CSS nth-child list cannot. */
-  body.bigscreen:not(.mobscreen) #board .lane{background-color:var(--rowT,#fff)}
-  body.bigscreen:not(.mobscreen) #board .lane::after{display:none}
-  /* the rank is a badge, and the podium wears it in colour */
-  body.bigscreen:not(.mobscreen) #board .rank{color:#0a0a0b}
-  body.bigscreen:not(.mobscreen) #board .rank span{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:min(calc(var(--rowH,104px)*.54),100%);aspect-ratio:1;min-width:0;
-    border-radius:4px;background:rgba(10,10,11,.08);line-height:1}
-  body.bigscreen:not(.mobscreen) #board .lane:nth-child(1) .rank span{background:var(--accent);color:#08130a}
-  body.bigscreen:not(.mobscreen) #board .lane:nth-child(2) .rank span{background:rgba(10,10,11,.14)}
-  body.bigscreen:not(.mobscreen) #board .lane:nth-child(3) .rank span{background:rgba(10,10,11,.09)}
-  /* the leader is unmistakable: a wash of the accent and a bar down its edge */
-  body.bigscreen:not(.mobscreen) #board .lane.leader{
-    background-color:color-mix(in srgb,var(--accent) 22%,#fff)}
-  body.bigscreen:not(.mobscreen) #board .lane.leader::before{
-    background:#0a0a0b;left:0;top:0;bottom:0;width:6px;border-radius:0}
-  body.bigscreen:not(.mobscreen) #board .lane.leader .rank span,
-  body.bigscreen:not(.mobscreen) #board .lane.leader .team{color:#0a0a0b}
-  /* the score is the loudest thing on the row */
-  /* the score block fills its column, so the heading sits over its middle like
-     every other column on the board */
-  body.bigscreen:not(.mobscreen) #board .data{display:block}
-  body.bigscreen:not(.mobscreen) #board .lane .hero{color:#fff;background:#0a0a0b;
-    border-radius:4px;padding:7px 10px;display:block;width:100%;text-align:center}
-  body.bigscreen:not(.mobscreen) #board .lane.leader .hero{background:var(--accent);color:#08130a}
-  /* the machine they are on is still counting — a quiet mark, so a settled total is
-     never mistaken for one that is still climbing */
+    background:#fff;border-radius:0;border:0;box-shadow:none;gap:0;padding:0;
+    border-bottom:2px solid var(--tbrule)}
+  body.bigscreen:not(.mobscreen) #board .board-head{
+    background:#0a0a0b;color:#fff;gap:0;padding:0;border-radius:4px 4px 0 0}
+  body.bigscreen:not(.mobscreen) #board :where(.board-head>span){
+    display:flex;align-items:center;justify-content:center;min-width:0;
+    justify-self:stretch;align-self:stretch;margin:0;max-width:none;
+    background:transparent;color:#fff;border-radius:0;
+    border-right:2px solid rgba(255,255,255,.28);padding:9px 4px}
+  body.bigscreen:not(.mobscreen) #board :where(.board-head>span:last-child){border-right:0}
+  body.bigscreen:not(.mobscreen) #board .board-head .hgrp{
+    border-bottom:2px solid rgba(255,255,255,.28)}
+  body.bigscreen:not(.mobscreen) #board .board-head .grank,
+  body.bigscreen:not(.mobscreen) #board .board-head .gwho,
+  body.bigscreen:not(.mobscreen) #board .board-head .gscore{
+    border-bottom:2px solid rgba(255,255,255,.28)}
+  body.bigscreen:not(.mobscreen) #board .board-head .hwho{justify-content:flex-start;
+    padding-left:16px}
+  /* ONE SIZE FOR THE HEAD AND THE FIGURES ALIKE, in the board's own voice */
+  body.bigscreen:not(.mobscreen) #board .board-head .hsub,
+  body.bigscreen:not(.mobscreen) #board .board-head .hgrp,
+  body.bigscreen:not(.mobscreen) #board .board-head .gwho,
+  body.bigscreen:not(.mobscreen) #board .board-head .gscore{
+    font-size:min(var(--mvfs,26px),calc(var(--rowH,92px)*.34));
+    font-weight:700;letter-spacing:.04em;color:#fff;text-transform:uppercase}
+  /* the lane is the same ruled row: every cell full height, a rule to its right */
+  body.bigscreen:not(.mobscreen) #board :where(.lane>div){
+    display:flex;align-items:center;justify-content:center;min-width:0;
+    height:100%;border-right:2px solid var(--tbrule)}
+  body.bigscreen:not(.mobscreen) #board :where(.lane>div:last-child){border-right:0}
+  body.bigscreen:not(.mobscreen) #board .lane .who{justify-content:flex-start;
+    padding-left:16px}
+  body.bigscreen:not(.mobscreen) #board .rank{color:rgba(10,10,11,.5)}
+  /* a line box has to contain its own glyphs: line-height:1 on the display face
+     leaves the font's box taller than the line, and the scan reads that as a clip */
+  body.bigscreen:not(.mobscreen) #board .rank span{background:none;border-radius:0;
+    width:auto;aspect-ratio:auto;line-height:normal}
+  body.bigscreen:not(.mobscreen) #board .lane.leader .rank{color:#0a0a0b}
+  body.bigscreen:not(.mobscreen) #board .lane::before{display:none}
+  body.bigscreen:not(.mobscreen) #board .rank .p1,
+  body.bigscreen:not(.mobscreen) #board .rank .p2,
+  body.bigscreen:not(.mobscreen) #board .rank .p3{color:inherit}
+  /* the score is a figure like every other figure */
+  body.bigscreen:not(.mobscreen) #board .data{display:flex;text-align:center}
+  body.bigscreen:not(.mobscreen) #board .lane .hero{color:#0a0a0b;background:none;
+    border-radius:0;padding:0;width:auto;text-align:center;
+    font-size:min(var(--mvfs,26px),calc(var(--rowH,92px)*.34))}
+  body.bigscreen:not(.mobscreen) #board .lane .hero small{display:none}
+  /* the machine they are on is still counting — a quiet ink mark, no colour */
   body.bigscreen:not(.mobscreen) #board .mv.live{color:#0a0a0b}
   body.bigscreen:not(.mobscreen) #board .mv.live.md::after{content:"";display:block;
-    height:3px;border-radius:2px;background:var(--accent);margin:5px auto 0;width:38%}
+    height:2px;background:rgba(10,10,11,.5);margin:5px auto 0;width:38%}
   body.bigscreen:not(.mobscreen) .sub{font-size:13.5px}
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
@@ -2063,6 +2077,8 @@
 
   const fmtMS=s=>{ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); };
   const fmtT=s=>Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
+  // A FIGURE IS GROUPED. 2600 is a string of digits to count; 2,600 is a number.
+  const fmtN=v=>Math.round(v).toLocaleString("en-US");
   const fmtSplit=s=>(!isFinite(s)||s<=0)?"--:--":fmtT(s);
   const wattsFor=sp=>2.80/Math.pow(sp/500,3);
   const calRate=w=>(4*w*0.8604+300)/3600;
@@ -2928,10 +2944,6 @@
   // their turn. Nothing else in the app knows or cares — the lanes are all still
   // there, sorted, they are simply not on screen.
   // a row this tall or the wall is unreadable; past that the board pages instead
-  // one wash per place, repeating down the field
-  const ROWT=["rgba(126,230,64,.16)","rgba(96,165,250,.13)","rgba(251,146,60,.13)",
-    "rgba(167,139,250,.13)","rgba(45,212,191,.13)","rgba(244,114,182,.12)",
-    "rgba(250,204,21,.15)","rgba(129,140,248,.13)"];
   const MINROW=84, PAGEAT=64;
   let bdPer=0, bdPage=0, bdTimer=0;
   function showPage(){
@@ -2961,7 +2973,6 @@
       :(b.score+b.blockCals)-(a.score+a.blockCals));
     orderArr.forEach((e,idx)=>{
       e.el.dataset.pos=idx;
-      e.el.style.setProperty("--rowT",ROWT[idx%ROWT.length]);
       e.el.classList.toggle("leader", idx===0&&(sessionActive||demo));
       e.el.classList.toggle("scoring", running&&!!e.hot);
       const rs=e.el.querySelector(".rank span");
@@ -2976,7 +2987,7 @@
       // trainer's own panel; on the board it is a line of small print between the
       // name and the numbers, and the numbers are the point.
       const val=demo?demoScore(e):(e.score+e.blockCals);
-      e.el.querySelector(".hero").textContent=String(Math.round(val));
+      e.el.querySelector(".hero").textContent=fmtN(val);
       const put=(sel,v)=>{ const c=e.el.querySelector(sel); if(c&&c.innerHTML!==v) c.innerHTML=v; };
       // WHAT THEY HAVE DONE ON EACH MACHINE. A machine they have finished with is
       // settled and never moves again. The one they are ON keeps counting — it is a
@@ -2988,9 +2999,9 @@
         const b=demo?demoFor(e,t):((on0?(e.byType||{}):(e.shown||{}))[t]), pc=paceOf(t,b);
         const on=on0;
         const got=!!(b&&(b.m>0||b.cals>0));
-        put(`.md[data-t="${t}"]`,got?String(Math.round(b.m)):"\u2013");
+        put(`.md[data-t="${t}"]`,got?fmtN(b.m):"\u2013");
         put(`.mp[data-t="${t}"]`,pc?fmtSplit(pc.t):"\u2013");
-        put(`.mc[data-t="${t}"]`,got?String(Math.round(b.cals)):"\u2013");
+        put(`.mc[data-t="${t}"]`,got?fmtN(b.cals):"\u2013");
         ["d","p","c"].forEach(k=>{ const c=e.el.querySelector(`.m${k}[data-t="${t}"]`);
           if(c){ c.classList.toggle("live",on); c.classList.toggle("none",!got); } });
       });
@@ -5997,7 +6008,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=301;
+  const BUILD=302;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

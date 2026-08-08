@@ -402,11 +402,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   screen, and a class that fitted was paged anyway. It now hides `#lanes` outright for
   the measurement — collapsing it to 0 is not enough, the lanes are absolutely
   positioned and go on overflowing the box into `scrollHeight`.
-- **Each row wears its own colour.** `ROWT` is a wash per place, set per lane in
-  `renderLanesRot()` so it keeps going past the eighth row (a CSS `nth-child` list
-  cannot), and the leader still takes the accent over the top of it. Everything on the
-  board is a SQUARE — 3-5px radii, the machine chips, the rank badge, the score block,
-  the leader's full-height bar. Pills belong on the setup pages.
+- **The board is the erg tablet's table (Omar signed this off; do not restyle).**
+  Black heading band — both rows, machine names and sub-labels, ONE size shared with
+  the figures (`min(var(--mvfs),rowH*.34)`), ruled inside with `rgba(255,255,255,.28)`
+  so black-on-black cells keep their borders. Body: every cell white, every cell ruled
+  with the tablet's `rgba(10,10,11,.12)` 2px line, zero gap, zero lane padding (head
+  and lanes share the template AND the padding or the rules snake). NO COLOUR in the
+  table: no tints, no badges, no filled score, no accent — the leader's rank is black
+  where the rest are grey, and first place is read off the top of the list. The live
+  underline is ink. Figures are GROUPED (`fmtN` → 1,180) everywhere on the board; the
+  tier column mins must budget for the comma. The layout rules ride on
+  `:where(.lane>div)` / `:where(.board-head>span)` — LOW specificity on purpose, so
+  `#board.no-c .mv.mc{display:none}` still wins; a blanket `.lane>div{display:flex}`
+  resurrected hidden cells, 15 items landed in an 11-track template and every value
+  shifted one column. And `line-height:normal` on the rank: at `line-height:1` the
+  display face's box is taller than the line and the scan reads it as a clip.
 - **The machine somebody is on shows its total climbing.** `e.shown` is still what a
   finished station publishes, but the erg the crew is on right now reads `e.byType`
   live and is underlined in accent, so a block in progress is not a board of dashes.
