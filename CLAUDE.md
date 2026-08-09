@@ -266,6 +266,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   "Send It Saturday" is the shape to copy for a swap board: one block per part, four
   rounds of a Pair 1 / Pair 2 group, then a scored `fin:true` finish. The class is
   SPLIT across the parts (`together:false`) and rotates. `sis.js` gates it.
+- **A buy-in is a doorway, not a station.** Part A of the Michael Workout opens with
+  "Bike Buy-In · 8/12 cal" — the price of entering the rotation, exactly like the
+  down-ups in Part B. `machineOf()` returns null for any name carrying "buy-in"/
+  "buy in", so the team is never stationed on it, no tablet counts it, and the board
+  does not grow a column of dashes for it; the preset also pins
+  `exGear["bike buy-in"]=""` so the allocator never counts the gym's bikes for it.
+  Without this, `curTypes` put the bike FIRST and the whole team's calories credited
+  to the bike column while the scored run sat at a dash.
+- **The board of the week loads itself ONCE.** `loadMichaelOnce()` (after
+  `refreshSeeded`): if `cfg.michaelV` is unset, the Michael Workout preset is copied
+  in — roster kept, copy stamped — and the flag is set ON THE NEW CFG so the next
+  boot leaves the trainer's edits alone. The flag must ride the loaded copy or every
+  boot re-loads and stomps the edit. `mw.js` gates the workout's shape, the one-shot
+  and the library entry.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.

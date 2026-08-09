@@ -2420,6 +2420,11 @@
 
   const machineOf=n=>{ n=(n||"").toLowerCase();
     if(n.includes("gorilla")||n.includes("bent over")||n.includes("dumbbell row")||n.includes("db row")||n.includes("barbell row")||n.includes("kb row")||n.includes("ring row")) return null;
+    // A BUY-IN IS A DOORWAY, NOT A STATION. "Bike Buy-In" is the price of entering
+    // the rotation, exactly like the down-ups in the next part — the team is never
+    // stationed on it, no tablet counts it, and the board must not grow a column
+    // of dashes for it.
+    if(n.includes("buy-in")||n.includes("buy in")) return null;
     if(n.includes("assault bike")||n.includes("echo")) return "Echo";
     if(n.includes("bike")) return "Bike";
     if(n.includes("row")) return "Row";
@@ -4984,7 +4989,7 @@
 
   // ---- ATHL3TE class library (from the gym's own boards) ----
   (function seedLibrary(){
-    if(presets.some(p=>p.seedV===8)) return;
+    if(presets.some(p=>p.seedV===9)) return;
     presets=presets.filter(p=>p.seedV!==3&&p.seedV!==4);
     const E=(name,amounts,unit,who)=>({who:who||"",name:name,amounts:amounts||[],unit:unit||"reps",max:false});
     const M=(name,unit,who)=>({who:who||"",name:name,amounts:[],unit:unit||"reps",max:false});
@@ -4994,7 +4999,7 @@
     const W=(name,blocks)=>{ const c=structuredClone(DEFAULTS);
       c.name=name; c.wkName=name; c.noScore=true; c.together=true; c.teamKind="solo";
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:8,cfg:c}; };
+      return {name:name,seedV:9,cfg:c}; };
     // some of the boards are team workouts with a scored finish — same shape, but
     // the class is in fours and the last piece counts
     const WT=(name,size,blocks)=>{ const c=structuredClone(DEFAULTS);
@@ -5003,7 +5008,7 @@
       c.together=false;
       c.teamKind="teams"; c.teamSize=size;
       c.rotation={laps:1,blockRest:0,blocks:blocks};
-      return {name:name,seedV:8,cfg:c}; };
+      return {name:name,seedV:9,cfg:c}; };
     const SC=(dur,exs,label)=>Object.assign(I(dur,exs,label),{scored:true,metric:"calories"});
 
     // SEND IT SATURDAY — teams of four, three 20-minute parts, one block each.
@@ -5025,7 +5030,31 @@
         {fin:true})
     ];
 
+    // MICHAEL WORKOUT — teams of three, three 20-minute parts, one block each.
+    // 12 minutes rotating: P1 buys in (8/12 cals or reps), P2 holds max cals on the
+    // part's erg, P3 rests — then the final 8 minutes the whole team takes the erg.
+    // The score is the erg's calories across the whole 20, so BOTH windows count.
+    const MWpart=(erg,buyName,buyAmts,buyUnit)=>[
+      SC(720,[
+        {who:"P1",name:buyName,amounts:buyAmts,unit:buyUnit,max:false},
+        {who:"P2",name:erg,amounts:[],unit:"cal",max:true},
+        {who:"P3",name:"Rest",amounts:[],unit:"reps",max:false}
+      ],"Rotate P1 \u2192 P2 \u2192 P3 as the cals clear"),
+      Object.assign(
+        SC(480,[{who:"All 3",name:erg,amounts:[],unit:"cal",max:true}],
+          "Final 8 \u2014 max cal "+erg+", remaining time"),
+        {fin:true})
+    ];
+    const MICHAEL=WT("Michael Workout",3,[
+      B("Part A",MWpart("Run","Bike Buy-In",[8,12],"cal"),0,"Run"),
+      B("Part B",MWpart("Row","Down Ups",[8,12],"reps"),0,"Row"),
+      B("Part C",MWpart("Ski","Box Jump Overs",[8,12],"reps"),0,"Ski")
+    ]);
+    MICHAEL.cfg.sub="Teams of 3";
+    MICHAEL.cfg.exGear["bike buy-in"]="";   // side equipment, never a counted station
+
     const lib=[
+      MICHAEL,
       WT("Send It Saturday",4,[
         B("Part A",SISpart("Run",["Air Squats",30],["HR Press Ups",20],["Burpees",10]),4,"Run"),
         B("Part B",SISpart("Row",["DBall Box Step Overs",30],["DBall Reverse Lunge",20],["DBall Over Shoulder",10]),4,"Row"),
@@ -5139,6 +5168,19 @@
     cfg=structuredClone(p.cfg); cfg.wkName=p.name;
     if(keep.length) cfg.crews=keep;                 // the roster is the room, not the board
     migrateLoaded(); stampSeed(p); save();
+  })();
+
+  // MICHAEL WORKOUT IS THE BOARD OF THE WEEK — load it once on every device.
+  // One-shot: the flag rides on the loaded cfg, so the next boot leaves the
+  // trainer's edits alone; the copy is stamped, so library corrections still flow.
+  (function loadMichaelOnce(){
+    if(cfg.michaelV>=1) return;
+    const p=presets.find(x=>x.name==="Michael Workout");
+    if(!p){ cfg.michaelV=1; save(); return; }
+    const keep=structuredClone(cfg.crews||[]);
+    cfg=structuredClone(p.cfg); cfg.wkName=p.name;
+    if(keep.length) cfg.crews=keep;                 // the roster is the room, not the board
+    migrateLoaded(); stampSeed(p); cfg.michaelV=1; save();
   })();
 
   // Placeholder crew names have to follow the format. A preset saved as Solo still
@@ -6008,7 +6050,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=302;
+  const BUILD=303;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
