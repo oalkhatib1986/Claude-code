@@ -5171,16 +5171,18 @@
   })();
 
   // MICHAEL WORKOUT IS THE BOARD OF THE WEEK — load it once on every device.
-  // One-shot: the flag rides on the loaded cfg, so the next boot leaves the
-  // trainer's edits alone; the copy is stamped, so library corrections still flow.
+  // The one-shot flag lives in ITS OWN KEY, not on cfg: a flag riding the cfg is
+  // lost the moment the trainer picks a different board (picking replaces the cfg
+  // wholesale), and the next boot would force Michael back over their choice.
+  // The copy is stamped, so library corrections still flow to it.
   (function loadMichaelOnce(){
-    if(cfg.michaelV>=1) return;
-    const p=presets.find(x=>x.name==="Michael Workout");
-    if(!p){ cfg.michaelV=1; save(); return; }
+    const K="af_mw_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    const p=presets.find(x=>x.name==="Michael Workout"); if(!p) return;
     const keep=structuredClone(cfg.crews||[]);
     cfg=structuredClone(p.cfg); cfg.wkName=p.name;
     if(keep.length) cfg.crews=keep;                 // the roster is the room, not the board
-    migrateLoaded(); stampSeed(p); cfg.michaelV=1; save();
+    migrateLoaded(); stampSeed(p); save();
   })();
 
   // Placeholder crew names have to follow the format. A preset saved as Solo still
@@ -6050,7 +6052,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=303;
+  const BUILD=304;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

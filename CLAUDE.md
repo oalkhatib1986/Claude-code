@@ -274,12 +274,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `exGear["bike buy-in"]=""` so the allocator never counts the gym's bikes for it.
   Without this, `curTypes` put the bike FIRST and the whole team's calories credited
   to the bike column while the scored run sat at a dash.
-- **The board of the week loads itself ONCE.** `loadMichaelOnce()` (after
-  `refreshSeeded`): if `cfg.michaelV` is unset, the Michael Workout preset is copied
-  in — roster kept, copy stamped — and the flag is set ON THE NEW CFG so the next
-  boot leaves the trainer's edits alone. The flag must ride the loaded copy or every
-  boot re-loads and stomps the edit. `mw.js` gates the workout's shape, the one-shot
-  and the library entry.
+- **The board of the week loads itself ONCE, and the flag lives in its OWN KEY.**
+  `loadMichaelOnce()` (after `refreshSeeded`) copies the Michael Workout preset in —
+  roster kept, copy stamped — gated on localStorage `af_mw_v1`, NOT on a cfg field:
+  a flag riding the cfg is lost the moment the trainer picks a different board
+  (picking replaces the cfg wholesale), and the next boot would force Michael back
+  over their choice. `mw.js` gates the shape, the one-shot, edits surviving reloads
+  AND a different pick surviving a reload. Suites written against the boot DEFAULTS
+  pin `af_mw_v1` before their first reload; a suite reading card positions in the
+  phone preview must read offsetTop/offsetLeft — the preview is ROTATED on an
+  upright phone, and screen rects turn columns into rows.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.
