@@ -503,6 +503,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   target rail is short and wide, so `.tk-pills` turns into a ROW: stacked with
   `flex:1 1 0` its buttons collapsed into each other and printed 500 on top of 600.
   `tbland.js` gates both layouts.
+- **The projection URL is a picture, not a page.** Opening `#screen`/`#workout` by URL
+  sets `body.tvroute`: no main tabs, no sub-tabs, at ANY width — a TV (or a half
+  window) casting the board shows the board. The route is an ENTRANCE, not a state:
+  arriving by URL or hashchange keeps it chrome-free (`show._fromRoute`), and ANY
+  navigation made inside the app — including clicking the Big Screen tab itself —
+  drops the class and the nav returns. Modes on the route switch by hash. On the
+  Big Screen TAB the sub-tabs are NAV, not an overlay: in flow under the main tabs,
+  same left edge, opacity 1 — never absolutely positioned, never faded. `tvroute.js`
+  gates the route; `edges.js` also asserts no visible menu row anywhere is faded and
+  that both rows share a left edge.
 - TVs load `#screen` / `#workout` and must always start in TV mode; the Big Screen
   tab on a phone defaults to phone view (`scrFit`). Under 1100px, TV mode frames the
   board at a true 1920x1080 and scales it (`body.tvprev`, `#smStage`) instead of

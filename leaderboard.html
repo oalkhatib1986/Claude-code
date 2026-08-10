@@ -516,13 +516,10 @@
   body.tvfull{padding:0!important}
   body.tvfull header,body.tvfull .subtabs,body.tvfull .tvprev-cap{display:none!important}
   body.tvfull .wrap{max-width:none!important;padding:0!important;gap:0}
-  /* the sub-tab row is operator chrome — on a TV it costs 58px of picture, so it
-     goes out of flow and fades, exactly like the main tabs already do */
-  body.bigscreen:not(.mobscreen):not(.tvprev) .wrap{position:relative}
-  body.bigscreen:not(.mobscreen):not(.tvprev) #scrTabs{position:absolute;top:52px;left:0;right:0;
-    z-index:7;margin:0;opacity:0;transition:opacity .2s}
-  body.bigscreen:not(.mobscreen):not(.tvprev) #scrTabs:hover,
-  body.bigscreen:not(.mobscreen):not(.tvprev) #scrTabs:focus-within{opacity:1}
+  /* THE SUB-TABS ARE NAV, NOT AN OVERLAY. They sit in flow under the main tabs,
+     sharing the same left edge as every other page, and never fade — hidden menus
+     are Omar's number-one complaint. The projection URL (body.tvroute) is the mode
+     with no chrome at all, and full screen already drops everything. */
   .tvprev-stage{display:contents}
   body.tvprev .tvprev-stage{display:block;width:100%;overflow:hidden;border-radius:14px;
     background:#08080a;box-shadow:0 22px 54px -28px rgba(0,0,0,.92)}
@@ -1157,15 +1154,15 @@
   .subtabs button.on{background:var(--ink);color:#0a0a0a;border-color:var(--ink)}
   body.bigscreen .subtabs{display:none}
   #scrTabs{display:none}
-  body.bigscreen #scrTabs{display:flex;opacity:0;transition:opacity .2s}
+  body.bigscreen #scrTabs{display:flex}
+  /* the projection URL: a TV across the gym is for the board */
+  body.tvroute .tabs,body.tvroute .subtabs,body.tvroute #scrTabs{display:none!important}
   #scrTabs .fitbtn{display:none}
   @media (max-width:899px){
-    body.bigscreen #scrTabs{opacity:.6}
     /* one evenly spaced row, like every other sub-tab row — no auto margins
        shoving the last two pills apart */
     #scrTabs .fitbtn{display:block}
   }
-  body.bigscreen #scrTabs:hover{opacity:1}
   body.wkscreen .board{display:none!important}
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
@@ -3323,6 +3320,12 @@
     :(document.documentElement.clientWidth<900?"mobile":"tv");
   function show(which){
     if(which!=="screen"&&document.body.classList.contains("tvfull")) setFull(false);
+    // THE ROUTE IS AN ENTRANCE, NOT A STATE. Arriving by URL (boot, hashchange)
+    // keeps the picture chrome-free; any navigation made INSIDE the app — including
+    // clicking the Big Screen tab itself — is a person at the controls, so the nav
+    // comes back.
+    if(!show._fromRoute) document.body.classList.remove("tvroute");
+    show._fromRoute=false;
     document.body.classList.toggle("bigscreen",which==="screen");
     if(which==="screen"&&scrMode==="lead"&&!showLeaderboard()) scrMode="work";
     { const l=$("smLead"); if(l) l.style.display=showLeaderboard()?"":"none"; }
@@ -6052,7 +6055,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=304;
+  const BUILD=305;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -6073,8 +6076,14 @@
   };
   checkUpdate(); setInterval(checkUpdate,120000);
   applyAccent(); buildControlRoom(); build(); syncCoLogo();
-  if(location.hash==="#screen") show("screen");
-  else if(location.hash==="#workout"){ scrMode="work"; show("screen"); }
+  // THE PROJECTION URL IS A PICTURE, NOT A PAGE. #screen / #workout is the link a
+  // TV opens, so it carries no chrome at all — no tabs, no sub-tabs, at any width.
+  // Decided ONCE at boot: navigating inside the app writes the same hash, so the
+  // hash alone cannot tell the Big Screen tab (which keeps its nav) from the route.
+  if(location.hash==="#screen"||location.hash==="#workout")
+    document.body.classList.add("tvroute");
+  if(location.hash==="#screen"){ show._fromRoute=true; show("screen"); }
+  else if(location.hash==="#workout"){ scrMode="work"; show._fromRoute=true; show("screen"); }
   // the board's own mark mirrors whatever the header badge is showing
   // On a TV the mark belongs to the picture, not to the page chrome — otherwise it
   // floats above the vertically-centred board, and the preview frame excludes it
@@ -6304,7 +6313,9 @@
   }
   window.addEventListener("resize",fitScreen);
   window.addEventListener("hashchange",()=>{
-    if(location.hash==="#screen"){ scrMode="lead"; show("screen"); }
-    else if(location.hash==="#workout"){ scrMode="work"; show("screen"); } });
+    if(location.hash==="#screen"){ scrMode="lead";
+      document.body.classList.add("tvroute"); show._fromRoute=true; show("screen"); }
+    else if(location.hash==="#workout"){ scrMode="work";
+      document.body.classList.add("tvroute"); show._fromRoute=true; show("screen"); } });
 })();
 </script>
