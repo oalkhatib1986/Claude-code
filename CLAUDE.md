@@ -25,7 +25,30 @@ copy for cache-free serving; `version.txt` holds the build number.
   and the chip itself is `flex-wrap:wrap` with the name ellipsised (`.tn`) and
   the value tag (`.mtag`) kept whole.
 - **The workout summary line fits on ONE line, time last.** It auto-scales
-  (`fitSummary()`); never add a chip without re-checking worst cases.
+  (`fitSummary()`); never add a chip without re-checking worst cases. Below a 0.6
+  scale it WRAPS whole chips instead (`#evSummary.wrap2`, separators dropped — a
+  dot leading a wrapped row reads as a typo): a board authored at phone width
+  (upright full screen) cannot carry six chips at any readable size. And measure
+  the span from first chip's left to last chip's right — the TV head justifies
+  flex-end, so overflow goes LEFT where `scrollWidth` cannot see it, and the fit
+  scales about `right center` there or the spill survives the scale.
+- **Full screen NEVER turns the picture sideways.** A window taller than wide gets
+  an upright board with fewer columns (`fillTvBoard` minW 320 in tvfull), never a
+  rotated one — Omar: "why does the screen change direction?!". The tablet PREVIEW
+  frame on a phone still rotates (it is a miniature of a fixed landscape device);
+  the leaderboard is not a device, it is a page. `fsfill.js` pins the no-rotate
+  contract and coverage on 402x874 both ways.
+- **Rank and Team are ONE header cell each** (`grid-row:1/3`), titled "Rank" and
+  "<Team|Athlete> name"; the pager rides inside the team box (`.gwho i#boardPage`).
+  Machines and Score keep two rows because their second row says something (the
+  unit). The row-2 spacer cells are GONE from `buildBoardHead()` — auto-placement
+  puts the subs straight into column 3.
+- **Every `display:` rule on the tablet-table board rides on a fully-:where'd
+  selector** — `:where(body.bigscreen:not(.mobscreen)) #board :where(...)` is
+  (1,0,0), under `#board.no-mach .hgrp`'s (1,2,0). Half-measures repeat the
+  column-shift bug: with only the span part in `:where()`, the body prefix alone
+  outranks the hide rules, and the first phone-width fullscreen board (no-mach)
+  resurrected every hidden cell and snaked the header.
 - **No orphaned wraps.** Label+field pairs (`.bgrp`, `.fmtpair`) wrap as units.
 - **No fixed widths on value-bearing fields.** iOS draws text wider than headless
   Chromium; a field that "just fits" in tests clips on iPhone. Use
@@ -238,12 +261,24 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   The lane's name is repainted in `renderLanesRot()`, NOT written once in `build()` —
   a claim has to reach the board or it calls them "Athlete 1" all session.
   `noname.js` gates it.
-- **Leaving the Erg Tablet tab takes the kiosk with it.** `body.kioskon` strips the
-  page's padding and pins a 1005x600 frame; left on after `show()` moved to another
-  tab it warped every other page and the nav drifted out from under the taps. `show()`
-  removes `kioskon`/`tabprev`/`tabwall`/`tabone` whenever `which!=="tablet"`. The stage
+- **Leaving the Erg Tablet tab takes the kiosk with it.** `body.kioskon` pins a
+  1005x600 frame; left on after `show()` moved to another tab it warped every other
+  page and the nav drifted out from under the taps. `show()` removes
+  `kioskon`/`tabprev`/`tabwall`/`tabone` whenever `which!=="tablet"`. The stage
   is `touch-action:pan-y` so a sideways drag walks the row instead of becoming the
-  browser's back-swipe.
+  browser's back-swipe. Kiosk keeps the page's TOP and SIDE padding — stripping it
+  put the logo and tabs 31px higher than every other page (Omar: the logo must sit
+  the same on ALL pages); only the bottom goes, and the frame scales to what is
+  left. The back bar carries NO side padding: its button's left edge lines up with
+  the frame below it.
+- **The logo is one asset in two forms, and the cfg picks.** The white wordmark
+  ships in the header markup (the default everywhere); `LOGO_BADGE` is the square
+  A3 mark; Layout > Brand radios set `cfg.display.logo` ("word"|"badge"),
+  `applyLogo()` (called from `build()`) swaps the header img and stamps
+  `body[data-logo]`. Every surface follows from the header: the TV brand reparents
+  `.mark`, the tablet clones `img.badge`'s src and inverts it black for the white
+  card (`.tk-logo img{filter:invert(1)}`). Assets are cropped tight — no negative
+  margins, no invert on dark grounds, no 186% crop zoom.
 - **Sharing is a fact, not a fault.** The allocator caps stations at what the gym
   owns and quietly puts several people on each, so `anyOver()` can no longer fire —
   the old "over capacity" banner is unreachable for ergs. The block card states the
@@ -352,8 +387,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `scrollHeight` too. A value that stops exactly at its own edge reads as touching the
   one beside it ("2:11.8 2:10.9 153" ran together), so the fit keeps an 8px gutter. And
   a line box has to contain its own glyphs: `line-height:1` on a 46px display face left
-  the descenders outside the box for `overflow:hidden` to clip. `tabfit2.js` walks
-  phone/sideways/desktop × pre/running × normal/long names × tablet/phone view. `renderTablet()` repaints four times every two
+  the descenders outside the box for `overflow:hidden` to clip — the containing ratio
+  is a property of the FACE (`--mono` needs 1.16, `--disp` 1.2), and shrinking never
+  fixes it because glyph/box is size-invariant. The value fit measures the TEXT with a
+  hidden span in the untransformed BODY against the PARENT's content box: a block's
+  `scrollWidth` never reads below its own `clientWidth` (the gutter check
+  `scrollWidth>clientWidth-8` was true for EVERYTHING and ground the whole tablet to
+  12px/9px floors — the tiny type Omar photographed); a flex-centred value
+  shrink-wraps so its own box tracks the text; a Range rect is a SCREEN rect that the
+  scaled preview shrinks (133px read as 29px); and canvas measureText ignores
+  text-transform and tabular-nums. `tickTbVitals()` re-runs the fit when a value it
+  patches GROWS ("--:--" fitted, "2:16.2" written); `fitTablet()` re-runs it when the
+  kioskon class flips (the `.opt` vitals only exist to measure in kiosk — compare the
+  class before/after, a cached flag goes stale when the wall strips it). `tabfit2.js`
+  walks phone/sideways/desktop × pre/running × normal/long names × tablet/phone view. `renderTablet()` repaints four times every two
   seconds; a repaint between finger-down and finger-up removes the element and the
   browser fires NO click at all — which is why the name box and the target buttons
   silently did nothing. `#tbScreen` records the last pointer event and `renderTablet`
