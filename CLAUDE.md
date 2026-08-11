@@ -61,6 +61,13 @@ copy for cache-free serving; `version.txt` holds the build number.
   the sub-tabs, the title and the cards. `align.js` gates it.
 - **Consistency tiers:** pills 12px/34px · primary .btn 13px/38px · secondary
   .btn.small 12px/30px · nav tabs/subtabs 11px/29px. All left edges align.
+- **THE BROWSER'S OWN WIDGETS FOLLOW THE SITE.** `body{color-scheme:dark;
+  accent-color:var(--accent)}` (`.tk` is `light` — white card): the native date
+  calendar, select dropdowns, checkboxes and scrollbars must render dark with the
+  site's accent, never Chrome-blue on white (Omar: "stuff like this must be in the
+  same format of the website! remember this always"). Any NEW input type (date,
+  time, month…) must also be added to the shared `input[type=…]` styling rule —
+  an unlisted type falls back to UA styling and sticks out immediately.
 - Wording: use **Solo** (never "Single") for the one-athlete who-option; wording
   follows format (solo vs teams) everywhere via kw()/kws() helpers.
 

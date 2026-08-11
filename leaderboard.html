@@ -38,7 +38,16 @@
     color:var(--ink);font-family:var(--ui);font-size:15.5px;line-height:1.5;
     -webkit-font-smoothing:antialiased;min-height:100vh;
     padding:clamp(14px,2.4vw,32px);
+    /* THE BROWSER'S OWN WIDGETS FOLLOW THE PAGE. Without color-scheme the date
+       picker popped up as a white calendar with Chrome-blue highlights over the
+       black page (Omar: "must be in the same format of the website"). dark makes
+       every native popup — calendar, select dropdown, scrollbars — render dark,
+       and accent-color swaps the browser blue for the site's own accent. */
+    color-scheme:dark;
+    accent-color:var(--accent);
   }
+  /* the erg tablet is a white card — its native widgets stay light */
+  .tk{color-scheme:light}
   ::selection{background:rgba(255,255,255,.9);color:#000}
   :focus-visible{outline:2px solid rgba(255,255,255,.55);outline-offset:2px;border-radius:6px}
   .wrap{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
@@ -770,9 +779,9 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
   @media (max-width:560px){.row3{grid-template-columns:1fr}}
-  input[type=text],input[type=number],select{font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
+  input[type=text],input[type=number],input[type=date],select{font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:12px;padding:11px 14px;width:100%;transition:border-color .15s}
-  input[type=text]:hover,input[type=number]:hover,select:hover{border-color:rgba(255,255,255,.16)}
+  input[type=text]:hover,input[type=number]:hover,input[type=date]:hover,select:hover{border-color:rgba(255,255,255,.16)}
   input:focus,select:focus{outline:none;border-color:rgba(255,255,255,.4)}
   input[type=number]{font-family:var(--mono);font-size:16px}
   select{appearance:none;-webkit-appearance:none;padding-right:38px;cursor:pointer;
@@ -6164,7 +6173,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=307;
+  const BUILD=308;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
