@@ -5763,8 +5763,12 @@
       ()=>cfg.wkName||"Unsaved workout",
       v=>{
         if(loadLib(v)) return;
-        cfg.wkName=v; const entry={name:v,cfg:structuredClone(cfg)};
+        // SAVING UNDER A NAME NAMES THE BOARD. cfg.name is the title every surface
+        // shows (overview head, TV, tablet); leaving it while wkName changed kept
+        // the OLD board's title over the new board's parts.
+        cfg.wkName=v; cfg.name=v; const entry={name:v,cfg:structuredClone(cfg)};
         presets.push(entry); savePresets(); save(); buildPresetSel();
+        syncTeamCount(); if(!running&&!sessionActive) build();
       },
       {addable:true, addLabel:"+ Save as", searchPh:"Search the programme — block, week, day, type…", cls:"wkfield"}
     ));
@@ -6001,8 +6005,8 @@
   }
   function aiSystem(){
     return 'You are the workout-builder inside ATHL3TE gym\'s class app. Convert the coach\'s description into ONE JSON object and reply with ONLY that JSON \u2014 no markdown fences, no other text: {"reply":"short confirmation or question for the coach","workout":<object or null>}. If anything essential is unclear, set workout to null and ask at most 2 short questions in reply. Once clear, produce the workout and a one-line reply.\n'
-      +'workout schema: {name, teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool}]}]}]}\n'
-      +'Rules: all durations in seconds. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
+      +'workout schema: {name, teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short cue}]}]}]}\n'
+      +'Rules: all durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
@@ -6032,16 +6036,28 @@
       aRest:clamp(parseInt(b&&b.aRest,10)||0,0,1800),
       items:((b&&b.items)||[]).slice(0,12).map(it=>{
         if(it&&it.rest) return {rest:true,dur:clamp(parseInt(it.dur,10)||60,5,1800),scored:false,exercises:[]};
-        const exs=((it&&it.exercises)||[]).slice(0,8).map(x=>({
-          who:cfg.teamKind==="solo"?"":String((x&&x.who)||("All "+clamp(cfg.teamSize||4,2,6))).slice(0,20),
-          name:String((x&&x.name)||"Work").slice(0,60),
-          amounts:Array.isArray(x&&x.amounts)?x.amounts.slice(0,4).map(a=>parseFloat(a)||0).filter(a=>a>0):[],
-          unit:U[x&&x.unit]||"reps",
-          max:!!(x&&x.max)
-        }));
+        const exs=((it&&it.exercises)||[]).slice(0,8).map(x=>{
+          const ex={
+            who:cfg.teamKind==="solo"?"":String((x&&x.who)||("All "+clamp(cfg.teamSize||4,2,6))).slice(0,20),
+            name:String((x&&x.name)||"Work").slice(0,60),
+            amounts:Array.isArray(x&&x.amounts)?x.amounts.slice(0,4).map(a=>parseFloat(a)||0).filter(a=>a>0):[],
+            unit:U[x&&x.unit]||"reps",
+            max:!!(x&&x.max)
+          };
+          // prescription extras the engine already carries — a superset inside one
+          // part rides on per-exercise sets, never on an invented extra block
+          const s=parseInt(x&&x.sets,10); if(s>=2&&s<=10) ex.sets=s;
+          if(x&&x.each) ex.each=true;
+          const rp=parseFloat(x&&x.rpe); if(rp>0&&rp<=10) ex.rpe=rp;
+          const rm=parseInt(x&&x.rm,10); if(rm>0&&rm<=100) ex.rm=rm;
+          if(x&&x.note) ex.note=String(x.note).slice(0,80);
+          return ex;
+        });
         if(!exs.length) exs.push({who:"",name:"Work",amounts:[],unit:"reps",max:true});
         const o={dur:clamp(parseInt(it&&it.dur,10)||300,5,7200),scored:!!(it&&it.scored)&&!cfg.noScore,exercises:exs};
         if(it&&it.name) o.name=String(it.name).slice(0,60);
+        if(it&&it.note) o.note=String(it.note).slice(0,120);
+        if(it&&it.fin) o.fin=true;
         if(exs.length>1) o.group=true;
         if(o.scored){ o.metric=(it.metric==="metres"?"metres":"calories"); o.scorers=4; }
         if(it&&it.hold) o.hold=true;
@@ -6610,7 +6626,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=318;
+  const BUILD=319;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

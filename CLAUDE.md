@@ -383,16 +383,28 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `loadProgrammeOnce` (which filters seedV presets — seed before it and the boards
   die on first boot). A board he deletes stays deleted: this seeds, never enforces.
   `prog.js` pins the byte-identity and the picker listing programme + 14.
-- **The board of the week loads itself ONCE, and the flag lives in its OWN KEY.**
-  `loadMichaelOnce()` (after `refreshSeeded`) copies the Michael Workout preset in —
-  roster kept, copy stamped — gated on localStorage `af_mw_v1`, NOT on a cfg field:
-  a flag riding the cfg is lost the moment the trainer picks a different board
-  (picking replaces the cfg wholesale), and the next boot would force Michael back
-  over their choice. `mw.js` gates the shape, the one-shot, edits surviving reloads
-  AND a different pick surviving a reload. Suites written against the boot DEFAULTS
-  pin `af_mw_v1` before their first reload; a suite reading card positions in the
-  phone preview must read offsetTop/offsetLeft — the preview is ROTATED on an
-  upright phone, and screen rects turn columns into rows.
+- **A board loads itself ONCE, and every one-shot flag lives in its OWN KEY** —
+  never on a cfg field: a flag riding the cfg is lost the moment the trainer picks
+  a different board (picking replaces the cfg wholesale), and the next boot would
+  force the seed back over their choice. The boot chain on a fresh device:
+  `loadProgrammeOnce` (`af_prog_v1`, deletes seedV boards + loads today's session)
+  → SEED14 (`af_seed14_v1`) → `loadSISOnce` (`af_sis2_v1`) loads the scored Send
+  It Saturday LAST and wins the screen. `af_mw_v1` is a retired key from the old
+  Michael one-shot; suites that pin it are harmlessly stale. `mw.js` gates the
+  chain: SIS on first boot, edits surviving reloads, a different pick surviving a
+  reload. Suites written against boot DEFAULTS pin `af_prog_v1`+`af_sis2_v1`
+  before their first reload; a suite reading card positions in the phone preview
+  must read offsetTop/offsetLeft — the preview is ROTATED on an upright phone, and
+  screen rects turn columns into rows.
+- **The AI builder speaks the whole model, and the coach's parts are law.**
+  `aiSystem()`'s schema must carry every field Setup can author (per-exercise
+  `sets`/`each`/`rpe`/`rm`/`note`, item `note`/`fin`, formats, rests) and
+  `applyAiWorkout()` must pass them through — a field the schema omits comes back
+  as an invented extra block instead (the AI split Part B into "B1"/"B2" because
+  it had no `sets` to say two supersets share one part). One named part = ONE
+  block, stated outright in the prompt. Saving under a name also SETS `cfg.name` —
+  the title every surface shows — or the old board's title sits over the new
+  board's parts.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.
