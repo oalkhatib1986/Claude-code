@@ -1,5 +1,7 @@
 <title>ATHL3TE — Erg Race Board</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0b">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <style>
   /* ============================================================
      ATHL3TE — competition board · design system v2
@@ -3972,7 +3974,12 @@
       // here and the workout uses it, so it offers itself like any other. Taking
       // it grows the class; from then on it is an ordinary erg screen. Someone
       // can walk up at any point in the session, so this is never gated on "pre".
-      const openSlot=(!hit&&!finished)?claimSlotFor(mtype+":"+mnum):null;
+      // A HIT WITHOUT A TEAM IS AN OPEN MACHINE TOO: on a split-flow board a
+      // station exists whose team only rotates in later — the wall already
+      // offers it, and the screen saying "No team here" instead is the two
+      // disagreeing about the same slot (Omar hit this on the ski tablet).
+      const hitTeam=hit?(teamsAt(hit.bi)[hit.j]||null):null;
+      const openSlot=((!hit||!hitTeam)&&!finished)?claimSlotFor(mtype+":"+mnum):null;
       if(openSlot){
         const fb=R().blocks[openSlot.bi]||{name:"",items:[]};
         // what they are signing up for — the same work list the claimed screen shows
@@ -6354,7 +6361,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=311;
+  const BUILD=312;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
