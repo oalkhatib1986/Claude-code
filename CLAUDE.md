@@ -569,6 +569,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   boards (no `seedV`) are offered; the Today button rides with the hidden
   programme; NOTHING is deleted (PROG/SEED14/presets intact, `prog.js` still pins
   the bytes). Suites load hidden boards via `window.__loadLib(label)`.
+  `killTestSaves` (`af_clean1_v1`, build 325) tombstoned the test-era saves —
+  "Previous 1/2 … Send It Saturday", the re-saved "Send It Saturday", "Test
+  Workout Michael" — from the SHARED library; the local seedV copies were
+  skipped, but the room tombstone outlives them, so THE UNHIDE MUST RE-SEED
+  Send It Saturday (a fresh save from SEED14 beats the tombstone).
 - **A pace is per something, and the unit is WHATEVER THE MACHINE'S OWN CONSOLE SAYS.**
   `PACE`: a rower and a ski say `/500m`, a BikeErg says `/1000m`, a runner says `/km`.
   Never invent a unit or abbreviate one into something the athlete has to decode —

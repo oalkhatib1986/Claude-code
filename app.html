@@ -6209,6 +6209,28 @@
   try{ window.__sessPull=sessPull; window.__sessPush=sessPushNow;
     window.__sessState=()=>({run:running,act:sessionActive,hold:holding,pau:paused,
       phase:rot.phase,round:rot.round,el:sessionActive?(performance.now()-t0)/1000:0}); }catch(e){}
+
+  // OMAR'S CLEANUP (one-shot, build 325): the test-era saves — two programme
+  // sessions saved under their own labels, a re-saved Send It Saturday and the
+  // first test board — go from the shared library via its own tombstones, so one
+  // refreshed device clears them EVERYWHERE. "Michael Test 2" and anything the
+  // trainers save from here on are untouched. Local splice skips seedV boards
+  // (the hidden built-ins keep their local bytes; prog.js pins them) — but the
+  // TOMBSTONE still reaches the room, so the unhide later must re-seed
+  // Send It Saturday from SEED14 (noted in CLAUDE.md).
+  (function killTestSaves(){
+    const K="af_clean1_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    ["Previous 1 · W2 · Sat — Send It Saturday",
+     "Previous 2 · W3 · Sat — Send It Saturday",
+     "Send It Saturday",
+     "Test Workout Michael"].forEach(n=>{
+      const i=presets.findIndex(p=>p.name===n&&!p.seedV);
+      if(i>=0) presets.splice(i,1);
+      libKill(n);
+    });
+    savePresets();
+  })();
   function aiSnapshot(){
     return JSON.stringify({name:cfg.name,teamKind:cfg.teamKind,teamSize:cfg.teamSize,noScore:!!cfg.noScore,
       together:!!cfg.together,laps:R().laps||1,blockRest:R().blockRest||0,sameRest:R().sameRest!==false,
@@ -6867,7 +6889,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=324;
+  const BUILD=325;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
