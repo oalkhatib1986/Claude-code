@@ -268,6 +268,32 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   The lane's name is repainted in `renderLanesRot()`, NOT written once in `build()` —
   a claim has to reach the board or it calls them "Athlete 1" all session.
   `noname.js` gates it.
+- **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
+  simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
+  `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a
+  name alone shows none, pre-clock or mid-session; paired pre-clock reads
+  "PM5 live · not counting yet". `tickTbVitals()` opens with
+  `if(!pm5On()) return;`. `pm5.js`, `stillpre.js`, `noname.js` gate it.
+- **The real monitor speaks two languages, one button.** `PM5` singleton
+  (state off|connecting|on|lost, `af_pm5_id` remembers the device):
+  `pm5Attach()` tries Concept2's own service (GEN u24 time/100 + u24 dist/10,
+  AD1 spm/pace, AD2 watts/cal) and falls through to standard FTMS
+  (`pmFtmsAttach`) for the Assault Runner and everything else. The FTMS
+  frame is a flags word walked IN SPEC ORDER — skip a declared field and
+  every number after it lands on the wrong meaning; treadmill and
+  indoor-bike number their flags DIFFERENTLY (energy 7 vs 8, elapsed 10 vs
+  11), and treadmill bit 12 is force-on-belt THEN power, so the watts are
+  the second s16. Pace unit follows the machine (`PM5.live.plab`: /500m C2,
+  /km FTMS) — the console's own unit, never invented. `pm5View()` baselines
+  against the monitor's FIRST totals (`PM5.got`) so held numbers never leak;
+  `tbFresh()` re-anchors and `pm5Reset()` zeros the monitor itself (CSAFE
+  `F1 86 88 0E F2` on C2, control-point 0x00+0x01 on FTMS) at start/reset.
+  `pm5Resume()` reconnects silently via `getDevices()` (6s retry while
+  `tabkiosk`). Real deltas ride `frameRotation`'s `pmE` branch onto the
+  crew's counters; the sim is skipped for that crew. Chrome only — Fully
+  Kiosk's WebView has no Web Bluetooth. `#tbBle` MUST stay in the delegated
+  `.closest()` selector list, like every tablet control. `pm5.js` gates
+  both protocols end-to-end with a mocked `navigator.bluetooth`.
 - **Leaving the Erg Tablet tab takes the kiosk with it.** `body.kioskon` pins a
   1005x600 frame; left on after `show()` moved to another tab it warped every other
   page and the nav drifted out from under the taps. `show()` removes
