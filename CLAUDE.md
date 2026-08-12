@@ -345,6 +345,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `exGear["bike buy-in"]=""` so the allocator never counts the gym's bikes for it.
   Without this, `curTypes` put the bike FIRST and the whole team's calories credited
   to the bike column while the scored run sat at a dash.
+- **The 14 house boards ship built-in again** (Omar: "put them back"): `SEED14` is
+  the byte-identical pre-deletion snapshot (Full Body, Michael Workout, Send It
+  Saturday, Slow It or Send It, Barbell Power, Engine, Hyrox Conditioner, Upper
+  Focus 1-5, Lower Focus 1-2), seeded once per device via `af_seed14_v1` AFTER
+  `loadProgrammeOnce` (which filters seedV presets — seed before it and the boards
+  die on first boot). A board he deletes stays deleted: this seeds, never enforces.
+  `prog.js` pins the byte-identity and the picker listing programme + 14.
 - **The board of the week loads itself ONCE, and the flag lives in its OWN KEY.**
   `loadMichaelOnce()` (after `refreshSeeded`) copies the Michael Workout preset in —
   roster kept, copy stamped — gated on localStorage `af_mw_v1`, NOT on a cfg field:
