@@ -6083,7 +6083,10 @@
     try{
       const res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
         body:JSON.stringify({model:"claude-sonnet-5",max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
-      if(!res.ok) throw new Error("relay "+res.status);
+      if(!res.ok){ let t=""; try{ t=(await res.text()).slice(0,300); }catch(e){}
+        // surface the provider's own words — a bare status number is undiagnosable
+        // from a phone screenshot
+        throw new Error("relay "+res.status+(t?" — "+t.replace(/\s+/g," "):"")); }
       const data=await res.json();
       const raw=((data.content||[]).find(c=>c.type==="text")||{}).text||"";
       aiMsgs.push({role:"assistant",content:raw});
@@ -6626,7 +6629,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=319;
+  const BUILD=320;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
