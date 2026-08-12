@@ -1224,6 +1224,13 @@
        shoving the last two pills apart */
     #scrTabs .fitbtn{display:block}
   }
+  /* THE LEADERBOARD TV IS A SEPARATE SCREEN (Omar): logo, workout name, table —
+     nothing else. The blocks · round · format · time chips and the programme line
+     describe the session, and the session lives on the WORKOUT screen; on the
+     leaderboard they were saying it twice. Phone view keeps them — it is a
+     browsing page, not a wall. */
+  body.bigscreen:not(.mobscreen):not(.wkscreen) #evSummary,
+  body.bigscreen:not(.mobscreen):not(.wkscreen) #evProg{display:none}
   body.wkscreen .board{display:none!important}
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
@@ -3108,12 +3115,27 @@
     // it is not either. The floor rises as metrics are given up: if a board only
     // carries two, they had better be big.
     const FLOOR={3:22,2:26,1:30};
+    // THE RANK COLUMN FITS ITS OWN TITLE. The TV band writes "Rank" at the
+    // figures' size, and a fixed 64px track clipped the word mid-glyph on the
+    // wall (Omar's photo). Measure the word at the candidate size — in the
+    // untransformed body, letter-spacing and case included — and give the track
+    // whichever is more, the frame's width or the title's need.
+    let rprobe=fitLaneCols._rp;
+    if(!rprobe){ rprobe=fitLaneCols._rp=document.createElement("span");
+      rprobe.style.cssText="position:absolute;left:-9999px;top:0;visibility:hidden;"
+        +"white-space:nowrap;font-family:var(--disp);font-weight:700;"
+        +"letter-spacing:.04em;text-transform:uppercase";
+      rprobe.textContent="Rank"; document.body.appendChild(rprobe); }
+    const rankNeed=fs=>{ rprobe.style.fontSize=fs+"px";
+      return Math.ceil(rprobe.offsetWidth)+16; };
+    const rankW=(F,fs)=>tv?Math.max(F.rank,rankNeed(fs)):F.rank;
     let pick=null;
     for(let cnt=keys.length;cnt>=1;cnt--){
       for(const [F,tiers] of fams){
         for(const [mv,fs] of tiers){
-          const need=F.rank+F.who+F.score+n*cnt*mv+F.gap*(2+n*cnt);
-          if(n&&need<=w&&fs>=(tv?(FLOOR[cnt]||22):0)){ pick={F,mv,fs,mk:cnt}; break; }
+          const rw=rankW(F,fs);
+          const need=rw+F.who+F.score+n*cnt*mv+F.gap*(2+n*cnt);
+          if(n&&need<=w&&fs>=(tv?(FLOOR[cnt]||22):0)){ pick={F,mv,fs,mk:cnt,rw}; break; }
         }
         if(pick) break;
       }
@@ -3123,8 +3145,9 @@
       for(let cnt=keys.length;cnt>=1;cnt--){
         for(const [F,tiers] of fams){
           for(const [mv,fs] of tiers){
-            const need=F.rank+F.who+F.score+n*cnt*mv+F.gap*(2+n*cnt);
-            if(n&&need<=w){ pick={F,mv,fs,mk:cnt}; break; }
+            const rw=rankW(F,fs);
+            const need=rw+F.who+F.score+n*cnt*mv+F.gap*(2+n*cnt);
+            if(n&&need<=w){ pick={F,mv,fs,mk:cnt,rw}; break; }
           }
           if(pick) break;
         }
@@ -3132,14 +3155,15 @@
       }
     }
     // no machines at all: the score is the only figure left, so it takes the size
-    if(!pick){ const [F]=fams[fams.length-1]; pick={F,mv:0,fs:tv?36:22,mk:0}; }
-    const {F,mv,fs,mk}=pick;
+    if(!pick){ const [F]=fams[fams.length-1]; const fs0=tv?36:22;
+      pick={F,mv:0,fs:fs0,mk:0,rw:rankW(F,fs0)}; }
+    const {F,mv,fs,mk,rw}=pick;
     const shown=keys.slice(0,mk);
     // THE ROW FILLS THE BOARD. Every track a fixed pixel width meant the slack piled
     // up after the last column as a block of empty white — the figures share it out
     // instead, so the columns stay evenly spaced and the table reaches both edges.
     bd.style.setProperty("--lanecols",
-      [F.rank+"px",mk?F.who+"px":"minmax(0,1fr)"]
+      [rw+"px",mk?F.who+"px":"minmax(0,1fr)"]
         .concat(mk?headTypes.map(()=>Array(mk).fill(`minmax(${mv}px,1fr)`).join(" ")):[])
         .concat([F.score+"px"]).join(" "));
     bd.style.setProperty("--lanegap",F.gap+"px");
@@ -5749,6 +5773,7 @@
     }
     normCrewNames();
   }
+  try{ window.__loadLib=v=>loadLib(v); }catch(e){}   // suites load hidden boards directly
   function loadLib(v){
     const p=libFind(v); if(!p) return false;
     const keep=structuredClone(cfg.crews||[]);
@@ -5758,12 +5783,20 @@
     buildControlRoom(); if(!running&&!sessionActive) build();
     return true;
   }
+  // OMAR'S HOLD (build 324): the Excel programme and the built-in boards are
+  // HIDDEN from the picker until he has checked how they were uploaded — only
+  // trainer-saved boards (no seedV, e.g. "Michael test 2" and the AI's saves)
+  // are offered. NOTHING is deleted: PROG, SEED14 and the presets stay intact,
+  // and flipping this to false brings the full listing back. He said he will
+  // ask for the unhide — remind him it is one flag.
+  const LIBHIDE=true;
   function buildPresetSel(){
     const wp=$("wkPick"); if(!wp) return;
     wp.innerHTML="";
     wp.appendChild(menuField(
       // the trainer's own saved boards first, then the whole programme in order
-      ()=>presets.map(p=>p.name).concat(progList.map(x=>x.label)),
+      ()=>presets.filter(p=>!(LIBHIDE&&p.seedV)).map(p=>p.name)
+        .concat(LIBHIDE?[]:progList.map(x=>x.label)),
       ()=>cfg.wkName||"Unsaved workout",
       v=>{
         if(loadLib(v)) return;
@@ -5777,10 +5810,13 @@
         libPush(entry);
         syncTeamCount(); if(!running&&!sessionActive) build();
       },
-      {addable:true, addLabel:"+ Save as", searchPh:"Search the programme — block, week, day, type…", cls:"wkfield"}
+      {addable:true, addLabel:"+ Save as",
+        searchPh:LIBHIDE?"Search saved workouts…":"Search the programme — block, week, day, type…",
+        cls:"wkfield"}
     ));
     // Delete offers itself only for a board that IS in the library
     { const d=$("wkDel"); if(d) d.hidden=!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName)); }
+    if(LIBHIDE) return;   // the Today button belongs to the hidden programme
     // TODAY: one tap to the session this date belongs to
     const tb=document.createElement("button");
     tb.type="button"; tb.className="btn small"; tb.id="progToday";
@@ -6183,7 +6219,7 @@
   function aiSystem(){
     return 'You are the workout-builder inside ATHL3TE gym\'s class app. Convert the coach\'s description into ONE JSON object and reply with ONLY that JSON \u2014 no markdown fences, no other text: {"reply":"short confirmation or question for the coach","workout":<object or null>}. If anything essential is unclear, set workout to null and ask at most 2 short questions in reply. Once clear, produce the workout and a one-line reply.\n'
       +'workout schema: {name, teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short cue}]}]}]}\n'
-      +'Rules: all durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
+      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
@@ -6247,7 +6283,19 @@
     })).filter(b=>b.items.length);
     R().blocks.forEach(b=>b.items.forEach(it=>(it.exercises||[]).forEach(x=>{
       if(x.name&&!cfg.library.includes(x.name)) cfg.library.push(x.name); })));
+    // THE AI'S BOARD ARRIVES SAVED. "Unsaved workout" + a rename nobody can find
+    // was the whole confusion: the board takes the AI's name (the coach's own if
+    // they gave one), lands in the shared library at once, and a taken name gets
+    // " 2" instead of silently overwriting someone's board.
+    let nm=String(w.name||cfg.name||"AI Workout").slice(0,40).trim()||"AI Workout";
+    { const base=nm; let i=2; while(presets.some(p=>p.name===nm)) nm=base+" "+(i++); }
+    cfg.name=nm; cfg.wkName=nm;
+    const entry={name:nm,cfg:structuredClone(cfg),ts:Date.now()};
+    presets.push(entry); savePresets();
+    if(libDead[nm]){ delete libDead[nm]; saveDead(); }
+    libPush(entry);
     save(); applyAccent(); buildControlRoom(); if(!running&&!sessionActive) build();
+    return nm;
   }
   async function aiSend(){
     if(aiBusy) return;
@@ -6272,9 +6320,9 @@
         const m=raw.match(/\{[\s\S]*\}/); if(m){ try{ obj=JSON.parse(m[0]); }catch(e2){} } }
       if(!obj) throw new Error("bad reply");
       if(obj.reply) aiBubble("ai",obj.reply);
-      if(obj.workout){ applyAiWorkout(obj.workout);
-        aiBubble("ok","Applied \u2014 review the setup, then save it a name in the Workout card. Reopen me for tweaks.");
-        setTimeout(aiCloseP,1400); }
+      if(obj.workout){ const nm=applyAiWorkout(obj.workout);
+        aiBubble("ok","Saved as \u201c"+nm+"\u201d \u2014 it\u2019s on every screen. Review the setup below; reopen me for tweaks.");
+        setTimeout(aiCloseP,1800); }
     }catch(e){
       aiBubble("err","Couldn't reach the AI ("+e.message+"). Check the relay link or try again.");
     }
@@ -6819,7 +6867,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=323;
+  const BUILD=324;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

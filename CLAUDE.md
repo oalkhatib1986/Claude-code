@@ -436,7 +436,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   it had no `sets` to say two supersets share one part). One named part = ONE
   block, stated outright in the prompt. Saving under a name also SETS `cfg.name` —
   the title every surface shows — or the old board's title sits over the new
-  board's parts.
+  board's parts. **The AI's board arrives SAVED**: `applyAiWorkout()` names it
+  (the coach's own name when given, else the AI coins one — the prompt demands
+  `workout.name` always), unique-ifies with " 2" instead of overwriting, saves to
+  presets + `libPush` and returns the name for the confirmation bubble —
+  "Unsaved workout" plus an unfindable rename was the whole confusion.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.
@@ -550,6 +554,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   a number too small to read from the floor is not information, and a metric dropped
   from a board that had room for it is not either. The tracks live inside the lane's
   own padding, so the width it measures is the LANE's, minus that padding.
+  **The rank column fits its own TITLE**: the TV band writes "Rank" at the figures'
+  size and the frame's fixed 64px clipped it mid-glyph — `rankNeed()` measures the
+  word at the candidate size (hidden span in the untransformed body, letter-spacing
+  and case included) and the track takes the larger of frame and title.
+- **The leaderboard TV is a SEPARATE screen (Omar): logo, workout name, table —
+  nothing else.** `#evSummary` and `#evProg` are display:none on
+  `body.bigscreen:not(.mobscreen):not(.wkscreen)` — the chips describe the session
+  and the session lives on the WORKOUT screen. Phone view keeps them (browsing
+  page, not a wall).
+- **OMAR'S HOLD (build 324): the programme + built-in boards are HIDDEN from the
+  picker** (`LIBHIDE=true` beside `buildPresetSel`) until he checks how they were
+  uploaded — HE WILL ASK FOR THE UNHIDE; it is one flag flip. Only trainer-saved
+  boards (no `seedV`) are offered; the Today button rides with the hidden
+  programme; NOTHING is deleted (PROG/SEED14/presets intact, `prog.js` still pins
+  the bytes). Suites load hidden boards via `window.__loadLib(label)`.
 - **A pace is per something, and the unit is WHATEVER THE MACHINE'S OWN CONSOLE SAYS.**
   `PACE`: a rower and a ski say `/500m`, a BikeErg says `/1000m`, a runner says `/km`.
   Never invent a unit or abbreviate one into something the athlete has to decode —
