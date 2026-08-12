@@ -34,6 +34,24 @@ every phone/tablet then just pastes the relay link.
 3. Describe a workout and hit **Build it**. Review what it set up below,
    then save the workout a name in the Workout card as usual.
 
+## 4. Shared workout library (~3 min, optional but recommended)
+
+With this on, a workout saved on ANY device appears on EVERY device that has
+the relay link — and a board deleted anywhere stays deleted everywhere.
+
+1. In Cloudflare's left menu: **Storage & Databases → KV** →
+   **Create a namespace**. Name it `athl3te-lib` and create it.
+2. Go to your worker (**athl3te-ai**) → **Settings** → **Bindings**
+   (or "Variables and Secrets" → Bindings) → **Add** → **KV Namespace**:
+   - Variable name: `LIB` (exactly)
+   - KV namespace: `athl3te-lib`
+   Save (and deploy if prompted).
+3. Make sure the worker is running the latest `ai-relay-worker.js` from this
+   project (Edit code → paste → Deploy) — the library endpoints ship in it.
+4. Paste the same relay link into **Build with AI** once on each device
+   (phones, the trainer's laptop, tablets). The library syncs automatically:
+   on load, every 5 minutes, and the moment a board is saved or deleted.
+
 ## Notes
 
 - The key lives only inside Cloudflare — never in the web page or the repo.

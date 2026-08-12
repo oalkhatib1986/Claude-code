@@ -1740,6 +1740,7 @@
             <div class="fld"><label>Current workout</label><span id="wkPick"></span></div>
             <button class="btn small" id="wkSave" type="button">Save</button>
             <button class="btn small" id="wkNew" type="button">New</button>
+            <button class="btn small" id="wkDel" type="button" hidden>Delete</button>
           </div>
           <div class="row3 progrow">
             <div class="fld"><label>Date</label><input type="date" id="pgDate"></div>
@@ -5766,12 +5767,17 @@
         // SAVING UNDER A NAME NAMES THE BOARD. cfg.name is the title every surface
         // shows (overview head, TV, tablet); leaving it while wkName changed kept
         // the OLD board's title over the new board's parts.
-        cfg.wkName=v; cfg.name=v; const entry={name:v,cfg:structuredClone(cfg)};
+        cfg.wkName=v; cfg.name=v;
+        const entry={name:v,cfg:structuredClone(cfg),ts:Date.now()};
         presets.push(entry); savePresets(); save(); buildPresetSel();
+        if(libDead[v]){ delete libDead[v]; saveDead(); }
+        libPush(entry);
         syncTeamCount(); if(!running&&!sessionActive) build();
       },
       {addable:true, addLabel:"+ Save as", searchPh:"Search the programme — block, week, day, type…", cls:"wkfield"}
     ));
+    // Delete offers itself only for a board that IS in the library
+    { const d=$("wkDel"); if(d) d.hidden=!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName)); }
     // TODAY: one tap to the session this date belongs to
     const tb=document.createElement("button");
     tb.type="button"; tb.className="btn small"; tb.id="progToday";
@@ -5996,6 +6002,74 @@
   try{ localStorage.removeItem("af_ai_fabpos"); }catch(e){}
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
   let aiMsgs=[], aiBusy=false;
+
+  /* ============ shared workout library ============ */
+  // THE GYM HAS ONE LIBRARY. A board saved on any device rides the relay into
+  // Cloudflare KV and appears on every device that carries the relay link; a
+  // board deleted anywhere leaves a tombstone so it stays deleted everywhere.
+  // Merge is last-write-wins per board on the entry's own ts; entries without a
+  // ts (saved before sync existed, or freshly seeded) always lose to the room.
+  const DKEY="af_lib_dead";
+  let libDead={}; try{ libDead=JSON.parse(localStorage.getItem(DKEY))||{}; }catch(e){}
+  const saveDead=()=>{ try{ localStorage.setItem(DKEY,JSON.stringify(libDead)); }catch(e){} };
+  async function libCall(body){
+    if(!aiUrl) return null;
+    try{
+      const r=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify(body)});
+      if(!r.ok) return null;
+      return await r.json();
+    }catch(e){ return null; }
+  }
+  function libPush(p){
+    const e={op:"lib.put",name:p.name,ts:p.ts||Date.now()};
+    if(p.del) e.del=true; else { e.cfg=p.cfg; if(p.seedV) e.seedV=p.seedV; }
+    libCall(e);
+  }
+  function libKill(name){
+    libDead[name]=Date.now(); saveDead();
+    libPush({name,ts:libDead[name],del:true});
+  }
+  let libBusy=false;
+  async function libSync(){
+    if(libBusy||!aiUrl) return; libBusy=true;
+    try{
+      const got=await libCall({op:"lib.list"});
+      if(!got||!Array.isArray(got.presets)) return;
+      const remote={}; got.presets.forEach(r=>{ if(r&&r.name) remote[r.name]=r; });
+      let changed=false;
+      // adopt what the room knows better
+      for(const name in remote){ const r=remote[name];
+        const i=presets.findIndex(p=>p.name===name);
+        const lts=i>=0?(presets[i].ts||0):(libDead[name]||0);
+        if((r.ts||0)<=lts) continue;
+        if(r.del){ if(i>=0){ presets.splice(i,1); changed=true; } libDead[name]=r.ts; saveDead(); }
+        else if(r.cfg){ const e={name:r.name,cfg:r.cfg,ts:r.ts};
+          if(r.seedV) e.seedV=r.seedV;
+          if(i>=0) presets[i]=e; else presets.push(e);
+          if(libDead[name]){ delete libDead[name]; saveDead(); }
+          changed=true; }
+      }
+      // offer what the room has not seen
+      presets.forEach(p=>{ const r=remote[p.name];
+        if(!r||((p.ts||0)>(r.ts||0))){
+          if(!p.ts){ p.ts=Date.now(); changed=true; }
+          libPush(p); } });
+      for(const name in libDead){ const r=remote[name];
+        if(!r||(libDead[name]>(r.ts||0))) libPush({name,ts:libDead[name],del:true}); }
+      if(changed){
+        savePresets();
+        // never yank the picker out from under an open panel — the next sync
+        // (or the close) redraws it
+        const wp=$("wkPick");
+        if(!(wp&&wp.querySelector(".mpanel:not([hidden])"))) buildPresetSel();
+      }
+    } finally { libBusy=false; }
+  }
+  setTimeout(libSync,3000);
+  setInterval(libSync,5*60*1000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) libSync(); });
+  try{ window.__libSync=libSync; }catch(e){}
   function aiSnapshot(){
     return JSON.stringify({name:cfg.name,teamKind:cfg.teamKind,teamSize:cfg.teamSize,noScore:!!cfg.noScore,
       together:!!cfg.together,laps:R().laps||1,blockRest:R().blockRest||0,sameRest:R().sameRest!==false,
@@ -6318,16 +6392,27 @@
     $("wkSave").onclick=()=>{
       let n=cfg.wkName;
       if(!n){ n=prompt("Name this workout:", cfg.name||""); if(!n||!n.trim()) return; n=n.trim(); cfg.wkName=n; }
-      const entry={name:n, cfg:structuredClone(cfg)};
+      const entry={name:n, cfg:structuredClone(cfg), ts:Date.now()};
       const i=presets.findIndex(p=>p.name===n);
       if(i>=0) presets[i]=entry; else presets.push(entry);
       savePresets(); save(); buildPresetSel();
+      if(libDead[n]){ delete libDead[n]; saveDead(); }
+      libPush(entry);
       const b=$("wkSave"); b.textContent="Saved \u2713"; setTimeout(()=>{ b.textContent="Save"; },1200);
     };
     $("wkNew").onclick=()=>{
       if(!confirm("Start a new blank workout? Teams, machines and branding stay.")) return;
       R().blocks=[]; R().laps=1; cfg.name="New Workout"; cfg.wkName=null;
       save(); buildControlRoom(); if(!running&&!sessionActive) build();
+    };
+    $("wkDel").onclick=()=>{
+      const n=cfg.wkName; if(!n) return;
+      const i=presets.findIndex(p=>p.name===n); if(i<0) return;
+      if(!confirm('Delete “'+n+'” from the library? It goes from every device.')) return;
+      presets.splice(i,1); savePresets(); libKill(n);
+      // the loaded copy stays on screen — deleting the library entry is not
+      // clearing the board the class is about to run
+      cfg.wkName=null; save(); buildPresetSel();
     };
     buildBlocks(); buildStations(); buildRankGrid(); buildCrews(); syncMode(); syncSeqScoring();
     enhanceSelects();
@@ -6629,7 +6714,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=320;
+  const BUILD=321;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

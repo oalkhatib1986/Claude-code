@@ -396,6 +396,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   before their first reload; a suite reading card positions in the phone preview
   must read offsetTop/offsetLeft — the preview is ROTATED on an upright phone, and
   screen rects turn columns into rows.
+- **THE GYM HAS ONE LIBRARY.** Saved boards ride the AI relay into Cloudflare KV
+  (`ai-relay-worker.js` ops `lib.list`/`lib.put`, one KV key, binding `LIB`) so
+  every device with the relay link shares them. Merge is last-write-wins per
+  board on the entry's own `ts`; entries with no `ts` (pre-sync saves, fresh
+  seeds) always lose to the room — which is what lets a wrongly-created copy be
+  healed by the real one. Deletes are TOMBSTONES (`libKill`, `af_lib_dead`): a
+  board deleted anywhere stays deleted everywhere, and a later save under the
+  same name revives it. Sync runs at boot +3s, every 5 min, on tab-visible —
+  never while the picker's panel is open (rebuilding it mid-tap eats the tap).
+  Setup's Delete button shows only for boards actually in the library; deleting
+  clears `wkName` but leaves the loaded board on screen. No relay link = fully
+  local, silently. `libsync.js` gates the whole loop with the worker contract
+  mocked at the network layer.
 - **The AI builder speaks the whole model, and the coach's parts are law.**
   `aiSystem()`'s schema must carry every field Setup can author (per-exercise
   `sets`/`each`/`rpe`/`rm`/`note`, item `note`/`fin`, formats, rests) and

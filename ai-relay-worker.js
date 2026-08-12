@@ -1,11 +1,15 @@
 /**
- * ATHL3TE AI relay — Cloudflare Worker
+ * ATHL3TE AI relay + shared workout library — Cloudflare Worker
  *
- * Holds your Anthropic API key privately and forwards the workout-builder
- * chat from the leaderboard app to the Claude API. Deploy per AI_SETUP.md.
+ * Holds your Anthropic API key privately, forwards the workout-builder chat
+ * from the leaderboard app to the Claude API, and stores the gym's saved
+ * workouts in KV so every device shares one library. Deploy per AI_SETUP.md;
+ * the library needs a KV namespace bound as LIB.
  */
 const ALLOWED_MODELS = ["claude-sonnet-5", "claude-haiku-4-5-20251001"];
 const MAX_TOKENS_CAP = 8000;
+const LIB_KEY = "library";
+const LIB_MAX = 20_000_000;   // KV value cap is 25MB — refuse before we hit it
 
 export default {
   async fetch(request, env) {
@@ -21,6 +25,29 @@ export default {
     let body;
     try { body = await request.json(); }
     catch { return new Response("bad json", { status: 400, headers: cors }); }
+
+    // ---- shared workout library (one KV key, last-write-wins per board) ----
+    const json = (o, status) => new Response(JSON.stringify(o), {
+      status: status || 200, headers: { "content-type": "application/json", ...cors } });
+    if (body.op === "lib.list" || body.op === "lib.put") {
+      if (!env.LIB) return json({ error: "library storage not set up (bind a KV namespace as LIB)" }, 500);
+      const lib = (await env.LIB.get(LIB_KEY, "json")) || {};
+      if (body.op === "lib.list") return json({ presets: Object.values(lib) });
+      const name = String(body.name || "").slice(0, 60).trim();
+      if (!name) return json({ error: "no name" }, 400);
+      const rec = { name, ts: parseInt(body.ts, 10) || Date.now() };
+      if (body.del) rec.del = true;
+      else {
+        if (!body.cfg || typeof body.cfg !== "object") return json({ error: "no cfg" }, 400);
+        rec.cfg = body.cfg;
+        if (body.seedV) rec.seedV = body.seedV;
+      }
+      lib[name] = rec;
+      const out = JSON.stringify(lib);
+      if (out.length > LIB_MAX) return json({ error: "library full" }, 413);
+      await env.LIB.put(LIB_KEY, out);
+      return json({ ok: 1, ts: rec.ts });
+    }
 
     const model = ALLOWED_MODELS.includes(body.model) ? body.model : ALLOWED_MODELS[0];
     const payload = {
