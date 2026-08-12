@@ -3828,31 +3828,58 @@
     return { m:Math.max(0,L.m-PM5.v0m), cal:Math.max(0,L.cal-PM5.v0c),
              t:Math.max(0,L.t-PM5.v0t) }; };
   const pm5On=()=>PM5.state==="on"&&(performance.now()-PM5.live.up)<6000;
+  async function pm5Attach(dev){
+    PM5.dev=dev;
+    if(!dev.__pm5Wired){ dev.__pm5Wired=1;
+      dev.addEventListener("gattserverdisconnected",()=>{ if(PM5.state!=="off") PM5.state="lost"; renderTablet(true); }); }
+    const gatt=await dev.gatt.connect();
+    const svc=await gatt.getPrimaryService(PM5.SVC);
+    const u24=(d,o)=>d.getUint8(o)|(d.getUint8(o+1)<<8)|(d.getUint8(o+2)<<16);
+    const sub=async(id,fn)=>{ const ch=await svc.getCharacteristic(id);
+      ch.addEventListener("characteristicvaluechanged",ev=>{ fn(ev.target.value); PM5.live.up=performance.now(); });
+      await ch.startNotifications(); };
+    await sub(PM5.GEN,d=>{ PM5.live.t=u24(d,0)/100; PM5.live.m=u24(d,3)/10; PM5.got=true; });
+    await sub(PM5.AD1,d=>{ PM5.live.spm=d.getUint8(5); PM5.live.pace=d.getUint16(7,true)/100; PM5.live.avgPace=d.getUint16(9,true)/100; });
+    await sub(PM5.AD2,d=>{ PM5.live.watts=d.getUint16(4,true); PM5.live.cal=d.getUint16(6,true); });
+    try{ const r=await svc.getCharacteristic(PM5.RATE); await r.writeValue(Uint8Array.of(1)); }catch(e){}
+    PM5.state="on"; PM5.live.up=performance.now();
+    delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
+    try{ localStorage.setItem("af_pm5_id",dev.id||""); }catch(e){}
+  }
   async function pm5Connect(){
     if(!pm5Can()) return;
     if(PM5.state==="on"){ try{ PM5.dev&&PM5.dev.gatt.disconnect(); }catch(e){}
-      PM5.state="off"; PM5.dev=null; renderTablet(true); return; }
+      PM5.state="off"; PM5.dev=null;
+      try{ localStorage.removeItem("af_pm5_id"); }catch(e){}
+      renderTablet(true); return; }
     PM5.state="connecting"; renderTablet(true);
     try{
       const dev=await navigator.bluetooth.requestDevice({
         filters:[{services:[PM5.SVC]},{namePrefix:"PM5"}], optionalServices:[PM5.SVC]});
-      PM5.dev=dev;
-      dev.addEventListener("gattserverdisconnected",()=>{ if(PM5.state!=="off") PM5.state="lost"; renderTablet(true); });
-      const gatt=await dev.gatt.connect();
-      const svc=await gatt.getPrimaryService(PM5.SVC);
-      const u24=(d,o)=>d.getUint8(o)|(d.getUint8(o+1)<<8)|(d.getUint8(o+2)<<16);
-      const sub=async(id,fn)=>{ const ch=await svc.getCharacteristic(id);
-        ch.addEventListener("characteristicvaluechanged",ev=>{ fn(ev.target.value); PM5.live.up=performance.now(); });
-        await ch.startNotifications(); };
-      await sub(PM5.GEN,d=>{ PM5.live.t=u24(d,0)/100; PM5.live.m=u24(d,3)/10; PM5.got=true; });
-      await sub(PM5.AD1,d=>{ PM5.live.spm=d.getUint8(5); PM5.live.pace=d.getUint16(7,true)/100; PM5.live.avgPace=d.getUint16(9,true)/100; });
-      await sub(PM5.AD2,d=>{ PM5.live.watts=d.getUint16(4,true); PM5.live.cal=d.getUint16(6,true); });
-      try{ const r=await svc.getCharacteristic(PM5.RATE); await r.writeValue(Uint8Array.of(1)); }catch(e){}
-      PM5.state="on"; PM5.live.up=performance.now();
-      delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
+      await pm5Attach(dev);
     }catch(e){ PM5.state=PM5.dev?"lost":"off"; }
     renderTablet(true);
   }
+  // CHROME REMEMBERS THE PERMISSION — the tablet uses that memory. On load (and
+  // whenever the link drops) the app finds the already-authorised PM5 and
+  // reconnects silently; no chooser, no tap. A sleeping monitor simply fails the
+  // attempt and the retry catches it when the athlete wakes it with a pull.
+  async function pm5Resume(){
+    if(PM5.state==="on"||PM5.state==="connecting") return;
+    if(!navigator.bluetooth||!navigator.bluetooth.getDevices) return;
+    try{
+      const want=localStorage.getItem("af_pm5_id")||"";
+      const devs=await navigator.bluetooth.getDevices();
+      const dev=devs.find(d=>d.id===want)||devs.find(d=>/PM5/i.test(d.name||""));
+      if(!dev) return;
+      PM5.state="connecting"; renderTablet(true);
+      await pm5Attach(dev);
+    }catch(e){ PM5.state="lost"; }
+    renderTablet(true);
+  }
+  setInterval(()=>{ if(document.body.classList.contains("tabkiosk")
+    &&(PM5.state==="off"||PM5.state==="lost")) pm5Resume(); },6000);
+  try{ window.__pm5Resume=pm5Resume; }catch(e){}
   // THE APP CAN ZERO THE MONITOR. CSAFE over the control characteristic:
   // GoFinished (0x86) then GoIdle (0x88) ends the piece and re-arms the PM5 at
   // zero — the same thing pressing Menu>back does. Sent on session start/reset.
@@ -6493,7 +6520,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=315;
+  const BUILD=316;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
