@@ -518,6 +518,9 @@
   .tk.hot .tk-vit b{color:#c81111}
   .tk-vit span{display:block;margin-top:5px;font-family:var(--disp);font-weight:600;
     font-size:clamp(12px,3.1vw,20px);letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.55);white-space:nowrap}
+  /* ?pm5dbg raw-frame readout — diagnostic only, never rendered without the flag */
+  .tk-dbg{flex:none;font-family:var(--mono);font-size:10px;line-height:1.5;color:#222;
+    background:#fff;border-top:2px solid rgba(10,10,11,.12);padding:6px 10px;word-break:break-all}
   /* Tablet preview: render the real 1005x600 screen and scale it to the phone */
   body.tabprev .tb-note{display:none}
   /* a sideways drag on the frame walks the row — it belongs to the app, not to the
@@ -3824,9 +3827,12 @@
     // the baseline waits for the monitor's FIRST totals — anchoring at pairing
     // time pins it to zero and the monitor's old numbers leak straight through
     if(!PM5.got) return {m:0,cal:0,t:0};
-    if(PM5.v0m===undefined||L.m<PM5.v0m){ PM5.v0m=L.m<(PM5.v0m||0)?0:L.m; }
-    if(PM5.v0c===undefined||L.cal<PM5.v0c){ PM5.v0c=L.cal<(PM5.v0c||0)?0:L.cal; }
-    if(PM5.v0t===undefined||L.t<PM5.v0t){ PM5.v0t=L.t<(PM5.v0t||0)?0:L.t; }
+    // a total that DROPS re-anchors the baseline AT the new value — a true
+    // monitor reset lands it on zero all the same, and a one-frame glitch costs
+    // only the glitch instead of leaking the monitor's whole lifetime total
+    if(PM5.v0m===undefined||L.m<PM5.v0m) PM5.v0m=L.m;
+    if(PM5.v0c===undefined||L.cal<PM5.v0c) PM5.v0c=L.cal;
+    if(PM5.v0t===undefined||L.t<PM5.v0t) PM5.v0t=L.t;
     return { m:Math.max(0,L.m-PM5.v0m), cal:Math.max(0,L.cal-PM5.v0c),
              t:Math.max(0,L.t-PM5.v0t) }; };
   const pm5On=()=>PM5.state==="on"&&(performance.now()-PM5.live.up)<6000;
@@ -3861,10 +3867,14 @@
     const onData=(d,bike)=>{
       let f=d.getUint16(0,true), o=2;
       const has=b=>!!(f&(1<<b));
+      // every distinct flags word keeps its last raw frame, for the ?pm5dbg readout
+      try{ (PM5.dbg=PM5.dbg||{})[(bike?"bike":"tread")+" 0x"+f.toString(16)]=
+        [...new Uint8Array(d.buffer,d.byteOffset,d.byteLength)]
+        .map(x=>x.toString(16).padStart(2,"0")).join(" "); }catch(e){}
       let speed=null;
       if(!has(0)){ speed=d.getUint16(o,true)/100; o+=2; }          // km/h
       if(has(1)){ const av=d.getUint16(o,true)/100; o+=2;
-        if(av>0) PM5.live.avgPace=3600/av; }
+        if(av>0&&av<655.35) PM5.live.avgPace=3600/av; }
       if(bike&&has(2)){ const c=d.getUint16(o,true)/2; o+=2; PM5.live.spm=Math.round(c); } // bike cadence
       if(bike&&has(3)){ o+=2; }                                    // bike avg cadence
       if(has(bike?4:2)){ PM5.live.m=d.getUint8(o)|(d.getUint8(o+1)<<8)|(d.getUint8(o+2)<<16); o+=3; PM5.got=true; }
@@ -3873,14 +3883,24 @@
       if(!bike&&has(5)){ o+=1; }                                   // inst pace
       if(!bike&&has(6)){ o+=1; }                                   // avg pace
       if(bike&&has(5)){ o+=2; }                                    // resistance
-      // treadmill bit12 is Force on Belt THEN Power — the watts are the SECOND s16
-      if(!bike&&has(12)){ o+=2; PM5.live.watts=d.getInt16(o,true); o+=2; }
-      if(bike&&has(6)){ PM5.live.watts=d.getInt16(o,true); o+=2; }
+      if(bike&&has(6)){ const w=d.getInt16(o,true); o+=2;
+        PM5.live.watts=w>0&&w!==0x7FFF?w:0; }
       if(bike&&has(7)){ o+=2; }                                    // bike avg power
-      if(has(bike?8:7)){ PM5.live.cal=d.getUint16(o,true); o+=5; } // total kcal (+/hr,/min)
+      // energy: total u16 + /hr u16 + /min u8; 0xFFFF is the spec's "not available"
+      // (the Assault Runner sends it for /hr — it must never be read as data)
+      if(has(bike?8:7)){ const cv=d.getUint16(o,true); o+=5;
+        if(cv!==0xFFFF) PM5.live.cal=cv; }
       if(has(bike?9:8)){ o+=1; }                                   // heart rate
       if(has(bike?10:9)){ o+=1; }                                  // MET
       if(has(bike?11:10)){ PM5.live.t=d.getUint16(o,true); o+=2; } // elapsed s
+      if(has(bike?12:11)){ o+=2; }                                 // remaining time
+      // treadmill force+power ride at the very END of the frame (fields appear in
+      // ascending FLAG order — bit 12 is the highest the treadmill declares), and
+      // the watts are the SECOND s16, after force-on-belt. Reading them before the
+      // energy block shifted cal onto the elapsed-time bytes: cal 17920 = 0x4600 =
+      // elapsed 70s straddled with the kcal/min byte, on Omar's own runner.
+      if(!bike&&has(12)){ o+=2; const w=d.getInt16(o,true); o+=2;
+        PM5.live.watts=w>0&&w!==0x7FFF?w:0; }
       if(speed!==null&&speed>0) PM5.live.pace=3600/speed;          // s per km
       PM5.live.up=performance.now();
     };
@@ -3956,6 +3976,13 @@
   function pm5Crew(){ const sv=String(tabletSel); if(!sv.includes(":")) return null;
     const hit=machSlots().byKey[sv]; if(!hit) return null;
     return teamsAt(hit.bi)[hit.j]||null; }
+  // ?pm5dbg — raw-frame readout on the machine screen, so an off-spec monitor
+  // can be diagnosed from a photo of the tablet: parsed live values on one line,
+  // then every distinct flags word with its latest frame in hex.
+  const PM5DBG=/pm5dbg/.test(location.search+location.hash);
+  function pm5DbgTxt(){ const L=PM5.live;
+    const rows=Object.entries(PM5.dbg||{}).map(([k,v])=>k+" · "+v).join("<br>");
+    return `${PM5.state} · ${L.kind||"—"} · m ${Math.round(L.m)} · t ${Math.round(L.t)} · cal ${L.cal} · pace ${L.pace?L.pace.toFixed(1):"0"} · w ${L.watts} · spm ${L.spm}<br>${rows||"no frames yet"}`; }
   const pm5BtnHtml=()=>{ if(!pm5Can()) return "";
     const lab=PM5.state==="on"?"PM5 \u2713":PM5.state==="connecting"?"Pairing\u2026":PM5.state==="lost"?"Reconnect PM5":"Connect PM5";
     return `<button type="button" class="tk-blk tk-ble ${PM5.state}" id="tbBle">${lab}</button>`; };
@@ -4025,6 +4052,7 @@
       put("el",fmtMS(Math.round(V.t)));
       put("m",Math.round(V.m));
       put("cal",Math.round(V.cal));
+      const dbg=$("tbDbg"); if(dbg) dbg.innerHTML=pm5DbgTxt();
       if(grew) fitTbText(scr);
       return; }
     put("split",fmtSplit(w.split));
@@ -4436,6 +4464,7 @@
             </div>`}
           </div>
           ${vit.length?`<div class="tk-card tk-vit">${vit.map(x=>`<div class="${x.opt?"opt":""}" data-v="${x.k||""}"><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>`:""}
+          ${PM5DBG?`<div class="tk-dbg" id="tbDbg">${pm5DbgTxt()}</div>`:""}
         </div>`;
       scr.classList.toggle("has-swap",!!tsw);
       fitTablet();
@@ -6581,7 +6610,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=317;
+  const BUILD=318;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
