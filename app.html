@@ -1258,6 +1258,14 @@
   .wkrow .fld{flex:1;min-width:0;margin:0}
   #wkPick{display:block}
   #wkPick .mwrap{display:block}
+  /* the recycle bin: quiet rows, name ellipsised, actions whole */
+  .libbin{margin-top:8px}
+  .libbin .binlist{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+  .libbin .binrow{display:flex;align-items:center;gap:10px;min-width:0}
+  .libbin .bn{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:13px;color:var(--ink)}
+  .libbin .bwhen{flex:none;font-size:11px;color:var(--ink-mute);white-space:nowrap}
+  .libbin .binres{flex:none}
   #wkPick .mfield{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left}
   .res{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;background:rgba(255,255,255,.015)}
   .res summary{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;list-style:none}
@@ -5816,6 +5824,20 @@
     ));
     // Delete offers itself only for a board that IS in the library
     { const d=$("wkDel"); if(d) d.hidden=!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName)); }
+    // THE RECYCLE BIN: whatever the room still holds a body for, restorable in
+    // one tap for 30 days (Omar: a trainer deleted the only real board).
+    if(libBin.length){
+      const bw=document.createElement("div"); bw.className="libbin";
+      bw.innerHTML=`<button type="button" class="btn small" id="binBtn">Deleted boards (${libBin.length})</button>`
+        +`<div class="binlist" hidden>`
+        +libBin.map(r=>`<div class="binrow"><span class="bn">${esc(r.name)}</span>`
+          +`<span class="bwhen">deleted ${new Date(r.ts).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>`
+          +`<button type="button" class="btn small binres" data-n="${esc(r.name)}">Restore</button></div>`).join("")
+        +`</div>`;
+      bw.querySelector("#binBtn").onclick=()=>{ const l=bw.querySelector(".binlist"); l.hidden=!l.hidden; };
+      bw.querySelectorAll(".binres").forEach(b=>{ b.onclick=()=>libRestore(b.dataset.n); });
+      wp.appendChild(bw);
+    }
     if(LIBHIDE) return;   // the Today button belongs to the hidden programme
     // TODAY: one tap to the session this date belongs to
     const tb=document.createElement("button");
@@ -6067,12 +6089,34 @@
   }
   function libPush(p){
     const e={op:"lib.put",name:p.name,ts:p.ts||Date.now()};
-    if(p.del) e.del=true; else { e.cfg=p.cfg; if(p.seedV) e.seedV=p.seedV; }
+    if(p.del) e.del=true;
+    if(p.cfg) e.cfg=p.cfg;         // a delete CARRIES its cfg — that is the bin
+    if(p.seedV) e.seedV=p.seedV;
     libCall(e);
   }
-  function libKill(name){
+  // THE RECYCLE BIN. A deleted board rides its own tombstone with its cfg still
+  // aboard; the room keeps it 30 days (the worker drops the cfg after that, the
+  // tombstone itself stays so a stale device can never resurrect the board).
+  const BIN_DAYS=30;
+  let libBin=[];
+  function libKill(name,cfg,seedV){
     libDead[name]=Date.now(); saveDead();
-    libPush({name,ts:libDead[name],del:true});
+    const e={name,ts:libDead[name],del:true};
+    if(cfg){ e.cfg=cfg; if(seedV) e.seedV=seedV;
+      libBin=[{name,ts:e.ts,cfg,seedV}].concat(libBin.filter(x=>x.name!==name)); }
+    libPush(e);
+  }
+  function libRestore(name){
+    const r=libBin.find(x=>x.name===name); if(!r||!r.cfg) return;
+    let nm=name; { const base=nm; let i=2; while(presets.some(p=>p.name===nm)) nm=base+" "+(i++); }
+    const entry={name:nm,cfg:structuredClone(r.cfg),ts:Date.now()};
+    if(r.seedV) entry.seedV=r.seedV;
+    presets.push(entry); savePresets();
+    if(libDead[name]){ delete libDead[name]; saveDead(); }
+    if(libDead[nm]){ delete libDead[nm]; saveDead(); }
+    libPush(entry);
+    libBin=libBin.filter(x=>x.name!==name);
+    buildPresetSel();
   }
   let libBusy=false;
   async function libSync(){
@@ -6100,7 +6144,14 @@
           if(!p.ts){ p.ts=Date.now(); changed=true; }
           libPush(p); } });
       for(const name in libDead){ const r=remote[name];
+        if(r&&r.del) continue;   // already dead in the room — never strip its binned cfg
         if(!r||(libDead[name]>(r.ts||0))) libPush({name,ts:libDead[name],del:true}); }
+      // the recycle bin is whatever the room still holds a cfg for
+      const cut=Date.now()-BIN_DAYS*864e5;
+      libBin=got.presets.filter(r=>r&&r.del&&r.cfg&&(r.ts||0)>cut)
+        .sort((a,b)=>(b.ts||0)-(a.ts||0));
+      const binSig=libBin.map(r=>r.name+":"+r.ts).join("|");
+      if(binSig!==libSync._bs){ libSync._bs=binSig; changed=true; }
       if(changed){
         savePresets();
         // never yank the picker out from under an open panel — the next sync
@@ -6581,8 +6632,10 @@
     $("wkDel").onclick=()=>{
       const n=cfg.wkName; if(!n) return;
       const i=presets.findIndex(p=>p.name===n); if(i<0) return;
-      if(!confirm('Delete “'+n+'” from the library? It goes from every device.')) return;
-      presets.splice(i,1); savePresets(); libKill(n);
+      if(!confirm('Delete “'+n+'” from the library on every device?\n\nIt stays in Deleted boards for 30 days — Restore brings it back.')) return;
+      const gone=presets[i];
+      presets.splice(i,1); savePresets();
+      libKill(n,structuredClone(gone.cfg),gone.seedV);   // the bin keeps the body
       // the loaded copy stays on screen — deleting the library entry is not
       // clearing the board the class is about to run
       cfg.wkName=null; save(); buildPresetSel();
@@ -6889,7 +6942,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=325;
+  const BUILD=326;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

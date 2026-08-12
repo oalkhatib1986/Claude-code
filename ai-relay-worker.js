@@ -52,13 +52,22 @@ export default {
       const name = String(body.name || "").slice(0, 60).trim();
       if (!name) return json({ error: "no name" }, 400);
       const rec = { name, ts: parseInt(body.ts, 10) || Date.now() };
-      if (body.del) rec.del = true;
-      else {
+      if (body.del) {
+        rec.del = true;
+        // the recycle bin: a delete may carry the board's body, kept 30 days
+        if (body.cfg && typeof body.cfg === "object") rec.cfg = body.cfg;
+        if (body.seedV) rec.seedV = body.seedV;
+      } else {
         if (!body.cfg || typeof body.cfg !== "object") return json({ error: "no cfg" }, 400);
         rec.cfg = body.cfg;
         if (body.seedV) rec.seedV = body.seedV;
       }
       lib[name] = rec;
+      // empty the bin past 30 days: the cfg goes, the tombstone itself stays so
+      // a stale device can never resurrect the board
+      const cutoff = Date.now() - 30 * 86400000;
+      for (const k in lib) { const r = lib[k];
+        if (r && r.del && r.cfg && (r.ts || 0) < cutoff) delete r.cfg; }
       const out = JSON.stringify(lib);
       if (out.length > LIB_MAX) return json({ error: "library full" }, 413);
       await env.LIB.put(LIB_KEY, out);
