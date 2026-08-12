@@ -6099,11 +6099,18 @@
       t0e: sessionActive? Date.now()-(pn-t0) : 0,
       rt0e: (sessionActive&&rot.phase==="rest")? Date.now()-(pn-restT0) : 0 };
   }
-  function sessPushNow(){
+  let sessRoomAct=false;   // is a class running anywhere in the room?
+  function sessPushNow(kind){
     if(!aiUrl||sessApplying) return;
+    kind=kind||"clock";
+    // A BYSTANDER'S EDITING NEVER KILLS A CLASS. Someone building next week's
+    // board on a linked phone must not overwrite the session the room is
+    // running; their edits stay local until the class is over. The clock
+    // buttons are deliberate acts on the shared session and always publish.
+    if(kind==="edit"&&sessRoomAct&&!sessionActive) return;
     clearTimeout(sessPushT);
-    const s={ts:Date.now(),src:SESSID,cfg:JSON.parse(JSON.stringify(cfg)),run:sessRunState()};
-    sessLocalTs=s.ts; sessSeen=s.ts;
+    const s={ts:Date.now(),src:SESSID,kind,cfg:JSON.parse(JSON.stringify(cfg)),run:sessRunState()};
+    sessLocalTs=s.ts; sessSeen=s.ts; sessRoomAct=!!s.run.act;
     libCall({op:"s.put",v:s});
   }
   // cfg edits arrive through save() in bursts — one publish per burst. Boot
@@ -6111,7 +6118,7 @@
   // are local by definition, so the TDZ read is swallowed, not fixed by moving.
   function sessOnSave(){
     try{ if(!aiUrl||sessApplying) return; }catch(e){ return; }
-    clearTimeout(sessPushT); sessPushT=setTimeout(sessPushNow,700);
+    clearTimeout(sessPushT); sessPushT=setTimeout(()=>sessPushNow("edit"),700);
   }
   function sessApply(s){
     sessApplying=true;
@@ -6148,8 +6155,13 @@
     if(!aiUrl||document.hidden) return;
     const got=await libCall({op:"s.get"});
     const s=got&&got.v;
-    if(!s||!s.ts||s.src===SESSID) return;
+    if(!s||!s.ts) return;
+    if(s.ts>=sessLocalTs) sessRoomAct=!!(s.run&&s.run.act);
+    if(s.src===SESSID) return;
     if(s.ts<=sessSeen||s.ts<sessLocalTs) return;
+    // the follower-side of the bystander guard: an EDIT that would stop a class
+    // this screen is running is someone tinkering, not the trainer resetting
+    if(s.kind==="edit"&&!(s.run&&s.run.act)&&sessionActive){ sessSeen=s.ts; return; }
     // never yank the page out from under someone typing — next poll catches up
     const ae=document.activeElement;
     if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
@@ -6807,7 +6819,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=322;
+  const BUILD=323;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

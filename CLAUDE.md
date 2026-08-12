@@ -418,7 +418,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (rebuild, put state back, `enginePump()`). Publish points: `save()` (700ms
   debounce, via TDZ-safe `sessOnSave` — boot migrations call save() before the
   sync lets initialise), and immediate on start/reset/pause/seek (the button
-  handlers wrap, `bdStart` clicks `startBtn` so it inherits). Apply skips while
+  handlers wrap, `bdStart` clicks `startBtn` so it inherits). Pushes carry
+  `kind:"clock"|"edit"`, and A BYSTANDER'S EDITING NEVER KILLS A CLASS: an
+  edit-push is refused at the publisher while the room runs a class this device
+  is not in (`sessRoomAct`), and refused again at the follower if it would stop
+  a session this screen is running — the clock buttons always win. Apply skips while
   an input is focused and echoes are dropped by device id (`af_dev_id`) + ts.
   `?relay=` in the URL stores the relay link — a TV has no keyboard worth
   typing on. Only the rotation clock is shared; no relay link = standalone.
