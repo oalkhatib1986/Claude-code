@@ -5431,6 +5431,21 @@
     if(added) savePresets();
   })();
 
+  // OMAR'S PICK: the last scored Send It Saturday he built loads itself as the
+  // current workout — once per device, so every screen in the gym opens on it
+  // without being asked, and any board he picks afterwards sticks.
+  (function loadSISOnce(){
+    const K="af_sis2_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    const p2=presets.find(x=>x.name==="Send It Saturday"); if(!p2) return;
+    const keep=structuredClone(cfg.crews||[]);
+    cfg=structuredClone(p2.cfg); cfg.wkName=p2.name;
+    if(keep.length) cfg.crews=keep;
+    migrateLoaded();
+    cfg.seedFrom=p2.name; cfg.seedV=p2.seedV||1; cfg.seedSig=seedSig(cfg);
+    save();
+  })();
+
 
 
   // Placeholder crew names have to follow the format. A preset saved as Solo still
@@ -6339,7 +6354,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=310;
+  const BUILD=311;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
