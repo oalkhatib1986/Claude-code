@@ -52,6 +52,26 @@ the relay link — and a board deleted anywhere stays deleted everywhere.
    (phones, the trainer's laptop, tablets). The library syncs automatically:
    on load, every 5 minutes, and the moment a board is saved or deleted.
 
+## 5. Live session sync (~3 min) — the TV follows the trainer's phone
+
+With this on, whatever device the trainer acts on becomes the remote control:
+pick a board, start, pause or reset on the phone and the Samsung TV, the erg
+tablets and every other screen follow within a few seconds — all showing the
+SAME clock.
+
+1. Cloudflare left menu: **Storage & Databases → D1 SQL Database** →
+   **Create database**. Name it `athl3te-sess` and create it.
+2. Your worker (**athl3te-ai**) → **Bindings** → **Add** → **D1 database**:
+   - Variable name: `DB` (exactly)
+   - Database: `athl3te-sess`
+   Save/deploy.
+3. Make sure the worker runs the latest `ai-relay-worker.js` (Edit code →
+   paste → Deploy).
+4. Every device that should follow needs the relay link (same one as always).
+   On a TV, skip the typing: open
+   `https://oalkhatib1986.github.io/Claude-code/app.html?relay=YOUR-WORKER-URL#screen`
+   once — the link is remembered from the URL.
+
 ## Notes
 
 - The key lives only inside Cloudflare — never in the web page or the repo.

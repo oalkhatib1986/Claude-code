@@ -409,6 +409,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   clears `wkName` but leaves the loaded board on screen. No relay link = fully
   local, silently. `libsync.js` gates the whole loop with the worker contract
   mocked at the network layer.
+- **ONE GYM, ONE CLOCK.** Live session sync rides the same relay into D1
+  (worker ops `s.get`/`s.put`, binding `DB` — D1 because KV's 60s edge cache
+  cannot carry a clock). The device the trainer ACTS on publishes the whole
+  session — cfg + run state with the clock anchored to WALL time (`t0e`), so a
+  follower that hears seconds late still shows the same countdown; every other
+  screen polls every 2.5s and applies via the `setTeamCount` restore pattern
+  (rebuild, put state back, `enginePump()`). Publish points: `save()` (700ms
+  debounce, via TDZ-safe `sessOnSave` — boot migrations call save() before the
+  sync lets initialise), and immediate on start/reset/pause/seek (the button
+  handlers wrap, `bdStart` clicks `startBtn` so it inherits). Apply skips while
+  an input is focused and echoes are dropped by device id (`af_dev_id`) + ts.
+  `?relay=` in the URL stores the relay link — a TV has no keyboard worth
+  typing on. Only the rotation clock is shared; no relay link = standalone.
+  `livesync.js` gates board-follow, same-second clocks, reset-follow, URL
+  relay, and the standalone path.
 - **The AI builder speaks the whole model, and the coach's parts are law.**
   `aiSystem()`'s schema must carry every field Setup can author (per-exercise
   `sets`/`each`/`rpe`/`rm`/`note`, item `note`/`fin`, formats, rests) and

@@ -29,6 +29,22 @@ export default {
     // ---- shared workout library (one KV key, last-write-wins per board) ----
     const json = (o, status) => new Response(JSON.stringify(o), {
       status: status || 200, headers: { "content-type": "application/json", ...cors } });
+    // ---- live session state (D1: strongly consistent, fast enough to poll) ----
+    if (body.op === "s.get" || body.op === "s.put") {
+      if (!env.DB) return json({ error: "session storage not set up (bind a D1 database as DB)" }, 500);
+      await env.DB.exec("CREATE TABLE IF NOT EXISTS sess (k TEXT PRIMARY KEY, v TEXT)");
+      if (body.op === "s.put") {
+        const v = JSON.stringify(body.v || null);
+        if (v.length > 1_000_000) return json({ error: "state too large" }, 413);
+        await env.DB.prepare("INSERT INTO sess (k,v) VALUES ('s',?1) ON CONFLICT(k) DO UPDATE SET v=?1")
+          .bind(v).run();
+        return json({ ok: 1 });
+      }
+      const row = await env.DB.prepare("SELECT v FROM sess WHERE k='s'").first();
+      let v = null; try { v = row && JSON.parse(row.v); } catch {}
+      return json({ v });
+    }
+
     if (body.op === "lib.list" || body.op === "lib.put") {
       if (!env.LIB) return json({ error: "library storage not set up (bind a KV namespace as LIB)" }, 500);
       const lib = (await env.LIB.get(LIB_KEY, "json")) || {};

@@ -2154,7 +2154,8 @@
   // Which machines can be claimed is a pure function of cfg \u2014 the gym\u2019s
   // equipment and today\u2019s workout \u2014 so anything that writes cfg drops the map.
   let claimCache=null;
-  const save=()=>{ claimCache=null; try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){} };
+  const save=()=>{ claimCache=null; try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){}
+    sessOnSave(); };   // every cfg change offers itself to the room (hoisted; no-op when local-only)
   const applyAccent=()=>document.documentElement.style.setProperty("--accent",cfg.accent);
   // THE LOGO IS ONE ASSET IN TWO FORMS. The wordmark ships in the markup (the
   // default everywhere, Omar's high-res art, white for the dark ground); the
@@ -3533,7 +3534,9 @@
   }
   function reset(){ running=false; paused=false; holding=false; holdPend=[]; resultSaved=false; pauseUi(false); cancelAnimationFrame(raf); clearTimeout(ticker);
     circReset(); tbFresh(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
-  startBtn.onclick=start; resetBtn.onclick=reset;
+  // acting on the clock is what makes THIS device the controller — publish at once
+  startBtn.onclick=()=>{ start(); sessPushNow(); };
+  resetBtn.onclick=()=>{ reset(); sessPushNow(); };
 
   /* ================= tabs ================= */
   const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"]};
@@ -6001,6 +6004,11 @@
   const AIKEY="af_ai_url";
   try{ localStorage.removeItem("af_ai_fabpos"); }catch(e){}
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
+  // A TV has no keyboard worth typing on: the relay link can ride the URL once
+  // (app.html?relay=https://...#screen) and is remembered like a pasted one.
+  try{ const m=location.search.match(/[?&]relay=([^&]+)/);
+    if(m){ const v=decodeURIComponent(m[1]);
+      if(/^https:\/\//.test(v)){ aiUrl=v; localStorage.setItem(AIKEY,v); } } }catch(e){}
   let aiMsgs=[], aiBusy=false;
 
   /* ============ shared workout library ============ */
@@ -6070,6 +6078,89 @@
   setInterval(libSync,5*60*1000);
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) libSync(); });
   try{ window.__libSync=libSync; }catch(e){}
+
+  /* ============ live session sync — one gym, one clock ============ */
+  // THE PHONE IS THE REMOTE CONTROL. Whatever device the trainer acts on
+  // publishes the whole session (board, roster, clock) through the relay into
+  // D1; every other screen — the TV on #screen, the erg tablets, a laptop —
+  // polls and follows. Start on the phone and the TV starts; the clock is
+  // anchored to WALL time (t0e), so even a follower that hears about the start
+  // seconds late shows exactly the same countdown. No relay link = standalone.
+  let SESSID=""; try{ SESSID=localStorage.getItem("af_dev_id")||""; }catch(e){}
+  if(!SESSID){ SESSID=Math.random().toString(36).slice(2,10);
+    try{ localStorage.setItem("af_dev_id",SESSID); }catch(e){} }
+  let sessApplying=false, sessSeen=0, sessLocalTs=0, sessPushT=0;
+  function sessRunState(){
+    const pn=performance.now();
+    return { mode:cfg.mode,
+      act:sessionActive, run:running, fin:finished, hold:holding, pau:paused,
+      round:rot.round, phase:rot.phase, elapsed:rot.elapsed, remain:rot.remain,
+      restDur:rot.restDur||0,
+      t0e: sessionActive? Date.now()-(pn-t0) : 0,
+      rt0e: (sessionActive&&rot.phase==="rest")? Date.now()-(pn-restT0) : 0 };
+  }
+  function sessPushNow(){
+    if(!aiUrl||sessApplying) return;
+    clearTimeout(sessPushT);
+    const s={ts:Date.now(),src:SESSID,cfg:JSON.parse(JSON.stringify(cfg)),run:sessRunState()};
+    sessLocalTs=s.ts; sessSeen=s.ts;
+    libCall({op:"s.put",v:s});
+  }
+  // cfg edits arrive through save() in bursts — one publish per burst. Boot
+  // migrations call save() BEFORE this section's lets initialise — those saves
+  // are local by definition, so the TDZ read is swallowed, not fixed by moving.
+  function sessOnSave(){
+    try{ if(!aiUrl||sessApplying) return; }catch(e){ return; }
+    clearTimeout(sessPushT); sessPushT=setTimeout(sessPushNow,700);
+  }
+  function sessApply(s){
+    sessApplying=true;
+    try{
+      if(s.cfg&&JSON.stringify(s.cfg)!==JSON.stringify(cfg)){
+        cfg=s.cfg; migrateLoaded(); save(); applyAccent(); buildControlRoom();
+      }
+      const r=s.run||{};
+      // the same move setTeamCount makes mid-class: rebuild clean, then put the
+      // running state back and restart the loop that owns the clock
+      build();
+      if(!r.act||r.mode!=="rotation") return;   // idle boards stop here; only the
+                                                // rotation clock is shared
+      const pn=performance.now();
+      sessionActive=true; running=!!r.run; finished=!!r.fin;
+      holding=!!r.hold; paused=false; resultSaved=false;
+      rot.round=r.round||0; rot.phase=r.phase||"run";
+      rot.elapsed=r.elapsed||0; rot.remain=r.remain||0;
+      if(r.restDur) rot.restDur=r.restDur;
+      t0=pn-(Date.now()-r.t0e);
+      if(r.rt0e) restT0=pn-(Date.now()-r.rt0e);
+      resetBtn.disabled=false;
+      holdPend=holdBounds().filter(x=>x>((pn-t0)/1000)+0.05);
+      if(r.pau){ paused=true; pauseMark=pn; pauseUi(true); }
+      else if(running&&!holding){
+        startBtn.disabled=true;
+        startBtn.textContent=`${whereNow(false)} running…`;
+        enginePump();
+      } else if(rot.phase==="rest"){ enginePump(); }
+      renderBlockCards(); renderLanesRot(); renderTablet(true);
+    } finally { sessApplying=false; }
+  }
+  async function sessPull(){
+    if(!aiUrl||document.hidden) return;
+    const got=await libCall({op:"s.get"});
+    const s=got&&got.v;
+    if(!s||!s.ts||s.src===SESSID) return;
+    if(s.ts<=sessSeen||s.ts<sessLocalTs) return;
+    // never yank the page out from under someone typing — next poll catches up
+    const ae=document.activeElement;
+    if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+    sessSeen=s.ts;
+    sessApply(s);
+  }
+  setInterval(sessPull,2500);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) sessPull(); });
+  try{ window.__sessPull=sessPull; window.__sessPush=sessPushNow;
+    window.__sessState=()=>({run:running,act:sessionActive,hold:holding,pau:paused,
+      phase:rot.phase,round:rot.round,el:sessionActive?(performance.now()-t0)/1000:0}); }catch(e){}
   function aiSnapshot(){
     return JSON.stringify({name:cfg.name,teamKind:cfg.teamKind,teamSize:cfg.teamSize,noScore:!!cfg.noScore,
       together:!!cfg.together,laps:R().laps||1,blockRest:R().blockRest||0,sameRest:R().sameRest!==false,
@@ -6603,11 +6694,13 @@
     t0-=ds*1000; if(t0>now) t0=now;
     if(ds<0&&cfg.mode==="rotation") holdPend=holdBounds().filter(x=>x>((now-t0)/1000)+0.05);
   }
-  $("tkpause").onclick=()=>setPaused(!paused);
-  $("tkb10").onclick=()=>seek(-10); $("tkb5").onclick=()=>seek(-5);
-  $("tkf5").onclick=()=>seek(5); $("tkf10").onclick=()=>seek(10);
+  $("tkpause").onclick=()=>{ setPaused(!paused); sessPushNow(); };
+  $("tkb10").onclick=()=>{ seek(-10); sessPushNow(); };
+  $("tkb5").onclick=()=>{ seek(-5); sessPushNow(); };
+  $("tkf5").onclick=()=>{ seek(5); sessPushNow(); };
+  $("tkf10").onclick=()=>{ seek(10); sessPushNow(); };
   $("bdStart").onclick=()=>startBtn.click();
-  $("bdPause").onclick=()=>setPaused(!paused);
+  $("bdPause").onclick=()=>{ setPaused(!paused); sessPushNow(); };
   $("bdb10").onclick=()=>seek(-10); $("bdb5").onclick=()=>seek(-5);
   $("bdf5").onclick=()=>seek(5); $("bdf10").onclick=()=>seek(10);
   $("tkLockBtn").onclick=()=>setTkLock(!tkLock);
@@ -6714,7 +6807,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=321;
+  const BUILD=322;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
