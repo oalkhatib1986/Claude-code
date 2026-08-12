@@ -2751,7 +2751,19 @@
     raf=requestAnimationFrame(frameRest);
   }
 
+  // A NEW SESSION STARTS FROM ZERO ON EVERY SCREEN. The tablet's warm-up and
+  // last-effort accumulators live in memory and survived an end+restart, so the
+  // screens kept quoting the previous class; and a paired PM5's totals keep
+  // counting on the monitor, so the delta anchors move up to NOW — only work
+  // done from this moment lands on the new session.
+  function tbFresh(){
+    for(const k in tbDist) delete tbDist[k];
+    for(const k in tbWu) delete tbWu[k];
+    for(const k in tbLastM) delete tbLastM[k];
+    PM5._m=PM5.live.m; PM5._c=PM5.live.cal; PM5._t=PM5.live.t;
+  }
   function startBlock(){
+    tbFresh();
     cancelAnimationFrame(raf); clearTimeout(ticker);
     paused=false; pauseUi(false);
     running=true; sessionActive=true; finished=false; resultSaved=false;
@@ -3514,7 +3526,7 @@
     else raf=requestAnimationFrame(frameSequence);
   }
   function reset(){ running=false; paused=false; holding=false; holdPend=[]; resultSaved=false; pauseUi(false); cancelAnimationFrame(raf); clearTimeout(ticker);
-    circReset(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
+    circReset(); tbFresh(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
   startBtn.onclick=start; resetBtn.onclick=reset;
 
   /* ================= tabs ================= */
@@ -3894,6 +3906,7 @@
       put("strokes","\u2014");
       put("el",fmtMS(Math.round(L.t)));
       put("m",Math.round(L.m));
+      put("cal",Math.round(L.cal));
       if(grew) fitTbText(scr);
       return; }
     put("split",fmtSplit(w.split));
@@ -4145,7 +4158,7 @@
         } else if(!sessionActive&&phase==="pre"){
           const w=tbWuFor(sv); const d=tbAcc("wu:"+sv,w.split,w.spm);
           mts={split:w.split,spm:w.spm,m:d.m,avg:tbAvg(d),strokes:d.s,el:d.el};
-          mtag="warm-up · not counting"; mcls="";
+          mtag=pm5On()?"PM5 live · not counting yet":"warm-up · not counting"; mcls="";
         } else if(tbLastM[team.id]){
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
         }
@@ -4167,6 +4180,9 @@
         vit.push({k:"strokes",v:pm5On()?"\u2014":Math.round(mts.strokes||0),l:"strokes",opt:1});
         vit.push({k:"el",v:fmtMS(Math.round(mts.el||0)),l:"time on erg",opt:1});
         if(!onTarget) vit.push({k:"m",v:Math.round(mts.m||0),l:"metres"});
+        // a paired monitor's calorie count is on the athlete's own PM5 screen —
+        // the tablet mirrors it, or the two screens disagree in front of them
+        if(pm5On()) vit.push({k:"cal",v:Math.round(PM5.live.cal),l:"calories"});
         if(scored) vit.push({k:"score",v:scoreVal,l:scoreUnit()});
       }
       const machShort=mtype?mInfo(mtype).label:"this machine";
@@ -6445,7 +6461,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=313;
+  const BUILD=314;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
