@@ -3811,8 +3811,10 @@
     RATE:"ce060034-43e5-11e4-916c-0800200c9a66",
     CSVC:"ce060020-43e5-11e4-916c-0800200c9a66",
     CTX:"ce060021-43e5-11e4-916c-0800200c9a66",
+    FTMS:"fitness_machine", TREAD:"treadmill_data", IBIKE:"indoor_bike_data",
+    FCTL:"fitness_machine_control_point",
     dev:null, state:"off",
-    live:{t:0,m:0,pace:0,avgPace:0,spm:0,watts:0,cal:0,up:0} };
+    live:{t:0,m:0,pace:0,avgPace:0,spm:0,watts:0,cal:0,up:0,plab:"/500m",kind:""} };
   const pm5Can=()=>!!(navigator.bluetooth&&navigator.bluetooth.requestDevice);
   // WHAT THE ATHLETE SEES COUNTS FROM NOW. The monitor keeps its own totals
   // until it decides to reset; the tablet baselines against them (at pairing,
@@ -3833,7 +3835,11 @@
     if(!dev.__pm5Wired){ dev.__pm5Wired=1;
       dev.addEventListener("gattserverdisconnected",()=>{ if(PM5.state!=="off") PM5.state="lost"; renderTablet(true); }); }
     const gatt=await dev.gatt.connect();
-    const svc=await gatt.getPrimaryService(PM5.SVC);
+    // WHICH LANGUAGE DOES THIS MACHINE SPEAK? Concept2 ergs carry their own
+    // service; the Assault Runner (and most gym kit) speaks standard FTMS.
+    let svc=null;
+    try{ svc=await gatt.getPrimaryService(PM5.SVC); }
+    catch(e){ return pmFtmsAttach(dev,gatt); }
     const u24=(d,o)=>d.getUint8(o)|(d.getUint8(o+1)<<8)|(d.getUint8(o+2)<<16);
     const sub=async(id,fn)=>{ const ch=await svc.getCharacteristic(id);
       ch.addEventListener("characteristicvaluechanged",ev=>{ fn(ev.target.value); PM5.live.up=performance.now(); });
@@ -3842,6 +3848,49 @@
     await sub(PM5.AD1,d=>{ PM5.live.spm=d.getUint8(5); PM5.live.pace=d.getUint16(7,true)/100; PM5.live.avgPace=d.getUint16(9,true)/100; });
     await sub(PM5.AD2,d=>{ PM5.live.watts=d.getUint16(4,true); PM5.live.cal=d.getUint16(6,true); });
     try{ const r=await svc.getCharacteristic(PM5.RATE); await r.writeValue(Uint8Array.of(1)); }catch(e){}
+    PM5.live.plab="/500m"; PM5.live.kind="c2";
+    PM5.state="on"; PM5.live.up=performance.now();
+    delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
+    try{ localStorage.setItem("af_pm5_id",dev.id||""); }catch(e){}
+  }
+  // FTMS: one characteristic, a flags word, then only the fields the machine
+  // sent. Walked in spec order — skipping a field the flags declared shifts
+  // every number after it onto the wrong meaning.
+  async function pmFtmsAttach(dev,gatt){
+    const svc=await gatt.getPrimaryService(PM5.FTMS);
+    const onData=(d,bike)=>{
+      let f=d.getUint16(0,true), o=2;
+      const has=b=>!!(f&(1<<b));
+      let speed=null;
+      if(!has(0)){ speed=d.getUint16(o,true)/100; o+=2; }          // km/h
+      if(has(1)){ const av=d.getUint16(o,true)/100; o+=2;
+        if(av>0) PM5.live.avgPace=3600/av; }
+      if(bike&&has(2)){ const c=d.getUint16(o,true)/2; o+=2; PM5.live.spm=Math.round(c); } // bike cadence
+      if(bike&&has(3)){ o+=2; }                                    // bike avg cadence
+      if(has(bike?4:2)){ PM5.live.m=d.getUint8(o)|(d.getUint8(o+1)<<8)|(d.getUint8(o+2)<<16); o+=3; PM5.got=true; }
+      if(!bike&&has(3)){ o+=4; }                                   // incline+ramp
+      if(!bike&&has(4)){ o+=4; }                                   // elevation
+      if(!bike&&has(5)){ o+=1; }                                   // inst pace
+      if(!bike&&has(6)){ o+=1; }                                   // avg pace
+      if(bike&&has(5)){ o+=2; }                                    // resistance
+      // treadmill bit12 is Force on Belt THEN Power — the watts are the SECOND s16
+      if(!bike&&has(12)){ o+=2; PM5.live.watts=d.getInt16(o,true); o+=2; }
+      if(bike&&has(6)){ PM5.live.watts=d.getInt16(o,true); o+=2; }
+      if(bike&&has(7)){ o+=2; }                                    // bike avg power
+      if(has(bike?8:7)){ PM5.live.cal=d.getUint16(o,true); o+=5; } // total kcal (+/hr,/min)
+      if(has(bike?9:8)){ o+=1; }                                   // heart rate
+      if(has(bike?10:9)){ o+=1; }                                  // MET
+      if(has(bike?11:10)){ PM5.live.t=d.getUint16(o,true); o+=2; } // elapsed s
+      if(speed!==null&&speed>0) PM5.live.pace=3600/speed;          // s per km
+      PM5.live.up=performance.now();
+    };
+    const sub=async(id,bike)=>{ try{
+      const ch=await svc.getCharacteristic(id);
+      ch.addEventListener("characteristicvaluechanged",ev=>onData(ev.target.value,bike));
+      await ch.startNotifications(); return true; }catch(e){ return false; } };
+    const t=await sub(PM5.TREAD,false);
+    if(!t) await sub(PM5.IBIKE,true);
+    PM5.live.plab="/km"; PM5.live.kind="ftms";
     PM5.state="on"; PM5.live.up=performance.now();
     delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
     try{ localStorage.setItem("af_pm5_id",dev.id||""); }catch(e){}
@@ -3855,7 +3904,9 @@
     PM5.state="connecting"; renderTablet(true);
     try{
       const dev=await navigator.bluetooth.requestDevice({
-        filters:[{services:[PM5.SVC]},{namePrefix:"PM5"}], optionalServices:[PM5.SVC]});
+        filters:[{services:[PM5.SVC]},{namePrefix:"PM5"},{services:[PM5.FTMS]},
+                 {namePrefix:"Assault"},{namePrefix:"ASSAULT"}],
+        optionalServices:[PM5.SVC,PM5.FTMS]});
       await pm5Attach(dev);
     }catch(e){ PM5.state=PM5.dev?"lost":"off"; }
     renderTablet(true);
@@ -3870,7 +3921,7 @@
     try{
       const want=localStorage.getItem("af_pm5_id")||"";
       const devs=await navigator.bluetooth.getDevices();
-      const dev=devs.find(d=>d.id===want)||devs.find(d=>/PM5/i.test(d.name||""));
+      const dev=devs.find(d=>d.id===want)||devs.find(d=>/PM5|ASSAULT/i.test(d.name||""));
       if(!dev) return;
       PM5.state="connecting"; renderTablet(true);
       await pm5Attach(dev);
@@ -3886,10 +3937,17 @@
   async function pm5Reset(){
     if(PM5.state!=="on"||!PM5.dev) return;
     try{
-      const svc=await PM5.dev.gatt.getPrimaryService(PM5.CSVC);
-      const tx=await svc.getCharacteristic(PM5.CTX);
-      // CSAFE frame: F1 <cmds> <xor-checksum> F2
-      await tx.writeValue(Uint8Array.of(0xF1,0x86,0x88,0x0E,0xF2));
+      if(PM5.live.kind==="ftms"){
+        const svc=await PM5.dev.gatt.getPrimaryService(PM5.FTMS);
+        const tx=await svc.getCharacteristic(PM5.FCTL);
+        await tx.writeValue(Uint8Array.of(0x00));   // request control
+        await tx.writeValue(Uint8Array.of(0x01));   // reset
+      } else {
+        const svc=await PM5.dev.gatt.getPrimaryService(PM5.CSVC);
+        const tx=await svc.getCharacteristic(PM5.CTX);
+        // CSAFE frame: F1 <cmds> <xor-checksum> F2
+        await tx.writeValue(Uint8Array.of(0xF1,0x86,0x88,0x0E,0xF2));
+      }
       delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
     }catch(e){}
   }
@@ -3951,6 +4009,7 @@
     const hit=machSlots().byKey[sv]; if(!hit) return;
     const team=teamsAt(hit.bi)[hit.j];
     if(!team||unnamed(team.name)) return;   // nobody on it, nothing to tick
+    if(!pm5On()) return;                    // no monitor, no numbers — none at all
     const w=tbWuFor(sv), d=tbAcc("wu:"+sv,w.split,w.spm), avg=tbAvg(d);
     let grew=false;
     const put=(k,v)=>{ const c=strip.querySelector(`[data-v="${k}"] b`);
@@ -4215,9 +4274,10 @@
           tbLastM[team.id]=mts;
           if(hot){ mtag="scoring now"; mcls="hot"; } else { mtag="live"; mcls="live"; }
         } else if(!sessionActive&&phase==="pre"){
-          const w=tbWuFor(sv); const d=tbAcc("wu:"+sv,w.split,w.spm);
-          mts={split:w.split,spm:w.spm,m:d.m,avg:tbAvg(d),strokes:d.s,el:d.el};
-          mtag=pm5On()?"PM5 live · not counting yet":"warm-up · not counting"; mcls="";
+          // NO PRETEND NUMBERS. A strip that ticks on its own reads as data; the
+          // only data is a paired monitor's. Unpaired, the strip simply is not there.
+          if(pm5On()){ mts={split:0,spm:0,m:0,avg:0,strokes:0,el:0};
+            mtag="PM5 live · not counting yet"; mcls=""; }
         } else if(tbLastM[team.id]){
           mts=tbLastM[team.id]; mtag="last effort"; mcls="";
         }
@@ -4231,9 +4291,10 @@
       if(mts&&pm5On()){ const L=PM5.live, V=pm5View();
         mts.split=L.pace||0; mts.avg=L.avgPace||0; mts.spm=L.spm||0;
         mts.m=V.m; mts.el=V.t; }
+      if(mts&&!pm5On()&&!finished){ mts=null; mtag=""; mcls=""; }
       if(mts){
-        vit.push({k:"split",v:fmtSplit(mts.split),l:"split /500m"});
-        vit.push({k:"avg",v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1});
+        vit.push({k:"split",v:fmtSplit(mts.split),l:"split "+(pm5On()?PM5.live.plab:"/500m")});
+        vit.push({k:"avg",v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg "+(pm5On()?PM5.live.plab:"/500m"),opt:1});
         vit.push({k:"watts",v:pm5On()?Math.round(PM5.live.watts):Math.round(wattsFor(mts.split)),l:"watts"});
         vit.push({k:"spm",v:Math.round(mts.spm),l:"strokes/min"});
         vit.push({k:"strokes",v:pm5On()?"\u2014":Math.round(mts.strokes||0),l:"strokes",opt:1});
@@ -6520,7 +6581,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=316;
+  const BUILD=317;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
