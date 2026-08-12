@@ -279,11 +279,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `pm5Attach()` tries Concept2's own service (GEN u24 time/100 + u24 dist/10,
   AD1 spm/pace, AD2 watts/cal) and falls through to standard FTMS
   (`pmFtmsAttach`) for the Assault Runner and everything else. The FTMS
-  frame is a flags word walked IN SPEC ORDER — skip a declared field and
-  every number after it lands on the wrong meaning; treadmill and
-  indoor-bike number their flags DIFFERENTLY (energy 7 vs 8, elapsed 10 vs
-  11), and treadmill bit 12 is force-on-belt THEN power, so the watts are
-  the second s16. Pace unit follows the machine (`PM5.live.plab`: /500m C2,
+  frame is a flags word walked in ASCENDING FLAG ORDER — skip or reorder a
+  declared field and every number after it lands on the wrong meaning
+  (Omar's runner printed cal 17920 = 0x4600 = its own elapsed 70s, because
+  power was read before energy); treadmill and indoor-bike number their
+  flags DIFFERENTLY (energy 7 vs 8, elapsed 10 vs 11), treadmill bit 12
+  (force-on-belt THEN power — watts are the second s16) is the HIGHEST bit
+  and so rides at the END of the frame, and 0xFFFF/0x7FFF are the spec's
+  "not available" — never data. `?pm5dbg` on the URL puts a raw-frame hex
+  readout on the machine screen so the next off-spec monitor is one photo
+  away from a diagnosis. Pace unit follows the machine (`PM5.live.plab`: /500m C2,
   /km FTMS) — the console's own unit, never invented. `pm5View()` baselines
   against the monitor's FIRST totals (`PM5.got`) so held numbers never leak;
   `tbFresh()` re-anchors and `pm5Reset()` zeros the monitor itself (CSAFE
