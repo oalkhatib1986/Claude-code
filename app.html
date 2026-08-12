@@ -2761,6 +2761,8 @@
     for(const k in tbWu) delete tbWu[k];
     for(const k in tbLastM) delete tbLastM[k];
     PM5._m=PM5.live.m; PM5._c=PM5.live.cal; PM5._t=PM5.live.t;
+    PM5.v0m=PM5.live.m; PM5.v0c=PM5.live.cal; PM5.v0t=PM5.live.t;
+    pm5Reset();
   }
   function startBlock(){
     tbFresh();
@@ -3807,9 +3809,24 @@
     AD1:"ce060032-43e5-11e4-916c-0800200c9a66",
     AD2:"ce060033-43e5-11e4-916c-0800200c9a66",
     RATE:"ce060034-43e5-11e4-916c-0800200c9a66",
+    CSVC:"ce060020-43e5-11e4-916c-0800200c9a66",
+    CTX:"ce060021-43e5-11e4-916c-0800200c9a66",
     dev:null, state:"off",
     live:{t:0,m:0,pace:0,avgPace:0,spm:0,watts:0,cal:0,up:0} };
   const pm5Can=()=>!!(navigator.bluetooth&&navigator.bluetooth.requestDevice);
+  // WHAT THE ATHLETE SEES COUNTS FROM NOW. The monitor keeps its own totals
+  // until it decides to reset; the tablet baselines against them (at pairing,
+  // at session start/reset) and shows only what has been done since. A monitor
+  // that resets itself mid-pair drops the baseline to zero and counting follows.
+  const pm5View=()=>{ const L=PM5.live;
+    // the baseline waits for the monitor's FIRST totals — anchoring at pairing
+    // time pins it to zero and the monitor's old numbers leak straight through
+    if(!PM5.got) return {m:0,cal:0,t:0};
+    if(PM5.v0m===undefined||L.m<PM5.v0m){ PM5.v0m=L.m<(PM5.v0m||0)?0:L.m; }
+    if(PM5.v0c===undefined||L.cal<PM5.v0c){ PM5.v0c=L.cal<(PM5.v0c||0)?0:L.cal; }
+    if(PM5.v0t===undefined||L.t<PM5.v0t){ PM5.v0t=L.t<(PM5.v0t||0)?0:L.t; }
+    return { m:Math.max(0,L.m-PM5.v0m), cal:Math.max(0,L.cal-PM5.v0c),
+             t:Math.max(0,L.t-PM5.v0t) }; };
   const pm5On=()=>PM5.state==="on"&&(performance.now()-PM5.live.up)<6000;
   async function pm5Connect(){
     if(!pm5Can()) return;
@@ -3827,14 +3844,29 @@
       const sub=async(id,fn)=>{ const ch=await svc.getCharacteristic(id);
         ch.addEventListener("characteristicvaluechanged",ev=>{ fn(ev.target.value); PM5.live.up=performance.now(); });
         await ch.startNotifications(); };
-      await sub(PM5.GEN,d=>{ PM5.live.t=u24(d,0)/100; PM5.live.m=u24(d,3)/10; });
+      await sub(PM5.GEN,d=>{ PM5.live.t=u24(d,0)/100; PM5.live.m=u24(d,3)/10; PM5.got=true; });
       await sub(PM5.AD1,d=>{ PM5.live.spm=d.getUint8(5); PM5.live.pace=d.getUint16(7,true)/100; PM5.live.avgPace=d.getUint16(9,true)/100; });
       await sub(PM5.AD2,d=>{ PM5.live.watts=d.getUint16(4,true); PM5.live.cal=d.getUint16(6,true); });
       try{ const r=await svc.getCharacteristic(PM5.RATE); await r.writeValue(Uint8Array.of(1)); }catch(e){}
       PM5.state="on"; PM5.live.up=performance.now();
+      delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
     }catch(e){ PM5.state=PM5.dev?"lost":"off"; }
     renderTablet(true);
   }
+  // THE APP CAN ZERO THE MONITOR. CSAFE over the control characteristic:
+  // GoFinished (0x86) then GoIdle (0x88) ends the piece and re-arms the PM5 at
+  // zero — the same thing pressing Menu>back does. Sent on session start/reset.
+  async function pm5Reset(){
+    if(PM5.state!=="on"||!PM5.dev) return;
+    try{
+      const svc=await PM5.dev.gatt.getPrimaryService(PM5.CSVC);
+      const tx=await svc.getCharacteristic(PM5.CTX);
+      // CSAFE frame: F1 <cmds> <xor-checksum> F2
+      await tx.writeValue(Uint8Array.of(0xF1,0x86,0x88,0x0E,0xF2));
+      delete PM5.v0m; delete PM5.v0c; delete PM5.v0t; delete PM5.got;
+    }catch(e){}
+  }
+  try{ window.__pm5Reset=pm5Reset; }catch(e){}
   // the crew this tablet drives — real data lands on that crew's counters
   function pm5Crew(){ const sv=String(tabletSel); if(!sv.includes(":")) return null;
     const hit=machSlots().byKey[sv]; if(!hit) return null;
@@ -3898,15 +3930,15 @@
       if(c&&c.textContent!==String(v)){
         if(String(v).length>c.textContent.length) grew=true;
         c.textContent=v; } };
-    if(pm5On()){ const L=PM5.live;
+    if(pm5On()){ const L=PM5.live, V=pm5View();
       put("split",L.pace>0?fmtSplit(L.pace):"--:--");
       put("avg",L.avgPace>0?fmtSplit(L.avgPace):"--:--");
       put("watts",Math.round(L.watts));
       put("spm",Math.round(L.spm));
       put("strokes","\u2014");
-      put("el",fmtMS(Math.round(L.t)));
-      put("m",Math.round(L.m));
-      put("cal",Math.round(L.cal));
+      put("el",fmtMS(Math.round(V.t)));
+      put("m",Math.round(V.m));
+      put("cal",Math.round(V.cal));
       if(grew) fitTbText(scr);
       return; }
     put("split",fmtSplit(w.split));
@@ -4169,9 +4201,9 @@
       const scored=!!(team&&!cfg.noScore), scoreVal=team?Math.round(team.score+team.blockCals):0;
       const onTarget=!!(tsw&&tsw.live);
       const vit=[];
-      if(mts&&pm5On()){ const L=PM5.live;
+      if(mts&&pm5On()){ const L=PM5.live, V=pm5View();
         mts.split=L.pace||0; mts.avg=L.avgPace||0; mts.spm=L.spm||0;
-        mts.m=L.m; mts.el=L.t; }
+        mts.m=V.m; mts.el=V.t; }
       if(mts){
         vit.push({k:"split",v:fmtSplit(mts.split),l:"split /500m"});
         vit.push({k:"avg",v:mts.avg>0?fmtSplit(mts.avg):"--:--",l:"avg /500m",opt:1});
@@ -4182,7 +4214,7 @@
         if(!onTarget) vit.push({k:"m",v:Math.round(mts.m||0),l:"metres"});
         // a paired monitor's calorie count is on the athlete's own PM5 screen —
         // the tablet mirrors it, or the two screens disagree in front of them
-        if(pm5On()) vit.push({k:"cal",v:Math.round(PM5.live.cal),l:"calories"});
+        if(pm5On()) vit.push({k:"cal",v:Math.round(pm5View().cal),l:"calories"});
         if(scored) vit.push({k:"score",v:scoreVal,l:scoreUnit()});
       }
       const machShort=mtype?mInfo(mtype).label:"this machine";
@@ -6461,7 +6493,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=314;
+  const BUILD=315;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
