@@ -1,0 +1,12 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ATHL3TE</title>
+<!-- GitHub Pages paths are case-sensitive; a TV remote is not. Any casing of
+     /Claude-code/ lands on this 404 — bounce to the real path with the query
+     and hash intact, so "claude-code" typed on a TV still reaches the board. -->
+<script>
+var m=location.pathname.match(/^\/claude-code\/?(.*)$/i);
+if(m&&location.pathname.indexOf("/Claude-code/")!==0)
+  location.replace("/Claude-code/"+(m[1]||"")+location.search+location.hash);
+</script>
+<p style="font-family:sans-serif;color:#888">Page not found.</p>
