@@ -6394,8 +6394,9 @@
       if(!obj) throw new Error("bad reply");
       if(obj.reply) aiBubble("ai",obj.reply);
       if(obj.workout){ const nm=applyAiWorkout(obj.workout);
-        aiBubble("ok","Saved as \u201c"+nm+"\u201d \u2014 it\u2019s on every screen. Review the setup below; reopen me for tweaks.");
-        setTimeout(aiCloseP,1800); }
+        // the confirmation STAYS \u2014 an auto-close ate the name before anyone
+        // could read it (Omar); the trainer closes the panel when done
+        aiBubble("ok","Saved as \u201c"+nm+"\u201d \u2014 it\u2019s on every screen. Review the setup below; reopen me for tweaks."); }
     }catch(e){
       aiBubble("err","Couldn't reach the AI ("+e.message+"). Check the relay link or try again.");
     }
@@ -6942,7 +6943,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=326;
+  const BUILD=327;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
