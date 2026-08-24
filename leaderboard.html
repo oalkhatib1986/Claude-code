@@ -6294,6 +6294,8 @@ window.addEventListener("error",function(ev){
         startBtn.textContent=`${whereNow(false)} running…`;
         enginePump();
       } else if(rot.phase==="rest"){ enginePump(); }
+      syncRotChrome();   // a skip lands between blocks — the banner and the
+                         // start button must say so, not just the cards
       renderBlockCards(); renderLanesRot(); renderTablet(true);
     } finally { sessApplying=false; }
   }
@@ -6905,13 +6907,15 @@ window.addEventListener("error",function(ev){
   $("bdf5").onclick=()=>seek(5); $("bdf10").onclick=()=>seek(10);
   $("tkLockBtn").onclick=()=>setTkLock(!tkLock);
   $("bdLock").onclick=()=>setTkLock(!tkLock);
-  $("tknext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
-  $("bdNext").onclick=()=>{ armRelock(); if(!tkLock) nextPart(); };
-  $("tkprev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
+  // skipping parts is a clock act like any other — it publishes, or the TV
+  // stays a part behind (Omar caught it on the wall)
+  $("tknext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
+  $("bdNext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
+  $("tkprev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
   function setDock(open){ $("bdock").classList.toggle("tucked",!open); $("bdockTab").classList.toggle("open",open);
     $("bdockTab").setAttribute("aria-label",open?"Hide controls":"Show controls"); }
   $("bdockTab").onclick=()=>setDock($("bdock").classList.contains("tucked"));
-  $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock) prevPart(); };
+  $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
   syncLockUi();
 
   function buildTrainerList(){
@@ -6979,10 +6983,10 @@ window.addEventListener("error",function(ev){
         rlSig=""; buildTrainerList(); };
     });
     el.querySelectorAll(".rrow.next").forEach(row=>{
-      row.onclick=()=>{ if(running||paused||holding) return; rot.round=+row.dataset.r; rot.phase="pre"; syncRotChrome(); startBlock(); };
+      row.onclick=()=>{ if(running||paused||holding) return; rot.round=+row.dataset.r; rot.phase="pre"; syncRotChrome(); startBlock(); sessPushNow(); };
     });
     const curRow=el.querySelector(".rrow.cur");
-    if(curRow&&!running&&rot.phase==="pre"){ curRow.style.cursor="pointer"; curRow.onclick=()=>startBlock(); }
+    if(curRow&&!running&&rot.phase==="pre"){ curRow.style.cursor="pointer"; curRow.onclick=()=>{ startBlock(); sessPushNow(); }; }
     el.querySelectorAll(".ptr").forEach(p=>{
       p.onclick=ev=>{ ev.stopPropagation();
         const b2=R().blocks[blockIdxOf(rot.round)]; const it2=(b2.items||[])[+p.dataset.ii]; if(!it2) return;
@@ -7007,7 +7011,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=335;
+  const BUILD=336;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

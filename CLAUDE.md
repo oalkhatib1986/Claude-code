@@ -427,7 +427,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   session — cfg + run state with the clock anchored to WALL time (`t0e`), so a
   follower that hears seconds late still shows the same countdown; every other
   screen polls every 2.5s and applies via the `setTeamCount` restore pattern
-  (rebuild, put state back, `enginePump()`). Publish points: `save()` (700ms
+  (rebuild, put state back, `enginePump()`). EVERY CONTROL THAT TOUCHES THE
+  CLOCK PUBLISHES — start/reset (buttons), pause, seek ±5/±10, next/prev part
+  (tknext/tkprev/bdNext/bdPrev), and the Control round-row jumps; audit
+  `startBlock()`/`t0=`/`rot.round=` call sites when adding any new control,
+  because one unwired button = a phone a part ahead of the wall (Omar caught
+  bdNext). Publish points: `save()` (700ms
   debounce, via TDZ-safe `sessOnSave` — boot migrations call save() before the
   sync lets initialise), and immediate on start/reset/pause/seek (the button
   handlers wrap, `bdStart` clicks `startBtn` so it inherits). Pushes carry
