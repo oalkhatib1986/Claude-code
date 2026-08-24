@@ -10,7 +10,7 @@ copy for cache-free serving; `version.txt` holds the build number.
   options (solo/teams, scored/no-score, together/stations, share/waves/rotate,
   per-block rests, collab, long names), at 390px phone width and on TV.
   Before shipping ANY layout-touching change, run
-  `test_fitall.js` (scratchpad) — 3 config states × 9 pages, zero tolerance.
+  `test_fitall.js` — 3 config states × 9 pages, zero tolerance.
 - **Content wider than its own box is always a bug — clipped OR spilling.**
   `overflow:hidden` cuts it mid-glyph; `overflow:visible` draws it outside its own
   border (a pill's text sitting past the pill). Both look broken. `test_fitall.js`
@@ -82,6 +82,12 @@ Omar tests on https://oalkhatib1986.github.io/Claude-code/app.html. Do NOT publi
 a Claude artifact — he never opens it, and it is one more permission prompt.
 
 ## Which suites to run
+
+SUITES LIVE IN `tests/` IN THE REPO (committed; node_modules gitignored, `npm i
+playwright` once per machine). The old scratchpad suites were LOST when the
+session container was reclaimed (Aug 2026) — every suite named below that is
+not yet in `tests/` is gone and gets REBUILT in `tests/` the next time its
+surface changes. Never keep a suite only in the scratchpad again.
 
 There are ~41 suites and a full sweep is 8-10 minutes, so it is not the default.
 Run the ones the change can reach, plus `test_fitall.js` for ANY layout change:

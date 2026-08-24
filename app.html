@@ -6064,8 +6064,11 @@
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
   // A TV has no keyboard worth typing on: the relay link can ride the URL once
   // (app.html?relay=https://...#screen) and is remembered like a pasted one.
-  try{ const m=location.search.match(/[?&]relay=([^&]+)/);
-    if(m){ const v=decodeURIComponent(m[1]);
+  // ?r= is the short form, and a bare hostname is accepted — every character
+  // counts when it is typed on a TV remote.
+  try{ const m=location.search.match(/[?&](?:relay|r)=([^&]+)/);
+    if(m){ let v=decodeURIComponent(m[1]);
+      if(!/^https?:\/\//.test(v)&&/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(v)) v="https://"+v;
       if(/^https:\/\//.test(v)){ aiUrl=v; localStorage.setItem(AIKEY,v); } } }catch(e){}
   let aiMsgs=[], aiBusy=false;
 
@@ -6943,7 +6946,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=327;
+  const BUILD=328;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
