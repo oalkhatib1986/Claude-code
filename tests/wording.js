@@ -19,11 +19,12 @@ await p.evaluate(()=>{
     {name:'Part A',machine:'Row',rounds:4,items:[
       {dur:150,scored:false,exercises:[{name:'Paused Barbell Bench Press',amounts:[8],unit:'reps',max:false,rpe:'7'}]}]},
     {name:'Part B',machine:'Row',items:[
-      {name:'Pendlay Row + Incline DB Bench',dur:180,group:true,scored:false,exercises:[
+      {name:'Pendlay Row + Incline DB Bench',dur:540,group:true,scored:false,exercises:[
         {name:'Pendlay Row',amounts:[10],unit:'reps',max:false,sets:3},
         {name:'Incline DB Bench Press',amounts:[10],unit:'reps',max:false,sets:3}]},
-      {name:'Arms Finisher',dur:180,group:true,scored:false,exercises:[
-        {name:'Pull Ups',amounts:['2-4'],unit:'reps',max:false,sets:3}]}]},
+      {name:'Arms Finisher',dur:540,group:true,scored:false,exercises:[
+        {name:'Pull Ups',amounts:['2-4'],unit:'reps',max:false,sets:3}]},
+      {dur:180,scored:false,exercises:[{name:'Row',amounts:[500],unit:'m',max:false}]}]},
     {name:'Part C',machine:'Row',rounds:3,items:[
       {dur:60,group:true,scored:false,exercises:[
         {name:'DB Push Press',amounts:[10],unit:'reps',max:false},
@@ -48,6 +49,8 @@ ok(/10 Pendlay Row(?! ·)/i.test(B)&&!/10 reps/i.test(B),'B: line reads "10 Pend
 ok(!/3 × 10/.test(B),'B: sets are not repeated on the lines');
 ok(/Arms Finisher/i.test(B),'B: a meaningful name is kept');
 ok(/2-4 Pull Ups/i.test(B),'B: ranges read coach-style (2-4 Pull Ups)');
+ok(/3 minutes/i.test(B),'B: a bare duration says minutes, not 3:00');
+ok(/500m Row/i.test(B),'B: metre work reads 500m Row');
 // Part C — EMOM block heading + numbered single-line minutes
 ok(/EMOM × 9 minutes/i.test(C),'C: heading is EMOM × 9 MINUTES');
 ok(/1st:\s*10 DB Push Press \+ Max DB Front Rack Hold/i.test(C),'C: 1st minute is one numbered line with +');

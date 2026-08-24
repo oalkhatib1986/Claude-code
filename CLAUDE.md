@@ -471,11 +471,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   ("10 Pendlay Row", "2-4 Pull Ups", "12/8 cal Ski" — `exAmt()`, the word "reps"
   goes without saying), the GROUP HEADING is the timing scheme, never the
   exercise names ("EVERY 3:00 × 3 SETS" when every exercise shares `sets`, which
-  then leave the lines — `exTxt/exHtml` take `{noSets}`), and a label that only
+  then leave the lines — `exTxt/exHtml` take `{noSets}`; the cadence is
+  `dur/sets`, so the ITEM's dur is the WHOLE window: every 3:00 × 3 sets =
+  dur 540 — and the AI prompt states the sequential-supersets law: block
+  rounds ALTERNATE items, they never mean "finish A then B"), and a label that only
   repeats its own exercises is dropped (`nameRedundant()` — every word of the
   name found in an exercise name). Block-level schemes replace the `.win` footer
   when they say it all: `blockEmom()` → "EMOM × 9 MINUTES" with minutes numbered
-  1st:/2nd:/3rd: one line each; the single repeated interval → "EVERY 2:30 FOR
+  1st:/2nd:/3rd:, each ONE `.exl.exlw` line that may WRAP with a hanging indent
+  and is EXEMPT from `fitBlockText`'s one-line measure (a long minute was
+  shrinking every card's type); bare whole-minute durations are SAID as
+  minutes (`minTxt` — a naked "3:00" over a list read as a mystery number); the single repeated interval → "EVERY 2:30 FOR
   10 MINUTES". Anything shapelier keeps the footer — a scheme that lies is worse
   than none. "Group" is never printed. `wording.js` pins the whole grammar
   against Omar's slide, live NOW slab included.
