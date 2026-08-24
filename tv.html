@@ -3,4 +3,8 @@
 <title>ATHL3TE</title>
 <!-- The TV's own entrance: the shortest possible thing to type on a remote.
      tv.html?r=<relay-host> lands on the big screen with the relay remembered. -->
-<script>location.replace("app.html"+location.search+"#screen");</script>
+<script>
+// ?tv=1 rides the QUERY because Samsung's browser drops #fragments across
+// redirects; the app turns it back into the #screen route at boot.
+location.replace("app.html"+(location.search?location.search+"&":"?")+"tv=1#screen");
+</script>

@@ -1989,6 +1989,11 @@
 <script>
 (() => {
   "use strict";
+  // THE TV FLAG SURVIVES WHAT THE HASH DOES NOT. Samsung's browser drops the
+  // #fragment across redirect chains (404 case-bounce -> tv.html -> app), so
+  // tv.html also sends ?tv=1 in the QUERY, which survives; it becomes the
+  // #screen route here, before any router reads the hash.
+  try{ if(/[?&]tv=1/.test(location.search)&&!location.hash) location.hash="#screen"; }catch(e){}
   const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
   const $ = id => document.getElementById(id);
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -6946,7 +6951,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=328;
+  const BUILD=329;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
