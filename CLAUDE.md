@@ -485,7 +485,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   minutes (`minTxt` — a naked "3:00" over a list read as a mystery number); the single repeated interval → "EVERY 2:30 FOR
   10 MINUTES". Anything shapelier keeps the footer — a scheme that lies is worse
   than none. "Group" is never printed. `wording.js` pins the whole grammar
-  against Omar's slide, live NOW slab included.
+  against Omar's slide, live NOW slab included. **`gallery.js` is the ship gate
+  for ANY wall-wording or card-layout change**: it renders all 14 house boards
+  + every 9th programme session on a 1920 wall and machine-checks each against
+  the house rules (no clip/scroll, no doubled Max/cal, no "Group", no
+  glued-name headings). Invented samples encode the author's own assumptions —
+  the gallery caught "cal Calories (any erg)" on two real boards the samples
+  missed, the day it was written.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.

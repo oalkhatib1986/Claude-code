@@ -2643,7 +2643,7 @@ window.addEventListener("error",function(ev){
     else{ const l=amtList(x).join("/");
       a=l?(x.unit==="m"?l+"m":x.unit==="cal"?l+" cal":x.unit==="sec"?l+" sec":l):""; }
     // "12/8 cal Cal Ski" says cal twice — the name already opens with the unit
-    if(a&&x.unit==="cal"&&/^cal\b/i.test(String(x.name||""))) a=a.replace(/ ?cal$/,"");
+    if(a&&x.unit==="cal"&&/^cal(s|ories)?\b/i.test(String(x.name||""))) a=a.replace(/ ?cal$/,"");
     // "Max Max Plank Hold": a name that already opens with Max carries it alone
     if(x.max&&/^max\b/i.test(String(x.name||""))) a=a.replace(/^Max( cal| metres)?/,"").trim();
     if(s) a=a?s+" × "+a:s+" sets";
@@ -7111,7 +7111,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=339;
+  const BUILD=340;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
