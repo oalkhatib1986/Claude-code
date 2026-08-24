@@ -2225,7 +2225,11 @@ window.addEventListener("error",function(ev){
     w.hidden=!(on&&has);
     if(on&&has) $("coLogoImg").src=cfg.coLogo; }
 
-  const fmtMS=s=>{ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); };
+  // CEIL, NOT ROUND: every live countdown ticks at the WHOLE second. Rounding
+  // made the block clock flip at x.5 while the part card (already ceiled)
+  // flipped at x.0 — half a beat apart, forever (Omar: "the block ticks and
+  // then the part A timer ticks"). Durations are integers, ceil leaves them be.
+  const fmtMS=s=>{ s=Math.max(0,Math.ceil(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); };
   const fmtT=s=>Math.floor(s/60)+":"+(s-Math.floor(s/60)*60).toFixed(1).padStart(4,"0");
   // A FIGURE IS GROUPED. 2600 is a string of digits to count; 2,600 is a number.
   const fmtN=v=>Math.round(v).toLocaleString("en-US");
@@ -6976,7 +6980,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=331;
+  const BUILD=332;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
