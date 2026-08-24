@@ -1987,6 +1987,26 @@
 </div>
 
 <script>
+/* FIRST, ALONE, AND WRITTEN IN ES5: a TV browser that cannot parse or run the
+   app must SAY SO on its own screen — a silent crash strands the static
+   skeleton and reads as "not updated" (Omar's Samsung). This block stays
+   parseable on engines a decade old. structuredClone (Chrome 98+) gets a JSON
+   shim: every clone in the app is plain cfg data. */
+if(typeof window.structuredClone!=="function"){
+  window.structuredClone=function(o){ return o===undefined?o:JSON.parse(JSON.stringify(o)); };
+}
+window.addEventListener("error",function(ev){
+  try{
+    if(document.getElementById("bootErr")) return;
+    var d=document.createElement("div"); d.id="bootErr";
+    d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b00020;color:#fff;"
+      +"font:14px/1.5 monospace;padding:10px 14px;word-break:break-all";
+    d.textContent="APP ERROR: "+(ev.message||"unknown")+" @ line "+(ev.lineno||"?")+":"+(ev.colno||"?");
+    (document.body||document.documentElement).appendChild(d);
+  }catch(e){}
+});
+</script>
+<script>
 (() => {
   "use strict";
   // THE TV FLAG SURVIVES WHAT THE HASH DOES NOT. Samsung's browser drops the
@@ -2042,14 +2062,15 @@
     o=o||{};
     const wrap=document.createElement("span"); wrap.className="mwrap"+(o.cls?" "+o.cls:"");
     const btn=document.createElement("button"); btn.type="button"; btn.className="mfield";
-    btn.textContent=String(getValue()??"")||o.placeholder||"\u2014";
+    { const gv=getValue(); btn.textContent=String(gv==null?"":gv)||o.placeholder||"\u2014"; }
     const panel=document.createElement("div"); panel.className="mpanel"; panel.hidden=true;
     panel.innerHTML=`<input class="msearch" type="text" ${o.numeric?'inputmode="numeric"':''} placeholder="${esc(o.searchPh||"Type to search\u2026")}" autocomplete="off" autocapitalize="words"><div class="mitems"></div>`;
     wrap.append(btn,panel);
     const search=panel.querySelector(".msearch"), itemsEl=panel.querySelector(".mitems");
     const close=()=>{ panel.hidden=true; document.removeEventListener("pointerdown",away,true); };
     const away=ev=>{ if(!wrap.contains(ev.target)) close(); };
-    const commit=v=>{ v=String(v).trim(); if(!v){ close(); return; } onPick(v); btn.textContent=String(getValue()??"")||"\u2014"; close(); };
+    const commit=v=>{ v=String(v).trim(); if(!v){ close(); return; } onPick(v);
+      const gv=getValue(); btn.textContent=String(gv==null?"":gv)||"\u2014"; close(); };
     const renderList=()=>{
       const q=search.value.trim().toLowerCase();
       const opts=getOpts().map(String);
@@ -3322,12 +3343,12 @@
     renderLanesSeq();
     clockEl.textContent=s.format==="time"?fmtMS(Math.max(0,s.duration-t)):fmtT(t);
     if(ergs.every(e=>e.cur.done)){
-      const res={}; for(const e of ergs) res[e.id]={m:e.cur.m,cals:e.cur.cals,finT:e.cur.finT??s.duration};
+      const res={}; for(const e of ergs) res[e.id]={m:e.cur.m,cals:e.cur.cals,finT:e.cur.finT==null?s.duration:e.cur.finT};
       for(const e of ergs){ e.tot.m+=res[e.id].m; e.tot.cals+=res[e.id].cals;
         e.tot.time += s.format==="distance"?res[e.id].finT:s.duration; }
       if(cfg.scoring.mode==="placing"){
         const ids=ergs.map(e=>e.id).sort((a,b)=> s.format==="distance"?res[a].finT-res[b].finT:res[b].m-res[a].m);
-        ids.forEach((id,p)=>{ ergs.find(e=>e.id===id).tot.pts += (cfg.scoring.rankPoints[p]??0); });
+        ids.forEach((id,p)=>{ ergs.find(e=>e.id===id).tot.pts += (cfg.scoring.rankPoints[p]||0); });
       }
       if(cfg.scoring.mode==="perUnit"){
         for(const e of ergs){ const v=cfg.scoring.perBasis==="calories"?res[e.id].cals:res[e.id].m;
@@ -5235,7 +5256,7 @@
     for(let i=0;i<cfg.crews.length;i++){
       const cell=document.createElement("div"); cell.className="pcell";
       cell.innerHTML=`<span>${i+1}${i===0?"st":i===1?"nd":i===2?"rd":"th"}</span>`;
-      const inp=document.createElement("input"); inp.type="number"; inp.min="0"; inp.step="1"; inp.value=cfg.scoring.rankPoints[i]??0;
+      const inp=document.createElement("input"); inp.type="number"; inp.min="0"; inp.step="1"; inp.value=cfg.scoring.rankPoints[i]||0;
       inp.oninput=()=>{cfg.scoring.rankPoints[i]=clamp(+inp.value||0,0,1e4);save();};
       cell.appendChild(inp); g.appendChild(cell);
     }
@@ -6951,7 +6972,7 @@
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=329;
+  const BUILD=330;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
