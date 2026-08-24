@@ -2941,7 +2941,8 @@ window.addEventListener("error",function(ev){
     const hm=(ergs.find(e=>e.hot)||{}).curMetric||"calories";
     $("phaseDesc").textContent = hotAny?`Every ${hm==="calories"?"calorie":"metre"} counts NOW`:(leadDone?"Longer stations are still working — everyone rotates when the clock hits 0:00":"Follow your station's screen · scored parts turn red");
     renderBlockCards(); renderLanesRot(); renderTablet();
-    raf=requestAnimationFrame(frameRotation);
+    // re-arm ONLY while running — no stop-path may ever leave a zombie loop
+    if(running) raf=requestAnimationFrame(frameRotation);
   }
 
   const blockUsesTypes=b=>{ const s=new Set(); (b.items||[]).forEach(it=>itemTypes(it).forEach(m=>s.add(m))); return s; };
@@ -6262,6 +6263,12 @@ window.addEventListener("error",function(ev){
   function sessApply(s){
     sessApplying=true;
     try{
+      // THE OLD LOOP DIES FIRST. frameRotation re-arms itself unconditionally;
+      // a LOCAL reset cancels it, but a remote apply that only built left the
+      // zombie repainting "WORKING" and ticking the clock off stale t0 forever
+      // (Omar's TV after a phone reset).
+      cancelAnimationFrame(raf); clearTimeout(ticker);
+      paused=false; pauseUi(false);
       if(s.cfg&&JSON.stringify(s.cfg)!==JSON.stringify(cfg)){
         cfg=s.cfg; migrateLoaded(); save(); applyAccent(); buildControlRoom();
       }
@@ -7000,7 +7007,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=334;
+  const BUILD=335;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
