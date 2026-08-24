@@ -1997,6 +1997,10 @@ if(typeof window.structuredClone!=="function"){
 }
 window.addEventListener("error",function(ev){
   try{
+    /* ResizeObserver's "loop" notices are the browser saying a re-fit took one
+       frame longer than it liked — routine for a board that measures itself,
+       harmless, and NOT an app error. */
+    if(/ResizeObserver loop/i.test(ev.message||"")) return;
     if(document.getElementById("bootErr")) return;
     var d=document.createElement("div"); d.id="bootErr";
     d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b00020;color:#fff;"
@@ -6972,7 +6976,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=330;
+  const BUILD=331;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
