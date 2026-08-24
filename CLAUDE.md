@@ -434,8 +434,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `kind:"clock"|"edit"`, and A BYSTANDER'S EDITING NEVER KILLS A CLASS: an
   edit-push is refused at the publisher while the room runs a class this device
   is not in (`sessRoomAct`), and refused again at the follower if it would stop
-  a session this screen is running — the clock buttons always win. Apply skips while
-  an input is focused and echoes are dropped by device id (`af_dev_id`) + ts.
+  a session this screen is running — the clock buttons always win. A DEVICE LISTENS
+  BEFORE IT SPEAKS: `sessSynced` gates edit-pushes until the first `s.get` has
+  answered — a reloaded phone's boot saves must never overwrite the running
+  class with stale idle (the store lied to every joiner while running screens
+  rightly ignored it); a running screen that hears such an edit re-publishes
+  the truth. The echo-drop id (`SESSID`) is PER PAGE-LOAD, never persisted —
+  with a device id, the phone that started the class refused its own state
+  after a reload ("that's my echo") and stood on READY under a counting TV.
+  Apply skips while an input is focused; `livesync2.js` gates the reload
+  choreography end to end.
   `?relay=` in the URL stores the relay link — a TV has no keyboard worth
   typing on. Only the rotation clock is shared; no relay link = standalone.
   `livesync.js` gates board-follow, same-second clocks, reset-follow, URL

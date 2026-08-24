@@ -6210,9 +6210,10 @@ window.addEventListener("error",function(ev){
   // polls and follows. Start on the phone and the TV starts; the clock is
   // anchored to WALL time (t0e), so even a follower that hears about the start
   // seconds late shows exactly the same countdown. No relay link = standalone.
-  let SESSID=""; try{ SESSID=localStorage.getItem("af_dev_id")||""; }catch(e){}
-  if(!SESSID){ SESSID=Math.random().toString(36).slice(2,10);
-    try{ localStorage.setItem("af_dev_id",SESSID); }catch(e){} }
+  // PER PAGE-LOAD, NOT PER DEVICE: the echo-drop must die with the page. With a
+  // persisted id, the phone that STARTED the class refused its own state after
+  // a reload — "that's my echo" — and stood on READY under a counting TV.
+  const SESSID=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
   let sessApplying=false, sessSeen=0, sessLocalTs=0, sessPushT=0;
   function sessRunState(){
     const pn=performance.now();
@@ -6240,8 +6241,15 @@ window.addEventListener("error",function(ev){
   // cfg edits arrive through save() in bursts — one publish per burst. Boot
   // migrations call save() BEFORE this section's lets initialise — those saves
   // are local by definition, so the TDZ read is swallowed, not fixed by moving.
+  // A DEVICE LISTENS BEFORE IT SPEAKS: page-load saves fired an edit-push with
+  // this device's stale idle state before the first poll had heard the room —
+  // the running class was overwritten at the store while every running screen
+  // rightly ignored the edit, and the room LIED to every joiner after that
+  // (Omar's phone said READY under a counting TV). Until the first s.get has
+  // answered, edits stay local; the clock buttons, as ever, always publish.
+  let sessSynced=false;
   function sessOnSave(){
-    try{ if(!aiUrl||sessApplying) return; }catch(e){ return; }
+    try{ if(!aiUrl||sessApplying||!sessSynced) return; }catch(e){ return; }
     clearTimeout(sessPushT); sessPushT=setTimeout(()=>sessPushNow("edit"),700);
   }
   function sessApply(s){
@@ -6278,20 +6286,24 @@ window.addEventListener("error",function(ev){
   async function sessPull(){
     if(!aiUrl||document.hidden) return;
     const got=await libCall({op:"s.get"});
+    if(got&&("v" in got)) sessSynced=true;   // the room has answered — even empty
     const s=got&&got.v;
     if(!s||!s.ts) return;
     if(s.ts>=sessLocalTs) sessRoomAct=!!(s.run&&s.run.act);
     if(s.src===SESSID) return;
     if(s.ts<=sessSeen||s.ts<sessLocalTs) return;
     // the follower-side of the bystander guard: an EDIT that would stop a class
-    // this screen is running is someone tinkering, not the trainer resetting
-    if(s.kind==="edit"&&!(s.run&&s.run.act)&&sessionActive){ sessSeen=s.ts; return; }
+    // this screen is running is someone tinkering, not the trainer resetting —
+    // ignore it AND re-publish the truth, or the store lies to every joiner
+    if(s.kind==="edit"&&!(s.run&&s.run.act)&&sessionActive){ sessSeen=s.ts;
+      sessPushNow(); return; }
     // never yank the page out from under someone typing — next poll catches up
     const ae=document.activeElement;
     if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
     sessSeen=s.ts;
     sessApply(s);
   }
+  setTimeout(sessPull,600);   // hear the room FAST — edits stay local until then
   setInterval(sessPull,2500);
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) sessPull(); });
   try{ window.__sessPull=sessPull; window.__sessPush=sessPushNow;
@@ -6980,7 +6992,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=332;
+  const BUILD=333;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
