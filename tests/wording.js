@@ -28,7 +28,7 @@ await p.evaluate(()=>{
     {name:'Part C',machine:'Row',rounds:3,items:[
       {dur:60,group:true,scored:false,exercises:[
         {name:'DB Push Press',amounts:[10],unit:'reps',max:false},
-        {name:'DB Front Rack Hold',amounts:[],unit:'sec',max:true}]},
+        {name:'Max DB Front Rack Hold',amounts:[],unit:'sec',max:true}]},
       {dur:60,scored:false,exercises:[{name:'Hand Release Push Ups',amounts:['10-15'],unit:'reps',max:false}]},
       {dur:60,scored:false,exercises:[{name:'Ski',amounts:[12,8],unit:'cal',max:false}]}]}]});
   localStorage.setItem(k,JSON.stringify(cfg));
@@ -44,7 +44,7 @@ ok(/8 Paused Barbell Bench Press\s*@ RPE 7/i.test(A),'A: amount leads (8 Paused 
 ok(!/4 rounds/i.test(A),'A: no duplicate rounds footer');
 // Part B — redundant name gone, sets ride the heading, lines are bare shorthand
 ok(!/Pendlay Row \+ Incline/i.test(B),'B: glued-names heading is GONE');
-ok(/Every 3:00 × 3 sets/i.test(B),'B: heading says EVERY 3:00 × 3 SETS');
+ok(/3 rounds × 3 minutes/i.test(B),'B: heading says 3 ROUNDS × 3 MINUTES');
 ok(/10 Pendlay Row(?! ·)/i.test(B)&&!/10 reps/i.test(B),'B: line reads "10 Pendlay Row", no "reps"');
 ok(!/3 × 10/.test(B),'B: sets are not repeated on the lines');
 ok(/Arms Finisher/i.test(B),'B: a meaningful name is kept');
@@ -54,6 +54,8 @@ ok(/500m Row/i.test(B),'B: metre work reads 500m Row');
 // Part C — EMOM block heading + numbered single-line minutes
 ok(/EMOM × 9 minutes/i.test(C),'C: heading is EMOM × 9 MINUTES');
 ok(/1st:\s*10 DB Push Press \+ Max DB Front Rack Hold/i.test(C),'C: 1st minute is one numbered line with +');
+ok(!/Max Max/i.test(C),'C: a name that opens with Max never doubles it');
+ok(await p.evaluate(()=>!!document.querySelector('#blockCards .exlw .emord')),'C: ordinals sit in their own column');
 ok(/2nd:\s*10-15 Hand Release Push Ups/i.test(C),'C: 2nd minute numbered');
 ok(/3rd:\s*12\/8 cal Ski/i.test(C),'C: 3rd minute reads 12/8 cal Ski');
 ok(!/3 rounds × 3:00/i.test(C),'C: no duplicate rounds footer');
@@ -74,6 +76,27 @@ const wall=await fit(1920,1080,'#workout');
 ok(wall.sx<=0&&wall.bad===0,'wall 1920: nothing scrolls or clips ('+wall.sx+'/'+wall.bad+')');
 const ph=await fit(390,844,null);
 ok(ph.sx<=0&&ph.bad===0,'phone 390: nothing scrolls or clips ('+ph.sx+'/'+ph.bad+')');
+// the Part B repair one-shot: alternate-rounds shape becomes sequential sets
+await p.evaluate(()=>{
+  localStorage.removeItem('af_fixmt2_v1');
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'))||[];
+  const bad={name:'Michael Test 2',ts:1,cfg:JSON.parse(localStorage.getItem('af_erg_cfg_v8'))};
+  bad.cfg=JSON.parse(JSON.stringify(bad.cfg));
+  bad.cfg.rotation.blocks=[{name:'Part A',items:[{dur:60,exercises:[{name:'Row',amounts:[500],unit:'m'}]}]},
+    {name:'Part B',rounds:3,items:[
+      {dur:180,group:true,exercises:[{name:'Pendlay Row',amounts:[10],unit:'reps'},{name:'Incline DB Bench Press',amounts:[10],unit:'reps'}]},
+      {dur:180,group:true,exercises:[{name:'Pull Ups',amounts:['2-4'],unit:'reps'}]}]}];
+  ps.push(bad); localStorage.setItem('af_presets_v1',JSON.stringify(ps));
+});
+await p.reload(); await p.waitForTimeout(1600);
+const mended=await p.evaluate(()=>{
+  const p2=JSON.parse(localStorage.getItem('af_presets_v1')).find(x=>x.name==='Michael Test 2');
+  const b=p2.cfg.rotation.blocks.find(b2=>/^part b$/i.test(b2.name));
+  return {rounds:b.rounds,durs:b.items.map(it=>it.dur),sets:b.items.map(it=>it.exercises.map(x=>x.sets))};
+});
+ok(mended.rounds===1&&mended.durs.every(d=>d===540)
+  &&mended.sets.every(a=>a.every(v=>v===3)),
+  'a bad-shaped Michael Test 2 Part B is repaired at boot ('+JSON.stringify(mended)+')');
 await p.setViewportSize({width:1920,height:1080});
 await p.goto('file:///home/user/Claude-code/leaderboard.html#workout'); await p.waitForTimeout(1600);
 await p.screenshot({path:'wording_wall.png'});

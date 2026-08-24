@@ -472,8 +472,9 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   goes without saying), the GROUP HEADING is the timing scheme, never the
   exercise names ("EVERY 3:00 × 3 SETS" when every exercise shares `sets`, which
   then leave the lines — `exTxt/exHtml` take `{noSets}`; the cadence is
-  `dur/sets`, so the ITEM's dur is the WHOLE window: every 3:00 × 3 sets =
-  dur 540 — and the AI prompt states the sequential-supersets law: block
+  `dur/sets`, so the ITEM's dur is the WHOLE window, and the heading reads
+  "3 ROUNDS × 3 MINUTES" (Omar's dictation, build 339 — not "EVERY 3:00 ×
+  3 SETS"); a name that already opens with Max or its unit never doubles it — and the AI prompt states the sequential-supersets law: block
   rounds ALTERNATE items, they never mean "finish A then B"), and a label that only
   repeats its own exercises is dropped (`nameRedundant()` — every word of the
   name found in an exercise name). Block-level schemes replace the `.win` footer

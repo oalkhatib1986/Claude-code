@@ -1087,8 +1087,10 @@
   /* measured with the wrapping off, so scrollWidth is the true one-line width */
   #blockCards.measuring .exl:not(.exlw){white-space:nowrap}
   /* an EMOM minute is one deliberate line that may WRAP with a hanging indent —
-     exempt from the one-line fit, or its length shrinks every card's type */
-  .exl.exlw{padding-left:1.3em;text-indent:-1.3em}
+     exempt from the one-line fit, or its length shrinks every card's type. The
+     ordinal is a fixed COLUMN so a wrapped line lands exactly under the text. */
+  .exl.exlw{padding-left:2.4em;text-indent:-2.4em}
+  .exl.exlw .emord{display:inline-block;width:2.4em;text-indent:0;white-space:nowrap}
   .exl i{color:var(--hot);font-style:normal;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-left:7px}
   #updBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;
     background:var(--accent);color:#000;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;
@@ -2642,6 +2644,8 @@ window.addEventListener("error",function(ev){
       a=l?(x.unit==="m"?l+"m":x.unit==="cal"?l+" cal":x.unit==="sec"?l+" sec":l):""; }
     // "12/8 cal Cal Ski" says cal twice — the name already opens with the unit
     if(a&&x.unit==="cal"&&/^cal\b/i.test(String(x.name||""))) a=a.replace(/ ?cal$/,"");
+    // "Max Max Plank Hold": a name that already opens with Max carries it alone
+    if(x.max&&/^max\b/i.test(String(x.name||""))) a=a.replace(/^Max( cal| metres)?/,"").trim();
     if(s) a=a?s+" × "+a:s+" sets";
     return a; };
   const exTxt=(x,o)=>{ const w=whoShown(x); const rm=exRM(x);
@@ -2749,7 +2753,7 @@ window.addEventListener("error",function(ev){
       // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
       // Front Rack Hold" — under the block's own "EMOM × N minutes" heading.
       if(emom){
-        const eml=`<div class="exl exlw"><span class="amt">${ORDN(i+1)}:</span>\u00a0${xs.map(x=>exHtml(x,{noSets:us>0})).join(" + ")}</div>`
+        const eml=`<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0})).join(" + ")}</div>`
           +xs.map(x=>String(x.note||"").trim()?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
           +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
         return `<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
@@ -2760,7 +2764,7 @@ window.addEventListener("error",function(ev){
       // the label survives only when it says something the exercises do not
       const label=(it.name&&!nameRedundant(it,xs))?esc(it.name):"";
       const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${xs.length} stations · self-paced`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/xs.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`
-        :us?((it.dur>0&&it.dur%us===0)?`Every ${fmtMS(it.dur/us)} × ${us} sets`:`${us} sets`)
+        :us?((it.dur>0&&it.dur%us===0)?`${us} rounds × ${minTxt(it.dur/us)}`:`${us} sets`)
         :(bs&&its.length===1)?"":minTxt(it.dur);
       // A heading breaks at a WORD, never in front of its own separator. The last
       // word of the name travels with "· 4:00" so a wrapped title reads
@@ -6393,6 +6397,31 @@ window.addEventListener("error",function(ev){
     window.__sessState=()=>({run:running,act:sessionActive,hold:holding,pau:paused,
       phase:rot.phase,round:rot.round,el:sessionActive?(performance.now()-t0)/1000:0}); }catch(e){}
 
+  // MICHAEL TEST 2'S PART B SAID THE WRONG WORKOUT (one-shot, build 339): the
+  // AI stored "alternate the two supersets, 3 rounds" where the programme is
+  // "3 rounds of A, THEN 3 rounds of B". Shape-verified repair: rounds 3 ×
+  // two 3:00 group items become rounds 1 × two 9:00 items with sets 3 — the
+  // display then reads "3 ROUNDS × 3 MINUTES" per superset. Fixes the preset
+  // (and pushes it to the room) plus the loaded copy; the loaded fix offers
+  // itself to the session sync once the room has answered (edits never fire
+  // before the first pull, and never into a running class).
+  (function fixMT2(){
+    const K="af_fixmt2_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    const shape=b=>b&&b.rounds===3&&(b.items||[]).length===2
+      &&b.items.every(it=>!it.rest&&it.dur===180&&(it.exercises||[]).length>=1&&!(it.exercises||[]).some(x=>exSets(x)));
+    const mend=b=>{ b.rounds=1;
+      b.items.forEach(it=>{ it.dur=540; (it.exercises||[]).forEach(x=>{ x.sets=3; }); }); };
+    const p2=presets.find(x=>x.name==="Michael Test 2");
+    let did=false;
+    if(p2&&p2.cfg&&p2.cfg.rotation){ const b=(p2.cfg.rotation.blocks||[]).find(b2=>/^part b$/i.test(b2.name||""));
+      if(shape(b)){ mend(b); p2.ts=Date.now(); savePresets(); libPush(p2); did=true; } }
+    if(cfg.wkName==="Michael Test 2"&&cfg.rotation){ const b=(cfg.rotation.blocks||[]).find(b2=>/^part b$/i.test(b2.name||""));
+      if(shape(b)){ mend(b); save(); did=true;
+        setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000); } }
+    if(did&&!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
+  })();
+
   // OMAR'S CLEANUP (one-shot, build 325): the test-era saves — two programme
   // sessions saved under their own labels, a re-saved Send It Saturday and the
   // first test board — go from the shared library via its own tombstones, so one
@@ -7082,7 +7111,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=338;
+  const BUILD=339;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
