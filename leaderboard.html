@@ -2626,26 +2626,66 @@ window.addEventListener("error",function(ev){
   const maxUnit=u=>u==="m"?" metres":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" seconds":"";
   // "12 each side" is said once, RPE rides the prescription like %1RM does
   const exSets=x=>{ const v=parseInt(x&&x.sets,10); return v>=2?v:0; };
-  const exTxt=x=>{ const w=whoShown(x); let a=x.max?"Max":amtList(x).join("/");
-    const rm=exRM(x), s=exSets(x);
-    const u=x.max?maxUnit(x.unit):exUnit(x.unit);
+  // COACH SHORTHAND: the amount LEADS, the way it is chalked on a whiteboard —
+  // "10 Pendlay Row", "2-4 Pull Ups", "12/8 cal Ski", "Max Plank Hold" (Omar's
+  // own wall slides). The word "reps" goes without saying; Max names its unit
+  // only when the unit is not obvious; sets ride the GROUP heading when every
+  // exercise shares them (opts.noSets), else they prefix the line ("3 × 10 …").
+  const exAmt=(x,noSets)=>{
+    const s=noSets?0:exSets(x);
+    let a;
+    if(x.max) a=x.unit==="cal"?"Max cal":x.unit==="m"?"Max metres":"Max";
+    else{ const l=amtList(x).join("/");
+      a=l?(x.unit==="m"?l+"m":x.unit==="cal"?l+" cal":x.unit==="sec"?l+" sec":l):""; }
+    // "12/8 cal Cal Ski" says cal twice — the name already opens with the unit
+    if(a&&x.unit==="cal"&&/^cal\b/i.test(String(x.name||""))) a=a.replace(/ ?cal$/,"");
+    if(s) a=a?s+" × "+a:s+" sets";
+    return a; };
+  const exTxt=(x,o)=>{ const w=whoShown(x); const rm=exRM(x);
     const rpe=String(x.rpe||"").trim();
-    let amt=a?(s?s+" × ":"")+a+u+(x.each?" each side":""):(s?s+" sets":"");
-    return `${w?w+" — ":""}${x.name}${amt?" · "+amt:""}${rm?" @ "+rm+"% 1RM":""}${rpe?" @ RPE "+rpe:""}`; };
+    const a=exAmt(x,o&&o.noSets);
+    return `${w?w+" — ":""}${a?a+" ":""}${x.name}${x.each?" · each side":""}${rm?" @ "+rm+"% 1RM":""}${rpe?" @ RPE "+rpe:""}`; };
   // THE PRESCRIPTION IS ONE THING, SO IT WRAPS AS ONE THING. Left to itself the line
   // broke wherever it ran out of room and stranded the unit on a line of its own —
   // "20" at the end of one line and "reps" at the start of the next, or a separator
   // hanging off the end with nothing after it. The amount, its unit and the dot in
   // front of them move together or not at all; the break lands after the exercise.
-  const exHtml=x=>{ const w=whoShown(x); const a=x.max?"Max":amtList(x).join("/");
-    const rm=exRM(x), s=exSets(x);
-    const u=x.max?maxUnit(x.unit):exUnit(x.unit);
+  const exHtml=(x,o)=>{ const w=whoShown(x); const rm=exRM(x);
     const rpe=String(x.rpe||"").trim();
-    const amt=a?(s?s+" × ":"")+a+u+(x.each?" each side":""):(s?s+" sets":"");
-    return `${w?esc(w)+" — ":""}${esc(x.name)}`
-      +(amt?` <span class="amt">· ${esc(amt)}</span>`:"")
+    const a=exAmt(x,o&&o.noSets);
+    return `${w?esc(w)+" — ":""}`
+      +(a?`<span class="amt">${esc(a)}</span>\u00a0`:"")
+      +esc(x.name)
+      +(x.each?` <span class="amt">· each side</span>`:"")
       +(rm?` <span class="amt">@ ${rm}% 1RM</span>`:"")
       +(rpe?` <span class="amt">@ RPE ${esc(rpe)}</span>`:""); };
+  // A NAME THAT ONLY REPEATS ITS OWN EXERCISES SAYS EVERYTHING TWICE (Omar's
+  // wall: "PENDLAY ROW + INCLINE DB BENCH" over "Pendlay Row / Incline DB Bench
+  // Press"). If every word of the label already lives in an exercise name, the
+  // label is dropped and the heading carries the SCHEME instead.
+  const nameRedundant=(it,xs)=>{ const n=String((it&&it.name)||"").trim(); if(!n) return false;
+    const words=n.toLowerCase().split(/[^a-z0-9]+/).filter(w2=>w2&&!/^(and|x|the|of|a|to)$/.test(w2));
+    if(!words.length) return false;
+    const pool=xs.map(x=>String(x.name||"").toLowerCase()).join(" ");
+    return words.every(w2=>pool.includes(w2)); };
+  const ORDN=n=>n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th";
+  // THE HEADING IS THE TIMING SCHEME, the way the old USB slides wrote it:
+  // "EMOM × 9 MINUTES" when the block is minute slots, "EVERY 2:30 FOR 10
+  // MINUTES" when it is one repeated interval. Anything shapelier keeps the
+  // current footer line instead — a scheme that lies is worse than none.
+  const blockEmom=b=>{ if(isWin(b)||isAmrap(b)) return 0;
+    const its=roundItems(b); if(its.length<2) return 0;
+    if(finItems(b).length||bRRest(b)) return 0;
+    if(!its.every(it=>!it.rest&&it.dur===60&&(it.exercises||[]).length)) return 0;
+    const R=bRounds(b); return R>=1?R*its.length:0; };
+  const blockSchemeTxt=b=>{
+    const m=blockEmom(b); if(m) return `EMOM × ${m} minute${m>1?"s":""}`;
+    if(isWin(b)||isAmrap(b)) return "";
+    const its=roundItems(b), R=bRounds(b);
+    if(its.length===1&&!its[0].rest&&its[0].dur>0&&R>=2&&!bRRest(b)&&!finItems(b).length&&!(its[0].every&&its[0].every.sec)){
+      const tot=R*its[0].dur;
+      return `Every ${fmtMS(its[0].dur)} for ${tot%60===0?(tot/60)+" minutes":fmtMS(tot)}`; }
+    return ""; };
   // ONE label for a part, wherever the trainer reads a list of them. The exercise
   // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
   const partLabel=(it,ii)=>{
@@ -2655,9 +2695,9 @@ window.addEventListener("error",function(ev){
       return f.length>44?f.slice(0,42)+"\u2026":f; }
     const xs=(it.exercises||[]).filter(Boolean);
     const work=xs.length?xs.map(x=>exTxt(x)).join(" \u00b7 "):"";
-    // a part named after its only exercise adds nothing: "Back Squat \u00b7 Back Squat \u00b7 2 reps"
-    const same=xs.length===1&&String(it.name||"").trim().toLowerCase()
-      ===String(xs[0].name||"").trim().toLowerCase();
+    // a part named after its own exercises adds nothing — once or many times over
+    const same=(xs.length===1&&String(it.name||"").trim().toLowerCase()
+      ===String(xs[0].name||"").trim().toLowerCase())||nameRedundant(it,xs);
     let nm=(it.name&&!same)?(work?it.name+" \u00b7 "+work:it.name):(work||("Part "+((ii||0)+1)));
     if(it.fmt==="waves") nm+=" \u00b7 "+itWaves(it)+" waves";
     else if(itSelf(it)) nm+=" \u00b7 self-paced circuit";
@@ -2672,11 +2712,14 @@ window.addEventListener("error",function(ev){
     const its=b.items||[];
     if(!its.length) return esc(b.desc||"—");
     const cur=(seg&&seg.i>=0)?seg.i:-1;
+    const bs=blockSchemeTxt(b);          // "EMOM × 9 minutes" / "Every 2:30 for 10 minutes"
+    const emom=blockEmom(b)>0;
+    const head0=bs?`<div class="exg"><span class="exg-h">${esc(bs)}</span></div>`:"";
     // ONLY the running part is marked. The card already lists the parts in order,
     // so drawing a box round the one after it just says the same thing twice —
     // "next" belongs on the tablet in front of the athlete and in the trainer's
     // NOW/NEXT panel, where it is an instruction rather than a repeat of the list.
-    return its.map((it,i)=>{
+    return head0+its.map((it,i)=>{
       const mk=i===cur?" pnow":"";
       const tag=i===cur?`<em class="ptag">Now</em>`:"";
       if(it.rest) return `<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
@@ -2694,24 +2737,41 @@ window.addEventListener("error",function(ev){
       // whole item, so it heads the list rather than hiding at the tail.
       const evy=it.every&&it.every.sec>0
         ?`<div class="exl exev">Every ${fmtMS(it.every.sec)} — ${esc(it.every.who||"1 partner")}: ${esc([it.every.amt,it.every.name].filter(Boolean).join(" "))}${esc(exUnit(it.every.unit||""))}</div>`:"";
-      const lines=evy+(it.exercises||[]).map(x=>`<div class="exl">${exHtml(x)}</div>`
+      const xs=it.exercises||[];
+      // uniform sets ride the heading ("Every 3:00 × 3 sets"), never every line
+      const us=xs.length&&xs.every(x2=>exSets(x2)&&exSets(x2)===exSets(xs[0]))?exSets(xs[0]):0;
+      // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
+      // Front Rack Hold" — under the block's own "EMOM × N minutes" heading.
+      if(emom){
+        const eml=`<div class="exl"><span class="amt">${ORDN(i+1)}:</span>\u00a0${xs.map(x=>exHtml(x,{noSets:us>0})).join(" + ")}</div>`
+          +xs.map(x=>String(x.note||"").trim()?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
+          +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
+        return `<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
+      }
+      const lines=evy+xs.map(x=>`<div class="exl">${exHtml(x,{noSets:us>0})}</div>`
         +(String(x.note||"").trim()?`<div class="exl exnote">${esc(x.note)}</div>`:"")).join("")
         +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
-      const label=it.exercises&&it.exercises.length===1&&!it.name ? "" : esc(it.name||"Group");
-      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${it.exercises.length} stations · self-paced`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`:fmtMS(it.dur);
+      // the label survives only when it says something the exercises do not
+      const label=(it.name&&!nameRedundant(it,xs))?esc(it.name):"";
+      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${xs.length} stations · self-paced`:itRot(it)?`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/xs.length))}`:itShare(it)?`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`
+        :us?`Every ${fmtMS(it.dur)} × ${us} sets`
+        :(bs&&its.length===1)?"":fmtMS(it.dur);
       // A heading breaks at a WORD, never in front of its own separator. The last
       // word of the name travels with "· 4:00" so a wrapped title reads
       // "FINISH — ALL 4 ON ONE MACHINE, / ALTERNATING · 4:00" rather than leaving a
       // line that opens on a dot. Only while the pair is short enough to fit a card
       // on its own — an unbreakable run wider than its box is the other bug.
       const head=(()=>{
+        if(!label&&!tlab) return "";
         if(!label) return tlab;
+        if(!tlab) return label;
         const sp=label.lastIndexOf(" "), tail=sp<0?label:label.slice(sp+1);
         const glue=`${tail} &middot; ${tlab}`;
         if(glue.replace(/&[a-z]+;/g,"x").length>26) return `${label} &middot;&nbsp;${tlab}`;
         return `${sp<0?"":label.slice(0,sp)+" "}<span class="amt">${glue}</span>`;
       })();
-      return `<div class="exg${mk}"><span class="exg-h">${tag}${head}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>${lines}</div>`;
+      const hh=(tag||head||(it.scored&&!cfg.noScore))?`<span class="exg-h">${tag}${head}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>`:"";
+      return `<div class="exg${mk}">${hh}${lines}</div>`;
     }).join("");
   };
 
@@ -2987,7 +3047,7 @@ window.addEventListener("error",function(ev){
         ${live?`<div class="bwhere">${bits.join(" \u00b7 ")}</div>`:""}
         ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
         <div class="bd">${exLines(b,live?seg:null)}</div>
-        ${!blockLen(b)?"":`<div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:isWin(b)?`In ${fmtMS(bWin(b))} &middot; work through the list &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${finLen(b)?`then ${fmtMS(finLen(b))} finish · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>`}
+        ${(!blockLen(b)||blockSchemeTxt(b))?"":`<div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:isWin(b)?`In ${fmtMS(bWin(b))} &middot; work through the list &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${finLen(b)?`then ${fmtMS(finLen(b))} finish · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>`}
         <div class="teams">${al.teams.map(t=>{
           // Nobody has tapped in yet: the machine is the fact, the person is not.
           // Printing an invented "Team 1" here is the very thing claiming removed.
@@ -7011,7 +7071,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=336;
+  const BUILD=337;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

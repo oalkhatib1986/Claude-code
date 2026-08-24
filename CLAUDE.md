@@ -466,6 +466,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `workout.name` always), unique-ifies with " 2" instead of overwriting, saves to
   presets + `libPush` and returns the name for the confirmation bubble —
   "Unsaved workout" plus an unfindable rename was the whole confusion.
+- **THE WALL READS LIKE THE COACH'S OWN SLIDE (Omar's USB reference, build 337).**
+  Coach shorthand everywhere a workout is written: the AMOUNT LEADS the exercise
+  ("10 Pendlay Row", "2-4 Pull Ups", "12/8 cal Ski" — `exAmt()`, the word "reps"
+  goes without saying), the GROUP HEADING is the timing scheme, never the
+  exercise names ("EVERY 3:00 × 3 SETS" when every exercise shares `sets`, which
+  then leave the lines — `exTxt/exHtml` take `{noSets}`), and a label that only
+  repeats its own exercises is dropped (`nameRedundant()` — every word of the
+  name found in an exercise name). Block-level schemes replace the `.win` footer
+  when they say it all: `blockEmom()` → "EMOM × 9 MINUTES" with minutes numbered
+  1st:/2nd:/3rd: one line each; the single repeated interval → "EVERY 2:30 FOR
+  10 MINUTES". Anything shapelier keeps the footer — a scheme that lies is worse
+  than none. "Group" is never printed. `wording.js` pins the whole grammar
+  against Omar's slide, live NOW slab included.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.
