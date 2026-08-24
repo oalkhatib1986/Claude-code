@@ -2834,7 +2834,7 @@ window.addEventListener("error",function(ev){
 
   function frameRotation(now){
     if(paused||holding) return;
-    const t=(now-t0)/1000;
+    const t=Math.max(0,(now-t0)/1000);   // residual skew must never run segAt backwards
     if(holdPend.length&&t>=holdPend[0]){
       const hb=holdPend.shift();
       rot.elapsed=hb; holding=true;
@@ -6221,8 +6221,8 @@ window.addEventListener("error",function(ev){
       act:sessionActive, run:running, fin:finished, hold:holding, pau:paused,
       round:rot.round, phase:rot.phase, elapsed:rot.elapsed, remain:rot.remain,
       restDur:rot.restDur||0,
-      t0e: sessionActive? Date.now()-(pn-t0) : 0,
-      rt0e: (sessionActive&&rot.phase==="rest")? Date.now()-(pn-restT0) : 0 };
+      t0e: sessionActive? sessNow()-(pn-t0) : 0,
+      rt0e: (sessionActive&&rot.phase==="rest")? sessNow()-(pn-restT0) : 0 };
   }
   let sessRoomAct=false;   // is a class running anywhere in the room?
   function sessPushNow(kind){
@@ -6234,9 +6234,9 @@ window.addEventListener("error",function(ev){
     // buttons are deliberate acts on the shared session and always publish.
     if(kind==="edit"&&sessRoomAct&&!sessionActive) return;
     clearTimeout(sessPushT);
-    const s={ts:Date.now(),src:SESSID,kind,cfg:JSON.parse(JSON.stringify(cfg)),run:sessRunState()};
+    const s={ts:sessNow(),src:SESSID,kind,cfg:JSON.parse(JSON.stringify(cfg)),run:sessRunState()};
     sessLocalTs=s.ts; sessSeen=s.ts; sessRoomAct=!!s.run.act;
-    libCall({op:"s.put",v:s});
+    libCall({op:"s.put",v:s}).then(r=>{ if(r&&typeof r.now==="number") sessOff=r.now-Date.now(); });
   }
   // cfg edits arrive through save() in bursts — one publish per burst. Boot
   // migrations call save() BEFORE this section's lets initialise — those saves
@@ -6248,6 +6248,13 @@ window.addEventListener("error",function(ev){
   // (Omar's phone said READY under a counting TV). Until the first s.get has
   // answered, edits stay local; the clock buttons, as ever, always publish.
   let sessSynced=false;
+  // THE RELAY IS THE REFEREE CLOCK. Wall clocks on TVs drift by seconds; a
+  // follower that trusted its own Date.now showed 9:10 on a 9:00 block and ran
+  // segAt on NEGATIVE elapsed (dim cards under a counting clock). Every reply
+  // from the session store carries the server's now; the offset turns every
+  // timestamp and anchor into server time on every device.
+  let sessOff=0;
+  const sessNow=()=>Date.now()+sessOff;
   function sessOnSave(){
     try{ if(!aiUrl||sessApplying||!sessSynced) return; }catch(e){ return; }
     clearTimeout(sessPushT); sessPushT=setTimeout(()=>sessPushNow("edit"),700);
@@ -6270,8 +6277,8 @@ window.addEventListener("error",function(ev){
       rot.round=r.round||0; rot.phase=r.phase||"run";
       rot.elapsed=r.elapsed||0; rot.remain=r.remain||0;
       if(r.restDur) rot.restDur=r.restDur;
-      t0=pn-(Date.now()-r.t0e);
-      if(r.rt0e) restT0=pn-(Date.now()-r.rt0e);
+      t0=pn-(sessNow()-r.t0e);
+      if(r.rt0e) restT0=pn-(sessNow()-r.rt0e);
       resetBtn.disabled=false;
       holdPend=holdBounds().filter(x=>x>((pn-t0)/1000)+0.05);
       if(r.pau){ paused=true; pauseMark=pn; pauseUi(true); }
@@ -6287,6 +6294,7 @@ window.addEventListener("error",function(ev){
     if(!aiUrl||document.hidden) return;
     const got=await libCall({op:"s.get"});
     if(got&&("v" in got)) sessSynced=true;   // the room has answered — even empty
+    if(got&&typeof got.now==="number") sessOff=got.now-Date.now();
     const s=got&&got.v;
     if(!s||!s.ts) return;
     if(s.ts>=sessLocalTs) sessRoomAct=!!(s.run&&s.run.act);
@@ -6992,7 +7000,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=333;
+  const BUILD=334;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

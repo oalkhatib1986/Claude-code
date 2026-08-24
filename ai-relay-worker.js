@@ -33,16 +33,19 @@ export default {
     if (body.op === "s.get" || body.op === "s.put") {
       if (!env.DB) return json({ error: "session storage not set up (bind a D1 database as DB)" }, 500);
       await env.DB.exec("CREATE TABLE IF NOT EXISTS sess (k TEXT PRIMARY KEY, v TEXT)");
+      // `now` rides on every reply: THE RELAY IS THE REFEREE CLOCK. Devices
+      // measure their own offset against it — a TV whose wall clock drifts 10s
+      // must not show 9:10 on a 9:00 block (Omar's wall).
       if (body.op === "s.put") {
         const v = JSON.stringify(body.v || null);
         if (v.length > 1_000_000) return json({ error: "state too large" }, 413);
         await env.DB.prepare("INSERT INTO sess (k,v) VALUES ('s',?1) ON CONFLICT(k) DO UPDATE SET v=?1")
           .bind(v).run();
-        return json({ ok: 1 });
+        return json({ ok: 1, now: Date.now() });
       }
       const row = await env.DB.prepare("SELECT v FROM sess WHERE k='s'").first();
       let v = null; try { v = row && JSON.parse(row.v); } catch {}
-      return json({ v });
+      return json({ v, now: Date.now() });
     }
 
     if (body.op === "lib.list" || body.op === "lib.put") {
