@@ -460,8 +460,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   Control's `.wknow` IMMEDIATELY — a title that waits for the next rebuild
   reads as broken. The picker's rows carry a date hint (`menuField` `o.hint`
   → `.chint`, right-aligned): the board's `prog.date`, else "saved d Mon"
-  from the entry's ts — that is how same-named weekly boards are told apart.
-  Name collisions stay REFUSED; the date rides the label, never the wall.
+  from the entry's ts — that is how same-named weekly boards are told apart
+  (the hint must read the VISIBLE entry, not a parked seed of the same name).
+  Rename collisions stay REFUSED; but SAVING a taken name works — DATED
+  (build 346, Omar: "as long as it's a different date it will save"): typing
+  "Engine" in the picker when an Engine exists offers `+ Save as "Engine
+  01/09"` (`o.altAdd` — dd/MM from the board's own `prog.date`, else today;
+  unique-ified with " 2" beyond that), and the TYPED word rides as the display
+  title (`data-typed` → `onPick(v,typed)` → `titleSet`), so the picker files
+  by date while the wall reads ENGINE. The date lives in the filing name only.
 - **ONE GYM, ONE CLOCK.** Live session sync rides the same relay into D1
   (worker ops `s.get`/`s.put`, binding `DB` — D1 because KV's 60s edge cache
   cannot carry a clock). The device the trainer ACTS on publishes the whole

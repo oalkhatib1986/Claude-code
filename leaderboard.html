@@ -2098,7 +2098,7 @@ window.addEventListener("error",function(ev){
     const search=panel.querySelector(".msearch"), itemsEl=panel.querySelector(".mitems");
     const close=()=>{ panel.hidden=true; document.removeEventListener("pointerdown",away,true); };
     const away=ev=>{ if(!wrap.contains(ev.target)) close(); };
-    const commit=v=>{ v=String(v).trim(); if(!v){ close(); return; } onPick(v);
+    const commit=(v,typed)=>{ v=String(v).trim(); if(!v){ close(); return; } onPick(v,typed);
       const gv=getValue(); btn.textContent=String(gv==null?"":gv)||"\u2014"; close(); };
     const renderList=()=>{
       const q=search.value.trim().toLowerCase();
@@ -2106,13 +2106,19 @@ window.addEventListener("error",function(ev){
       const matches=opts.filter(n=>n.toLowerCase().includes(q));
       const exact=opts.some(n=>n.toLowerCase()===q);
       let out="";
-      if(q&&!exact&&o.addable) out+=`<div class="combo-item add" data-add="1">${o.addLabel||"Use"} &ldquo;${esc(search.value.trim())}&rdquo;</div>`;
+      // the add row: a fresh name is offered as typed; a TAKEN name is offered
+      // through o.altAdd (e.g. "Engine" -> "Engine 01/09"), so a weekly board
+      // saves in one tap instead of being refused \u2014 data-add carries the final
+      // name, data-typed what the trainer actually wrote (it becomes the title)
+      if(q&&o.addable){ const typed=search.value.trim();
+        const av=exact?(o.altAdd?o.altAdd(typed):null):typed;
+        if(av) out+=`<div class="combo-item add" data-add="${esc(av)}" data-typed="${esc(typed)}">${o.addLabel||"Use"} &ldquo;${esc(av)}&rdquo;</div>`; }
       out+=matches.map(n=>{ const h=o.hint&&o.hint(n);
         return `<div class="combo-item${n===String(getValue())?" sel":""}" data-v="${esc(n)}"><span>${esc(n)}</span>${h?`<span class="chint">${esc(h)}</span>`:""}</div>`; }).join("");
       if(!out) out=`<div class="combo-item hint">${o.addable?"Type to add new\u2026":"No match"}</div>`;
       itemsEl.innerHTML=out;
       itemsEl.querySelectorAll("[data-v],[data-add]").forEach(it=>{
-        it.onclick=()=>commit(it.dataset.add?search.value:it.dataset.v);
+        it.onclick=()=>commit(it.dataset.add||it.dataset.v,it.dataset.typed);
       });
     };
     btn.onclick=()=>{ if(!panel.hidden){ close(); return; }
@@ -5953,14 +5959,17 @@ window.addEventListener("error",function(ev){
       ()=>presets.filter(p=>!(LIBHIDE&&p.seedV)).map(p=>p.name)
         .concat(LIBHIDE?[]:progList.map(x=>x.label)),
       ()=>cfg.wkName||"Unsaved workout",
-      v=>{
+      (v,typed)=>{
         if(loadLib(v)) return;
         // SAVING UNDER A NAME NAMES THE BOARD. cfg.name is the title every surface
         // shows (overview head, TV, tablet); leaving it while wkName changed kept
         // the OLD board's title over the new board's parts. But a DISPLAY TITLE
         // the trainer set by hand (cfg.titleSet) is theirs — weekly "Engine
         // 25/08" boards all read ENGINE on the wall.
-        cfg.wkName=v; if(!cfg.titleSet) cfg.name=v;
+        cfg.wkName=v;
+        // a date-suffixed save (altAdd): what the trainer TYPED is the title
+        if(typed&&typed!==v){ cfg.name=typed; cfg.titleSet=true; }
+        else if(!cfg.titleSet) cfg.name=v;
         claimName(v);   // a parked built-in under this name makes way
         const entry={name:v,cfg:structuredClone(cfg),ts:Date.now()};
         presets.push(entry); savePresets(); save(); buildPresetSel();
@@ -5969,11 +5978,22 @@ window.addEventListener("error",function(ev){
         syncTeamCount(); if(!running&&!sessionActive) build();
       },
       {addable:true, addLabel:"+ Save as",
+        // a TAKEN name still saves — dated: "Engine" -> "Engine 01/09" from the
+        // board's own session date (else today). The typed word rides as the
+        // display title, so the wall reads ENGINE while the picker files by date.
+        altAdd:n=>{ let d=cfg.prog&&cfg.prog.date?new Date(cfg.prog.date+"T00:00:00"):new Date();
+          if(isNaN(d)) d=new Date();
+          const base=n+" "+String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
+          let cand=base, i=2; while(nameTaken(cand)) cand=base+" "+(i++);
+          return cand; },
         searchPh:LIBHIDE?"Search saved workouts…":"Search the programme — block, week, day, type…",
         cls:"wkfield",
         // same-named weekly boards are told apart by their DATE: the session
         // date the board carries, else the day it was saved
-        hint:n=>{ const p=presets.find(x=>x.name===n); if(!p) return "";
+        hint:n=>{ // the rows list VISIBLE boards, so the hint must read the
+          // visible entry — a parked seed of the same name has no date to give
+          const p=presets.find(x=>x.name===n&&!(LIBHIDE&&x.seedV))||presets.find(x=>x.name===n);
+          if(!p) return "";
           const fmt=t=>{ const d=new Date(t); return isNaN(d)?"":d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
           const pd=p.cfg&&p.cfg.prog&&p.cfg.prog.date;
           if(pd){ const s=fmt(pd+"T00:00:00"); if(s) return s; }
@@ -7305,7 +7325,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=345;
+  const BUILD=346;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -131,6 +131,23 @@ ok(await p.evaluate(()=>{ const ps=JSON.parse(localStorage.getItem('af_presets_v
   const eng=ps.filter(x=>x.name==='Engine');
   return c.wkName==='Engine'&&eng.length===1&&!eng[0].seedV&&c.name==='Wall Title'; }),
   'renaming onto a HIDDEN built-in name succeeds — the parked seed makes way, one Engine remains');
+// A TAKEN NAME STILL SAVES — DATED. Typing "Engine" while an Engine exists
+// offers "+ Save as Engine dd/MM"; the typed word becomes the wall title.
+await p.click('#wkPick .mfield'); await p.waitForTimeout(200);
+await p.fill('#wkPick .msearch','Engine'); await p.waitForTimeout(250);
+const addRow=await p.evaluate(()=>{ const a=document.querySelector('#wkPick .combo-item.add');
+  return a&&{v:a.dataset.add,typed:a.dataset.typed}; });
+ok(addRow&&/^Engine \d\d\/\d\d$/.test(addRow.v)&&addRow.typed==='Engine',
+  'a taken name offers a DATED save-as ('+(addRow&&addRow.v)+')');
+await p.click('#wkPick .combo-item.add'); await p.waitForTimeout(600);
+const wk=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+  return {wk:c.wkName,title:c.name,tset:c.titleSet,
+    both:ps.some(x=>x.name==='Engine')&&ps.some(x=>/^Engine \d\d\/\d\d$/.test(x.name)),
+    ev:document.getElementById('evName').textContent}; });
+ok(/^Engine \d\d\/\d\d$/.test(wk.wk)&&wk.title==='Engine'&&wk.tset===true
+  &&wk.both&&wk.ev==='Engine',
+  'the dated board saves beside last week\'s and the wall reads ENGINE ('+JSON.stringify(wk)+')');
 ok(await p.evaluate(()=>window.__native===0),
   'NO native browser window fired anywhere');
 // Rename hides for an unsaved board
