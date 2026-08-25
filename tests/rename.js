@@ -102,6 +102,23 @@ await p.click('.dlg .dno'); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>!document.querySelector('.dlg-back')
   &&JSON.parse(localStorage.getItem('af_presets_v1')).some(x=>x.name==='New Name')),
   'Cancel closes the panel and keeps the board');
+// THE DISPLAY TITLE RULES THE SCREENS — live, and Save/Rename never touch it
+await p.fill('#cName','Wall Title'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>document.getElementById('evName').textContent==='Wall Title'),
+  'typing a display title reaches the screens immediately');
+await p.click('#wkRen'); await p.waitForTimeout(200);
+await p.fill('.wkrow .renin','New Name 2');
+await p.keyboard.press('Enter'); await p.waitForTimeout(500);
+ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  const e=JSON.parse(localStorage.getItem('af_presets_v1')).find(x=>x.name==='New Name 2');
+  return c.wkName==='New Name 2'&&c.name==='Wall Title'
+    &&e&&e.cfg.name==='Wall Title'&&e.cfg.titleSet===true; }),
+  'a hand-set title survives the rename AND rides to the library entry');
+// the picker tells same-named weekly boards apart by their DATE
+await p.click('#wkPick .mfield'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>[...document.querySelectorAll('#wkPick .combo-item .chint')]
+  .some(h=>/saved|\d/.test(h.textContent))),'picker rows carry a date hint');
+await p.mouse.click(5,300); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>window.__native===0),
   'NO native browser window fired anywhere');
 // Rename hides for an unsaved board

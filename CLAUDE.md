@@ -448,6 +448,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   never fit beside it on a phone. `rename.js` gates the whole move with the
   relay mocked. No relay link = fully local, silently. `libsync.js` gates the
   sync loop with the worker contract mocked at the network layer.
+- **THE LIBRARY NAME IS A FILING LABEL; THE DISPLAY TITLE IS WHAT THE GYM
+  READS (build 344 — Omar's weekly Engines).** The gym runs "Engine" every
+  week, so the picker holds "Engine 25/08", "Engine 01/09"… while the wall
+  says ENGINE. A title typed into Setup > Display title (`#cName`) sets
+  `cfg.titleSet` (also inferred in `migrateLoaded()` when name≠wkName —
+  save/rename used to force them equal, so divergence means hand-set) and
+  from then on Save-as and Rename move only the library name, never the
+  title; Rename carries the live title onto the library entry (other devices
+  must read the same wall). Typing in the field updates `#evName` and
+  Control's `.wknow` IMMEDIATELY — a title that waits for the next rebuild
+  reads as broken. The picker's rows carry a date hint (`menuField` `o.hint`
+  → `.chint`, right-aligned): the board's `prog.date`, else "saved d Mon"
+  from the entry's ts — that is how same-named weekly boards are told apart.
+  Name collisions stay REFUSED; the date rides the label, never the wall.
 - **ONE GYM, ONE CLOCK.** Live session sync rides the same relay into D1
   (worker ops `s.get`/`s.put`, binding `DB` — D1 because KV's 60s edge cache
   cannot carry a clock). The device the trainer ACTS on publishes the whole

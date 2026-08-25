@@ -908,7 +908,9 @@
   .combo input{padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
   .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#141518;border:1px solid var(--line);
     border-radius:12px;max-height:280px;overflow:auto;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:6px}
-  .combo-item{padding:12px 14px;border-radius:9px;font-size:16px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px}
+  .combo-item{padding:12px 14px;border-radius:9px;font-size:16px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .combo-item .chint{color:var(--ink-mute);font-size:12.5px;white-space:nowrap}
   .combo-item:hover{background:rgba(255,255,255,.08);color:var(--ink)}
   .combo-item.add{color:var(--accent);font-family:var(--disp);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13.5px}
   .combo-item.hint{cursor:default;color:var(--ink-mute)}
@@ -2105,7 +2107,8 @@ window.addEventListener("error",function(ev){
       const exact=opts.some(n=>n.toLowerCase()===q);
       let out="";
       if(q&&!exact&&o.addable) out+=`<div class="combo-item add" data-add="1">${o.addLabel||"Use"} &ldquo;${esc(search.value.trim())}&rdquo;</div>`;
-      out+=matches.map(n=>`<div class="combo-item${n===String(getValue())?" sel":""}" data-v="${esc(n)}">${esc(n)}</div>`).join("");
+      out+=matches.map(n=>{ const h=o.hint&&o.hint(n);
+        return `<div class="combo-item${n===String(getValue())?" sel":""}" data-v="${esc(n)}"><span>${esc(n)}</span>${h?`<span class="chint">${esc(h)}</span>`:""}</div>`; }).join("");
       if(!out) out=`<div class="combo-item hint">${o.addable?"Type to add new\u2026":"No match"}</div>`;
       itemsEl.innerHTML=out;
       itemsEl.querySelectorAll("[data-v],[data-add]").forEach(it=>{
@@ -5881,6 +5884,10 @@ window.addEventListener("error",function(ev){
     if(!cfg.teamKind) cfg.teamKind="teams";
     if(!cfg.teamSize) cfg.teamSize=4;
     if(cfg.noScore===undefined) cfg.noScore=false;
+    // a title that already differs from the library name was set by hand
+    // (save/rename used to force them equal) — mark it so it stays the
+    // trainer's: "Engine 25/08" in the picker, ENGINE on the wall
+    if(cfg.titleSet===undefined&&cfg.name&&cfg.wkName&&cfg.name!==cfg.wkName) cfg.titleSet=true;
     // Metres shipped OFF because it drove nothing on a rotation board. Now that the
     // lane names what came off each machine, distance is half the answer — turn it
     // on once, for configs saved before there was anything to see.
@@ -5937,8 +5944,10 @@ window.addEventListener("error",function(ev){
         if(loadLib(v)) return;
         // SAVING UNDER A NAME NAMES THE BOARD. cfg.name is the title every surface
         // shows (overview head, TV, tablet); leaving it while wkName changed kept
-        // the OLD board's title over the new board's parts.
-        cfg.wkName=v; cfg.name=v;
+        // the OLD board's title over the new board's parts. But a DISPLAY TITLE
+        // the trainer set by hand (cfg.titleSet) is theirs — weekly "Engine
+        // 25/08" boards all read ENGINE on the wall.
+        cfg.wkName=v; if(!cfg.titleSet) cfg.name=v;
         const entry={name:v,cfg:structuredClone(cfg),ts:Date.now()};
         presets.push(entry); savePresets(); save(); buildPresetSel();
         if(libDead[v]){ delete libDead[v]; saveDead(); }
@@ -5947,7 +5956,14 @@ window.addEventListener("error",function(ev){
       },
       {addable:true, addLabel:"+ Save as",
         searchPh:LIBHIDE?"Search saved workouts…":"Search the programme — block, week, day, type…",
-        cls:"wkfield"}
+        cls:"wkfield",
+        // same-named weekly boards are told apart by their DATE: the session
+        // date the board carries, else the day it was saved
+        hint:n=>{ const p=presets.find(x=>x.name===n); if(!p) return "";
+          const fmt=t=>{ const d=new Date(t); return isNaN(d)?"":d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
+          const pd=p.cfg&&p.cfg.prog&&p.cfg.prog.date;
+          if(pd){ const s=fmt(pd+"T00:00:00"); if(s) return s; }
+          return p.ts?"saved "+fmt(p.ts):""; }}
     ));
     // Rename and Delete offer themselves only for a board that IS in the library
     { const inLib=!!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName));
@@ -6796,7 +6812,16 @@ window.addEventListener("error",function(ev){
     $("rFlow").value=cfg.together?"together":"stations";
     $("rFlow").onchange=e=>{ cfg.together=e.target.value==="together"; save(); updateCapReport(); syncTeamCount(); syncMode(); if(!sessionActive&&!running) build(); };
     { const w=$("rRounds").closest(".dsel"); if(w){ const o=$("rRounds").options[$("rRounds").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"1 round"; } }
-    $("cName").oninput=e=>{cfg.name=e.target.value;save();};
+    // THE DISPLAY TITLE RULES THE SCREENS, LIVE. Typing here reaches the
+    // overview head, the wall and Control immediately — not on the next
+    // rebuild. A hand-set title (differing from the library name) is marked
+    // cfg.titleSet so Save/Rename never overwrite it: the library name is the
+    // filing label ("Engine 25/08"), the title is what the gym reads (ENGINE).
+    $("cName").oninput=e=>{ cfg.name=e.target.value;
+      cfg.titleSet=!!cfg.name.trim()&&cfg.name.trim()!==cfg.wkName;
+      save();
+      const ev=$("evName"); if(ev) ev.textContent=cfg.name;
+      try{ syncTeamCount(); }catch(err){} };
     const pgSet=(id,key,xf)=>{ $(id).oninput=e=>{ if(!cfg.prog) cfg.prog={};
       cfg.prog[key]=xf?xf(e.target.value):e.target.value; save();
       if(!sessionActive&&!running) build(); }; };
@@ -6895,8 +6920,12 @@ window.addEventListener("error",function(ev){
           msg.hidden=false; inp.focus(); return; }
         const entry=presets[i];
         entry.name=n; entry.ts=Date.now();
-        entry.cfg=structuredClone(entry.cfg); entry.cfg.name=n; entry.cfg.wkName=n;
-        cfg.wkName=n; cfg.name=n;
+        entry.cfg=structuredClone(entry.cfg); entry.cfg.wkName=n;
+        // naming is exactly what rename is for, so the CURRENT display title
+        // rides along to the library — other devices must read the same wall
+        if(cfg.titleSet){ entry.cfg.name=cfg.name; entry.cfg.titleSet=true; }
+        else if(!entry.cfg.titleSet) entry.cfg.name=n;
+        cfg.wkName=n; if(!cfg.titleSet) cfg.name=n;
         closeEd();
         savePresets(); save(); buildPresetSel();
         libKill(old);                                    // bare tombstone: moved, not binned
@@ -7258,7 +7287,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=343;
+  const BUILD=344;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
