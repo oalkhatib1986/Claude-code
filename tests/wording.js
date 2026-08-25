@@ -97,8 +97,22 @@ const mended=await p.evaluate(()=>{
 ok(mended.rounds===1&&mended.durs.every(d=>d===540)
   &&mended.sets.every(a=>a.every(v=>v===3)),
   'a bad-shaped Michael Test 2 Part B is repaired at boot ('+JSON.stringify(mended)+')');
+// Tuesday Engine (seed one-shot): an EMOM whose 4th minute is a REST
+await p.evaluate(()=>{
+  const tue=JSON.parse(localStorage.getItem('af_presets_v1')).find(x=>x.name==='Tuesday Engine');
+  if(tue) localStorage.setItem('af_erg_cfg_v8',JSON.stringify(tue.cfg));
+});
 await p.setViewportSize({width:1920,height:1080});
-await p.goto('file:///home/user/Claude-code/leaderboard.html#workout'); await p.waitForTimeout(1600);
+await p.goto('file:///home/user/Claude-code/leaderboard.html#workout');
+await p.reload(); await p.waitForTimeout(1600);   // hash-only goto does not re-boot the app
+const tueCards=await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')]
+  .map(c=>c.innerText.replace(/\s+/g,' ').trim()));
+const TA=tueCards[0]||'', TB=tueCards[1]||'';
+ok(/EMOM × 20 minutes/i.test(TA),'Tue A: heading is EMOM × 20 MINUTES');
+ok(/1st:\s*50 sec Ski/i.test(TA),'Tue A: 1st minute reads 50 sec Ski');
+ok(/4th:\s*Rest/i.test(TA),'Tue A: the rest minute is numbered (4th: Rest)');
+ok(/EMOM × 20 minutes/i.test(TB)&&/50 sec Box Jump Overs/i.test(TB)&&/4th:\s*Rest/i.test(TB),
+  'Tue B: Row EMOM reads the same way');
 await p.screenshot({path:'wording_wall.png'});
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

@@ -2686,7 +2686,9 @@ window.addEventListener("error",function(ev){
   const blockEmom=b=>{ if(isWin(b)||isAmrap(b)) return 0;
     const its=roundItems(b); if(its.length<2) return 0;
     if(finItems(b).length||bRRest(b)) return 0;
-    if(!its.every(it=>!it.rest&&it.dur===60&&(it.exercises||[]).length)) return 0;
+    // a rest MINUTE is still a minute of the EMOM ("4th: Rest")
+    if(!its.every(it=>it.dur===60&&(it.rest||(it.exercises||[]).length))) return 0;
+    if(!its.some(it=>!it.rest)) return 0;
     const R=bRounds(b); return R>=1?R*its.length:0; };
   const blockSchemeTxt=b=>{
     const m=blockEmom(b); if(m) return `EMOM × ${m} minute${m>1?"s":""}`;
@@ -2732,7 +2734,9 @@ window.addEventListener("error",function(ev){
     return head0+its.map((it,i)=>{
       const mk=i===cur?" pnow":"";
       const tag=i===cur?`<em class="ptag">Now</em>`:"";
-      if(it.rest) return `<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
+      if(it.rest) return emom
+        ?`<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>Rest</div></div>`
+        :`<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
       // AN AS-WRITTEN PART IS THE COACH'S OWN WORDS. The programme is written as
       // prose — RPE schemes, supersets, clusters — that no builder should mangle:
       // every line lands on the wall exactly as the sheet wrote it.
@@ -6397,6 +6401,34 @@ window.addEventListener("error",function(ev){
     window.__sessState=()=>({run:running,act:sessionActive,hold:holding,pau:paused,
       phase:rot.phase,round:rot.round,el:sessionActive?(performance.now()-t0)/1000:0}); }catch(e){}
 
+  // TUESDAY ENGINE (one-shot, build 341): Omar's sheet — two EMOM 20s of
+  // 0:50 minutes (ski/down ups/run/rest, 2:00 between, row/box jump overs/
+  // bike/rest) — seeds once per device and offers itself to the room. A board
+  // he deletes stays deleted: the seed respects its own tombstone.
+  (function seedTuesdayEngine(){
+    const K="af_addtue1_v1", NM="Tuesday Engine";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    if(libDead[NM]) return;
+    if(presets.some(x=>x.name===NM)) return;
+    const em=(mach,names)=>names.map(n=>n==null
+      ?{rest:true,dur:60,scored:false,exercises:[]}
+      :{dur:60,scored:false,exercises:[{who:"",name:n,amounts:[50],unit:"sec",max:false}]});
+    const c=structuredClone(DEFAULTS);
+    c.name=NM; c.sub=""; c.mode="rotation"; c.teamKind="solo"; c.together=true;
+    c.noScore=true; c.autoCrews=false;
+    c.prog={day:"Tuesday",stype:"Engine",date:"",block:"",week:""};
+    c.rotation=structuredClone(DEFAULTS.rotation);
+    c.rotation.laps=1; c.rotation.blockRest=0; c.rotation.sameRest=false;
+    c.rotation.blocks=[
+      {name:"Part A",machine:"Ski",rounds:5,rrest:0,aRest:120,
+        items:em("Ski",["Ski","Down Ups","Run",null])},
+      {name:"Part B",machine:"Row",rounds:5,rrest:0,aRest:0,
+        items:em("Row",["Row","Box Jump Overs","Bike",null])}];
+    const entry={name:NM,cfg:c,ts:Date.now()};
+    presets.push(entry); savePresets(); libPush(entry);
+    try{ buildPresetSel(); }catch(e){}
+  })();
+
   // MICHAEL TEST 2'S PART B SAID THE WRONG WORKOUT (one-shot, build 339): the
   // AI stored "alternate the two supersets, 3 rounds" where the programme is
   // "3 rounds of A, THEN 3 rounds of B". Shape-verified repair: rounds 3 ×
@@ -7111,7 +7143,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=340;
+  const BUILD=341;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

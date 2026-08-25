@@ -395,8 +395,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   force the seed back over their choice. The boot chain on a fresh device:
   `loadProgrammeOnce` (`af_prog_v1`, deletes seedV boards + loads today's session)
   → SEED14 (`af_seed14_v1`) → `loadSISOnce` (`af_sis2_v1`) loads the scored Send
-  It Saturday LAST and wins the screen. `af_mw_v1` is a retired key from the old
-  Michael one-shot; suites that pin it are harmlessly stale. `mw.js` gates the
+  It Saturday LAST and wins the screen. Later one-shots ride the same pattern:
+  `seedTuesdayEngine` (`af_addtue1_v1`, build 341) saves + libPushes Omar's
+  Tuesday Engine board (two rest-minute EMOMs, no seedV so LIBHIDE never hides
+  it; respects tombstones and existing saves), and `fixMT2` (`af_fixmt2_v1`,
+  build 339) repaired Michael Test 2's Part B in place. `af_mw_v1` is a retired
+  key from the old Michael one-shot; suites that pin it are harmlessly stale. `mw.js` gates the
   chain: SIS on first boot, edits surviving reloads, a different pick surviving a
   reload. Suites written against boot DEFAULTS pin `af_prog_v1`+`af_sis2_v1`
   before their first reload; a suite reading card positions in the phone preview
@@ -481,7 +485,10 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   when they say it all: `blockEmom()` → "EMOM × 9 MINUTES" with minutes numbered
   1st:/2nd:/3rd:, each ONE `.exl.exlw` line that may WRAP with a hanging indent
   and is EXEMPT from `fitBlockText`'s one-line measure (a long minute was
-  shrinking every card's type); bare whole-minute durations are SAID as
+  shrinking every card's type); a REST minute counts as an EMOM minute too
+  (build 341 — `it.rest && dur===60` qualifies, at least one non-rest minute
+  required) and renders as its ordinal line ("4th: Rest") — Omar's Tuesday
+  Engine sheet is 1.Ski 2.Down Ups 3.Run 4.REST × 5; bare whole-minute durations are SAID as
   minutes (`minTxt` — a naked "3:00" over a list read as a mystery number); the single repeated interval → "EVERY 2:30 FOR
   10 MINUTES". Anything shapelier keeps the footer — a scheme that lies is worse
   than none. "Group" is never printed. `wording.js` pins the whole grammar
