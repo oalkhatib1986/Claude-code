@@ -459,9 +459,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   must read the same wall). Typing in the field updates `#evName` and
   Control's `.wknow` IMMEDIATELY — a title that waits for the next rebuild
   reads as broken. The picker's rows carry a date hint (`menuField` `o.hint`
-  → `.chint`, right-aligned): the board's `prog.date`, else "saved d Mon"
-  from the entry's ts — that is how same-named weekly boards are told apart
-  (the hint must read the VISIBLE entry, not a parked seed of the same name).
+  → `.chint`) sitting BESIDE the name, not far right: the board's OWN
+  `prog.date` only — never the word "saved", never the save timestamp, and
+  a board with no date shows nothing (Omar, build 348). That is how
+  same-named weekly boards are told apart (the hint must read the VISIBLE
+  entry, not a parked seed of the same name).
   Rename collisions stay REFUSED; but SAVING a taken name works when the
   board carries a DIFFERENT DATE — NAME + DATE IS THE IDENTITY (builds
   346-347, Omar: "if I pick a date that's different it will save; without a

@@ -114,11 +114,20 @@ ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8
   return c.wkName==='New Name 2'&&c.name==='Wall Title'
     &&e&&e.cfg.name==='Wall Title'&&e.cfg.titleSet===true; }),
   'a hand-set title survives the rename AND rides to the library entry');
-// the picker tells same-named weekly boards apart by their DATE
+// the picker shows the board's OWN date beside the name — never "saved"
+await p.fill('#pgDate','2026-09-01'); await p.waitForTimeout(200);
+await p.click('#wkSave'); await p.waitForTimeout(400);
 await p.click('#wkPick .mfield'); await p.waitForTimeout(300);
-ok(await p.evaluate(()=>[...document.querySelectorAll('#wkPick .combo-item .chint')]
-  .some(h=>/saved|\d/.test(h.textContent))),'picker rows carry a date hint');
+ok(await p.evaluate(()=>{ const hs=[...document.querySelectorAll('#wkPick .combo-item .chint')];
+  return hs.some(h=>/1 Sep/.test(h.textContent))&&hs.every(h=>!/saved/i.test(h.textContent)); }),
+  'picker rows show the board\'s own date, never "saved"');
+ok(await p.evaluate(()=>{ const r=[...document.querySelectorAll('#wkPick .combo-item')]
+    .find(x=>x.querySelector('.chint'));
+  const n=r.children[0].getBoundingClientRect(), h=r.querySelector('.chint').getBoundingClientRect();
+  return h.left-n.right<40; }),'the date sits BESIDE the name, not far right');
 await p.mouse.click(5,300); await p.waitForTimeout(200);
+await p.fill('#pgDate',''); await p.waitForTimeout(200);
+await p.click('#wkSave'); await p.waitForTimeout(400);   // back to no date for the tests below
 // A HIDDEN BUILT-IN DOES NOT OWN ITS NAME (Omar hit this: renaming to
 // "Engine" was refused by a parked seed board he cannot see)
 ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1'))

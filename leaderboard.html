@@ -909,7 +909,7 @@
   .combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#141518;border:1px solid var(--line);
     border-radius:12px;max-height:280px;overflow:auto;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:6px}
   .combo-item{padding:12px 14px;border-radius:9px;font-size:16px;color:var(--ink-dim);cursor:pointer;letter-spacing:.2px;
-    display:flex;justify-content:space-between;align-items:center;gap:12px}
+    display:flex;align-items:center;gap:12px}
   .combo-item .chint{color:var(--ink-mute);font-size:12.5px;white-space:nowrap}
   .combo-item:hover{background:rgba(255,255,255,.08);color:var(--ink)}
   .combo-item.add{color:var(--accent);font-family:var(--disp);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13.5px}
@@ -6000,14 +6000,13 @@ window.addEventListener("error",function(ev){
         cls:"wkfield",
         // same-named weekly boards are told apart by their DATE: the session
         // date the board carries, else the day it was saved
-        hint:n=>{ // the rows list VISIBLE boards, so the hint must read the
-          // visible entry — a parked seed of the same name has no date to give
+        hint:n=>{ // the board's OWN date (Setup > Date) beside the name — never
+          // "saved", never the save timestamp (Omar). The visible entry, not a
+          // parked seed of the same name.
           const p=presets.find(x=>x.name===n&&!(LIBHIDE&&x.seedV))||presets.find(x=>x.name===n);
-          if(!p) return "";
-          const fmt=t=>{ const d=new Date(t); return isNaN(d)?"":d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
-          const pd=p.cfg&&p.cfg.prog&&p.cfg.prog.date;
-          if(pd){ const s=fmt(pd+"T00:00:00"); if(s) return s; }
-          return p.ts?"saved "+fmt(p.ts):""; }}
+          const pd=p&&p.cfg&&p.cfg.prog&&p.cfg.prog.date; if(!pd) return "";
+          const d=new Date(pd+"T00:00:00");
+          return isNaN(d)?"":d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }}
     ));
     // Rename and Delete offer themselves only for a board that IS in the library
     { const inLib=!!(cfg.wkName&&nameTaken(cfg.wkName));
@@ -7346,7 +7345,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=347;
+  const BUILD=348;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
