@@ -378,7 +378,14 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   cfg from builds 306-308 still draws. Nothing may create new text items.
 - **Setup carries the programme fields** (`#pgDate/#pgBlock/#pgWeek/#pgDay/#pgType`
   → `cfg.prog`) and the page head carries the programme line (`#evProg`,
-  "Block 2 · Week 8 · Friday · 19 Jun 2026") on every surface including the wall.
+  "Block 2 · Week 8 · Friday · 19 Jun 2026") on phones and trainer pages —
+  NEVER on a big screen (build 351, Omar: filing detail is useless to
+  clients; `body.bigscreen:not(.mobscreen) #evProg{display:none}`). The
+  workout wall also: leads with the NAME (`.ttl b` 68px on wkscreen), gives
+  the tvfull logo 20px of top air, and THE BIG CLOCK IS THE MOMENT — it
+  counts the interval the class is inside right now (`segAt(leadB,t).remain`,
+  same beat as the NOW slab), falling back to the to-the-change countdown
+  only once the lead block is done. Never the block's remaining sum.
 - **The sheet lies in small ways; trust content, not labels.** Two week headers are
   blank and one is junk ("1.0") — a week EXISTS if its content row has sessions, and
   its NUMBER is its position. The PREVIOUS BLOCK LIBRARY tab is four stacked

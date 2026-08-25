@@ -575,7 +575,9 @@
     overflow:hidden;transform-origin:top left}
   body.tvfull.bigscreen:not(.mobscreen) .tvfit{transform-origin:top left}
   /* nothing may bleed past the picture edge, so the logo's optical negative margins go */
-  body.tvfull.bigscreen:not(.mobscreen) .tvfit>.mark{margin:0 0 12px}
+  /* full screen strips the page padding, so the logo needs its own air
+     above (Omar: "too stuck to the top") */
+  body.tvfull.bigscreen:not(.mobscreen) .tvfit>.mark{margin:20px 0 12px}
   body.tvfull.bigscreen:not(.mobscreen) .badge{margin:0}
   body.tvfull .tabs,body.tvfull #scrTabs{display:none!important}
   body.tvprev header{margin-bottom:4px}
@@ -1237,7 +1239,9 @@
      leaderboard they were saying it twice. Phone view keeps them — it is a
      browsing page, not a wall. */
   body.bigscreen:not(.mobscreen):not(.wkscreen) #evSummary,
-  body.bigscreen:not(.mobscreen):not(.wkscreen) #evProg{display:none}
+  /* the day/date line is filing detail — clients on the wall never need it
+     (Omar, build 351); phones and the trainer's pages keep it */
+  body.bigscreen:not(.mobscreen) #evProg{display:none}
   body.wkscreen .board{display:none!important}
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
@@ -1486,6 +1490,8 @@
   body.bigscreen:not(.mobscreen) .track{max-width:none;height:6px}
   body.bigscreen:not(.mobscreen) .clock b{font-size:64px}
   body.bigscreen:not(.mobscreen) .subhead .ttl b{font-size:52px}
+  /* the workout wall leads with the workout's NAME (Omar: bigger) */
+  body.wkscreen:not(.mobscreen) .subhead .ttl b{font-size:68px}
   /* On the wall the same balanced columns, with the room a TV card needs. */
   body.wkscreen:not(.mobscreen) .blocks{display:grid!important;
     grid-template-columns:repeat(var(--bcols,1),minmax(0,1fr));
@@ -3049,7 +3055,13 @@ window.addEventListener("error",function(ev){
     const leadB=R().blocks[blockIdxOf(rot.round)];
     const leadLen=Math.min(blockLen(leadB),curRoundLen());
     const leadDone=t>=leadLen;
-    clockEl.textContent=fmtMS((leadDone?curRoundLen():leadLen)-t);
+    // THE BIG CLOCK IS THE MOMENT, NOT THE TOTAL (Omar, build 351): it counts
+    // the interval the class is inside RIGHT NOW — the same number the NOW
+    // slab carries — never the block's remaining sum. Once the lead block is
+    // done (or between blocks) it falls back to counting down to the change.
+    { const segLead=(!leadDone&&leadB)?segAt(leadB,t):null;
+      clockEl.textContent=fmtMS(segLead?Math.max(0,Math.ceil(segLead.remain))
+        :Math.max(0,(leadDone?curRoundLen():leadLen)-t)); }
     clockEl.classList.toggle("hot",hotAny);
     clockState.textContent=leadDone?"Other stations finishing":whereNow(true);
     $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
@@ -7361,7 +7373,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=350;
+  const BUILD=351;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
