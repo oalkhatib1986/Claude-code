@@ -398,8 +398,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   It Saturday LAST and wins the screen. Later one-shots ride the same pattern:
   `seedTuesdayEngine` (`af_addtue1_v1`, build 341) saves + libPushes Omar's
   Tuesday Engine board (two rest-minute EMOMs, no seedV so LIBHIDE never hides
-  it; respects tombstones and existing saves), and `fixMT2` (`af_fixmt2_v1`,
-  build 339) repaired Michael Test 2's Part B in place. `af_mw_v1` is a retired
+  it; respects tombstones and existing saves), `fixMT2` (`af_fixmt2_v1`,
+  build 339) repaired Michael Test 2's Part B in place, and `killMT22`
+  (`af_delmt22_v1`, build 342) binned the pre-Rename save-as leftover
+  "Michael Test 2 2" — ONLY a device still holding the board pushes the
+  tombstone (with the body); one without it stays silent, or its bare
+  tombstone would strip the binned cfg out of the room. `af_mw_v1` is a retired
   key from the old Michael one-shot; suites that pin it are harmlessly stale. `mw.js` gates the
   chain: SIS on first boot, edits surviving reloads, a different pick surviving a
   reload. Suites written against boot DEFAULTS pin `af_prog_v1`+`af_sis2_v1`
@@ -421,10 +425,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   the name is meanwhile taken). The tombstone re-push loop must SKIP names the
   room already holds dead, or a bare local tombstone strips the binned cfg. Sync runs at boot +3s, every 5 min, on tab-visible —
   never while the picker's panel is open (rebuilding it mid-tap eats the tap).
-  Setup's Delete button shows only for boards actually in the library; deleting
-  clears `wkName` but leaves the loaded board on screen. No relay link = fully
-  local, silently. `libsync.js` gates the whole loop with the worker contract
-  mocked at the network layer.
+  Setup's Rename and Delete buttons show only for boards actually in the
+  library; deleting clears `wkName` but leaves the loaded board on screen.
+  **RENAME IS A MOVE, NOT A COPY** (build 342 — save-as left "Michael Test 2 2"
+  behind): the ONE preset entry carries to the new name, `cfg.name`/`wkName`
+  follow on both the entry and the loaded board, a collision is REFUSED (never
+  unique-ified — that recreates the confusion), and the room gets a BARE
+  tombstone for the old name (moved, not deleted — it must not appear in the
+  bin) plus the board under the new name. The Save/New/Rename/Delete buttons
+  are one `.wkbtns` group that wraps UNDER the picker as a unit — four buttons
+  never fit beside it on a phone. `rename.js` gates the whole move with the
+  relay mocked. No relay link = fully local, silently. `libsync.js` gates the
+  sync loop with the worker contract mocked at the network layer.
 - **ONE GYM, ONE CLOCK.** Live session sync rides the same relay into D1
   (worker ops `s.get`/`s.put`, binding `DB` — D1 because KV's 60s edge cache
   cannot carry a clock). The device the trainer ACTS on publishes the whole

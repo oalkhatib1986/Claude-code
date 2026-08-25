@@ -1,0 +1,111 @@
+// RENAME IS A MOVE, NOT A COPY. One board carries its name, its title and its
+// library entry to the new name; the old name gets a BARE tombstone (moved,
+// not binned) and nothing is duplicated. Plus the one-shot that clears the
+// pre-Rename leftover "Michael Test 2 2" from every device.
+const {chromium}=require('playwright');
+let pass=0,fail=0;
+const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
+(async()=>{
+const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+const p=await br.newPage({viewport:{width:1280,height:900}});
+p.on('pageerror',e=>{fail++;console.log('FAIL pageerror:',e.message);});
+// the relay, mocked at the network layer — capture every lib.put
+const puts=[];
+await p.route('https://relay.test/**',async route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  if(body.op==='lib.put'){ puts.push(body);
+    return route.fulfill({json:{ok:1,ts:body.ts||1}}); }
+  if(body.op==='lib.list') return route.fulfill({json:{presets:[]}});
+  if(body.op==='s.get') return route.fulfill({json:{v:null,now:Date.now()}});
+  if(body.op==='s.put') return route.fulfill({json:{ok:1,now:Date.now()}});
+  return route.fulfill({json:{}});
+});
+await p.goto('file:///home/user/Claude-code/leaderboard.html');
+await p.evaluate(()=>(localStorage.clear(),
+  localStorage.setItem('af_prog_v1','1'),
+  localStorage.setItem('af_ai_url','https://relay.test/')));
+await p.reload(); await p.waitForTimeout(1800);   // SIS one-shot authors + saves a full cfg
+// save the loaded board under a test name, then rename it
+await p.evaluate(()=>{
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'))||[];
+  const cfg=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  cfg.wkName='Old Name'; cfg.name='Old Name';
+  ps.push({name:'Old Name',cfg:JSON.parse(JSON.stringify(cfg)),ts:5});
+  ps.push({name:'Taken Name',cfg:JSON.parse(JSON.stringify(cfg)),ts:5});
+  localStorage.setItem('af_presets_v1',JSON.stringify(ps));
+  localStorage.setItem('af_erg_cfg_v8',JSON.stringify(cfg));
+});
+await p.reload(); await p.waitForTimeout(1500);
+await p.click('#stSetup'); await p.waitForTimeout(400);
+ok(await p.evaluate(()=>!document.getElementById('wkRen').hidden),
+  'Rename offers itself for a board in the library');
+// a collision is refused, not unique-ified
+await p.evaluate(()=>{ window.__alerts=[]; window.alert=m=>window.__alerts.push(m);
+  window.prompt=()=>'Taken Name'; });
+await p.click('#wkRen'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>window.__alerts.length===1&&/already exists/.test(window.__alerts[0])),
+  'renaming onto an existing board is refused');
+ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1'))
+  .filter(x=>x.name==='Taken Name').length===1),'nothing was duplicated by the refusal');
+// the real rename
+puts.length=0;
+await p.evaluate(()=>{ window.prompt=()=>'  New Name  '; });
+await p.click('#wkRen'); await p.waitForTimeout(600);
+const st=await p.evaluate(()=>{
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+  const cfg=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  return {names:ps.map(x=>x.name), entry:ps.find(x=>x.name==='New Name'),
+    wkName:cfg.wkName, title:cfg.name,
+    dead:JSON.parse(localStorage.getItem('af_lib_dead')||'{}'),
+    face:(document.querySelector('#wkPick .mfield')||{}).textContent||''};
+});
+ok(!st.names.includes('Old Name')&&st.names.includes('New Name'),
+  'the preset MOVED — old name gone, new name in');
+ok(st.entry&&st.entry.cfg.name==='New Name'&&st.entry.cfg.wkName==='New Name',
+  'the saved entry\'s own title follows the rename');
+ok(st.wkName==='New Name'&&st.title==='New Name',
+  'the loaded board is titled by the new name (trimmed)');
+ok(!!st.dead['Old Name'],'the old name is tombstoned locally');
+ok(/New Name/.test(st.face),'the picker face shows the new name');
+const kill=puts.find(x=>x.del&&x.name==='Old Name');
+const put=puts.find(x=>!x.del&&x.name==='New Name');
+ok(kill&&!kill.cfg,'the room gets a BARE tombstone for the old name (moved, not binned)');
+ok(put&&put.cfg&&put.cfg.name==='New Name','the room gets the board under the new name');
+// the boot sync rightly uploads locals (ts:5) to an empty room; a rename push
+// would carry a FRESH ts — none may exist for the refused name
+ok(!puts.some(x=>x.name==='Taken Name'&&x.ts>10),'the refused collision never reached the room');
+// Rename hides for an unsaved board
+await p.evaluate(()=>{
+  const cfg=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  cfg.wkName=null; localStorage.setItem('af_erg_cfg_v8',JSON.stringify(cfg));
+});
+await p.reload(); await p.waitForTimeout(1200);
+await p.click('#stSetup'); await p.waitForTimeout(400);
+ok(await p.evaluate(()=>document.getElementById('wkRen').hidden),
+  'Rename hides for an unsaved board');
+// the one-shot: a device still holding "Michael Test 2 2" clears it WITH the body
+puts.length=0;
+await p.evaluate(()=>{
+  localStorage.removeItem('af_delmt22_v1');
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+  const cfg=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  ps.push({name:'Michael Test 2 2',cfg:JSON.parse(JSON.stringify(cfg)),ts:5});
+  localStorage.setItem('af_presets_v1',JSON.stringify(ps));
+});
+await p.reload(); await p.waitForTimeout(1500);
+const os=await p.evaluate(()=>({
+  names:JSON.parse(localStorage.getItem('af_presets_v1')).map(x=>x.name),
+  dead:JSON.parse(localStorage.getItem('af_lib_dead')||'{}')}));
+ok(!os.names.includes('Michael Test 2 2'),'the leftover copy is gone from the device');
+const mkill=puts.find(x=>x.del&&x.name==='Michael Test 2 2');
+ok(mkill&&mkill.cfg,'its tombstone CARRIES the body — 30 days in the bin');
+// a device that never held it stays silent (a bare tombstone would strip the bin)
+puts.length=0;
+await p.evaluate(()=>localStorage.removeItem('af_delmt22_v1'));
+await p.reload(); await p.waitForTimeout(1500);
+ok(!puts.some(x=>x.name==='Michael Test 2 2'),
+  'a device without the board pushes NO tombstone of its own');
+await br.close();
+console.log('\n'+pass+' passed, '+fail+' failed');
+process.exit(fail?1:0);
+})();

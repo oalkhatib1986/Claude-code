@@ -1259,8 +1259,11 @@
   #bdockTab.open .ic-l{display:none}
   #bdockTab.open .ic-r{display:block}
   body.bigscreen #bdockTab{display:none}
-  .wkrow{display:flex;gap:10px;align-items:flex-end}
-  .wkrow .fld{flex:1;min-width:0;margin:0}
+  /* Four buttons never fit beside the picker on a phone: the buttons are ONE
+     group that drops UNDER it as a unit — nothing clips, nothing orphans. */
+  .wkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+  .wkrow .fld{flex:1 1 220px;min-width:0;margin:0}
+  .wkbtns{display:flex;gap:10px}
   #wkPick{display:block}
   #wkPick .mwrap{display:block}
   /* the recycle bin: quiet rows, name ellipsised, actions whole */
@@ -1758,9 +1761,12 @@
         <div class="body">
           <div class="wkrow">
             <div class="fld"><label>Current workout</label><span id="wkPick"></span></div>
-            <button class="btn small" id="wkSave" type="button">Save</button>
-            <button class="btn small" id="wkNew" type="button">New</button>
-            <button class="btn small" id="wkDel" type="button" hidden>Delete</button>
+            <div class="wkbtns">
+              <button class="btn small" id="wkSave" type="button">Save</button>
+              <button class="btn small" id="wkNew" type="button">New</button>
+              <button class="btn small" id="wkRen" type="button" hidden>Rename</button>
+              <button class="btn small" id="wkDel" type="button" hidden>Delete</button>
+            </div>
           </div>
           <div class="row3 progrow">
             <div class="fld"><label>Date</label><input type="date" id="pgDate"></div>
@@ -5931,8 +5937,10 @@ window.addEventListener("error",function(ev){
         searchPh:LIBHIDE?"Search saved workouts…":"Search the programme — block, week, day, type…",
         cls:"wkfield"}
     ));
-    // Delete offers itself only for a board that IS in the library
-    { const d=$("wkDel"); if(d) d.hidden=!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName)); }
+    // Rename and Delete offer themselves only for a board that IS in the library
+    { const inLib=!!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName));
+      const d=$("wkDel"); if(d) d.hidden=!inLib;
+      const r=$("wkRen"); if(r) r.hidden=!inLib; }
     // THE RECYCLE BIN: whatever the room still holds a body for, restorable in
     // one tap for 30 days (Omar: a trainer deleted the only real board).
     if(libBin.length){
@@ -6475,6 +6483,20 @@ window.addEventListener("error",function(ev){
     });
     savePresets();
   })();
+  // OMAR'S CLEANUP (one-shot, build 342): "Michael Test 2 2" was a save-as
+  // leftover from before Rename existed. Only a device that still HOLDS it
+  // pushes the tombstone (with the body — 30 days in the bin, restorable);
+  // a device that doesn't must stay silent, or its bare tombstone would strip
+  // the binned cfg out of the room.
+  (function killMT22(){
+    const K="af_delmt22_v1", N="Michael Test 2 2";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    const i=presets.findIndex(p=>p.name===N&&!p.seedV);
+    if(i<0) return;
+    const gone=presets.splice(i,1)[0]; savePresets();
+    libKill(N,structuredClone(gone.cfg),gone.seedV);
+    if(cfg.wkName===N){ cfg.wkName=null; save(); }
+  })();
   function aiSnapshot(){
     return JSON.stringify({name:cfg.name,teamKind:cfg.teamKind,teamSize:cfg.teamSize,noScore:!!cfg.noScore,
       together:!!cfg.together,laps:R().laps||1,blockRest:R().blockRest||0,sameRest:R().sameRest!==false,
@@ -6828,6 +6850,28 @@ window.addEventListener("error",function(ev){
       R().blocks=[]; R().laps=1; cfg.name="New Workout"; cfg.wkName=null;
       save(); buildControlRoom(); if(!running&&!sessionActive) build();
     };
+    // RENAME IS A MOVE, NOT A COPY. Save-as under a new name left the old board
+    // behind ("Michael Test 2 2"); Rename carries the ONE board to the new name:
+    // the preset entry, cfg.name (the title every surface shows), and the shared
+    // library — old name tombstoned WITHOUT a body (the board moved, it was not
+    // deleted, so it must not appear in the recycle bin), new name pushed.
+    $("wkRen").onclick=()=>{
+      const old=cfg.wkName; if(!old) return;
+      const i=presets.findIndex(p=>p.name===old); if(i<0) return;
+      let n=prompt('Rename “'+old+'” to:', old);
+      if(!n||!(n=n.trim().slice(0,60).trim())||n===old) return;
+      if(presets.some((p,j)=>p.name===n&&j!==i)){
+        alert('A board called “'+n+'” already exists — pick another name.'); return; }
+      const entry=presets[i];
+      entry.name=n; entry.ts=Date.now();
+      entry.cfg=structuredClone(entry.cfg); entry.cfg.name=n; entry.cfg.wkName=n;
+      cfg.wkName=n; cfg.name=n;
+      savePresets(); save(); buildPresetSel();
+      libKill(old);                                    // bare tombstone: moved, not binned
+      if(libDead[n]){ delete libDead[n]; saveDead(); } // a dead name is revived by the move
+      libPush(entry);
+      syncTeamCount(); if(!running&&!sessionActive) build();
+    };
     $("wkDel").onclick=()=>{
       const n=cfg.wkName; if(!n) return;
       const i=presets.findIndex(p=>p.name===n); if(i<0) return;
@@ -7143,7 +7187,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=341;
+  const BUILD=342;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
