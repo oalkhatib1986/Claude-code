@@ -431,9 +431,10 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   same name revives it. THE TOMBSTONE CARRIES THE BODY — the recycle bin: a
   delete pushes the cfg along, the room keeps it `BIN_DAYS` (30; the worker
   strips the cfg past that, the tombstone stays so stale devices cannot
-  resurrect), `libSync` collects restorables into `libBin`, and Setup lists
-  them under the picker ("Deleted boards (N)" → Restore, which unique-ifies if
-  the name is meanwhile taken). The tombstone re-push loop must SKIP names the
+  resurrect), `libSync` collects restorables into `libBin`, and the ARCHIVE
+  sub-page (beside Results — build 350, Omar: Setup was too crowded) lists
+  them: name · deleted dd/mm/yyyy · Restore (which unique-ifies if the name
+  is meanwhile taken). Setup carries NO deleted-boards pile. The tombstone re-push loop must SKIP names the
   room already holds dead, or a bare local tombstone strips the binned cfg. Sync runs at boot +3s, every 5 min, on tab-visible —
   never while the picker's panel is open (rebuilding it mid-tap eats the tap).
   Setup's Rename and Delete buttons show only for boards actually in the

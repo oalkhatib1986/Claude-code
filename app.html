@@ -1626,6 +1626,7 @@
     <button id="stSetup" type="button">Setup</button>
     <button id="stLayout" type="button">Layout</button>
     <button id="stResults" type="button">Results</button>
+    <button id="stArchive" type="button">Archive</button>
   </div>
 
   <div class="tvprev-stage" id="smStage"><section class="view active" id="viewBoard">
@@ -1716,6 +1717,19 @@
         <div class="body">
           <div id="resList"></div>
           <div class="note">Every finished session is <b>saved here automatically</b> on this device &mdash; tap one to see the full standings.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ARCHIVE (deleted boards, restorable 30 days) ============ -->
+  <section class="view" id="viewArchive">
+    <div class="cr">
+      <div class="card wide">
+        <h3>Archive <span class="r" id="archCount"></span></h3>
+        <div class="body">
+          <div id="archList" class="libbin"></div>
+          <div class="note">A deleted workout stays here for <b>30 days</b> &mdash; Restore brings it back on every device. After that it is gone for good.</div>
         </div>
       </div>
     </div>
@@ -3741,18 +3755,19 @@ window.addEventListener("error",function(ev){
     $("smWork").classList.toggle("on",scrMode==="work");
     for(const k in TABS) $(TABS[k][0]).setAttribute("aria-selected",k===which);
     let active=TABS[which][1];
-    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":subTab==="results"?"viewResults":"viewBoard";
+    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":subTab==="results"?"viewResults":subTab==="archive"?"viewArchive":"viewBoard";
     if(which==="trainer") active=ctlTab==="teams"?"viewTeams":"viewTrainer";
     $("ctlTabs").hidden=which!=="trainer";
     $("ctWork").classList.toggle("on",ctlTab==="session");
     $("ctTeams").classList.toggle("on",ctlTab==="teams");
     $("subTabs").hidden=which!=="board";
-    [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
+    [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
     if(which==="board"&&subTab==="results") renderResults();
+    if(which==="board"&&subTab==="archive") renderArchive();
     // Setup shows the gym's equipment counts, so it must be rebuilt on the way in —
     // renaming a rack in Layout otherwise left the old name on every exercise.
     if(which==="board"&&subTab==="setup") buildBlocks();
-    ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults"].forEach(v=>$(v).classList.toggle("active",v===active));
+    ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults","viewArchive"].forEach(v=>$(v).classList.toggle("active",v===active));
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     document.body.classList.toggle("tabkiosk",which==="tablet");
     // Leaving the tab must take the kiosk with it. These classes are the erg
@@ -3774,7 +3789,7 @@ window.addEventListener("error",function(ev){
   $("tabTablet").onclick=()=>show("tablet");
   { const tf=$("tbFit"); if(tf) tf.onclick=()=>{ tbPrev=!tbPrev;
       tf.textContent=tbPrev?"Phone view":"Tablet preview"; renderTablet(); fitTablet(); }; }
-  [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"]].forEach(([id,k])=>{
+  [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
   $("smWork").onclick=()=>{ scrMode="work"; show("screen"); };
@@ -6013,20 +6028,6 @@ window.addEventListener("error",function(ev){
     { const inLib=!!(cfg.wkName&&nameTaken(cfg.wkName));
       const d=$("wkDel"); if(d) d.hidden=!inLib;
       const r=$("wkRen"); if(r) r.hidden=!inLib; }
-    // THE RECYCLE BIN: whatever the room still holds a body for, restorable in
-    // one tap for 30 days (Omar: a trainer deleted the only real board).
-    if(libBin.length){
-      const bw=document.createElement("div"); bw.className="libbin";
-      bw.innerHTML=`<button type="button" class="btn small" id="binBtn">Deleted boards (${libBin.length})</button>`
-        +`<div class="binlist" hidden>`
-        +libBin.map(r=>`<div class="binrow"><span class="bn">${esc(r.name)}</span>`
-          +`<span class="bwhen">deleted ${new Date(r.ts).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>`
-          +`<button type="button" class="btn small binres" data-n="${esc(r.name)}">Restore</button></div>`).join("")
-        +`</div>`;
-      bw.querySelector("#binBtn").onclick=()=>{ const l=bw.querySelector(".binlist"); l.hidden=!l.hidden; };
-      bw.querySelectorAll(".binres").forEach(b=>{ b.onclick=()=>libRestore(b.dataset.n); });
-      wp.appendChild(bw);
-    }
     if(LIBHIDE) return;   // the Today button belongs to the hidden programme
     // TODAY: one tap to the session this date belongs to
     const tb=document.createElement("button");
@@ -6309,7 +6310,21 @@ window.addEventListener("error",function(ev){
     if(libDead[nm]){ delete libDead[nm]; saveDead(); }
     libPush(entry);
     libBin=libBin.filter(x=>x.name!==name);
-    buildPresetSel();
+    buildPresetSel(); renderArchive();
+  }
+  // THE ARCHIVE PAGE (Omar: Setup was getting crowded — deleted boards live on
+  // their own sub-page beside Results, not in a pile of Restore buttons under
+  // the picker). One clean list: name · deleted date · Restore.
+  function renderArchive(){
+    const el=$("archList"); if(!el) return;
+    const c=$("archCount"); if(c) c.textContent=libBin.length?String(libBin.length):"";
+    if(!libBin.length){ el.innerHTML=`<div class="note" style="margin:0">Nothing here &mdash; deleted workouts land on this page.</div>`; return; }
+    el.innerHTML=`<div class="binlist">`
+      +libBin.map(r=>`<div class="binrow"><span class="bn">${esc(r.name)}</span>`
+        +`<span class="bwhen">deleted ${new Date(r.ts).toLocaleDateString("en-GB")}</span>`
+        +`<button type="button" class="btn small binres" data-n="${esc(r.name)}">Restore</button></div>`).join("")
+      +`</div>`;
+    el.querySelectorAll(".binres").forEach(b=>{ b.onclick=()=>libRestore(b.dataset.n); });
   }
   let libBusy=false;
   async function libSync(){
@@ -7346,7 +7361,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=349;
+  const BUILD=350;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

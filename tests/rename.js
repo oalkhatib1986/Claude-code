@@ -215,6 +215,17 @@ const os=await p.evaluate(()=>({
 ok(!os.names.includes('Michael Test 2 2'),'the leftover copy is gone from the device');
 const mkill=puts.find(x=>x.del&&x.name==='Michael Test 2 2');
 ok(mkill&&mkill.cfg,'its tombstone CARRIES the body — 30 days in the bin');
+// deleted boards live on their OWN page beside Results — not in a pile of
+// Restore buttons under the picker (Omar: Setup was getting crowded)
+await p.click('#stArchive'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>{ const v=document.getElementById('viewArchive');
+  const row=v.querySelector('.binrow .bn');
+  return v.classList.contains('active')&&row&&/Michael Test 2 2/.test(row.textContent)
+    &&!!v.querySelector('.binres'); }),
+  'the Archive page lists the deleted board with its Restore');
+await p.click('#stSetup'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>!document.querySelector('#wkPick .libbin')&&!document.getElementById('binBtn')),
+  'Setup carries NO deleted-boards pile any more');
 // a device that never held it stays silent (a bare tombstone would strip the bin)
 puts.length=0;
 await p.evaluate(()=>localStorage.removeItem('af_delmt22_v1'));
