@@ -119,6 +119,18 @@ await p.click('#wkPick .mfield'); await p.waitForTimeout(300);
 ok(await p.evaluate(()=>[...document.querySelectorAll('#wkPick .combo-item .chint')]
   .some(h=>/saved|\d/.test(h.textContent))),'picker rows carry a date hint');
 await p.mouse.click(5,300); await p.waitForTimeout(200);
+// A HIDDEN BUILT-IN DOES NOT OWN ITS NAME (Omar hit this: renaming to
+// "Engine" was refused by a parked seed board he cannot see)
+ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1'))
+  .some(x=>x.name==='Engine'&&x.seedV)),'a hidden seed "Engine" is present to collide with');
+await p.click('#wkRen'); await p.waitForTimeout(200);
+await p.fill('.wkrow .renin','Engine');
+await p.keyboard.press('Enter'); await p.waitForTimeout(500);
+ok(await p.evaluate(()=>{ const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+  const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  const eng=ps.filter(x=>x.name==='Engine');
+  return c.wkName==='Engine'&&eng.length===1&&!eng[0].seedV&&c.name==='Wall Title'; }),
+  'renaming onto a HIDDEN built-in name succeeds — the parked seed makes way, one Engine remains');
 ok(await p.evaluate(()=>window.__native===0),
   'NO native browser window fired anywhere');
 // Rename hides for an unsaved board

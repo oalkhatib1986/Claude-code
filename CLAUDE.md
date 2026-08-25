@@ -659,11 +659,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   and the session lives on the WORKOUT screen. Phone view keeps them (browsing
   page, not a wall).
 - **OMAR'S HOLD (build 324): the programme + built-in boards are HIDDEN from the
-  picker** (`LIBHIDE=true` beside `buildPresetSel`) until he checks how they were
-  uploaded — HE WILL ASK FOR THE UNHIDE; it is one flag flip. Only trainer-saved
-  boards (no `seedV`) are offered; the Today button rides with the hidden
-  programme; NOTHING is deleted (PROG/SEED14/presets intact, `prog.js` still pins
-  the bytes). Suites load hidden boards via `window.__loadLib(label)`.
+  picker** (`LIBHIDE=true`, declared ABOVE `libFind` — boot code reads it) until
+  he checks how they were uploaded — HE WILL ASK FOR THE UNHIDE; it is one flag
+  flip. Only trainer-saved boards (no `seedV`) are offered; the Today button
+  rides with the hidden programme; NOTHING is deleted (PROG/SEED14/presets
+  intact, `prog.js` still pins the bytes). Suites load hidden boards via
+  `window.__loadLib(label)` (which passes `all` — plain `loadLib`/`libFind`
+  SKIP hidden boards under the hold).
+- **A HIDDEN BOARD DOES NOT OWN ITS NAME (build 345).** Omar renamed his board
+  to "Engine" and was refused by the parked built-in he cannot see — from his
+  seat the app named a ghost. While LIBHIDE holds, `nameTaken()` counts only
+  VISIBLE boards, and every path that claims a name (picker save-as, Save,
+  Rename, AI save, bin Restore) calls `claimName()` first: the parked seedV
+  entry is spliced out and the trainer's board takes the name — SEED14 in the
+  code re-seeds at the unhide, and the seeding guard (`presets.some` on the
+  name) already refuses to re-seed a name a trainer now owns, so the unhide
+  cannot create duplicates. GRAB THE ENTRY REFERENCE BEFORE `claimName()` —
+  the splice shifts indexes. `libFind` also stops ANSWERING to hidden names
+  (typing "Engine" must save-as, never silently load the parked seed).
+  `rename.js` gates the ghost-collision path end to end.
   `killTestSaves` (`af_clean1_v1`, build 325) tombstoned the test-era saves —
   "Previous 1/2 … Send It Saturday", the re-saved "Send It Saturday", "Test
   Workout Michael" — from the SHARED library; the local seedV copies were

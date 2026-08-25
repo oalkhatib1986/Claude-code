@@ -5783,10 +5783,29 @@ window.addEventListener("error",function(ev){
   }
   // the picker and the re-seed both resolve a name against the programme first,
   // then against boards the trainer saved
-  function libFind(name){
-    const pl=progList.find(x=>x.label===name);
-    if(pl) return {name:pl.label,seedV:PROGV,cfg:progCfg(pl.r)};
-    const p=presets.find(x=>x.name===name);
+  // OMAR'S HOLD (build 324): the Excel programme and the built-in boards are
+  // HIDDEN from the picker until he has checked how they were uploaded — only
+  // trainer-saved boards (no seedV, e.g. "Michael test 2" and the AI's saves)
+  // are offered. NOTHING is deleted: PROG, SEED14 and the presets stay intact,
+  // and flipping this to false brings the full listing back. He said he will
+  // ask for the unhide — remind him it is one flag. (Declared before libFind:
+  // refreshSeeded calls it at boot.)
+  const LIBHIDE=true;
+  // A HIDDEN BOARD DOES NOT OWN ITS NAME (build 345 — Omar renamed his board
+  // to "Engine" and was refused by a built-in he cannot see). While LIBHIDE
+  // parks a seedV board, the trainer claiming its name (save-as, rename, AI
+  // save, restore) takes the name and the parked entry makes way — SEED14 in
+  // the code re-seeds it at the unhide. Only VISIBLE boards refuse a name.
+  const nameTaken=n=>presets.some(p=>p.name===n&&!(LIBHIDE&&p.seedV));
+  const claimName=n=>{ const i=presets.findIndex(p=>p.name===n&&LIBHIDE&&p.seedV);
+    if(i>=0) presets.splice(i,1); };
+  function libFind(name,all){
+    // under the hold a hidden board doesn't answer to its name either — typing
+    // "Engine" must reach the trainer's own Engine, never silently load the
+    // parked seed. Suites (__loadLib) and the unhide pass all=true.
+    if(!LIBHIDE||all){ const pl=progList.find(x=>x.label===name);
+      if(pl) return {name:pl.label,seedV:PROGV,cfg:progCfg(pl.r)}; }
+    const p=presets.find(x=>x.name===name&&(all||!(LIBHIDE&&x.seedV)));
     return p||null;
   }
 
@@ -5915,9 +5934,9 @@ window.addEventListener("error",function(ev){
     }
     normCrewNames();
   }
-  try{ window.__loadLib=v=>loadLib(v); }catch(e){}   // suites load hidden boards directly
-  function loadLib(v){
-    const p=libFind(v); if(!p) return false;
+  try{ window.__loadLib=v=>loadLib(v,true); }catch(e){}   // suites load hidden boards directly
+  function loadLib(v,all){
+    const p=libFind(v,all); if(!p) return false;
     const keep=structuredClone(cfg.crews||[]);
     cfg=structuredClone(p.cfg); cfg.wkName=p.name;
     if(keep.length) cfg.crews=keep;               // the roster is the room, not the board
@@ -5925,13 +5944,7 @@ window.addEventListener("error",function(ev){
     buildControlRoom(); if(!running&&!sessionActive) build();
     return true;
   }
-  // OMAR'S HOLD (build 324): the Excel programme and the built-in boards are
-  // HIDDEN from the picker until he has checked how they were uploaded — only
-  // trainer-saved boards (no seedV, e.g. "Michael test 2" and the AI's saves)
-  // are offered. NOTHING is deleted: PROG, SEED14 and the presets stay intact,
-  // and flipping this to false brings the full listing back. He said he will
-  // ask for the unhide — remind him it is one flag.
-  const LIBHIDE=true;
+  // LIBHIDE (Omar's hold) is declared above libFind — boot code reads it.
   function buildPresetSel(){
     const wp=$("wkPick"); if(!wp) return;
     wp.innerHTML="";
@@ -5948,6 +5961,7 @@ window.addEventListener("error",function(ev){
         // the trainer set by hand (cfg.titleSet) is theirs — weekly "Engine
         // 25/08" boards all read ENGINE on the wall.
         cfg.wkName=v; if(!cfg.titleSet) cfg.name=v;
+        claimName(v);   // a parked built-in under this name makes way
         const entry={name:v,cfg:structuredClone(cfg),ts:Date.now()};
         presets.push(entry); savePresets(); save(); buildPresetSel();
         if(libDead[v]){ delete libDead[v]; saveDead(); }
@@ -5966,7 +5980,7 @@ window.addEventListener("error",function(ev){
           return p.ts?"saved "+fmt(p.ts):""; }}
     ));
     // Rename and Delete offer themselves only for a board that IS in the library
-    { const inLib=!!(cfg.wkName&&presets.some(p=>p.name===cfg.wkName));
+    { const inLib=!!(cfg.wkName&&nameTaken(cfg.wkName));
       const d=$("wkDel"); if(d) d.hidden=!inLib;
       const r=$("wkRen"); if(r) r.hidden=!inLib; }
     // THE RECYCLE BIN: whatever the room still holds a body for, restorable in
@@ -6256,7 +6270,8 @@ window.addEventListener("error",function(ev){
   }
   function libRestore(name){
     const r=libBin.find(x=>x.name===name); if(!r||!r.cfg) return;
-    let nm=name; { const base=nm; let i=2; while(presets.some(p=>p.name===nm)) nm=base+" "+(i++); }
+    let nm=name; { const base=nm; let i=2; while(nameTaken(nm)) nm=base+" "+(i++); }
+    claimName(nm);   // a parked built-in under this name makes way
     const entry={name:nm,cfg:structuredClone(r.cfg),ts:Date.now()};
     if(r.seedV) entry.seedV=r.seedV;
     presets.push(entry); savePresets();
@@ -6607,8 +6622,9 @@ window.addEventListener("error",function(ev){
     let nm=String(w.name||cfg.name||"AI Workout").slice(0,40).trim()||"AI Workout";
     // asking the AI to CHANGE the loaded board keeps its name and updates it in
     // place; only a NEW board with a taken name gets " 2" instead of overwriting
-    if(nm!==prevWk){ const base=nm; let i=2; while(presets.some(p=>p.name===nm)) nm=base+" "+(i++); }
+    if(nm!==prevWk){ const base=nm; let i=2; while(nameTaken(nm)) nm=base+" "+(i++); }
     cfg.name=nm; cfg.wkName=nm;
+    claimName(nm);   // a parked built-in under this name makes way
     const entry={name:nm,cfg:structuredClone(cfg),ts:Date.now()};
     { const pi=presets.findIndex(p=>p.name===nm);
       if(pi>=0) presets[pi]=entry; else presets.push(entry); }
@@ -6874,6 +6890,7 @@ window.addEventListener("error",function(ev){
     $("wkSave").onclick=async()=>{
       let n=cfg.wkName;
       if(!n){ n=await dlgAsk("Name this workout:", cfg.name||""); if(!n) return; cfg.wkName=n; }
+      claimName(n);   // a parked built-in under this name makes way, never updates
       const entry={name:n, cfg:structuredClone(cfg), ts:Date.now()};
       const i=presets.findIndex(p=>p.name===n);
       if(i>=0) presets[i]=entry; else presets.push(entry);
@@ -6896,7 +6913,7 @@ window.addEventListener("error",function(ev){
     // appear in the recycle bin), new name pushed. A collision is refused.
     $("wkRen").onclick=()=>{
       const old=cfg.wkName; if(!old) return;
-      const i=presets.findIndex(p=>p.name===old); if(i<0) return;
+      const i=presets.findIndex(p=>p.name===old&&!(LIBHIDE&&p.seedV)); if(i<0) return;
       const row=$("wkRen").closest(".wkrow"); if(row.querySelector(".renin")) return;
       const pick=$("wkPick"), fld=row.querySelector(".fld"), btns=row.querySelector(".wkbtns");
       // inline display, not [hidden] — the CSS display rules on these outrank
@@ -6915,10 +6932,11 @@ window.addEventListener("error",function(ev){
       const go=()=>{
         const n=inp.value.trim().slice(0,60).trim();
         if(!n||n===old){ closeEd(); return; }
-        if(presets.some((p,j)=>p.name===n&&j!==i)){
+        if(presets.some((p,j)=>p.name===n&&j!==i&&!(LIBHIDE&&p.seedV))){
           msg.textContent='A board called “'+n+'” already exists — pick another name.';
           msg.hidden=false; inp.focus(); return; }
-        const entry=presets[i];
+        const entry=presets[i];   // grab the reference BEFORE the claim splices
+        claimName(n);             // a parked built-in under this name makes way
         entry.name=n; entry.ts=Date.now();
         entry.cfg=structuredClone(entry.cfg); entry.cfg.wkName=n;
         // naming is exactly what rename is for, so the CURRENT display title
@@ -6942,7 +6960,7 @@ window.addEventListener("error",function(ev){
     };
     $("wkDel").onclick=async()=>{
       const n=cfg.wkName; if(!n) return;
-      const i=presets.findIndex(p=>p.name===n); if(i<0) return;
+      const i=presets.findIndex(p=>p.name===n&&!(LIBHIDE&&p.seedV)); if(i<0) return;
       if(!await dlgConfirm('Delete “'+n+'” from the library on every device?\n\nIt stays in Deleted boards for 30 days — Restore brings it back.','Delete')) return;
       const gone=presets[i];
       presets.splice(i,1); savePresets();
@@ -7287,7 +7305,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=344;
+  const BUILD=345;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
