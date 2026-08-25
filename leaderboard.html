@@ -1264,6 +1264,18 @@
   .wkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
   .wkrow .fld{flex:1 1 220px;min-width:0;margin:0}
   .wkbtns{display:flex;gap:10px}
+  .renmsg{font-size:12px;color:#ff6b64;margin-top:8px}
+  /* THE APP'S OWN DIALOG. Chrome's prompt()/confirm()/alert() are white system
+     windows that ignore the site entirely (Omar: everything follows the site's
+     format) — every ask, confirm and notice is this dark panel instead, built
+     from the site's own card, input and button styles. */
+  .dlg-back{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.62);
+    display:flex;align-items:center;justify-content:center;padding:20px}
+  .dlg{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);padding:20px;width:min(430px,100%)}
+  .dlg .dmsg{font-size:14px;line-height:1.55;color:var(--ink);white-space:pre-line;margin:0 0 16px}
+  .dlg input{margin:0 0 16px}
+  .dlg .dbtns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
   #wkPick{display:block}
   #wkPick .mwrap{display:block}
   /* the recycle bin: quiet rows, name ellipsised, actions whole */
@@ -6820,23 +6832,23 @@ window.addEventListener("error",function(ev){
       const code=JSON.stringify(cfg);
       let copied=false;
       try{ await navigator.clipboard.writeText(code); copied=true; }catch(e){}
-      if(copied) alert("Workout code copied to clipboard.\n\nPaste it somewhere safe (Notes, WhatsApp yourself) — it is a full backup of this workout.");
-      else prompt("Copy this workout code and keep it somewhere safe:", code);
+      if(copied) dlgTell("Workout code copied to clipboard.\n\nPaste it somewhere safe (Notes, WhatsApp yourself) — it is a full backup of this workout.");
+      else dlg({msg:"Copy this workout code and keep it somewhere safe:",input:code,ok:"Done",cancel:false});
     };
-    $("importCfg").onclick=()=>{
-      const code=prompt("Paste a workout code:");
-      if(!code||!code.trim()) return;
+    $("importCfg").onclick=async()=>{
+      const code=await dlgAsk("Paste a workout code:","","Import");
+      if(!code) return;
       try{
         const c=JSON.parse(code.trim());
         if(!c||!c.mode||!c.crews) throw 0;
         cfg=c; save(); applyAccent(); buildControlRoom();
         if(!sessionActive&&!running) build();
-        alert("Workout imported.");
-      }catch(e){ alert("That code could not be read — make sure you pasted the whole thing."); }
+        dlgTell("Workout imported.");
+      }catch(e){ dlgTell("That code could not be read — make sure you pasted the whole thing."); }
     };
-    $("wkSave").onclick=()=>{
+    $("wkSave").onclick=async()=>{
       let n=cfg.wkName;
-      if(!n){ n=prompt("Name this workout:", cfg.name||""); if(!n||!n.trim()) return; n=n.trim(); cfg.wkName=n; }
+      if(!n){ n=await dlgAsk("Name this workout:", cfg.name||""); if(!n) return; cfg.wkName=n; }
       const entry={name:n, cfg:structuredClone(cfg), ts:Date.now()};
       const i=presets.findIndex(p=>p.name===n);
       if(i>=0) presets[i]=entry; else presets.push(entry);
@@ -6845,37 +6857,64 @@ window.addEventListener("error",function(ev){
       libPush(entry);
       const b=$("wkSave"); b.textContent="Saved \u2713"; setTimeout(()=>{ b.textContent="Save"; },1200);
     };
-    $("wkNew").onclick=()=>{
-      if(!confirm("Start a new blank workout? Teams, machines and branding stay.")) return;
+    $("wkNew").onclick=async()=>{
+      if(!await dlgConfirm("Start a new blank workout? Teams, machines and branding stay.","Start new")) return;
       R().blocks=[]; R().laps=1; cfg.name="New Workout"; cfg.wkName=null;
       save(); buildControlRoom(); if(!running&&!sessionActive) build();
     };
-    // RENAME IS A MOVE, NOT A COPY. Save-as under a new name left the old board
-    // behind ("Michael Test 2 2"); Rename carries the ONE board to the new name:
-    // the preset entry, cfg.name (the title every surface shows), and the shared
-    // library — old name tombstoned WITHOUT a body (the board moved, it was not
-    // deleted, so it must not appear in the recycle bin), new name pushed.
+    // RENAME IS A MOVE, NOT A COPY — and it EDITS IN PLACE. Tap Rename and the
+    // workout box itself becomes the input (no white Chrome prompt — the
+    // browser's own windows ignore the site and are banned everywhere): type,
+    // Enter or Save name. The ONE board carries to the new name — the preset
+    // entry, cfg.name (the title every surface shows), and the shared library:
+    // old name tombstoned WITHOUT a body (moved, not deleted, so it must not
+    // appear in the recycle bin), new name pushed. A collision is refused.
     $("wkRen").onclick=()=>{
       const old=cfg.wkName; if(!old) return;
       const i=presets.findIndex(p=>p.name===old); if(i<0) return;
-      let n=prompt('Rename “'+old+'” to:', old);
-      if(!n||!(n=n.trim().slice(0,60).trim())||n===old) return;
-      if(presets.some((p,j)=>p.name===n&&j!==i)){
-        alert('A board called “'+n+'” already exists — pick another name.'); return; }
-      const entry=presets[i];
-      entry.name=n; entry.ts=Date.now();
-      entry.cfg=structuredClone(entry.cfg); entry.cfg.name=n; entry.cfg.wkName=n;
-      cfg.wkName=n; cfg.name=n;
-      savePresets(); save(); buildPresetSel();
-      libKill(old);                                    // bare tombstone: moved, not binned
-      if(libDead[n]){ delete libDead[n]; saveDead(); } // a dead name is revived by the move
-      libPush(entry);
-      syncTeamCount(); if(!running&&!sessionActive) build();
+      const row=$("wkRen").closest(".wkrow"); if(row.querySelector(".renin")) return;
+      const pick=$("wkPick"), fld=row.querySelector(".fld"), btns=row.querySelector(".wkbtns");
+      // inline display, not [hidden] — the CSS display rules on these outrank
+      // the hidden attribute's UA display:none and it silently does nothing
+      pick.style.display="none"; btns.style.display="none";
+      const inp=document.createElement("input");
+      inp.type="text"; inp.className="renin"; inp.maxLength=60; inp.value=old;
+      fld.appendChild(inp);
+      const rb=document.createElement("div"); rb.className="wkbtns";
+      rb.innerHTML='<button type="button" class="btn small" id="renGo">Save name</button>'
+        +'<button type="button" class="btn small" id="renNo">Cancel</button>';
+      row.appendChild(rb);
+      const msg=document.createElement("div"); msg.className="renmsg"; msg.hidden=true;
+      row.insertAdjacentElement("afterend",msg);
+      const closeEd=()=>{ inp.remove(); rb.remove(); msg.remove(); pick.style.display=""; btns.style.display=""; };
+      const go=()=>{
+        const n=inp.value.trim().slice(0,60).trim();
+        if(!n||n===old){ closeEd(); return; }
+        if(presets.some((p,j)=>p.name===n&&j!==i)){
+          msg.textContent='A board called “'+n+'” already exists — pick another name.';
+          msg.hidden=false; inp.focus(); return; }
+        const entry=presets[i];
+        entry.name=n; entry.ts=Date.now();
+        entry.cfg=structuredClone(entry.cfg); entry.cfg.name=n; entry.cfg.wkName=n;
+        cfg.wkName=n; cfg.name=n;
+        closeEd();
+        savePresets(); save(); buildPresetSel();
+        libKill(old);                                    // bare tombstone: moved, not binned
+        if(libDead[n]){ delete libDead[n]; saveDead(); } // a dead name is revived by the move
+        libPush(entry);
+        syncTeamCount(); if(!running&&!sessionActive) build();
+      };
+      rb.querySelector("#renGo").onclick=go;
+      rb.querySelector("#renNo").onclick=closeEd;
+      inp.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){ e.preventDefault(); go(); }
+        else if(e.key==="Escape"){ e.preventDefault(); closeEd(); } });
+      inp.focus(); inp.select();
     };
-    $("wkDel").onclick=()=>{
+    $("wkDel").onclick=async()=>{
       const n=cfg.wkName; if(!n) return;
       const i=presets.findIndex(p=>p.name===n); if(i<0) return;
-      if(!confirm('Delete “'+n+'” from the library on every device?\n\nIt stays in Deleted boards for 30 days — Restore brings it back.')) return;
+      if(!await dlgConfirm('Delete “'+n+'” from the library on every device?\n\nIt stays in Deleted boards for 30 days — Restore brings it back.','Delete')) return;
       const gone=presets[i];
       presets.splice(i,1); savePresets();
       libKill(n,structuredClone(gone.cfg),gone.seedV);   // the bin keeps the body
@@ -6887,6 +6926,38 @@ window.addEventListener("error",function(ev){
     enhanceSelects();
     buildPresetSel();
   }
+
+  // THE APP'S OWN DIALOG. window.prompt/confirm/alert are the BROWSER'S white
+  // system windows — they can never follow the site, so nothing calls them.
+  // dlg() is the one panel for every ask/confirm/notice, in the site's own
+  // card, input and button styles. Enter = OK, Escape/backdrop = cancel.
+  function dlg(o){  // {msg, input?:prefill, ok?, cancel?:false|label} -> Promise<text|true|null>
+    return new Promise(res=>{
+      const back=document.createElement("div"); back.className="dlg-back";
+      const hasIn=o.input!==undefined;
+      back.innerHTML='<div class="dlg" role="dialog" aria-modal="true"><p class="dmsg"></p>'
+        +(hasIn?'<input type="text">':'')
+        +'<div class="dbtns">'
+        +(o.cancel===false?'':'<button type="button" class="btn small dno">'+(o.cancel||"Cancel")+'</button>')
+        +'<button type="button" class="btn small dok">'+(o.ok||"OK")+'</button></div></div>';
+      back.querySelector(".dmsg").textContent=o.msg||"";
+      const inp=back.querySelector("input");
+      if(inp) inp.value=typeof o.input==="string"?o.input:"";
+      const done=v=>{ back.remove(); document.removeEventListener("keydown",key,true); res(v); };
+      const okv=()=>done(hasIn?inp.value.trim():true);
+      const key=e=>{ if(e.key==="Escape"){ e.preventDefault(); done(null); }
+        else if(e.key==="Enter"&&(!hasIn||e.target===inp)){ e.preventDefault(); okv(); } };
+      back.querySelector(".dok").onclick=okv;
+      const no=back.querySelector(".dno"); if(no) no.onclick=()=>done(null);
+      back.addEventListener("pointerdown",e=>{ if(e.target===back) done(null); });
+      document.addEventListener("keydown",key,true);
+      document.body.appendChild(back);
+      if(inp){ inp.focus(); inp.select(); } else back.querySelector(".dok").focus();
+    });
+  }
+  const dlgTell=m=>dlg({msg:m,cancel:false});
+  const dlgAsk=(m,v,ok)=>dlg({msg:m,input:v||"",ok:ok||"Save"}).then(t=>t&&String(t).trim()||null);
+  const dlgConfirm=(m,ok)=>dlg({msg:m,ok:ok||"Yes"}).then(v=>v===true);
 
   const RKEY="af_results_v1";
   let results; try{ results=JSON.parse(localStorage.getItem(RKEY))||[]; }catch(e){ results=[]; }
@@ -6931,8 +7002,8 @@ window.addEventListener("error",function(ev){
       return `<details class="res"><summary><b>${esc(r.name||"Session")}</b><span>${ds}</span><i>${esc(win.name||"")} ${win.score!=null?win.score+" "+esc(r.unit||""):""}</i><button class="resdel" data-i="${i}" type="button" aria-label="Delete result">&times;</button></summary>
         <div class="restabw"><table class="restab">${head}${r.rows.map((w,j)=>`<tr><td>${j+1}</td><td>${esc(w.name)}</td>${cell(w)}<td>${w.score} ${esc(r.unit||"")}</td></tr>`).join("")}</table></div></details>`;
     }).join("");
-    el.querySelectorAll(".resdel").forEach(b=>b.onclick=ev=>{ ev.preventDefault(); ev.stopPropagation();
-      if(!confirm("Delete this result?")) return;
+    el.querySelectorAll(".resdel").forEach(b=>b.onclick=async ev=>{ ev.preventDefault(); ev.stopPropagation();
+      if(!await dlgConfirm("Delete this result?","Delete")) return;
       results.splice(+b.dataset.i,1); saveResults(); renderResults(); });
   }
   let paused=false, pauseMark=0, rlSig="";
@@ -6991,10 +7062,10 @@ window.addEventListener("error",function(ev){
   // Put every machine back on offer: each slot returns to the placeholder the
   // roster started with, so the floor reads as free again. The clock is never
   // touched — this is between classes, or a trainer undoing a wrong tap.
-  function clearAllNames(){
+  async function clearAllNames(){
     if(!cfg.crews.length) return;
     const c=claimState();
-    if(c&&c.got>0&&!confirm(`Clear all ${c.got} name${c.got>1?"s":""}? Every machine goes back to free.`)) return;
+    if(c&&c.got>0&&!await dlgConfirm(`Clear all ${c.got} name${c.got>1?"s":""}? Every machine goes back to free.`,"Clear all")) return;
     const pre=cfg.teamKind==="solo"?"Athlete ":"Team ";
     cfg.crews.forEach((cr,i)=>{ cr.name=pre+(i+1);
       const e=ergs.find(x=>x.id===i); if(e) e.name=cr.name; });
@@ -7187,7 +7258,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=342;
+  const BUILD=343;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

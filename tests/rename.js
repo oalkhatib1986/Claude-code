@@ -39,18 +39,36 @@ await p.reload(); await p.waitForTimeout(1500);
 await p.click('#stSetup'); await p.waitForTimeout(400);
 ok(await p.evaluate(()=>!document.getElementById('wkRen').hidden),
   'Rename offers itself for a board in the library');
-// a collision is refused, not unique-ified
-await p.evaluate(()=>{ window.__alerts=[]; window.alert=m=>window.__alerts.push(m);
-  window.prompt=()=>'Taken Name'; });
+// NO BROWSER WINDOWS EVER (Omar): any native prompt/confirm/alert is a fail
+await p.evaluate(()=>{ window.__native=0;
+  window.alert=window.confirm=window.prompt=()=>{ window.__native++; }; });
+// tap Rename -> the box itself becomes the input, prefilled and in the site's style
 await p.click('#wkRen'); await p.waitForTimeout(300);
-ok(await p.evaluate(()=>window.__alerts.length===1&&/already exists/.test(window.__alerts[0])),
-  'renaming onto an existing board is refused');
+const ed=await p.evaluate(()=>{ const i=document.querySelector('.wkrow .renin');
+  const gone=el=>!el.offsetParent&&getComputedStyle(el).display==='none';   // ACTUALLY hidden, not just [hidden]
+  return i&&{val:i.value,focused:document.activeElement===i,
+    pickGone:gone(document.getElementById('wkPick')),
+    oldBtnsGone:gone(document.getElementById('wkSave').parentElement),
+    go:!!document.getElementById('renGo'),no:!!document.getElementById('renNo')}; });
+ok(ed&&ed.val==='Old Name'&&ed.focused&&ed.pickGone&&ed.oldBtnsGone&&ed.go&&ed.no,
+  'Rename edits IN the box — the picker and old buttons really leave ('+JSON.stringify(ed)+')');
+// Escape walks away without changing anything
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+ok(await p.evaluate(()=>!document.querySelector('.renin')&&!document.getElementById('wkPick').hidden),
+  'Escape cancels and the picker returns');
+// a collision is refused inline, not unique-ified
+await p.click('#wkRen'); await p.waitForTimeout(200);
+await p.fill('.wkrow .renin','Taken Name');
+await p.click('#renGo'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>{ const m=document.querySelector('.renmsg');
+  return m&&!m.hidden&&/already exists/.test(m.textContent)&&!!document.querySelector('.renin'); }),
+  'a collision shows the site\'s own message and keeps editing');
 ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1'))
   .filter(x=>x.name==='Taken Name').length===1),'nothing was duplicated by the refusal');
-// the real rename
+// the real rename — type and Enter
 puts.length=0;
-await p.evaluate(()=>{ window.prompt=()=>'  New Name  '; });
-await p.click('#wkRen'); await p.waitForTimeout(600);
+await p.fill('.wkrow .renin','  New Name  ');
+await p.keyboard.press('Enter'); await p.waitForTimeout(600);
 const st=await p.evaluate(()=>{
   const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
   const cfg=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
@@ -74,6 +92,18 @@ ok(put&&put.cfg&&put.cfg.name==='New Name','the room gets the board under the ne
 // the boot sync rightly uploads locals (ts:5) to an empty room; a rename push
 // would carry a FRESH ts — none may exist for the refused name
 ok(!puts.some(x=>x.name==='Taken Name'&&x.ts>10),'the refused collision never reached the room');
+// Delete asks in the SITE'S OWN panel, not Chrome's window
+await p.click('#wkDel'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>{ const d=document.querySelector('.dlg-back .dlg');
+  return d&&/Delete “New Name”/.test(d.querySelector('.dmsg').textContent)
+    &&d.querySelector('.dok')&&d.querySelector('.dno'); }),
+  'Delete confirms in the app\'s own dark panel');
+await p.click('.dlg .dno'); await p.waitForTimeout(200);
+ok(await p.evaluate(()=>!document.querySelector('.dlg-back')
+  &&JSON.parse(localStorage.getItem('af_presets_v1')).some(x=>x.name==='New Name')),
+  'Cancel closes the panel and keeps the board');
+ok(await p.evaluate(()=>window.__native===0),
+  'NO native browser window fired anywhere');
 // Rename hides for an unsaved board
 await p.evaluate(()=>{
   const cfg=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));

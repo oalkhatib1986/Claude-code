@@ -68,6 +68,17 @@ copy for cache-free serving; `version.txt` holds the build number.
   same format of the website! remember this always"). Any NEW input type (date,
   time, month…) must also be added to the shared `input[type=…]` styling rule —
   an unlisted type falls back to UA styling and sticks out immediately.
+- **NO BROWSER WINDOWS, EVER.** window.prompt/confirm/alert are Chrome's own
+  white system dialogs — they ignore the site completely and can never be
+  styled (Omar, build 343: "all formatting should be consistent"; he had
+  already ordered the browser's widgets to follow the site). Every ask,
+  confirm and notice goes through `dlg()` (`dlgTell`/`dlgAsk`/`dlgConfirm`),
+  the app's own dark panel built from the site's card/input/button styles.
+  RENAMING doesn't even dialog: the workout box itself becomes the input
+  (`.renin`, Save name/Cancel replace the button row via inline
+  `style.display` — the `hidden` attribute LOSES to the CSS display rules on
+  those elements and silently does nothing). `rename.js` counts native dialog
+  calls and fails on any.
 - Wording: use **Solo** (never "Single") for the one-athlete who-option; wording
   follows format (solo vs teams) everywhere via kw()/kws() helpers.
 
