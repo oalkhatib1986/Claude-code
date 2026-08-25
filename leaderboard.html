@@ -6006,7 +6006,8 @@ window.addEventListener("error",function(ev){
           const p=presets.find(x=>x.name===n&&!(LIBHIDE&&x.seedV))||presets.find(x=>x.name===n);
           const pd=p&&p.cfg&&p.cfg.prog&&p.cfg.prog.date; if(!pd) return "";
           const d=new Date(pd+"T00:00:00");
-          return isNaN(d)?"":d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }}
+          return isNaN(d)?"":d.toLocaleDateString("en-GB");   // 25/08/2026 (Omar)
+        }}
     ));
     // Rename and Delete offer themselves only for a board that IS in the library
     { const inLib=!!(cfg.wkName&&nameTaken(cfg.wkName));
@@ -7345,7 +7346,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=348;
+  const BUILD=349;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

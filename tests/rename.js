@@ -119,8 +119,8 @@ await p.fill('#pgDate','2026-09-01'); await p.waitForTimeout(200);
 await p.click('#wkSave'); await p.waitForTimeout(400);
 await p.click('#wkPick .mfield'); await p.waitForTimeout(300);
 ok(await p.evaluate(()=>{ const hs=[...document.querySelectorAll('#wkPick .combo-item .chint')];
-  return hs.some(h=>/1 Sep/.test(h.textContent))&&hs.every(h=>!/saved/i.test(h.textContent)); }),
-  'picker rows show the board\'s own date, never "saved"');
+  return hs.some(h=>h.textContent==='01/09/2026')&&hs.every(h=>!/saved/i.test(h.textContent)); }),
+  'picker rows show the board\'s own date as dd/mm/yyyy, never "saved"');
 ok(await p.evaluate(()=>{ const r=[...document.querySelectorAll('#wkPick .combo-item')]
     .find(x=>x.querySelector('.chint'));
   const n=r.children[0].getBoundingClientRect(), h=r.querySelector('.chint').getBoundingClientRect();
