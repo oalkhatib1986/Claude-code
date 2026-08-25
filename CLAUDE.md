@@ -462,13 +462,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   → `.chint`, right-aligned): the board's `prog.date`, else "saved d Mon"
   from the entry's ts — that is how same-named weekly boards are told apart
   (the hint must read the VISIBLE entry, not a parked seed of the same name).
-  Rename collisions stay REFUSED; but SAVING a taken name works — DATED
-  (build 346, Omar: "as long as it's a different date it will save"): typing
-  "Engine" in the picker when an Engine exists offers `+ Save as "Engine
-  01/09"` (`o.altAdd` — dd/MM from the board's own `prog.date`, else today;
-  unique-ified with " 2" beyond that), and the TYPED word rides as the display
-  title (`data-typed` → `onPick(v,typed)` → `titleSet`), so the picker files
-  by date while the wall reads ENGINE. The date lives in the filing name only.
+  Rename collisions stay REFUSED; but SAVING a taken name works when the
+  board carries a DIFFERENT DATE — NAME + DATE IS THE IDENTITY (builds
+  346-347, Omar: "if I pick a date that's different it will save; without a
+  date it won't allow me"): typing "Engine" in the picker when an Engine
+  exists offers `+ Save as "Engine 01/09"` (`o.altAdd`, dd/MM from `dSuf()` =
+  the board's own `prog.date`; NO date → a hint row says to pick one, NO
+  fallback to today; the SAME date twice → refused), and the TYPED word rides
+  as the display title (`data-typed` → `onPick(v,typed)` → `titleSet`) so the
+  picker files the weeks apart while the wall reads ENGINE. The Save button's
+  naming path (`wkSave` on an unsaved board) follows the SAME rule via
+  `dlgTell` — naming a new board after an existing one must never overwrite
+  it. The date lives in the filing name only, never on the wall.
 - **ONE GYM, ONE CLOCK.** Live session sync rides the same relay into D1
   (worker ops `s.get`/`s.put`, binding `DB` — D1 because KV's 60s edge cache
   cannot carry a clock). The device the trainer ACTS on publishes the whole

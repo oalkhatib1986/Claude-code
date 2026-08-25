@@ -2111,8 +2111,10 @@ window.addEventListener("error",function(ev){
       // saves in one tap instead of being refused \u2014 data-add carries the final
       // name, data-typed what the trainer actually wrote (it becomes the title)
       if(q&&o.addable){ const typed=search.value.trim();
-        const av=exact?(o.altAdd?o.altAdd(typed):null):typed;
-        if(av) out+=`<div class="combo-item add" data-add="${esc(av)}" data-typed="${esc(typed)}">${o.addLabel||"Use"} &ldquo;${esc(av)}&rdquo;</div>`; }
+        let av=exact?(o.altAdd?o.altAdd(typed):null):typed, err="";
+        if(av&&typeof av==="object"){ err=av.err||""; av=av.v||""; }
+        if(av) out+=`<div class="combo-item add" data-add="${esc(av)}" data-typed="${esc(typed)}">${o.addLabel||"Use"} &ldquo;${esc(av)}&rdquo;</div>`;
+        else if(err) out+=`<div class="combo-item hint">${esc(err)}</div>`; }
       out+=matches.map(n=>{ const h=o.hint&&o.hint(n);
         return `<div class="combo-item${n===String(getValue())?" sel":""}" data-v="${esc(n)}"><span>${esc(n)}</span>${h?`<span class="chint">${esc(h)}</span>`:""}</div>`; }).join("");
       if(!out) out=`<div class="combo-item hint">${o.addable?"Type to add new\u2026":"No match"}</div>`;
@@ -5805,6 +5807,12 @@ window.addEventListener("error",function(ev){
   const nameTaken=n=>presets.some(p=>p.name===n&&!(LIBHIDE&&p.seedV));
   const claimName=n=>{ const i=presets.findIndex(p=>p.name===n&&LIBHIDE&&p.seedV);
     if(i>=0) presets.splice(i,1); };
+  // NAME + DATE IS THE IDENTITY OF A WEEKLY BOARD (Omar): the board's own
+  // Setup > Date, as "dd/MM" for the filing name — null when no date is set,
+  // and then a second board under a taken name is refused until one is picked.
+  const dSuf=()=>{ const pd=cfg.prog&&cfg.prog.date; if(!pd) return null;
+    const d=new Date(pd+"T00:00:00"); if(isNaN(d)) return null;
+    return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0"); };
   function libFind(name,all){
     // under the hold a hidden board doesn't answer to its name either — typing
     // "Engine" must reach the trainer's own Engine, never silently load the
@@ -5978,13 +5986,15 @@ window.addEventListener("error",function(ev){
         syncTeamCount(); if(!running&&!sessionActive) build();
       },
       {addable:true, addLabel:"+ Save as",
-        // a TAKEN name still saves — dated: "Engine" -> "Engine 01/09" from the
-        // board's own session date (else today). The typed word rides as the
-        // display title, so the wall reads ENGINE while the picker files by date.
-        altAdd:n=>{ let d=cfg.prog&&cfg.prog.date?new Date(cfg.prog.date+"T00:00:00"):new Date();
-          if(isNaN(d)) d=new Date();
-          const base=n+" "+String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
-          let cand=base, i=2; while(nameTaken(cand)) cand=base+" "+(i++);
+        // a TAKEN name still saves when the board carries a DIFFERENT DATE:
+        // "Engine" -> "Engine 01/09" from Setup > Date. No date set = no
+        // second Engine (the hint row says to pick one); the same date twice
+        // is refused too. The typed word rides as the display title, so the
+        // wall reads ENGINE while the picker files the weeks apart by date.
+        altAdd:n=>{ const s=dSuf();
+          if(!s) return {err:"Another “"+n+"” is already saved — pick this board's Date above and it will file by date"};
+          const cand=n+" "+s;
+          if(nameTaken(cand)) return {err:"“"+n+"” for "+s+" is already saved — pick a different date"};
           return cand; },
         searchPh:LIBHIDE?"Search saved workouts…":"Search the programme — block, week, day, type…",
         cls:"wkfield",
@@ -6909,7 +6919,18 @@ window.addEventListener("error",function(ev){
     };
     $("wkSave").onclick=async()=>{
       let n=cfg.wkName;
-      if(!n){ n=await dlgAsk("Name this workout:", cfg.name||""); if(!n) return; cfg.wkName=n; }
+      if(!n){ n=await dlgAsk("Name this workout:", cfg.name||""); if(!n) return;
+        // NAME + DATE IS THE IDENTITY: naming a NEW board after an existing one
+        // never overwrites it — a different Setup > Date files this one beside
+        // it ("Engine 01/09", wall still ENGINE); no date or the same date is
+        // refused until the date says which week this is.
+        if(nameTaken(n)){
+          const s=dSuf();
+          if(!s){ dlgTell('Another “'+n+'” is already saved.\n\nPick this board\'s Date (above) and save again — it will be filed by its date, and the screen will still just say “'+n+'”.'); return; }
+          if(nameTaken(n+" "+s)){ dlgTell('“'+n+'” for '+s+' is already saved — pick a different date.'); return; }
+          cfg.name=n; cfg.titleSet=true; n=n+" "+s;
+        }
+        cfg.wkName=n; }
       claimName(n);   // a parked built-in under this name makes way, never updates
       const entry={name:n, cfg:structuredClone(cfg), ts:Date.now()};
       const i=presets.findIndex(p=>p.name===n);
@@ -7325,7 +7346,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=346;
+  const BUILD=347;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

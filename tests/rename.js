@@ -131,23 +131,54 @@ ok(await p.evaluate(()=>{ const ps=JSON.parse(localStorage.getItem('af_presets_v
   const eng=ps.filter(x=>x.name==='Engine');
   return c.wkName==='Engine'&&eng.length===1&&!eng[0].seedV&&c.name==='Wall Title'; }),
   'renaming onto a HIDDEN built-in name succeeds — the parked seed makes way, one Engine remains');
-// A TAKEN NAME STILL SAVES — DATED. Typing "Engine" while an Engine exists
-// offers "+ Save as Engine dd/MM"; the typed word becomes the wall title.
+// NAME + DATE IS THE IDENTITY. A taken name with NO date is refused with a
+// pick-a-date hint; with a fresh date it saves as "Engine dd/MM"; the typed
+// word becomes the wall title; the SAME date twice is refused.
+await p.click('#wkPick .mfield'); await p.waitForTimeout(200);
+await p.fill('#wkPick .msearch','Engine'); await p.waitForTimeout(250);
+ok(await p.evaluate(()=>{ const h=document.querySelector('#wkPick .combo-item.hint');
+  return !document.querySelector('#wkPick .combo-item.add')
+    &&h&&/pick this board.s Date/i.test(h.textContent); }),
+  'a taken name with NO date is refused with a pick-a-date hint');
+await p.mouse.click(5,300); await p.waitForTimeout(200);
+await p.fill('#pgDate','2026-09-01'); await p.waitForTimeout(300);
 await p.click('#wkPick .mfield'); await p.waitForTimeout(200);
 await p.fill('#wkPick .msearch','Engine'); await p.waitForTimeout(250);
 const addRow=await p.evaluate(()=>{ const a=document.querySelector('#wkPick .combo-item.add');
   return a&&{v:a.dataset.add,typed:a.dataset.typed}; });
-ok(addRow&&/^Engine \d\d\/\d\d$/.test(addRow.v)&&addRow.typed==='Engine',
-  'a taken name offers a DATED save-as ('+(addRow&&addRow.v)+')');
+ok(addRow&&addRow.v==='Engine 01/09'&&addRow.typed==='Engine',
+  'a taken name with a date offers the DATED save-as ('+(addRow&&addRow.v)+')');
 await p.click('#wkPick .combo-item.add'); await p.waitForTimeout(600);
 const wk=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
   const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
   return {wk:c.wkName,title:c.name,tset:c.titleSet,
-    both:ps.some(x=>x.name==='Engine')&&ps.some(x=>/^Engine \d\d\/\d\d$/.test(x.name)),
+    both:ps.some(x=>x.name==='Engine')&&ps.some(x=>x.name==='Engine 01/09'),
     ev:document.getElementById('evName').textContent}; });
-ok(/^Engine \d\d\/\d\d$/.test(wk.wk)&&wk.title==='Engine'&&wk.tset===true
+ok(wk.wk==='Engine 01/09'&&wk.title==='Engine'&&wk.tset===true
   &&wk.both&&wk.ev==='Engine',
   'the dated board saves beside last week\'s and the wall reads ENGINE ('+JSON.stringify(wk)+')');
+await p.click('#wkPick .mfield'); await p.waitForTimeout(200);
+await p.fill('#wkPick .msearch','Engine'); await p.waitForTimeout(250);
+ok(await p.evaluate(()=>{ const h=document.querySelector('#wkPick .combo-item.hint');
+  return !document.querySelector('#wkPick .combo-item.add')
+    &&h&&/already saved.*different date/i.test(h.textContent); }),
+  'the SAME name and date twice is refused');
+await p.mouse.click(5,300); await p.waitForTimeout(200);
+// the Save button's naming path follows the same rule: never overwrite
+await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+  c.wkName=null; c.titleSet=false; localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
+await p.reload(); await p.waitForTimeout(1500);
+await p.click('#stSetup'); await p.waitForTimeout(400);
+await p.evaluate(()=>{ window.__native=0;
+  window.alert=window.confirm=window.prompt=()=>{ window.__native++; }; });
+await p.click('#wkSave'); await p.waitForTimeout(300);
+await p.fill('.dlg input','Engine'); await p.click('.dlg .dok'); await p.waitForTimeout(400);
+ok(await p.evaluate(()=>{ const d=document.querySelector('.dlg .dmsg');
+  return d&&/already saved/i.test(d.textContent)
+    &&JSON.parse(localStorage.getItem('af_presets_v1'))
+      .filter(x=>x.name==='Engine 01/09').length===1; }),
+  'Save on a NEW board with a taken name+date refuses instead of overwriting');
+await p.click('.dlg .dok'); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>window.__native===0),
   'NO native browser window fired anywhere');
 // Rename hides for an unsaved board
