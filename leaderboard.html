@@ -6071,6 +6071,8 @@ window.addEventListener("error",function(ev){
     normCrewNames();
   }
   try{ window.__loadLib=v=>loadLib(v,true); }catch(e){}   // suites load hidden boards directly
+  // suites drive the clock through boundaries without waiting real time
+  try{ window.__seek=s=>{ t0-=s*1000; try{ restT0-=s*1000; }catch(e){} }; }catch(e){}
   function loadLib(v,all){
     const p=libFind(v,all); if(!p) return false;
     const keep=structuredClone(cfg.crews||[]);
@@ -7468,7 +7470,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=359;
+  const BUILD=360;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -7629,6 +7631,14 @@ window.addEventListener("error",function(ev){
     // clamped at 320 the picture ran out of content and left bands top and bottom
     const minW=document.body.classList.contains("tvfull")?240:Math.min(cw,1820);
     let W=cw;
+    // THE SOLVE CAN BE A TWO-CYCLE WITH NO FIXED POINT: at one width the chips
+    // wrap (content too tall), at the next they unwrap (too short), and the
+    // loop exits at whichever pole it happens to land on — the audit caught an
+    // upright phone parked on the tall pole with a dark band down one side.
+    // Remember the width whose PAINTED coverage was best and land on that.
+    let bestW=0, bestS=-1;
+    const score=(w2,h2)=>{ const k2=Math.min(cw/w2,ch/h2);
+      return Math.min(w2*k2/cw,h2*k2/ch); };
     for(let phase=0;phase<3;phase++){
       fitRowH(ch);
       for(let i=0;i<5;i++){
@@ -7638,12 +7648,18 @@ window.addEventListener("error",function(ev){
         // so it never fires again. Fit the cards HERE, for the width just set,
         // and the height below is the height that will actually be drawn.
         fitBlockCols(); fitBlockText();
+        fitSummary();   // the chips wrap/scale WITH the width, or the height
+                        // measured here is not the height that gets drawn
         const H=f.scrollHeight; if(!(H>0)) return;
+        { const s=score(W,H); if(s>bestS){ bestS=s; bestW=W; } }
         const nW=Math.max(minW,Math.round(cw*H/ch));
         if(Math.abs(nW-W)<3){ W=nW; break; }
         W=nW; setW(W);
       }
     }
+    { const H=f.scrollHeight;
+      if(H>0&&bestW&&bestW!==W&&bestS>score(W,H)+0.01){
+        W=bestW; setW(W); fitBlockCols(); fitBlockText(); fitSummary(); } }
     let k=cw/W;
     // a two-team board would otherwise be drawn at cartoon size
     if(k>1.9){ k=1.9; W=Math.round(cw/k); setW(W); }
@@ -7654,6 +7670,13 @@ window.addEventListener("error",function(ev){
     // underneath it, so a pass that ends a few pixels over is possible; the picture
     // fitting inside the screen is not negotiable, the scale is.
     { const H=f.scrollHeight; if(H>0&&H*k>ch) k=ch/H; }
+    // AND ONE HONEST RETRY. fitSummary() above can wrap the chips AFTER the
+    // width settled, growing the content past the solve — the check then trims
+    // the scale and an upright phone kept a dark band down one side (audit,
+    // build 360). If the landing misses the screen's width, solve once more
+    // from the settled state; the second pass starts with the chips already
+    // wrapped, so it converges.
+    if(W*k<cw*0.97&&!f._resolve){ f._resolve=1; fillTvBoard(cw,ch); f._resolve=0; return; }
     const dy=Math.max(0,(ch-f.scrollHeight*k)/2);
     f.style.transform=`translateY(${dy.toFixed(1)}px) scale(${k.toFixed(4)})`;
   }
