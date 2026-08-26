@@ -1345,7 +1345,16 @@
   .blkrest b{font-family:var(--disp);font-weight:700;font-size:11.5px;letter-spacing:.32em;text-transform:uppercase;color:#fff}
   .blkrest span{font-family:var(--disp);font-weight:600;font-size:12px;color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums;letter-spacing:.08em;margin-left:-6px}
   .win .winbr{display:none}
-  body.wkscreen:not(.mobscreen) .blkrest{display:none}
+  /* THE REST SITS BETWEEN THE PARTS on the wall too — the same divider the
+     overview uses (Omar, build 355). Cards sharing one row get it VERTICAL,
+     standing in the gap; wrapped rows keep the horizontal strip. */
+  body.wkscreen:not(.mobscreen) .vrests>.blkrest{flex-direction:column;gap:10px;
+    margin:0;padding:0 6px;grid-column:auto}
+  body.wkscreen:not(.mobscreen) .vrests>.blkrest::before,
+  body.wkscreen:not(.mobscreen) .vrests>.blkrest::after{border-top:0;
+    border-left:1px dashed rgba(255,255,255,.4);width:0;flex:1}
+  body.wkscreen:not(.mobscreen) .blkrest b{font-size:16px}
+  body.wkscreen:not(.mobscreen) .blkrest span{font-size:17px;margin-left:0}
   body.wkscreen:not(.mobscreen) .win .winbr{display:inline}
   .tlbrest{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);text-align:center;padding:7px 0;border-left:2px dashed rgba(255,255,255,.18);margin:4px 0 4px 7px}
   .stn .brow{display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap;margin:9px 0 2px;padding-left:2px;min-width:0}
@@ -1496,7 +1505,7 @@
   body.wkscreen:not(.mobscreen) .blocks{display:grid!important;
     grid-template-columns:repeat(var(--bcols,1),minmax(0,1fr));
     align-content:center;gap:26px;margin-top:26px}
-  body.wkscreen:not(.mobscreen) .blocks>.blkrest{grid-column:1/-1}
+  body.wkscreen:not(.mobscreen) .blocks:not(.vrests)>.blkrest{grid-column:1/-1}
   body.bigscreen:not(.mobscreen) .subhead .ttl{flex-direction:row;align-items:baseline;
     gap:12px 34px;flex-wrap:wrap;overflow:visible}
   /* the name gives way before it spills: on a board authored at phone width the
@@ -1539,14 +1548,15 @@
   body.wkscreen:not(.mobscreen) .blk .teams .t{font-size:19px}
   body.wkscreen:not(.mobscreen) .blk .teams .dot{width:13px;height:13px}
   body.wkscreen:not(.mobscreen) .blk .teams .mtag{font-size:15px;padding:2px 9px}
-  /* THE TIMER IS THE FOCAL POINT (Omar, build 353): a white slab — the same
-     ground as the NOW line — so the eye lands on it from the floor. Centred
-     against the title row instead of hanging off its baseline. */
-  body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:22px;
-    padding:14px 36px 18px;text-align:center;align-self:center}
-  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:96px}
+  /* THE TIMER IS THE FOCAL POINT (Omar, builds 353-355): a white slab — the
+     same ground as the NOW line — holding NOTHING but the digits. The status
+     line under it already says where the class is, so no label rides inside;
+     the box hugs the number and the digits do the talking. */
+  body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:24px;
+    padding:6px 34px 16px;text-align:center;align-self:center}
+  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:118px;letter-spacing:-.03em}
   body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
-  body.wkscreen:not(.mobscreen) .clock span{font-size:14px;letter-spacing:.3em;color:rgba(10,10,11,.6)}
+  body.wkscreen:not(.mobscreen) .clock span{display:none}
   body.wkscreen:not(.mobscreen) .phase .plabel{font-size:26px}
   body.wkscreen:not(.mobscreen) .phase .pdesc{font-size:18px}
   @media (max-width:720px){
@@ -3124,7 +3134,6 @@ window.addEventListener("error",function(ev){
         ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
         <div class="bd">${exLines(b,live?seg:null)}</div>
         ${(!blockLen(b)||blockSchemeTxt(b))?"":`<div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:isWin(b)?`In ${fmtMS(bWin(b))} &middot; work through the list &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${finLen(b)?`then ${fmtMS(finLen(b))} finish · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>`}
-        ${(blockSchemeTxt(b)&&restAfterBlock(bi)>0&&bi<R().blocks.length-1)?`<div class="win">then ${fmtMS(restAfterBlock(bi))} rest</div>`:""}
         <div class="teams">${al.teams.map(t=>{
           // Nobody has tapped in yet: the machine is the fact, the person is not.
           // Printing an invented "Team 1" here is the very thing claiming removed.
@@ -3186,7 +3195,17 @@ window.addEventListener("error",function(ev){
       const w=el.clientWidth||el.getBoundingClientRect().width||0;
       fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
     const rows=Math.ceil(n/Math.min(n,fit));
-    el.style.setProperty("--bcols",Math.max(1,Math.ceil(n/rows)));
+    const bc=Math.max(1,Math.ceil(n/rows));
+    el.style.setProperty("--bcols",bc);
+    // THE REST STANDS BETWEEN THE PARTS. When every card fits one row on the
+    // wall, the .blkrest dividers become their own narrow COLUMNS in the gaps
+    // (template interleaves 1fr cards with max-content dividers); wrapped rows
+    // keep the overview's horizontal strip (grid-column:1/-1).
+    const vr=wall&&rows===1&&el.querySelector(":scope > .blkrest");
+    el.classList.toggle("vrests",!!vr);
+    if(vr) el.style.gridTemplateColumns=[...el.children]
+      .map(c=>c.classList.contains("blkrest")?"max-content":"minmax(0,1fr)").join(" ");
+    else el.style.removeProperty("grid-template-columns");
     fitBlockText();
   }
 
@@ -7381,7 +7400,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=354;
+  const BUILD=355;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
