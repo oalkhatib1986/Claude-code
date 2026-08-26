@@ -1552,17 +1552,22 @@
   body.wkscreen:not(.mobscreen) .blk .teams .t{font-size:19px}
   body.wkscreen:not(.mobscreen) .blk .teams .dot{width:13px;height:13px}
   body.wkscreen:not(.mobscreen) .blk .teams .mtag{font-size:15px;padding:2px 9px}
-  /* THE WALL HEADER IS TWO ZONES (Omar, builds 353-356): the workout stacked
+  /* THE WALL HEADER IS TWO ZONES (Omar, builds 353-357): the workout stacked
      on the left — ENGINE with its chips underneath, one left edge — and the
      clock alone on the right, a white slab holding NOTHING but the digits.
-     The status line already says where the class is, so no label rides
-     inside; the box breathes around the number and the digits do the talking. */
-  body.wkscreen:not(.mobscreen) .subhead{align-items:center;gap:16px 44px}
+     A GRID, not a wrapping flex row: at a narrow authored width the clock
+     used to drop UNDER the title and float mid-page (Omar's phone preview).
+     Two fixed columns keep it beside the title and vertically centred at
+     every width, and the slab's type scales with the board's own authored
+     width (--tvw) so the proportions hold from a TV to an upright phone. */
+  body.wkscreen:not(.mobscreen) .subhead{display:grid;
+    grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px 40px}
   body.wkscreen:not(.mobscreen) .subhead .ttl{flex-direction:column;align-items:flex-start;
     gap:14px;overflow:visible}
-  body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:28px;
-    padding:10px 44px 22px;text-align:center;align-self:center}
-  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:132px;letter-spacing:-.04em}
+  body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
+    padding:.07em .32em .15em;text-align:center;align-self:center;justify-self:end;
+    font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
+  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:1em;letter-spacing:-.04em}
   body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
   body.wkscreen:not(.mobscreen) .clock span{display:none}
   body.wkscreen:not(.mobscreen) .phase .plabel{font-size:26px}
@@ -7413,7 +7418,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=356;
+  const BUILD=357;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -7511,6 +7516,7 @@ window.addEventListener("error",function(ev){
     f._fill=null;
     const A=f._avail||0;
     f.style.transform=""; f.style.width=""; f.style.transformOrigin="";
+    f.style.removeProperty("--tvw");
     if(!(A>0)||!document.body.classList.contains("bigscreen")
        ||document.body.classList.contains("mobscreen")) return;
     fitRowH(A);
@@ -7556,7 +7562,10 @@ window.addEventListener("error",function(ev){
     // LAYOUT box's centre — which is half a screen to the right — so it hung off the
     // edge with a band of empty floor on the left.
     f.style.transformOrigin="top left";
-    f.style.transform=""; f.style.width=cw+"px";
+    // the AUTHORED width rides on the element as --tvw, so type that must stay
+    // proportional to the picture (the wall clock) can scale with it
+    const setW=w=>{ f.style.width=w+"px"; f.style.setProperty("--tvw",w+"px"); };
+    f.style.transform=""; setW(cw);
     // TWO PHASES, or the solver chases its own tail. The row height is decided
     // against the height available (never the width), the width is then solved for
     // that content, and the rows are re-fitted once against the width that settled.
@@ -7582,12 +7591,12 @@ window.addEventListener("error",function(ev){
         const H=f.scrollHeight; if(!(H>0)) return;
         const nW=Math.max(minW,Math.round(cw*H/ch));
         if(Math.abs(nW-W)<3){ W=nW; break; }
-        W=nW; f.style.width=W+"px";
+        W=nW; setW(W);
       }
     }
     let k=cw/W;
     // a two-team board would otherwise be drawn at cartoon size
-    if(k>1.9){ k=1.9; W=Math.round(cw/k); f.style.width=W+"px"; }
+    if(k>1.9){ k=1.9; W=Math.round(cw/k); setW(W); }
     // the summary line was fitted against the page, not the width that just
     // settled — re-fit it here or a narrow board keeps a line sized for a wide one
     fitSummary();
@@ -7680,7 +7689,7 @@ window.addEventListener("error",function(ev){
       const availW=Math.max(320,Math.round(view.clientWidth));
       fillTvBoard(availW,availH);
     } else {
-      const f=$("tvFit"); if(f){ f.style.transform=""; f.style.width=""; }
+      const f=$("tvFit"); if(f){ f.style.transform=""; f.style.width=""; f.style.removeProperty("--tvw"); }
       if(view) view.style.height="";
     }
   }
