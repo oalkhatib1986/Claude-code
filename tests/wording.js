@@ -65,6 +65,12 @@ await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1500);
 await p.click('#tabBoard'); await p.waitForTimeout(700);
 ok(await p.evaluate(()=>!!document.querySelector('#blockCards .exg.pnow')),'live: the running part still gets the NOW slab');
+// the ATHL3TE timer: WORK/REST label above the digits, drain bar below,
+// solid slab while working (the NOW slab's own language)
+ok(await p.evaluate(()=>{ const c=document.querySelector('.clock');
+  return c&&/work|score/i.test(document.getElementById('clockLab').textContent)
+    &&!!c.querySelector('.cbar u')&&!c.classList.contains('rest'); }),
+  'live: the timer slab carries its state label and drain bar');
 // nothing clips or scrolls — wall and phone
 const fit=async(w,h,hash)=>{ await p.setViewportSize({width:w,height:h});
   if(hash){ await p.goto('file:///home/user/Claude-code/leaderboard.html'+hash); await p.waitForTimeout(1500); }

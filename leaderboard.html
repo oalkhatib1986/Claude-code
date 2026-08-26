@@ -1564,12 +1564,39 @@
     grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px 40px}
   body.wkscreen:not(.mobscreen) .subhead .ttl{flex-direction:column;align-items:flex-start;
     gap:14px;overflow:visible}
+  /* THE ATHL3TE TIMER (Omar, build 358 — "a design people associate with the
+     brand"). It speaks the CARDS' OWN LANGUAGE: solid white slab while the
+     class WORKS (the NOW slab), flipped to a dashed outline while it RESTS
+     (the up-next outline) — readable from across the gym without reading a
+     word. WORK/REST/SCORE named above the digits, a drain bar underneath
+     emptying with the interval, and a heartbeat on the digits in the last
+     ten seconds. Everything in em, so the whole object scales as one. */
+  .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
-    padding:.07em .32em .15em;text-align:center;align-self:center;justify-self:end;
+    border:.03em solid transparent;
+    padding:.10em .34em .17em;text-align:center;align-self:center;justify-self:end;
+    display:flex;flex-direction:column;align-items:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
-  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:1em;letter-spacing:-.04em}
+  body.wkscreen:not(.mobscreen) .clock .clab{display:block;font-style:normal;
+    font-family:var(--disp);font-weight:700;font-size:.125em;letter-spacing:.52em;
+    text-indent:.52em;text-transform:uppercase;color:rgba(10,10,11,.5)}
+  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:1em;letter-spacing:-.04em;
+    line-height:1.06}
   body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
   body.wkscreen:not(.mobscreen) .clock span{display:none}
+  body.wkscreen:not(.mobscreen) .clock .cbar{display:block;width:100%;height:.065em;
+    border-radius:.04em;background:rgba(10,10,11,.14);overflow:hidden;margin-top:.07em}
+  body.wkscreen:not(.mobscreen) .clock .cbar u{display:block;height:100%;
+    width:calc(var(--cfrac,1)*100%);background:#0a0a0b;border-radius:inherit}
+  /* REST: the same shape drawn in outline — the pair reads as one control */
+  body.wkscreen:not(.mobscreen) .clock.rest{background:transparent;
+    border:.03em dashed rgba(255,255,255,.55)}
+  body.wkscreen:not(.mobscreen) .clock.rest b{color:#fff}
+  body.wkscreen:not(.mobscreen) .clock.rest .clab{color:rgba(255,255,255,.65)}
+  body.wkscreen:not(.mobscreen) .clock.rest .cbar{background:rgba(255,255,255,.22)}
+  body.wkscreen:not(.mobscreen) .clock.rest .cbar u{background:#fff}
+  @keyframes clkbeat{0%{transform:scale(1)}14%{transform:scale(1.05)}34%{transform:scale(1)}100%{transform:scale(1)}}
+  body.wkscreen:not(.mobscreen) .clock.last b{animation:clkbeat 1s ease-out infinite}
   body.wkscreen:not(.mobscreen) .phase .plabel{font-size:26px}
   body.wkscreen:not(.mobscreen) .phase .pdesc{font-size:18px}
   @media (max-width:720px){
@@ -1669,7 +1696,7 @@
     <div class="tvfit" id="tvFit">
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evProg" class="progline" hidden></span><span id="evSummary"></span></div>
-      <div class="clock"><b id="clock">0:00</b><span id="clockState">On the line</span></div>
+      <div class="clock"><i class="clab" id="clockLab">Work</i><b id="clock">0:00</b><span id="clockState">On the line</span><i class="cbar"><u id="clockBar"></u></i></div>
     </div>
     <div class="phase" id="phaseBanner" hidden>
       <span class="plabel" id="phaseLabel"></span>
@@ -2954,6 +2981,10 @@ window.addEventListener("error",function(ev){
     if(remain<=0){ rot.phase="pre"; syncRotChrome(); renderLanesRot(); renderTablet(); return; }
     rot.remain=remain;
     clockEl.textContent=fmtMS(remain); clockEl.classList.remove("hot");
+    { const ck=clockEl.parentElement; ck.classList.add("rest");
+      ck.classList.toggle("last",remain<=10);
+      ck.style.setProperty("--cfrac",clamp(remain/Math.max(1,rot.restDur||1),0,1).toFixed(4));
+      const lb=$("clockLab"); if(lb) lb.textContent="Rest"; }
     renderTablet();
     raf=requestAnimationFrame(frameRest);
   }
@@ -3089,9 +3120,18 @@ window.addEventListener("error",function(ev){
     // the interval the class is inside RIGHT NOW — the same number the NOW
     // slab carries — never the block's remaining sum. Once the lead block is
     // done (or between blocks) it falls back to counting down to the change.
+    // The slab also SHOWS the moment (358): WORK solid / REST outlined, the
+    // drain bar empties with the interval, the digits beat in the last 10s.
     { const segLead=(!leadDone&&leadB)?segAt(leadB,t):null;
-      clockEl.textContent=fmtMS(segLead?Math.max(0,Math.ceil(segLead.remain))
-        :Math.max(0,(leadDone?curRoundLen():leadLen)-t)); }
+      const rem=Math.max(0,segLead?segLead.remain:(leadDone?curRoundLen():leadLen)-t);
+      clockEl.textContent=fmtMS(segLead?Math.ceil(rem):rem);
+      const ck=clockEl.parentElement;
+      const ckRest=!!(segLead&&(segLead.i<0||(segLead.it&&segLead.it.rest)));
+      const L=Math.max(1,segLead?(itLen(segLead.it)||1):(leadDone?curRoundLen():leadLen));
+      ck.classList.toggle("rest",ckRest);
+      ck.classList.toggle("last",rem<=10&&rem>0);
+      ck.style.setProperty("--cfrac",clamp(rem/L,0,1).toFixed(4));
+      const lb=$("clockLab"); if(lb) lb.textContent=ckRest?"Rest":(hotAny?"Score":"Work"); }
     clockEl.classList.toggle("hot",hotAny);
     clockState.textContent=leadDone?"Other stations finishing":whereNow(true);
     $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
@@ -7418,7 +7458,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=357;
+  const BUILD=358;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
