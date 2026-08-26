@@ -2603,8 +2603,18 @@ window.addEventListener("error",function(ev){
   const machSlots=()=>{ const ctr={}, byKey={}, byBlock=[]; const wt=worstTeamsPerBlock();
     R().blocks.forEach((b,bi)=>{ const types=[...blockUsesTypes(b)]; const slots=[];
       const nSt=blockStations(b), stn=[];
-      for(let s2=0;s2<nSt;s2++){ const mm={}; types.forEach(tp=>{ ctr[tp]=(ctr[tp]||0)+1; mm[tp]=ctr[tp];
-        byKey[tp+":"+ctr[tp]]={bi,j:Math.ceil(s2*Math.max(1,wt)/Math.max(1,nSt))}; }); stn.push(mm); }
+      for(let s2=0;s2<nSt;s2++){ const mm={}; types.forEach(tp=>{
+        // A MACHINE NUMBER THE GYM DOES NOT OWN NEVER PRINTS (Omar, build 359:
+        // 40 athletes drew SKI 20 in a five-ski gym — the block's floorwork
+        // needs a spot per athlete, so the block had 20 stations, and every
+        // TYPE was numbered straight through them). Each type numbers its own
+        // machines up to the gym's count and then WRAPS — station 6 is back on
+        // Ski 1, sharing it, which is also where Ski 1's tablet actually is.
+        const cap=Math.max(1,invOf(tp)||1);
+        ctr[tp]=(ctr[tp]||0)+1; const num=((ctr[tp]-1)%cap)+1; mm[tp]=num;
+        const key=tp+":"+num;
+        if(!byKey[key]) byKey[key]={bi,j:Math.ceil(s2*Math.max(1,wt)/Math.max(1,nSt))};
+      }); stn.push(mm); }
       for(let j=0;j<wt;j++) slots.push(stn[spreadIx(j,nSt,wt)]);
       byBlock.push(slots); });
     return {byKey,byBlock}; };
@@ -7458,7 +7468,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=358;
+  const BUILD=359;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
