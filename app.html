@@ -1539,8 +1539,14 @@
   body.wkscreen:not(.mobscreen) .blk .teams .t{font-size:19px}
   body.wkscreen:not(.mobscreen) .blk .teams .dot{width:13px;height:13px}
   body.wkscreen:not(.mobscreen) .blk .teams .mtag{font-size:15px;padding:2px 9px}
-  body.wkscreen:not(.mobscreen) .clock b{font-size:110px}
-  body.wkscreen:not(.mobscreen) .clock span{font-size:15px;letter-spacing:.3em}
+  /* THE TIMER IS THE FOCAL POINT (Omar, build 353): a white slab — the same
+     ground as the NOW line — so the eye lands on it from the floor. Centred
+     against the title row instead of hanging off its baseline. */
+  body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:22px;
+    padding:14px 36px 18px;text-align:center;align-self:center}
+  body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:96px}
+  body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
+  body.wkscreen:not(.mobscreen) .clock span{font-size:14px;letter-spacing:.3em;color:rgba(10,10,11,.6)}
   body.wkscreen:not(.mobscreen) .phase .plabel{font-size:26px}
   body.wkscreen:not(.mobscreen) .phase .pdesc{font-size:18px}
   @media (max-width:720px){
@@ -7374,7 +7380,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=352;
+  const BUILD=353;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
