@@ -549,8 +549,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   required) and renders as its ordinal line ("4th: Rest") — Omar's Tuesday
   Engine sheet is 1.Ski 2.Down Ups 3.Run 4.REST × 5; bare whole-minute durations are SAID as
   minutes (`minTxt` — a naked "3:00" over a list read as a mystery number); the single repeated interval → "EVERY 2:30 FOR
-  10 MINUTES". Anything shapelier keeps the footer — a scheme that lies is worse
-  than none. "Group" is never printed. `wording.js` pins the whole grammar
+  10 MINUTES". A SCHEME REPLACES THE FOOTER'S SHAPE, NEVER ITS FACTS (Omar
+  caught the 2:00 between-block rest vanishing, build 354): the footer also
+  carried "then X rest" (rest-after-block), so a scheme block prints its own
+  slim `.win` "then 2:00 rest" line — when replacing a display element, list
+  everything it carried and re-home EVERY piece. Anything shapelier keeps the
+  footer — a scheme that lies is worse than none. "Group" is never printed. `wording.js` pins the whole grammar
   against Omar's slide, live NOW slab included. **`gallery.js` is the ship gate
   for ANY wall-wording or card-layout change**: it renders all 14 house boards
   + every 9th programme session on a 1920 wall and machine-checks each against

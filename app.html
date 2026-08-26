@@ -3124,6 +3124,7 @@ window.addEventListener("error",function(ev){
         ${running?`<div class="bprog"><i style="width:${pct}%"></i></div>`:""}
         <div class="bd">${exLines(b,live?seg:null)}</div>
         ${(!blockLen(b)||blockSchemeTxt(b))?"":`<div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:isWin(b)?`In ${fmtMS(bWin(b))} &middot; work through the list &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${finLen(b)?`then ${fmtMS(finLen(b))} finish · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>`}
+        ${(blockSchemeTxt(b)&&restAfterBlock(bi)>0&&bi<R().blocks.length-1)?`<div class="win">then ${fmtMS(restAfterBlock(bi))} rest</div>`:""}
         <div class="teams">${al.teams.map(t=>{
           // Nobody has tapped in yet: the machine is the fact, the person is not.
           // Printing an invented "Team 1" here is the very thing claiming removed.
@@ -7380,7 +7381,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=353;
+  const BUILD=354;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

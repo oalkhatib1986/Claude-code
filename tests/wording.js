@@ -111,6 +111,10 @@ const TA=tueCards[0]||'', TB=tueCards[1]||'';
 ok(/EMOM × 20 minutes/i.test(TA),'Tue A: heading is EMOM × 20 MINUTES');
 ok(/1st:\s*50 sec Ski/i.test(TA),'Tue A: 1st minute reads 50 sec Ski');
 ok(/4th:\s*Rest/i.test(TA),'Tue A: the rest minute is numbered (4th: Rest)');
+// A SCHEME REPLACES THE FOOTER'S SHAPE, NEVER ITS FACTS: the 2:00 rest after
+// Part A must survive the EMOM heading (Omar caught it missing on the wall)
+ok(/then 2:00 rest/i.test(TA),'Tue A: the rest AFTER the block still shows (then 2:00 rest)');
+ok(!/then .* rest/i.test(TB),'Tue B: the last block claims no rest-after');
 ok(/EMOM × 20 minutes/i.test(TB)&&/50 sec Box Jump Overs/i.test(TB)&&/4th:\s*Rest/i.test(TB),
   'Tue B: Row EMOM reads the same way');
 await p.screenshot({path:'wording_wall.png'});
