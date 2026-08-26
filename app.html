@@ -1523,8 +1523,9 @@
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{margin-bottom:6px}
   body.wkscreen:not(.mobscreen) .blk .bd .exg{margin-top:16px}
   body.wkscreen:not(.mobscreen) .blk .bstat{font-size:22px;letter-spacing:.16em}
-  body.wkscreen:not(.mobscreen) .blk .bclk b{font-size:52px}
-  body.wkscreen:not(.mobscreen) .blk .bclk i{font-size:18px}
+  /* ONE TIMER ON THE WALL — the big top-right clock (Omar, build 352). The
+     per-card countdowns repeated the same number twice more; gone. */
+  body.wkscreen:not(.mobscreen) .blk .bclk{display:none}
   body.wkscreen:not(.mobscreen) .blk .bwhere{font-size:22px;letter-spacing:.18em;margin-top:-8px}
   /* the PROGRESS BAR is 8px tall. The running part is a slab and is as tall as the
      work it contains — sharing the rule forced it to 8px and painted its own white
@@ -7373,7 +7374,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=351;
+  const BUILD=352;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
