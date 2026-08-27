@@ -110,7 +110,13 @@ Run the ones the change can reach, plus `test_fitall.js` for ANY layout change:
 - NOW/NEXT, athlete cards -> `crewwhere` `grouped` `nextpart` `idlenext` `audit`
 - fullscreen/TV chrome -> `fsfill` `fsctl` `fsentry` `fsswitch` `tvfit`
 - footer/chrome -> `foot` `align` `cardtype`
-- class size / roster -> `latein` `gymfit` `freechip`
+- class size / roster -> `latein` `gymfit` `freechip` `stcap`
+- broad audits (run for engine changes and before big handovers) -> `stress`
+  (size × format × flow matrix, running states, tvfull coverage, phone tabs,
+  tablet claim) and `stress2` (every house board RUNNING, 47-min fuzz,
+  completion → Results, corrupted storage, control mashing, mid-class resize,
+  reload-mid-class, long names, library churn). `window.__seek(s)` beside
+  `__loadLib` drives the clock across boundaries without waiting real time.
 
 Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 `itStations`, `blockStations`, `spreadIx`), the rotation (`segAt`, `stationOf`,
