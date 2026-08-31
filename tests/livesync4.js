@@ -37,6 +37,8 @@ await phone.evaluate(()=>document.getElementById('startBtn').click());
 await phone.waitForTimeout(5500);   // TV joins the class
 console.log('tv joined:',JSON.stringify(await tvw.evaluate(()=>window.__sessState())));
 await phone.evaluate(()=>document.getElementById('resetBtn').click());
+await phone.waitForTimeout(300);   // a running class asks before it dies (build 367)
+await phone.evaluate(()=>{ const d=document.querySelector('.dlg .dok'); if(d) d.click(); });
 await phone.waitForTimeout(4000);   // TV should have applied idle
 const snap=async p=>p.evaluate(()=>{
   const clk=els=>els.map(e=>e.textContent.trim()).join('|');

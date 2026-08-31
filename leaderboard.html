@@ -1722,6 +1722,7 @@
       <button class="tico d5" id="bdf5" type="button" disabled aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
       <button class="tico" id="bdf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
       <button class="tico" id="bdNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+      <button class="tico" id="bdReset" type="button" disabled aria-label="Reset session" title="Reset session"><svg viewBox="0 0 24 24"><rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.8" fill="currentColor"/></svg></button>
       <button class="btn small primary" id="bdStart" type="button">Start</button>
       <span id="bdFlow"></span>
     </div>
@@ -3853,7 +3854,12 @@ window.addEventListener("error",function(ev){
     circReset(); tbFresh(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
   // acting on the clock is what makes THIS device the controller — publish at once
   startBtn.onclick=()=>{ start(); sessPushNow(); };
-  resetBtn.onclick=()=>{ reset(); sessPushNow(); };
+  // a RUNNING class asks before it dies — one stray tap (now reachable from
+  // the wall dock too) must not wipe the clock for the whole gym; an idle or
+  // finished session resets silently, there is nothing to lose
+  resetBtn.onclick=async()=>{
+    if(running&&!finished&&!await dlgConfirm("Reset the session? The clock stops on every screen and the class starts over.","Reset")) return;
+    reset(); sessPushNow(); };
 
   /* ================= tabs ================= */
   const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"]};
@@ -7442,6 +7448,11 @@ window.addEventListener("error",function(ev){
   // stays a part behind (Omar caught it on the wall)
   $("tknext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
   $("bdNext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
+  // RESET FROM THE WALL — the same confirmed reset as Control (its handler
+  // asks in the app's own panel and publishes to every screen); the lock
+  // gates it like every other destructive dock control.
+  $("bdReset").onclick=()=>{ armRelock(); if(!tkLock){
+    const b=$("resetBtn"); if(b&&!b.disabled) b.click(); } };
   $("tkprev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
   function setDock(open){ $("bdock").classList.toggle("tucked",!open); $("bdockTab").classList.toggle("open",open);
     $("bdockTab").setAttribute("aria-label",open?"Hide controls":"Show controls"); }
@@ -7530,7 +7541,7 @@ window.addEventListener("error",function(ev){
   setInterval(()=>{ const a=$("tClock"); if(!a) return;
     const noTk=cfg.mode==="waves";
     ["tkpause","tkb10","tkb5","tkf5","tkf10","bdPause","bdb10","bdb5","bdf5","bdf10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
-    ["tknext","bdNext","tkprev","bdPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
+    ["tknext","bdNext","tkprev","bdPrev","bdReset"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
     buildTrainerList();
     refreshCrewStations();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
@@ -7542,7 +7553,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=366;
+  const BUILD=367;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

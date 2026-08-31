@@ -58,6 +58,8 @@ ok((await tv.evaluate(()=>window.__sessState())).run===true,'a running screen ig
 ok(sess.run&&sess.run.act===true,'and re-publishes the truth to the room');
 // reset from the reloaded phone commands the whole room
 await phone.evaluate(()=>document.getElementById('resetBtn').click());
+await phone.waitForTimeout(300);   // a running class asks before it dies (build 367)
+await phone.evaluate(()=>{ const d=document.querySelector('.dlg .dok'); if(d) d.click(); });
 await phone.waitForTimeout(400);
 ok(sess.run.act===false,'reset from the reloaded phone publishes idle');
 await tv.waitForTimeout(3200);
