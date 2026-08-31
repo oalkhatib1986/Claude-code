@@ -1349,13 +1349,16 @@
   .blkrest b{font-family:var(--disp);font-weight:700;font-size:11.5px;letter-spacing:.32em;text-transform:uppercase;color:#fff}
   .blkrest span{font-family:var(--disp);font-weight:600;font-size:12px;color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums;letter-spacing:.08em;margin-left:-6px}
   .win .winbr{display:none}
-  /* THE REST SITS BETWEEN THE PARTS on the wall too — the same divider the
-     overview uses (Omar, build 355). Cards sharing one row get it VERTICAL,
-     standing in the gap; wrapped rows keep the horizontal strip. */
-  body.wkscreen:not(.mobscreen) .vrests>.blkrest{flex-direction:column;gap:10px;
+  /* THE REST SITS BETWEEN THE PARTS — everywhere (Omar, builds 355 + 361).
+     Cards sharing one row get the divider VERTICAL, standing in the gap as
+     its own narrow column; wrapped rows keep the horizontal strip. A full-
+     width strip between cards that SHARE a row is what left the overview's
+     right half empty: the grid reserved two columns and the strip forced
+     every card onto its own row. */
+  .vrests>.blkrest{flex-direction:column;gap:10px;
     margin:0;padding:0 6px;grid-column:auto}
-  body.wkscreen:not(.mobscreen) .vrests>.blkrest::before,
-  body.wkscreen:not(.mobscreen) .vrests>.blkrest::after{border-top:0;
+  .vrests>.blkrest::before,
+  .vrests>.blkrest::after{border-top:0;
     border-left:1px dashed rgba(255,255,255,.4);width:0;flex:1}
   body.wkscreen:not(.mobscreen) .blkrest b{font-size:16px}
   body.wkscreen:not(.mobscreen) .blkrest span{font-size:17px;margin-left:0}
@@ -3264,7 +3267,7 @@ window.addEventListener("error",function(ev){
     // wall, the .blkrest dividers become their own narrow COLUMNS in the gaps
     // (template interleaves 1fr cards with max-content dividers); wrapped rows
     // keep the overview's horizontal strip (grid-column:1/-1).
-    const vr=wall&&rows===1&&el.querySelector(":scope > .blkrest");
+    const vr=rows===1&&el.querySelector(":scope > .blkrest");
     el.classList.toggle("vrests",!!vr);
     if(vr) el.style.gridTemplateColumns=[...el.children]
       .map(c=>c.classList.contains("blkrest")?"max-content":"minmax(0,1fr)").join(" ");
@@ -7470,7 +7473,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=360;
+  const BUILD=361;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
