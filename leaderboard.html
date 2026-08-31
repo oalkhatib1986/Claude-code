@@ -6833,8 +6833,18 @@ window.addEventListener("error",function(ev){
     aiBubble("you",txt); ta.value="";
     aiMsgs.push({role:"user",content:txt});
     try{
-      const res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-5",max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
+      // ANTHROPIC GEO-BLOCKS SOME CLOUDFLARE ROUTES (403 "Request not
+      // allowed") and it is luck-of-the-draw per request — retry a few times
+      // before bothering the coach; a fresh request often lands an allowed
+      // route (build 365, Omar hit it mid-build).
+      let res=null;
+      for(let att=0;att<3;att++){
+        res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
+          body:JSON.stringify({model:"claude-sonnet-5",max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
+        if(res.ok||(res.status!==403&&res.status!==429&&res.status!==529)) break;
+        btn.textContent="Retrying…";
+        await new Promise(r=>setTimeout(r,700*(att+1)));
+      }
       if(!res.ok){ let t=""; try{ t=(await res.text()).slice(0,300); }catch(e){}
         // surface the provider's own words — a bare status number is undiagnosable
         // from a phone screenshot
@@ -6855,7 +6865,12 @@ window.addEventListener("error",function(ev){
           +(cfg.prog&&cfg.prog.date?" \u00b7 dated "+cfg.prog.date.split("-").reverse().join("/"):"")
           +" \u2014 it\u2019s on every screen. Review the setup below; reopen me for tweaks."); }
     }catch(e){
-      aiBubble("err","Couldn't reach the AI ("+e.message+"). Check the relay link or try again.");
+      aiBubble("err","Couldn't reach the AI ("+e.message+"). Tap Build it to try again.");
+      // the coach's words go BACK in the box — a failure must never cost a
+      // retyped paragraph — and the failed turn leaves the history so a
+      // retry doesn't send it twice
+      if(aiMsgs.length&&aiMsgs[aiMsgs.length-1].role==="user") aiMsgs.pop();
+      ta.value=txt;
     }
     aiBusy=false; btn.disabled=false; btn.textContent="Build it";
   }
@@ -7509,7 +7524,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=364;
+  const BUILD=365;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
