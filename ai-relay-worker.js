@@ -88,7 +88,13 @@ export default {
       })),
     };
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    // ANTHROPIC_URL (optional env var) reroutes the call through Cloudflare's
+    // AI Gateway — egress from Cloudflare's core network, immune to the
+    // regional 403 "Request not allowed" some colos hit. Set it to the
+    // gateway's Anthropic endpoint, e.g.
+    // https://gateway.ai.cloudflare.com/v1/<ACCOUNT_ID>/<GATEWAY>/anthropic
+    const base = (env.ANTHROPIC_URL || "https://api.anthropic.com").replace(/\/+$/, "");
+    const res = await fetch(base + "/v1/messages", {
       method: "POST",
       headers: {
         "content-type": "application/json",
