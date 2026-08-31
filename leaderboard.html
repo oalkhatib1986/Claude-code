@@ -1727,7 +1727,7 @@
       <button class="tico d5" id="bdf5" type="button" disabled aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
       <button class="tico" id="bdf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
       <button class="tico" id="bdNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
-      <button class="tico" id="bdReset" type="button" disabled aria-label="Reset session" title="Reset session"><svg viewBox="0 0 24 24"><rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.8" fill="currentColor"/></svg></button>
+      <button class="btn small" id="bdReset" type="button" disabled title="Reset session">Reset</button>
       <button class="btn small primary" id="bdStart" type="button">Start</button>
       <span id="bdFlow"></span>
     </div>
@@ -3218,7 +3218,7 @@ window.addEventListener("error",function(ev){
           const curIt=(seg2&&seg2.it)?seg2.it:its2.find(x=>!x.rest);
           const slots2=machSlots().byBlock[bi]||[];
           const rows={}, order=[];
-          const floorN=[], restN=[]; let floorF=0, restF=0;
+          const floorRows=[], restRows=[];
           al.teams.forEach((t,j)=>{
             const mm=slots2[j]||{};
             const free=unnamed(t.e.name), nm=t.e.name;
@@ -3237,8 +3237,8 @@ window.addEventListener("error",function(ev){
             if(tp){ const k=tp+":"+mm[tp];
               if(!rows[k]){ rows[k]={label:mInfo(tp).short+" "+mm[tp],names:[],free:0}; order.push(k); }
               if(free) rows[k].free++; else rows[k].names.push(nm); }
-            else if(isRest){ if(free) restF++; else restN.push(nm); }
-            else { if(free) floorF++; else floorN.push(nm); }
+            else if(isRest) restRows.push({free,nm});
+            else floorRows.push({free,nm});
           });
           const typeOrd=[...blockUsesTypes(b)];
           order.sort((a2,b2)=>{ const A=a2.split(":"), B=b2.split(":");
@@ -3257,9 +3257,10 @@ window.addEventListener("error",function(ev){
           order.forEach(k=>{ const tp2=k.split(":")[0];
             (cols[tp2]=cols[tp2]||[]).push(chip(rows[k].label,rows[k].names,rows[k].free)); });
           let out2=typeOrd.filter(t2=>cols[t2]).map(t2=>`<div class="tcol">${cols[t2].join("")}</div>`).join("");
-          const extra=[];
-          if(floorN.length||floorF) extra.push(chip("Floor",floorN,floorF));
-          if(restN.length||restF) extra.push(chip("Resting",restN,restF));
+          // Rest and Floor read like the machines: one numbered row per spot
+          const extra=[
+            ...floorRows.map((r,i2)=>chip("Floor"+(floorRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)),
+            ...restRows.map((r,i2)=>chip("Rest"+(restRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0))];
           if(extra.length) out2+=`<div class="tcol">${extra.join("")}</div>`;
           return out2;
         })()}${(()=>{
@@ -7597,11 +7598,13 @@ window.addEventListener("error",function(ev){
     $("tState").textContent=clockState.textContent;
     if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
+    // RESET lights up only when there is a session to reset — and never while locked
+    { const br2=$("bdReset"); if(br2) br2.disabled=tkLock||resetBtn.disabled; }
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=370;
+  const BUILD=371;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
