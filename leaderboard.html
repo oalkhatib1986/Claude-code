@@ -3272,6 +3272,24 @@ window.addEventListener("error",function(ev){
       .map(c=>c.classList.contains("blkrest")?"max-content":"minmax(0,1fr)").join(" ");
     else el.style.removeProperty("grid-template-columns");
     fitBlockText();
+    alignTeams();
+  }
+  // CARDS SHARING A ROW SHARE THEIR SHAPE (Omar, build 363): the workout text
+  // above the station chips stretches to the row's tallest, so every card's
+  // chips start on the SAME line and the rows of stations read across.
+  function alignTeams(){
+    const el=$("blockCards"); if(!el) return;
+    const cards=[...el.querySelectorAll(":scope > .blk")];
+    const cols=Math.max(1,+getComputedStyle(el).getPropertyValue("--bcols")||1);
+    const rows2={};
+    cards.forEach((c,i)=>{ const t=c.querySelector(":scope > .teams");
+      if(!t||!t.offsetParent){ if(t) t.style.marginTop=""; return; }
+      t.style.marginTop="";
+      (rows2[Math.floor(i/cols)]=rows2[Math.floor(i/cols)]||[]).push(t); });
+    for(const k in rows2){ const list=rows2[k]; if(list.length<2) continue;
+      const max=Math.max(...list.map(t=>t.offsetTop));
+      list.forEach(t=>{ const d=max-t.offsetTop; if(d>0) t.style.marginTop=d+"px"; });
+    }
   }
 
   // A LINE OF WORK IS READ IN ONE GO, SO IT SITS ON ONE LINE. At a fixed 34px the
@@ -7472,7 +7490,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=362;
+  const BUILD=363;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
