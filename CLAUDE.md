@@ -215,6 +215,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   the boxes cannot drift apart. "Next" resolves nearest-first — the swap inside this
   part, the next part of this block, then the next block, which is the only case that
   says `end of <block>`. The station number never rides on the exercise name.
+- **AN UNSCORED CLASS ASKS FOR NOTHING (build 369).** No leaderboard = no
+  identity to collect: `claiming`/`needName` and the trainer's claim bar all
+  gate on `showLeaderboard()`, the tablet just shows the workout (no claim
+  card, no "tap your name in" band, no "Nobody yet"), and the overview's free
+  rows stay quiet. Claiming exists only where a score needs a name.
 - **The machine is not the question — the person is.** The tablet is bolted to the
   erg, so before the clock starts each screen offers itself: `.tk-claim` replaces the
   instruction card while `phase==="pre" && !sessionActive`, and tapping a name in

@@ -4645,8 +4645,11 @@ window.addEventListener("error",function(ev){
       // nothing else to show, so the claim card can own the instruction zone. After
       // it starts, the person on this machine needs to know what they are doing —
       // the name ask drops to a slim band above it and never covers the job.
-      const claiming=!!(team&&!finished&&preClock);
-      const needName=!!(team&&!finished&&unnamed(team.name));
+      // AN UNSCORED CLASS ASKS FOR NOTHING (Omar, build 369): no leaderboard
+      // means no identity to collect — the tablet just shows the workout, like
+      // the big screen. Claiming exists only where a score needs a name.
+      const claiming=!!(team&&!finished&&preClock&&showLeaderboard());
+      const needName=!!(team&&!finished&&unnamed(team.name)&&showLeaderboard());
       // machine metrics strip — warm-up before the start, live while working, frozen in rest
       const tsw=team?tbSwapInfo(sv,seg,team,b):null;
       let mts=null, mtag="", mcls="";
@@ -4781,7 +4784,7 @@ window.addEventListener("error",function(ev){
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
             <div class="tk-mach">${mLabel}</div>
             <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${
-              team?(claimed?esc(team.name):"Nobody yet"):`No ${kw()} here`}</div>
+              team?(claimed?esc(team.name):(showLeaderboard()?"Nobody yet":"")):`No ${kw()} here`}</div>
             <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>${pm5BtnHtml()}
           </div>
           ${nameBand}
@@ -7363,6 +7366,7 @@ window.addEventListener("error",function(ev){
   }
   function claimBarText(){
     if(sessionActive||running||finished) return "";
+    if(!showLeaderboard()) return "";   // unscored: nobody is asked to tap in
     const c=claimState(); if(!c||(!c.tot&&!c.spare.length)) return "";
     const sp=c.spare.length
       ? ` \u00b7 <u>${c.spare.length} more machine${c.spare.length>1?"s":""} free if anyone else turns up</u>`:"";
@@ -7585,7 +7589,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=368;
+  const BUILD=369;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
