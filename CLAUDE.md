@@ -877,3 +877,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   either way there are no black bands on either axis. Fitting inside a fixed frame
   (`fitTvBoard`) is for the *preview* only. `fsfill.js` asserts ≥94% coverage on both
   axes and nothing painted outside, on 1920/2560/3840 TVs and phone both ways.
+
+## PARKED — MANUAL SCORES PLAN (agreed with Omar, awaiting his "go")
+
+Manual leaderboard until the ergs are tested. The agreed design, in full:
+teams claim their starting erg pre-class (EXISTS — the claim flow); the app
+keeps auto-assigning the rotation, each tablet greeting the incoming team
+(EXISTS). NEW: when a scored section ends, the tablet asks "TEAM X — how
+many calories?" (unit follows the section's metric) with a small
+"Not Team X?" button opening the team list for when reality diverged from
+the plan — the pick reassigns the score AND teaches the rotation the swap.
+The ask stays through the transition (shrinks to a strip once the next
+section runs, like the mid-class claim strip) and never blocks the incoming
+team. Trainer's phone gets a Scores override panel (every team × every
+scored section, editable) for dead tablets and typos. Architecture: a
+SCORE SOURCE with three modes feeding the same crew counters — manual
+(numpad) → assisted (PM5 pre-fills, athlete confirms; erg testing happens
+inside real classes) → automatic (no confirmation). Board, results, live
+sync, tablets unchanged across all three: zero rework when ergs go live.
