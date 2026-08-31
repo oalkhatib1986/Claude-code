@@ -180,7 +180,12 @@
   .blk .bd .exg-h{font-size:15px;letter-spacing:.13em;margin-bottom:2px;color:var(--ink)}
   .blk .win{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.11em;color:var(--ink);text-transform:uppercase}
   .blk .win b{color:var(--hot)}
-  .blk .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px 10px;border-top:1px solid var(--line-soft);padding-top:10px}
+  /* MACHINES OF A KIND STACK IN ONE COLUMN (Omar, build 370): all the Skis
+     under each other, all the Bikes beside them, Resting/Floor in their own
+     column — the eye runs down a machine type instead of zig-zagging. */
+  .blk .teams{display:flex;flex-wrap:wrap;gap:10px 14px;border-top:1px solid var(--line-soft);padding-top:10px}
+  .blk .teams .tcol{flex:1 1 190px;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .blk .teams>.t{flex:1 1 100%}
   .blk .teams .t{min-width:0;padding:3px 9px;border-radius:8px}
   .blk .teams .t .mtag{margin-left:auto;max-width:100%;white-space:normal;
     overflow-wrap:anywhere;text-align:right;line-height:1.35}
@@ -3246,9 +3251,16 @@ window.addEventListener("error",function(ev){
             return `<span class="t${any?"":" unnamed"}${!any&&freeN&&urgent?" late":""}">`
               +`<span class="dot" style="background:${any?"#3ade6b":"currentColor"};color:${any?"#3ade6b":"currentColor"}"></span>`
               +`<b class="tn">${label}</b><em class="mtag">${who}</em></span>`; };
-          let out2=order.map(k=>chip(rows[k].label,rows[k].names,rows[k].free)).join("");
-          if(floorN.length||floorF) out2+=chip("Floor",floorN,floorF);
-          if(restN.length||restF) out2+=chip("Resting",restN,restF);
+          // machines of a kind stack in one COLUMN each — the eye runs down
+          // the Skis, then the Bikes, instead of zig-zagging a grid
+          const cols={};
+          order.forEach(k=>{ const tp2=k.split(":")[0];
+            (cols[tp2]=cols[tp2]||[]).push(chip(rows[k].label,rows[k].names,rows[k].free)); });
+          let out2=typeOrd.filter(t2=>cols[t2]).map(t2=>`<div class="tcol">${cols[t2].join("")}</div>`).join("");
+          const extra=[];
+          if(floorN.length||floorF) extra.push(chip("Floor",floorN,floorF));
+          if(restN.length||restF) extra.push(chip("Resting",restN,restF));
+          if(extra.length) out2+=`<div class="tcol">${extra.join("")}</div>`;
           return out2;
         })()}${(()=>{
           // THE CARD LISTS THE FLOOR, NOT THE ROSTER. Every machine this block can
@@ -7589,7 +7601,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=369;
+  const BUILD=370;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
