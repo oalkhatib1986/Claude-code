@@ -522,6 +522,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   typing on. Only the rotation clock is shared; no relay link = standalone.
   `livesync.js` gates board-follow, same-second clocks, reset-follow, URL
   relay, and the standalone path.
+- **The AI's board is FILED like every other save (build 364).** `applyAiWorkout`
+  goes through the name+date identity: the schema carries `workout.date`
+  (the coach says "for 1 September" in chat), a taken name files as
+  "Engine 01/09" via `dSuf()` with the coach's word as the display title, and
+  "change the loaded board" means same name AND same date — the same name for
+  a DIFFERENT date is next week's board, never an overwrite and never
+  " 2"-suffixed (that is the "Engine 2"/"Engine 3" bug). A new board NEVER
+  inherits the loaded board's `cfg.prog` (that is the inherited-25/08 bug).
+  The prompt also carries the STAGGERED-STATIONS law — "some start on Ski,
+  some on Bike, some rest, shifting every 1:30" = ONE `fmt:"rotate"` item,
+  one exercise per station, "Rest" as an exercise — sequential items mean
+  everyone works ONE machine at a time (Omar's Engine 3). And the HOW-SAVING-
+  WORKS paragraph: the AI must never dispute the app's save confirmation or
+  deny its own messages (it gaslit Omar about "Engine 2"). `aiwk.js` gates
+  the whole path with the relay mocked.
 - **The AI builder speaks the whole model, and the coach's parts are law.**
   `aiSystem()`'s schema must carry every field Setup can author (per-exercise
   `sets`/`each`/`rpe`/`rm`/`note`, item `note`/`fin`, formats, rests) and

@@ -6723,8 +6723,8 @@ window.addEventListener("error",function(ev){
   }
   function aiSystem(){
     return 'You are the workout-builder inside ATHL3TE gym\'s class app. Convert the coach\'s description into ONE JSON object and reply with ONLY that JSON \u2014 no markdown fences, no other text: {"reply":"short confirmation or question for the coach","workout":<object or null>}. If anything essential is unclear, set workout to null and ask at most 2 short questions in reply. Once clear, produce the workout and a one-line reply.\n'
-      +'workout schema: {name, teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short cue}]}]}]}\n'
-      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. When the coach asks to change the currently loaded board, keep its exact name. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
+      +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short cue}]}]}]}\n'
+      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (who:"P1"/"P2"/"P3"; a resting station is an exercise named "Rest") — the app then swaps the sub-groups every interval and every station works at once. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. When the coach asks to change the currently loaded board, keep its exact name. "3 rounds for quality with rest" = rounds:3 + rrest. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
@@ -6736,6 +6736,7 @@ window.addEventListener("error",function(ev){
   function applyAiWorkout(w){
     const U={reps:"reps",cal:"cal",m:"m",sec:"sec"};
     const prevWk=cfg.wkName;   // the board the coach was looking at
+    const prevDate=(cfg.prog&&cfg.prog.date)||"";
     cfg.mode="rotation";
     if(w.name) cfg.name=String(w.name).slice(0,40);
     cfg.wkName=null;
@@ -6789,15 +6790,30 @@ window.addEventListener("error",function(ev){
     })).filter(b=>b.items.length);
     R().blocks.forEach(b=>b.items.forEach(it=>(it.exercises||[]).forEach(x=>{
       if(x.name&&!cfg.library.includes(x.name)) cfg.library.push(x.name); })));
-    // THE AI'S BOARD ARRIVES SAVED. "Unsaved workout" + a rename nobody can find
-    // was the whole confusion: the board takes the AI's name (the coach's own if
-    // they gave one), lands in the shared library at once, and a taken name gets
-    // " 2" instead of silently overwriting someone's board.
-    let nm=String(w.name||cfg.name||"AI Workout").slice(0,40).trim()||"AI Workout";
-    // asking the AI to CHANGE the loaded board keeps its name and updates it in
-    // place; only a NEW board with a taken name gets " 2" instead of overwriting
-    if(nm!==prevWk){ const base=nm; let i=2; while(nameTaken(nm)) nm=base+" "+(i++); }
-    cfg.name=nm; cfg.wkName=nm;
+    // THE AI'S BOARD ARRIVES SAVED — under the SAME name+date rule as every
+    // other save (build 364; "Engine 2"/"Engine 3" with an inherited 25/08
+    // date was the old " 2" suffixing plus the previous board's prog).
+    // A NEW board never inherits the loaded board's programme line: its date
+    // is the one the coach SAID (workout.date), else empty.
+    const typedNm=String(w.name||cfg.name||"AI Workout").slice(0,40).trim()||"AI Workout";
+    let nm=typedNm;
+    const wDate=(w.date&&/^\d{4}-\d{2}-\d{2}$/.test(String(w.date)))?String(w.date):"";
+    // "change the loaded board" means SAME name and SAME date — the same name
+    // for a DIFFERENT date is next week's board, never an overwrite
+    const sameBoard=nm===prevWk&&(!wDate||wDate===prevDate);
+    if(!sameBoard) cfg.prog={date:wDate,block:"",week:"",day:"",stype:""};
+    else if(wDate){ cfg.prog=cfg.prog||{}; cfg.prog.date=wDate; }
+    // a NEW board with a taken name files by its DATE ("Engine 01/09") and the
+    // coach's word rides as the display title — the wall still reads ENGINE;
+    // only a same-name-same-date clash falls back to " 2"
+    if(!sameBoard&&nameTaken(nm)){
+      const s=dSuf();
+      if(s&&!nameTaken(nm+" "+s)) nm=nm+" "+s;
+      else { const base=nm; let i=2; while(nameTaken(nm)) nm=base+" "+(i++); }
+    }
+    cfg.wkName=nm;
+    if(nm!==typedNm){ cfg.name=typedNm; cfg.titleSet=true; }
+    else { cfg.name=nm; cfg.titleSet=false; }
     claimName(nm);   // a parked built-in under this name makes way
     const entry={name:nm,cfg:structuredClone(cfg),ts:Date.now()};
     { const pi=presets.findIndex(p=>p.name===nm);
@@ -6834,7 +6850,10 @@ window.addEventListener("error",function(ev){
       if(obj.workout){ const nm=applyAiWorkout(obj.workout);
         // the confirmation STAYS \u2014 an auto-close ate the name before anyone
         // could read it (Omar); the trainer closes the panel when done
-        aiBubble("ok","Saved as \u201c"+nm+"\u201d \u2014 it\u2019s on every screen. Review the setup below; reopen me for tweaks."); }
+        aiBubble("ok","Saved as \u201c"+nm+"\u201d"
+          +(cfg.titleSet&&cfg.name&&cfg.name!==nm?" \u2014 the screens read \u201c"+cfg.name+"\u201d":"")
+          +(cfg.prog&&cfg.prog.date?" \u00b7 dated "+cfg.prog.date.split("-").reverse().join("/"):"")
+          +" \u2014 it\u2019s on every screen. Review the setup below; reopen me for tweaks."); }
     }catch(e){
       aiBubble("err","Couldn't reach the AI ("+e.message+"). Check the relay link or try again.");
     }
@@ -7490,7 +7509,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=363;
+  const BUILD=364;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
