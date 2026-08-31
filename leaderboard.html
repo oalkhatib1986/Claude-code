@@ -1577,12 +1577,11 @@
   .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
     border:.03em solid transparent;
-    padding:.10em .34em .17em;text-align:center;align-self:center;justify-self:end;
+    padding:.16em .34em .18em;text-align:center;align-self:center;justify-self:end;
     display:flex;flex-direction:column;align-items:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
-  body.wkscreen:not(.mobscreen) .clock .clab{display:block;font-style:normal;
-    font-family:var(--disp);font-weight:700;font-size:.125em;letter-spacing:.52em;
-    text-indent:.52em;text-transform:uppercase;color:rgba(10,10,11,.5)}
+  /* NO WORDS IN THE BOX (Omar, build 362) — the digits and the drain bar are
+     the whole object; work/rest is told by the slab itself (solid vs outline) */
   body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:1em;letter-spacing:-.04em;
     line-height:1.06}
   body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
@@ -7473,7 +7472,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=361;
+  const BUILD=362;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
