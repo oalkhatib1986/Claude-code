@@ -65,12 +65,13 @@ await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1500);
 await p.click('#tabBoard'); await p.waitForTimeout(700);
 ok(await p.evaluate(()=>!!document.querySelector('#blockCards .exg.pnow')),'live: the running part still gets the NOW slab');
-// the ATHL3TE timer: WORK/REST label above the digits, drain bar below,
-// solid slab while working (the NOW slab's own language)
+// the ATHL3TE timer: digits only — solid slab while working, outline while
+// resting; the drain bar is gone (build 372)
 ok(await p.evaluate(()=>{ const c=document.querySelector('.clock');
+  const bar=c.querySelector('.cbar');
   return c&&/work|score/i.test(document.getElementById('clockLab').textContent)
-    &&!!c.querySelector('.cbar u')&&!c.classList.contains('rest'); }),
-  'live: the timer slab carries its state label and drain bar');
+    &&!c.classList.contains('rest')&&(!bar||!bar.offsetParent||getComputedStyle(bar).display==='none'); }),
+  'live: the timer is digits only — no visible drain bar');
 // nothing clips or scrolls — wall and phone
 const fit=async(w,h,hash)=>{ await p.setViewportSize({width:w,height:h});
   if(hash){ await p.goto('file:///home/user/Claude-code/leaderboard.html'+hash); await p.waitForTimeout(1500); }

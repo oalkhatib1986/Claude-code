@@ -183,9 +183,16 @@
   /* MACHINES OF A KIND STACK IN ONE COLUMN (Omar, build 370): all the Skis
      under each other, all the Bikes beside them, Resting/Floor in their own
      column — the eye runs down a machine type instead of zig-zagging. */
-  .blk .teams{display:flex;flex-wrap:wrap;gap:10px 14px;border-top:1px solid var(--line-soft);padding-top:10px}
-  .blk .teams .tcol{flex:1 1 190px;min-width:0;display:flex;flex-direction:column;gap:8px}
-  .blk .teams>.t{flex:1 1 100%}
+  /* THE COLUMNS STAND SIDE BY SIDE, ALWAYS (Omar, build 373). A flex column
+     with a fixed 190px basis wrapped under its neighbours the moment the card
+     ran a little narrow, and then grew to a random width with the shareline
+     wedged beside it. A GRID of equal tracks shrinks the columns together
+     instead — Ski | Bike | Rest across, every FREE tag on the same rhythm —
+     and only drops a column when the card genuinely cannot hold it. */
+  .blk .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));
+    align-items:start;gap:10px 14px;border-top:1px solid var(--line-soft);padding-top:10px}
+  .blk .teams .tcol{min-width:0;display:flex;flex-direction:column;gap:8px}
+  .blk .teams>.t{grid-column:1/-1}
   .blk .teams .t{min-width:0;padding:3px 9px;border-radius:8px}
   .blk .teams .t .mtag{margin-left:auto;max-width:100%;white-space:normal;
     overflow-wrap:anywhere;text-align:right;line-height:1.35}
@@ -1254,7 +1261,7 @@
   body.wkscreen .board{display:none!important}
   body.wkscreen .blocks{display:grid!important}
   body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
-  body.wkscreen .blk .teams{display:none}
+  body.wkscreen .blk .teams,body.wkscreen .blk .shareline{display:none}
   body.wkscreen .phase .pdesc{display:none}
   body.wkscreen .blk .win{color:var(--ink);font-size:15px;margin-top:10px}
   .teamsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -1338,10 +1345,12 @@
   /* a machine beyond the class size is an offer, never a shortfall — it is quiet
      and it never turns red */
   /* sharing is a fact, not a fault: stated plainly, never in warning colours */
-  .blk .teams .shareline{grid-column:1/-1;min-width:0;
+  /* the shareline lives UNDER the teams grid, never inside it — a full-span
+     item in the grid keeps a ghost auto-fit track alive (build 373) */
+  .blk .shareline{display:block;min-width:0;
     font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;
     text-transform:uppercase;color:var(--ink-mute);
-    border-top:1px solid var(--line-soft);padding-top:7px;margin-top:2px}
+    border-top:1px solid var(--line-soft);padding-top:7px;margin-top:10px}
   .blk .teams .t.spare{opacity:.7}
   .blk .teams .t.spare .mtag{border-style:dashed}
   .blk .teams .t.unnamed.late{color:#ff9490;background:rgba(255,70,64,.13)}
@@ -1582,7 +1591,7 @@
   .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
     border:.03em solid transparent;
-    padding:.16em .34em .18em;text-align:center;align-self:center;justify-self:end;
+    padding:.14em .34em .14em;text-align:center;align-self:center;justify-self:end;
     display:flex;flex-direction:column;align-items:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
   /* NO WORDS IN THE BOX (Omar, build 362) — the digits and the drain bar are
@@ -1591,10 +1600,7 @@
     line-height:1.06}
   body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
   body.wkscreen:not(.mobscreen) .clock span{display:none}
-  body.wkscreen:not(.mobscreen) .clock .cbar{display:block;width:100%;height:.065em;
-    border-radius:.04em;background:rgba(10,10,11,.14);overflow:hidden;margin-top:.07em}
-  body.wkscreen:not(.mobscreen) .clock .cbar u{display:block;height:100%;
-    width:calc(var(--cfrac,1)*100%);background:#0a0a0b;border-radius:inherit}
+  /* the drain bar is GONE (Omar, build 372) — digits only */
   /* REST: the same shape drawn in outline — the pair reads as one control */
   body.wkscreen:not(.mobscreen) .clock.rest{background:transparent;
     border:.03em dashed rgba(255,255,255,.55)}
@@ -3244,35 +3250,38 @@ window.addEventListener("error",function(ev){
           order.sort((a2,b2)=>{ const A=a2.split(":"), B=b2.split(":");
             const d=typeOrd.indexOf(A[0])-typeOrd.indexOf(B[0]); return d||(+A[1]-+B[1]); });
           const urgent=running&&showLeaderboard();
-          const chip=(label,names,freeN)=>{
+          const chip=(label,names,freeN,spare)=>{
             const any=names.length>0;
             const who=[names.map(esc).join(", "),freeN?(any?"+"+freeN+" free":(freeN>1?"free ×"+freeN:"free")):""]
               .filter(Boolean).join(" ");
-            return `<span class="t${any?"":" unnamed"}${!any&&freeN&&urgent?" late":""}">`
+            return `<span class="t${any?"":" unnamed"}${spare?" spare":""}${!any&&freeN&&urgent&&!spare?" late":""}">`
               +`<span class="dot" style="background:${any?"#3ade6b":"currentColor"};color:${any?"#3ade6b":"currentColor"}"></span>`
               +`<b class="tn">${label}</b><em class="mtag">${who}</em></span>`; };
           // machines of a kind stack in one COLUMN each — the eye runs down
           // the Skis, then the Bikes, instead of zig-zagging a grid
-          const cols={};
-          order.forEach(k=>{ const tp2=k.split(":")[0];
-            (cols[tp2]=cols[tp2]||[]).push(chip(rows[k].label,rows[k].names,rows[k].free)); });
-          let out2=typeOrd.filter(t2=>cols[t2]).map(t2=>`<div class="tcol">${cols[t2].join("")}</div>`).join("");
+          const perType={};
+          order.forEach(k=>{ const q=k.split(":");
+            (perType[q[0]]=perType[q[0]]||[]).push({num:+q[1],
+              html:chip(rows[k].label,rows[k].names,rows[k].free)}); });
+          // THE CARD LISTS THE FLOOR, NOT THE ROSTER: machines the class size
+          // has not reached ride IN THEIR OWN TYPE'S COLUMN, in number order —
+          // a spare printed as a stray full-width row broke the columns
+          if(!finished){ const ms=machSlots().byKey;
+            claimSlots().filter(s=>s.bi===bi&&!ms[s.key]).forEach(s=>{
+              (perType[s.type]=perType[s.type]||[]).push({num:s.num,
+                html:chip(esc(s.short),[],1,true)}); }); }
+          const tcol=list=>`<div class="tcol">${list.sort((a2,b2)=>a2.num-b2.num)
+            .map(x=>x.html).join("")}</div>`;
+          const seenT={}; const ord2=[...typeOrd,...Object.keys(perType)]
+            .filter(t2=>perType[t2]&&!seenT[t2]&&(seenT[t2]=1));
+          let out2=ord2.map(t2=>tcol(perType[t2])).join("");
           // Rest and Floor read like the machines: one numbered row per spot
           const extra=[
-            ...floorRows.map((r,i2)=>chip("Floor"+(floorRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)),
-            ...restRows.map((r,i2)=>chip("Rest"+(restRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0))];
-          if(extra.length) out2+=`<div class="tcol">${extra.join("")}</div>`;
+            ...floorRows.map((r,i2)=>({num:i2,html:chip("Floor"+(floorRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)})),
+            ...restRows.map((r,i2)=>({num:floorRows.length+i2,html:chip("Rest"+(restRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)}))];
+          if(extra.length) out2+=tcol(extra);
           return out2;
-        })()}${(()=>{
-          // THE CARD LISTS THE FLOOR, NOT THE ROSTER. Every machine this block can
-          // use is on it, including the ones the class size has not reached — they
-          // are claimable, so leaving them off makes the gym look smaller than it is.
-          if(finished) return "";
-          const ms=machSlots().byKey;
-          return claimSlots().filter(s=>s.bi===bi&&!ms[s.key]).map(s=>
-            `<span class="t unnamed spare"><span class="dot" style="background:currentColor;color:currentColor"></span>`
-            +`<b class="tn">${esc(s.short)}</b><em class="mtag">free</em></span>`).join("");
-        })()}${(!al.teams.length&&!claimSlots().some(s=>s.bi===bi))?`<span class="t" style="opacity:.55">no ${kws()} this round</span>`:""}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}${(()=>{
+        })()}${(!al.teams.length&&!claimSlots().some(s=>s.bi===bi))?`<span class="t" style="opacity:.55">no ${kws()} this round</span>`:""}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>${(()=>{
           // MORE PEOPLE THAN STATIONS IS NOT AN ERROR, BUT IT IS A FACT. The
           // allocator caps stations at what the gym owns and quietly puts several
           // people on each, so nothing ever reads "over capacity" — say the number
@@ -3281,9 +3290,11 @@ window.addEventListener("error",function(ev){
           if(!(wt>nSt)||!nSt) return "";
           const per=Math.ceil(wt/nSt);
           // NOT a .t — a chip is a machine, and anything counting machines must not
-          // pick this up. It is a footnote under them.
+          // pick this up. It is a footnote under them — and it lives OUTSIDE the
+          // teams grid: a full-span item inside it stops auto-fit collapsing the
+          // spare track and leaves a ghost column (build 373).
           return `<span class="shareline">${per} per station &middot; ${nSt} ${nSt===1?"station":"stations"}</span>`;
-        })()}</div>
+        })()}
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
     fitBlockCols();
@@ -3896,6 +3907,10 @@ window.addEventListener("error",function(ev){
     else raf=requestAnimationFrame(frameSequence);
   }
   function reset(){ running=false; paused=false; holding=false; holdPend=[]; resultSaved=false; pauseUi(false); cancelAnimationFrame(raf); clearTimeout(ticker);
+    // the timer slab sheds its run state — a stale REST outline or drain
+    // fraction must not survive into the idle picture
+    try{ const ck=clockEl.parentElement; ck.classList.remove("rest","last");
+      ck.style.removeProperty("--cfrac"); }catch(e){}
     circReset(); tbFresh(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
   // acting on the clock is what makes THIS device the controller — publish at once
   startBtn.onclick=()=>{ start(); sessPushNow(); };
@@ -7604,7 +7619,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=371;
+  const BUILD=373;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

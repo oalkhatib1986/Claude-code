@@ -266,6 +266,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   chases nobody. Anything reading machine numbers off the card takes `.tn`;
   names live in `.mtag`. The old `freechip.js` contract (station flips
   between .tn/.mtag) is RETIRED; `stcap.js` reads the new rows.
+- **THE COLUMNS STAND SIDE BY SIDE, ALWAYS (build 373 — Omar: "why didn't
+  you do it in 3 columns!").** `.teams` is a GRID
+  (`repeat(auto-fit,minmax(min(100%,120px),1fr))`), never flex with a fixed
+  column basis: a 190px-basis flex column wrapped under its neighbours the
+  moment the card ran narrow, then grew to a random width with the shareline
+  wedged beside it. Equal tracks shrink together — Ski | Bike | Rest across,
+  FREE tags on one rhythm. Spare machines ride INSIDE their own type's
+  column in number order (never as stray full-width rows), and the
+  `.shareline` lives UNDER the grid, outside `.teams` — a full-span item
+  inside an auto-fit grid keeps a ghost track alive and re-squeezes every
+  column (it must also be hidden on `body.wkscreen` alongside `.teams`, or
+  the wall prints a lone footnote). `tcols.js` gates all of it.
 - **One job per line.** `wkText()`/`wkSwap()` join exercises with `BRK` (U+2028), not
   " · " — Pair 1 and Pair 2 are two people, and one line reads as one instruction.
   `crewStLine()`'s `cell()` runs it through `brk()`; the lane flattens it back because
