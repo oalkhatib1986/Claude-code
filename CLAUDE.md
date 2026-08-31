@@ -249,12 +249,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   chip per crew slot AND one `.spare` chip per machine in `claimSlots()` the class size
   has not reached. Leaving them off made a gym with five runners look like it had three.
   A spare is quiet and never goes `.late` — it is an offer, not a missing person.
-- **An unclaimed machine is a place, not a person.** The overview chip leads with the
-  station and is tagged `free` while `unnamed()` holds the slot; a claim flips it to
-  name + station. It is quiet before the clock starts and only goes red (`.late`) once
-  the session is running, when an empty machine really is a problem. Anything reading
-  station numbers off the card must take `.mtag` unless it says "free", then `.tn`.
-  `freechip.js` gates it.
+- **THE CARD IS A LIVE MAP: ONE ROW PER MACHINE, THE ATHLETE ON IT NOW
+  (build 368 — Omar: "just show which athlete is at which machine").** The
+  overview chips are MACHINE rows (`.tn` = "SKI 1", `.mtag` = the occupant's
+  name, or "free"/"free ×N"/"Omar +1 free"): before the start the row shows
+  the claimed starter, and every repaint re-resolves occupancy — a rotation
+  swap MOVES the names to their new machines. Off-machine work rides a Floor
+  row, rest a Resting row. Nothing about slots or whole-block machine sets
+  ("SKI 1 + BIKE 1") ever prints. A free machine goes `.late` red only while
+  a SCORED class runs (`running && showLeaderboard()`) — an unscored board
+  chases nobody. Anything reading machine numbers off the card takes `.tn`;
+  names live in `.mtag`. The old `freechip.js` contract (station flips
+  between .tn/.mtag) is RETIRED; `stcap.js` reads the new rows.
 - **One job per line.** `wkText()`/`wkSwap()` join exercises with `BRK` (U+2028), not
   " · " — Pair 1 and Pair 2 are two people, and one line reads as one instruction.
   `crewStLine()`'s `cell()` runs it through `brk()`; the lane flattens it back because

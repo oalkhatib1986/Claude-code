@@ -3201,23 +3201,55 @@ window.addEventListener("error",function(ev){
         <div class="bd">${exLines(b,live?seg:null)}</div>
         ${(!blockLen(b)||blockSchemeTxt(b))?"":`<div class="win">${isAmrap(b)?`AMRAP &middot; as many rounds as possible &middot; `:isWin(b)?`In ${fmtMS(bWin(b))} &middot; work through the list &middot; `:bRounds(b)>1?`${bRounds(b)} rounds &times; ${fmtMS(oneRound(b))}${bRRest(b)?` · ${fmtMS(bRRest(b))} rest`:""} · `:""}${finLen(b)?`then ${fmtMS(finLen(b))} finish · `:""}${fmtMS(blockLen(b))} total<span class="winbr">${restAfterBlock(bi)>0&&bi<R().blocks.length-1?` · then ${fmtMS(restAfterBlock(bi))} rest`:""}</span></div>`}
         <div class="teams">${(()=>{
-          // Nobody has tapped in yet: the machine is the fact, the person is not.
-          // Printing an invented "Team 1" here is the very thing claiming removed.
-          // And ONE station shared by three unclaimed slots is ONE row with a
-          // count — "Ski 1 + Bike 1" three times read as a glitch (Omar, 366).
-          const freeCount={};
-          al.teams.forEach(t=>{ if(unnamed(t.e.name)){ const w=slotLabel(bi,t.j);
-            freeCount[w]=(freeCount[w]||0)+1; } });
-          const freeDone={};
-          return al.teams.map(t=>{
-            const free=unnamed(t.e.name), where=slotLabel(bi,t.j);
-            if(free){ if(freeDone[where]) return ""; freeDone[where]=1;
-              const n=freeCount[where];
-              return `<span class="t unnamed${running?" late":""}"><span class="dot" style="background:currentColor;color:currentColor"></span>`
-                +`<b class="tn">${where}</b><em class="mtag">free${n>1?" ×"+n:""}</em></span>`; }
-            return `<span class="t"><span class="dot" style="background:#3ade6b;color:#3ade6b"></span>`
-              +`<b class="tn">${esc(t.e.name)}</b><em class="mtag">${where}</em></span>`;
-          }).join("");
+          // ONE ROW PER MACHINE, THE ATHLETE ON IT RIGHT NOW (Omar, build 368).
+          // Before the start the row shows the claimed starter; every rotation
+          // swap moves the names to their new machines. The machine is the row,
+          // the person is on it — nothing about slots or whole-block machine
+          // sets ever prints. Off-machine work gets a Floor row, rest a
+          // Resting row. A free machine goes urgent only while a SCORED class
+          // runs — an unscored board chases nobody.
+          const seg2=running?segAt(b,rot.elapsed):null;
+          const its2=b.items||[];
+          const curIt=(seg2&&seg2.it)?seg2.it:its2.find(x=>!x.rest);
+          const slots2=machSlots().byBlock[bi]||[];
+          const rows={}, order=[];
+          const floorN=[], restN=[]; let floorF=0, restF=0;
+          al.teams.forEach((t,j)=>{
+            const mm=slots2[j]||{};
+            const free=unnamed(t.e.name), nm=t.e.name;
+            let tp=null, isRest=false;
+            if(curIt&&curIt.rest) isRest=true;
+            else if(curIt&&itRot(curIt)){
+              const xs2=(curIt.exercises||[]).filter(Boolean); const n2=xs2.length||1;
+              const x=xs2[(Math.max(0,j)+((seg2&&seg2.swap)||0))%n2]||{};
+              const m2=machineOf(x.name);
+              if(m2&&mm[m2]!=null) tp=m2;
+              else if(/^rest/i.test(String(x.name||""))) isRest=true;
+            } else if(curIt){
+              const ts2=itemTypes(curIt).filter(m2=>mm[m2]!=null);
+              if(ts2.length) tp=ts2[0];
+            }
+            if(tp){ const k=tp+":"+mm[tp];
+              if(!rows[k]){ rows[k]={label:mInfo(tp).short+" "+mm[tp],names:[],free:0}; order.push(k); }
+              if(free) rows[k].free++; else rows[k].names.push(nm); }
+            else if(isRest){ if(free) restF++; else restN.push(nm); }
+            else { if(free) floorF++; else floorN.push(nm); }
+          });
+          const typeOrd=[...blockUsesTypes(b)];
+          order.sort((a2,b2)=>{ const A=a2.split(":"), B=b2.split(":");
+            const d=typeOrd.indexOf(A[0])-typeOrd.indexOf(B[0]); return d||(+A[1]-+B[1]); });
+          const urgent=running&&showLeaderboard();
+          const chip=(label,names,freeN)=>{
+            const any=names.length>0;
+            const who=[names.map(esc).join(", "),freeN?(any?"+"+freeN+" free":(freeN>1?"free ×"+freeN:"free")):""]
+              .filter(Boolean).join(" ");
+            return `<span class="t${any?"":" unnamed"}${!any&&freeN&&urgent?" late":""}">`
+              +`<span class="dot" style="background:${any?"#3ade6b":"currentColor"};color:${any?"#3ade6b":"currentColor"}"></span>`
+              +`<b class="tn">${label}</b><em class="mtag">${who}</em></span>`; };
+          let out2=order.map(k=>chip(rows[k].label,rows[k].names,rows[k].free)).join("");
+          if(floorN.length||floorF) out2+=chip("Floor",floorN,floorF);
+          if(restN.length||restF) out2+=chip("Resting",restN,restF);
+          return out2;
         })()}${(()=>{
           // THE CARD LISTS THE FLOOR, NOT THE ROSTER. Every machine this block can
           // use is on it, including the ones the class size has not reached — they
@@ -7553,7 +7585,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=367;
+  const BUILD=368;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
