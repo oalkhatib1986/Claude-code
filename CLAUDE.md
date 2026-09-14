@@ -916,20 +916,55 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (`fitTvBoard`) is for the *preview* only. `fsfill.js` asserts ≥94% coverage on both
   axes and nothing painted outside, on 1920/2560/3840 TVs and phone both ways.
 
-## PARKED — MANUAL SCORES PLAN (agreed with Omar, awaiting his "go")
+## MANUAL SCORES (SHIPPED build 374 — Omar's "go")
 
-Manual leaderboard until the ergs are tested. The agreed design, in full:
-teams claim their starting erg pre-class (EXISTS — the claim flow); the app
-keeps auto-assigning the rotation, each tablet greeting the incoming team
-(EXISTS). NEW: when a scored section ends, the tablet asks "TEAM X — how
-many calories?" (unit follows the section's metric) with a small
-"Not Team X?" button opening the team list for when reality diverged from
-the plan — the pick reassigns the score AND teaches the rotation the swap.
-The ask stays through the transition (shrinks to a strip once the next
-section runs, like the mid-class claim strip) and never blocks the incoming
-team. Trainer's phone gets a Scores override panel (every team × every
-scored section, editable) for dead tablets and typos. Architecture: a
-SCORE SOURCE with three modes feeding the same crew counters — manual
-(numpad) → assisted (PM5 pre-fills, athlete confirms; erg testing happens
-inside real classes) → automatic (no confirmation). Board, results, live
-sync, tablets unchanged across all three: zero rework when ergs go live.
+**THE SCORE IS WHAT THE TEAM SAYS IT IS — until the ergs are trusted.**
+`cfg.scoreSrc` ("manual", the migrate default | "auto") is the SCORE SOURCE,
+set in Layout > Board display > Score entry, and it feeds the same counters
+every surface already reads — board, results, live sync and tablets needed
+zero rework, which was the whole point of the parked design.
+
+- **Manual mode: the sim invents NOTHING.** `frameRotation`'s sim branch
+  `continue`s before any counter write (split/spm cadence still animates the
+  engine) — no metres, no calories, no score, no byType. A paired PM5 still
+  counts for real (its branch is untouched) and its scored accrual lands in
+  `e._pref` at block end instead of `e.score` — the ask's pre-fill: assisted
+  mode for free. Only `scoreAuto()` lets `e.score+=e.blockCals` land.
+- **The sheet is `manScores`** — `"c<ci>:<bi>:<ii>" -> {v,ts}` (ci = crew
+  index = `e.id`), summed into `e.score` by `manApplyScores()` (called from
+  `build()` right after `makeErgs`, so rebuilds/remote applies never eat
+  scores). Every reader of `e.score+e.blockCals` (lanes, tablet, results,
+  setTeamCount keep) works unchanged. It rides EVERY sess publish as
+  `s.man={epoch,v}` and merges per-entry by ts (`manMerge`) BEFORE the
+  rebuild in `sessApply`; `manEpoch` stamps a reset so the wipe reaches the
+  room (a bare `{}` would lose to older entries). `reset()` and a FRESH
+  `startBlock()` (`!sessionActive`) call `manClear()`.
+- **The tablet asks at the end of each scored section**: `renderTablet`
+  tracks the scored section its machine's crew is inside (`tkSecPrev[sv]`);
+  the moment it changes, `manAskQ[sv]` is set. FULL card (`.tk-score`,
+  site-styled numpad `.tks-k`, Save `#tksSave`, "Not Team X?" `.tks-who` →
+  `.tks-team` list) while the crew rests / between blocks / after the
+  finish; a slim `.tks-strip` band (tap to open) once the next section
+  runs — the incoming work is never covered. Typed digits live in `manPad`
+  (JS state — the screen repaints on a timer), all controls are in the
+  delegated `.closest()` list like every tablet control. An UNSCORED class
+  and an UNCLAIMED slot still ask for NOTHING (build 369 holds), and auto
+  mode never asks.
+- **"Not Team X?" is a SWAP, not a relabel**: `manSwapCrews(a,b)` trades the
+  two crews' names in `cfg.crews` AND in the live ergs, and their manScores
+  entries travel with the names — moved entries take a FRESH ts or a
+  follower merging per-key never adopts the swap.
+- **The trainer's override sheet** (`#scoreCard` on Control > Session,
+  `renderScorePanel()`): one `.scrow` per team, one labelled `.scpair` input
+  per scored section; a change lands via `manSet` (which also zeroes that
+  crew's `blockCals`/`_pref` so a pre-fill can never double-count) and
+  publishes at once. Shown only when rotation + manual + `showLeaderboard()`
+  + scored sections exist. Never repaint over a focused input.
+- `scoreSrc` is PER BOARD (cfg), like the inventory — a board saved in auto
+  stays auto when reloaded; suites seeding cfg must pin `scoreSrc` explicitly.
+- ASSISTED (PM5 pre-fills, athlete confirms) needs no new mode: it is manual
+  mode with a paired PM5 — the pre-fill comes from `_pref`. "auto" flips the
+  old engine back on wholesale when the ergs are trusted.
+- `manscore.js` (34 checks) gates all of it: default, sim-counts-nothing,
+  ask/strip/numpad/save, swap, trainer sheet, reset, merge semantics, auto,
+  unscored, kiosk + phone formatting. `window.__man` is the suite hook.
