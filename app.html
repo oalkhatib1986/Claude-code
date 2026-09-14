@@ -3886,7 +3886,10 @@ window.addEventListener("error",function(ev){
       if(d.rate)  bits.push(`<em>r</em>${Math.round(e.spm)}`);
       if(d.metres)bits.push(`<em>m</em>${Math.round(e.tot.m+e.cur.m)}`);
       if(d.cals)  bits.push(`<em>cal</em>${Math.round(e.tot.cals+e.cur.cals)}`);
-      e.el.querySelector(".sub").innerHTML=bits.join(" · ");
+      // the rotation redesign removed .sub from the lane — a legacy waves/
+      // sequence board must render without it, never crash the whole app
+      // (Omar loaded the old waves-mode Engine, build 380)
+      { const sub=e.el.querySelector(".sub"); if(sub) sub.innerHTML=bits.join(" · "); }
     });
   }
 
@@ -4020,7 +4023,10 @@ window.addEventListener("error",function(ev){
       } else bits.push(`<em>${e.finT!=null?"done":"standing by"}</em>`);
       if(d.metres)bits.push(`<em>m</em>${Math.round(e.m)}`);
       if(d.cals)  bits.push(`<em>cal</em>${Math.round(e.cals)}`);
-      e.el.querySelector(".sub").innerHTML=bits.join(" · ");
+      // the rotation redesign removed .sub from the lane — a legacy waves/
+      // sequence board must render without it, never crash the whole app
+      // (Omar loaded the old waves-mode Engine, build 380)
+      { const sub=e.el.querySelector(".sub"); if(sub) sub.innerHTML=bits.join(" · "); }
     });
   }
 
@@ -8009,7 +8015,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=379;
+  const BUILD=380;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

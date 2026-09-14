@@ -1020,3 +1020,16 @@ zero rework, which was the whole point of the parked design.
 - `manscore.js` (34 checks) gates all of it: default, sim-counts-nothing,
   ask/strip/numpad/save, swap, trainer sheet, reset, merge semantics, auto,
   unscored, kiosk + phone formatting. `window.__man` is the suite hook.
+
+## Audit scope rule (build 380 — the waves-mode crash Omar caught)
+
+**EVERY REACHABLE MODE IS IN SCOPE, NOT EVERY USED MODE.** The gym runs
+rotation, so every audit hammered rotation — and an old waves-mode "Engine"
+save from the room library crashed the whole page on load
+(`renderLanesWav`/`renderLanesSeq` wrote into `.sub`, an element the
+rotation lane redesign removed; the writes are guarded now). Legacy modes
+(waves, sequence) cannot be rebuilt from the UI but ARRIVE through old room
+saves, imports and the Archive, so "unused" never means "unreachable".
+`legacymode.js` boots, RUNS and renders both legacy modes and fails on any
+page error — it joins the broad-audit battery, and any future surface that
+renders per-mode must be checked in ALL THREE modes before shipping.
