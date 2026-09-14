@@ -677,10 +677,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   every"), and no "rotating"/"rotation n/N" wording prints for alt (the
   tablet's line is `Now: <station>` bare; Control's status says Running).
   The DATA still lists every station on every alt item — display filters,
-  it never rewrites. In the AI schema and passed through `applyAiWorkout`
-  (`o.alt=true`). `altwin.js` gates the sheet-order card, the NOW slab,
-  the window/rest clock beat, and that the halves REALLY trade across
-  three windows.
+  it never rewrites. THE NOW SLAB IS THE LIVE FLOOR (build 393 — Omar:
+  "the people on the wall balls are working too!"): the RUNNING window is
+  the one place both halves' work lights up — `exLines` shows the full
+  rotated list (lead station first) for `i===cur` only; every queued and
+  done window keeps the sheet's single station. The plan is the sheet;
+  the lit box is the floor. In the AI schema and passed through
+  `applyAiWorkout` (`o.alt=true`). `altwin.js` gates the sheet-order card,
+  the both-halves NOW slab, the window/rest clock beat, and that the
+  halves REALLY trade across three windows.
 - **AN ALT PART'S MAP IS THE FULL FLOOR, CONTIGUOUS (build 390 — Omar:
   "why Ski 1, 3, 5?!" then "maximum capacity is 36 people... it doesn't
   show 36 slots!").** On the overview card an alt window's machines belong

@@ -91,10 +91,18 @@ ok(await p.evaluate(()=>{ const ns=[...document.querySelectorAll('#blockCards .t
   'the station NUMBER always survives the ellipsis');
 { const clock=await p.evaluate(()=>document.getElementById('clock').textContent);
   const m=clock.match(/^(\d+):/); ok(m&&+m[1]<3,'window 1: the big clock counts the 3:00 window ('+clock+')'); }
+// THE NOW SLAB IS THE LIVE FLOOR (build 393 — Omar: "the people on the
+// wall balls are working too!"): the lit window shows BOTH halves' work,
+// lead station first; the plan lines around it keep the sheet's order
 { const slab=await p.evaluate(()=>{ const e=document.querySelector('#blockCards .exg.pnow');
     return e?e.innerText.replace(/\s+/g,' '):''; });
-  ok(/Max cal Ski/i.test(slab)&&!/Wall Balls/i.test(slab),
-    'the NOW slab carries only the running window\'s station ('+slab.slice(0,40)+')'); }
+  ok(/Max cal Ski/i.test(slab)&&/Max Wall Balls/i.test(slab)
+      &&slab.indexOf('Max cal Ski')<slab.indexOf('Max Wall Balls'),
+    'the NOW slab lights BOTH working halves, lead first ('+slab.slice(0,60)+')'); }
+{ const A=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[0]
+    .innerText.replace(/\s+/g,' '));
+  ok((A.match(/Max Wall Balls/gi)||[]).length===4,
+    'the queued windows still read like the sheet — one station each'); }
 await p.evaluate(()=>window.__seek(184)); await p.waitForTimeout(800);
 { const lab=await p.evaluate(()=>document.getElementById('clockLab').textContent);
   ok(/rest/i.test(lab),'t≈3:05: the 0:45 rest flips the clock to REST'); }
