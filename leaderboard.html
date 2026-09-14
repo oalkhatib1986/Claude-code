@@ -49,7 +49,7 @@
     accent-color:var(--accent);
   }
   /* the erg tablet is a white card — its native widgets stay light */
-  .tk{color-scheme:light}
+  .tk{color-scheme:dark}
   ::selection{background:rgba(255,255,255,.9);color:#000}
   :focus-visible{outline:2px solid rgba(255,255,255,.55);outline-offset:2px;border-radius:6px}
   .wrap{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
@@ -327,41 +327,47 @@
   .tb-teams{order:1}.tb-namer{order:2}.tb-swap{order:3}.tbp{order:4}
   .tb-phase{order:5}.tb-clock{order:6}.tb-go{order:7}.tb-work{order:8}.tb-next{order:9}
   /* ============ athlete screen (erg tablet) ============ */
-  .tk{background:#fff;color:#0a0a0b;border-radius:16px;display:flex;flex-direction:column;
+  /* ONE VISUAL LANGUAGE ON EVERY SCREEN (Omar, build 376: "the same theme
+     and color as the big screen"): the tablet is DARK like the wall — dark
+     ground, white type, the CURRENT WORK on a solid white slab, dashed
+     outline while resting, red only while scoring. Emphasis = the slab,
+     exactly as the wall's NOW slab. Layout mechanics are untouched. */
+  .tk{background:var(--card,#101014);color:var(--ink,#f2f2f4);border:1px solid rgba(255,255,255,.18);
+    border-radius:16px;display:flex;flex-direction:column;
     overflow:hidden;height:100%}
-  .tk-card{background:#fff;min-width:0}
+  .tk-card{background:transparent;min-width:0}
   .tk-col{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:0}
-  .tk-id{border-bottom:2px solid rgba(0,0,0,.12)}
-  .tk-inst{border-bottom:2px solid rgba(0,0,0,.12)}
-  .tk-duo>.tk-cell+.tk-cell{border-left:2px solid rgba(0,0,0,.12)}
-  .tk-side{border-left:2px solid rgba(0,0,0,.12)}
+  .tk-id{border-bottom:2px solid rgba(255,255,255,.14)}
+  .tk-inst{border-bottom:2px solid rgba(255,255,255,.14)}
+  .tk-duo>.tk-cell+.tk-cell{border-left:2px solid rgba(255,255,255,.14)}
+  .tk-side{border-left:2px solid rgba(255,255,255,.14)}
   /* off a tablet the screen flows down the page — stack the panels, don't squeeze them */
   body:not(.kioskon) .tk-main{flex-direction:column}
-  body:not(.kioskon) .tk-side{border-left:none;border-top:2px solid rgba(0,0,0,.12)}
+  body:not(.kioskon) .tk-side{border-left:none;border-top:2px solid rgba(255,255,255,.14)}
   body:not(.kioskon) .tk-info{flex:none}
   body:not(.kioskon) .tk-info>.tk-cell{flex:none}
   body:not(.kioskon) .tk-now{flex:none}
   body:not(.kioskon) .tk-vit{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
-  body:not(.kioskon) .tk-vit>div{border-left:none;border-top:1px solid rgba(0,0,0,.12)}
+  body:not(.kioskon) .tk-vit>div{border-left:none;border-top:1px solid rgba(255,255,255,.14)}
   body:not(.kioskon) .tk-rail{flex:none}
   body:not(.kioskon) .tk-pills{flex-direction:row;flex:none}
-  body:not(.kioskon) .tk-pills .tswp{border-top:0;border-left:2px solid rgba(0,0,0,.16);padding:8px 6px}
+  body:not(.kioskon) .tk-pills .tswp{border-top:0;border-left:2px solid rgba(255,255,255,.2);padding:8px 6px}
   body:not(.kioskon) .tk-pills .tswp:first-child{border-left:0}
-  .tk-vit{border-top:2px solid rgba(0,0,0,.12)}
+  .tk-vit{border-top:2px solid rgba(255,255,255,.14)}
   .tk-id{display:flex;align-items:center;gap:13px;padding:14px 18px;min-width:0;flex:none}
   /* the wordmark is ~5:1 — unbounded it owns the whole id row on a narrow
      canvas. Cap it by the row and scale the art down inside (no cropping). */
   .tk-logo{height:clamp(25px,6.2vw,40px);flex:0 1 auto;min-width:0;max-width:42%;display:flex;
     align-items:center;justify-content:flex-start;overflow:hidden}
-  .tk-logo img{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:left center;display:block;filter:invert(1)}
+  .tk-logo img{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:left center;display:block}
   /* block, not flex: text-overflow only ellipsises a block's own text — on a
      flex container it silently becomes a mid-glyph clip */
   .tk-mach{display:block;font-family:var(--disp);font-weight:700;
     font-size:clamp(26px,7vw,44px);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;line-height:1.14;
     flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
   .tk-who{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:clamp(20px,5.2vw,34px);
-    letter-spacing:.03em;text-transform:uppercase;color:#0a0a0b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1}
-  .tk-who.unnamed{color:rgba(0,0,0,.35)}
+    letter-spacing:.03em;text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1}
+  .tk-who.unnamed{color:rgba(255,255,255,.42)}
   /* Upright on a phone the machine name and the block pill already fill the row,
      so the occupant was ellipsised down to a single letter. Give it its own line
      rather than crushing it — a name is the one thing this strip exists to say. */
@@ -370,66 +376,67 @@
     body:not(.kioskon) .tk-blk{margin-left:auto}
     body:not(.kioskon) .tk-who{order:3;flex:1 1 100%;margin-left:0}
   }
-  .tk-ble{cursor:pointer;border:2px solid #0a0a0b}
-  .tk-ble.off,.tk-ble.lost{background:#fff;color:#0a0a0b}
+  .tk-ble{cursor:pointer;border:2px solid rgba(255,255,255,.4)}
+  .tk-ble.off,.tk-ble.lost{background:transparent;color:var(--ink,#fff)}
   .tk-ble.connecting{opacity:.6}
+  /* the block pill is a small slab: solid white, black type — the wall's own emphasis */
   .tk-blk{flex:none;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,20px);letter-spacing:.14em;
-    text-transform:uppercase;color:#fff;background:#0a0a0b;border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
+    text-transform:uppercase;color:#0a0a0b;background:#fff;border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
   .tk-name{display:flex;flex-direction:column;gap:8px;padding:13px 18px;flex:none}
-  .tk-name label{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(0,0,0,.55)}
+  .tk-name label{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6)}
   .tk-name>div{display:flex;gap:10px}
-  .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(0,0,0,.2);background:#fff;
-    color:#0a0a0b;font-family:var(--ui);font-size:19px;padding:0 13px}
-  .tk-name .btn{flex:none;height:46px;background:#0a0a0b;color:#fff;border:none;border-radius:11px;padding:0 20px;font-size:15px}
+  .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);
+    color:var(--ink,#fff);font-family:var(--ui);font-size:19px;padding:0 13px}
+  .tk-name .btn{flex:none;height:46px;background:#fff;color:#0a0a0b;border:none;border-radius:11px;padding:0 20px;font-size:15px}
   /* mid-session the ask is a band, never a takeover: the work stays on screen */
-  .tk-name.up{background:rgba(28,160,70,.12)}
-  .tk-name.up label{color:#0e7434}
+  .tk-name.up{background:rgba(58,222,107,.13)}
+  .tk-name.up label{color:#5fe28e}
   /* claim: the machine offering itself to whoever walks up */
   .tk-claim{gap:11px}
-  .tk-claim .tk-head{background:rgba(0,0,0,.07)}
-  .tk-claim.got .tk-tag{background:rgba(28,160,70,.15);color:#0e7434}
-  .tk-claim.got .tk-head{background:rgba(28,160,70,.15)}
+  .tk-claim .tk-head{background:rgba(255,255,255,.09)}
+  .tk-claim.got .tk-tag{background:rgba(58,222,107,.16);color:#5fe28e}
+  .tk-claim.got .tk-head{background:rgba(58,222,107,.16)}
   .tk-claimrow{display:flex;gap:10px;align-self:stretch;min-width:0}
   .tk-claimrow input{flex:1 1 auto;min-width:0;height:52px;border-radius:12px;
-    border:2px solid rgba(0,0,0,.22);background:#fff;color:#0a0a0b;
+    border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:var(--ink,#fff);
     font-family:var(--ui);font-size:clamp(17px,4vw,21px);padding:0 14px}
-  .tk-claimrow .btn{flex:none;height:52px;background:#0a0a0b;color:#fff;border:none;
+  .tk-claimrow .btn{flex:none;height:52px;background:#fff;color:#0a0a0b;border:none;
     border-radius:12px;padding:0 22px;font-size:clamp(14px,3.4vw,17px);letter-spacing:.1em}
-  .tk-free{align-self:flex-start;border:2px solid rgba(0,0,0,.2);background:transparent;
-    color:rgba(0,0,0,.6);border-radius:999px;padding:9px 17px;cursor:pointer;
+  .tk-free{align-self:flex-start;border:2px solid rgba(255,255,255,.32);background:transparent;
+    color:rgba(255,255,255,.65);border-radius:999px;padding:9px 17px;cursor:pointer;
     font-family:var(--disp);font-weight:700;font-size:clamp(11px,2.7vw,14px);
     letter-spacing:.12em;text-transform:uppercase}
-  .tk-free:active{background:rgba(0,0,0,.07)}
-  /* MANUAL SCORES (build 374): the ask card — the app's OWN numpad, white
-     card grammar, keys big enough for a gassed athlete. No OS keyboard. */
+  .tk-free:active{background:rgba(255,255,255,.12)}
+  /* MANUAL SCORES (build 374): the ask card — the app's OWN numpad, the
+     wall's dark grammar, keys big enough for a gassed athlete. No OS keyboard. */
   .tk-score{gap:10px}
-  .tk-score .tk-head{background:rgba(0,0,0,.07)}
+  .tk-score .tk-head{background:rgba(255,255,255,.09)}
   .tks-val{display:flex;align-items:baseline;gap:10px}
   .tks-val b{font-family:var(--mono);font-variant-numeric:tabular-nums;
-    font-size:clamp(30px,6vw,42px);line-height:1.16;color:#0a0a0b}
+    font-size:clamp(30px,6vw,42px);line-height:1.16;color:var(--ink,#fff)}
   .tks-val span{font-family:var(--disp);font-weight:600;font-size:12px;
-    letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.55)}
+    letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)}
   .tks-pad{display:grid;grid-template-columns:repeat(3,minmax(52px,1fr));gap:8px;
     align-self:stretch;max-width:330px}
-  .tks-pad button{height:48px;border-radius:11px;border:2px solid rgba(0,0,0,.18);
-    background:#fff;color:#0a0a0b;font-family:var(--mono);font-size:21px;
+  .tks-pad button{height:48px;border-radius:11px;border:2px solid rgba(255,255,255,.28);
+    background:transparent;color:var(--ink,#fff);font-family:var(--mono);font-size:21px;
     font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
-  .tks-pad button:active{background:rgba(0,0,0,.08)}
+  .tks-pad button:active{background:rgba(255,255,255,.12)}
   .tks-row{display:flex;gap:10px;flex-wrap:wrap;align-self:stretch;max-width:330px}
-  .tks-row .btn{flex:1 1 auto;height:50px;background:#0a0a0b;color:#fff;border:none;
+  .tks-row .btn{flex:1 1 auto;height:50px;background:#fff;color:#0a0a0b;border:none;
     border-radius:11px;font-size:16px;letter-spacing:.08em}
   .tks-row .btn[disabled]{opacity:.35}
-  .tks-who{align-self:flex-start;border:none;background:none;color:rgba(0,0,0,.55);
+  .tks-who{align-self:flex-start;border:none;background:none;color:rgba(255,255,255,.6);
     font-family:var(--ui);font-size:14px;text-decoration:underline;cursor:pointer;padding:5px 0}
   .tks-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));
     gap:8px;align-self:stretch}
-  .tks-teams button{height:48px;border-radius:11px;border:2px solid rgba(0,0,0,.18);
-    background:#fff;color:#0a0a0b;font-family:var(--ui);font-size:15px;font-weight:600;
+  .tks-teams button{height:48px;border-radius:11px;border:2px solid rgba(255,255,255,.28);
+    background:transparent;color:var(--ink,#fff);font-family:var(--ui);font-size:15px;font-weight:600;
     cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}
-  .tks-teams button:active{background:rgba(0,0,0,.08)}
+  .tks-teams button:active{background:rgba(255,255,255,.12)}
   /* the collapsed form: the next section is running, the ask waits as a band */
   .tks-strip{cursor:pointer}
-  .tks-strip u{font-size:14px;color:#0e7434;text-decoration:none;font-weight:600}
+  .tks-strip u{font-size:14px;color:#5fe28e;text-decoration:none;font-weight:600}
   body.kioskon .tks-pad button{height:42px;font-size:19px}
   body.kioskon .tks-row .btn{height:44px}
   body.kioskon .tks-teams button{height:42px}
@@ -471,44 +478,46 @@
      screen never has a dead white half */
   .tk-work{flex:1 1 auto;min-height:0;overflow:hidden;padding:13px 18px 13px;
     display:flex;flex-direction:column;gap:10px}
+  /* THE CURRENT WORK IS THE WALL'S NOW SLAB: solid white, black type; a
+     dashed outline while resting; red type on the slab only while scoring */
   .tk-now{display:flex;flex:1 1 auto;flex-direction:column;justify-content:center;gap:5px;
-    min-width:0;min-height:0;overflow:hidden;padding-left:13px;border-left:5px solid #0a0a0b}
-  .tk.hot .tk-now{border-left-color:#c81111}
+    min-width:0;min-height:0;overflow:hidden;padding:12px 16px;border-radius:13px;background:#fff}
   .tk-now em{display:block;flex:none;font-style:normal;font-family:var(--disp);font-weight:700;
     font-size:clamp(17px,4.9vw,32px);line-height:1.12;letter-spacing:.02em;text-transform:uppercase;
     color:#0a0a0b;min-width:0;overflow-wrap:anywhere}
   .tk.hot .tk-now em{color:#c81111}
-  .tk-now.rest{border-left-color:rgba(0,0,0,.2)}
-  .tk-now.rest em{color:rgba(0,0,0,.42)}
+  .tk-now.rest{background:transparent;border:2px dashed rgba(255,255,255,.42)}
+  .tk-now.rest em{color:rgba(255,255,255,.55)}
   /* the DONE bar — hit while sweating, so it takes the whole width and is tall */
   .tk-done{flex:none;margin-top:auto;width:100%;border:0;cursor:pointer;
-    background:#0a0a0b;color:#fff;border-radius:13px;padding:13px 18px;
+    background:#fff;color:#0a0a0b;border-radius:13px;padding:13px 18px;
     display:flex;align-items:baseline;justify-content:center;gap:14px;transition:.12s}
-  .tk-done:active{background:#2b2b2f}
+  .tk-done:active{background:#dcdce0}
   .tk-done b{font-family:var(--disp);font-weight:700;font-size:clamp(19px,5vw,32px);
     letter-spacing:.08em;text-transform:uppercase;line-height:1}
   .tk-done i{font-style:normal;font-family:var(--disp);font-weight:600;
     font-size:clamp(12px,3vw,18px);letter-spacing:.08em;text-transform:uppercase;
-    color:rgba(255,255,255,.66);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .tk.hot .tk-done{background:#c81111}
+    color:rgba(0,0,0,.55);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tk.hot .tk-done{background:#c81111;color:#fff}
+  .tk.hot .tk-done i{color:rgba(255,255,255,.66)}
     .tk-then{flex:none;margin-top:auto;display:flex;align-items:baseline;gap:11px;min-width:0;
-    border-top:2px solid rgba(0,0,0,.1);padding-top:10px}
+    border-top:2px solid rgba(255,255,255,.12);padding-top:10px}
   .tk-then>span{flex:none;font-family:var(--disp);font-weight:600;font-size:clamp(10px,2.5vw,14px);
-    letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.4)}
+    letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.45)}
   .tk-then>i{min-width:0;font-style:normal;font-family:var(--disp);font-weight:700;
-    font-size:clamp(13px,3.3vw,20px);letter-spacing:.03em;text-transform:uppercase;color:rgba(0,0,0,.5);
+    font-size:clamp(13px,3.3vw,20px);letter-spacing:.03em;text-transform:uppercase;color:rgba(255,255,255,.55);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* right column when there's no target rail: the clock over the where-to-go-next card */
   .tk-info{display:flex;flex-direction:column;flex:0 0 clamp(150px,34%,330px);min-width:0;min-height:0}
   .tk-info>.tk-cell{flex:1 1 auto}
   .tk-nxt{flex:none;padding:13px 18px 15px;display:flex;flex-direction:column;gap:4px;
-    border-top:2px solid rgba(0,0,0,.12)}
+    border-top:2px solid rgba(255,255,255,.14)}
   .tk-nxt>span{font-family:var(--disp);font-weight:600;font-size:clamp(11px,2.8vw,18px);letter-spacing:.2em;
-    text-transform:uppercase;color:rgba(0,0,0,.45)}
+    text-transform:uppercase;color:rgba(255,255,255,.5)}
   .tk-nxt>b{font-family:var(--disp);font-weight:700;font-size:clamp(18px,4.8vw,32px);line-height:1.08;
     letter-spacing:.03em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tk-nxt>em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,22px);
-    letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.5);
+    letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tk-duo{display:flex;flex:1 1 auto;min-height:0;min-width:0}
   .tk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px 18px}
@@ -517,69 +526,69 @@
   .tk-cell b{display:block;font-family:var(--mono);font-weight:700;line-height:1.16;
     font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.02em}
   .tk-cell i{display:block;font-style:normal;font-family:var(--disp);font-weight:600;
-    font-size:clamp(13px,3.3vw,21px);letter-spacing:.18em;text-transform:uppercase;color:rgba(0,0,0,.5)}
+    font-size:clamp(13px,3.3vw,21px);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55)}
   .tk-chase b{font-size:clamp(44px,12vw,84px)}
   .tk-clk b{font-size:clamp(44px,12vw,84px)}
-  .tk.hot .tk-chase b{color:#c81111}
+  .tk.hot .tk-chase b{color:#ff5f57}
   .tk-cell u{display:block;text-decoration:none;font-family:var(--disp);font-weight:700;
-    font-size:clamp(14px,3.4vw,22px);letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.55);margin-top:2px}
+    font-size:clamp(14px,3.4vw,22px);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-top:2px}
   /* target rail — tall buttons stacked down the right edge */
   .tk-rail{flex:0 0 clamp(112px,23%,240px);min-width:0;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
   .tk-rail>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,3vw,18px);letter-spacing:.2em;
-    text-transform:uppercase;color:rgba(0,0,0,.5)}
+    text-transform:uppercase;color:rgba(255,255,255,.55)}
   .tk-tag{align-self:flex-start;font-family:var(--disp);font-weight:700;font-size:clamp(13px,3.1vw,18px);
-    letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.55);background:rgba(0,0,0,.07);
+    letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(255,255,255,.09);
     border-radius:999px;padding:7px 15px;margin-left:-15px}
-  .tk.live .tk-tag{background:rgba(28,160,70,.15);color:#0e7434}
-  .tk.hot .tk-tag{background:rgba(255,45,45,.14);color:#c81111}
+  .tk.live .tk-tag{background:rgba(58,222,107,.16);color:#5fe28e}
+  .tk.hot .tk-tag{background:rgba(255,70,64,.16);color:#ff5f57}
   .tk-head{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
-    letter-spacing:.03em;text-transform:uppercase;background:rgba(0,0,0,.07);border-radius:13px;padding:11px 15px;
+    letter-spacing:.03em;text-transform:uppercase;background:rgba(255,255,255,.09);border-radius:13px;padding:11px 15px;
     margin:0 -15px;align-self:stretch}
-  .tk.live .tk-head{background:rgba(28,160,70,.15)}
-  .tk.hot .tk-head{background:rgba(255,45,45,.12);color:#c81111}
+  .tk.live .tk-head{background:rgba(58,222,107,.16)}
+  .tk.hot .tk-head{background:rgba(255,70,64,.14);color:#ff5f57}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase}
   .tk-sub{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.16;
-    letter-spacing:.03em;text-transform:uppercase;color:rgba(0,0,0,.5);padding:0 15px;margin:0 -15px;align-self:stretch}
+    letter-spacing:.03em;text-transform:uppercase;color:rgba(255,255,255,.55);padding:0 15px;margin:0 -15px;align-self:stretch}
   .tk-goal{display:flex;align-items:baseline;gap:11px;min-width:0}
   .tk-goal b{font-family:var(--mono);font-weight:700;font-size:clamp(42px,11.5vw,86px);line-height:.95;
     font-variant-numeric:tabular-nums}
-  .tk.hot .tk-goal b{color:#c81111}
+  .tk.hot .tk-goal b{color:#ff5f57}
   .tk-goal i{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(16px,4vw,26px);
-    letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.45);white-space:nowrap}
-  .tk-bar{height:14px;flex:none;border-radius:999px;background:rgba(0,0,0,.12);overflow:hidden}
-  .tk-bar i{display:block;height:100%;border-radius:999px;background:#0a0a0b;transition:width .5s linear}
-  .tk.hot .tk-bar i{background:#c81111}
+    letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap}
+  .tk-bar{height:14px;flex:none;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+  .tk-bar i{display:block;height:100%;border-radius:999px;background:#fff;transition:width .5s linear}
+  .tk.hot .tk-bar i{background:#ff5f57}
   .tk-pick{display:flex;flex-direction:column;gap:9px;min-width:0;flex:none}
   .tk-pick>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,15px);letter-spacing:.2em;
-    text-transform:uppercase;color:rgba(0,0,0,.5)}
+    text-transform:uppercase;color:rgba(255,255,255,.55)}
   .tk-pills{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;
-    border:3px solid #0a0a0b;border-radius:18px;overflow:hidden;background:#fff}
-  .tk-pills .tswp{flex:1 1 0;min-width:0;min-height:44px;border:0;border-top:2px solid rgba(0,0,0,.16);
-    background:#fff;border-radius:0;color:#0a0a0b;padding:4px 2px;cursor:pointer;white-space:nowrap;
+    border:3px solid rgba(255,255,255,.35);border-radius:18px;overflow:hidden;background:transparent}
+  .tk-pills .tswp{flex:1 1 0;min-width:0;min-height:44px;border:0;border-top:2px solid rgba(255,255,255,.2);
+    background:transparent;border-radius:0;color:var(--ink,#fff);padding:4px 2px;cursor:pointer;white-space:nowrap;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:.12s}
   .tk-pills .tswp:first-child{border-top:0}
   .tk-pills .tswp b{display:block;font-family:var(--disp);font-weight:700;line-height:1.2;
     font-size:clamp(22px,5.6vw,34px);letter-spacing:.01em}
   .tk-pills .tswp em{display:block;font-style:normal;font-family:var(--disp);font-weight:600;line-height:1;
     font-size:clamp(9px,2.3vw,12px);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
-  .tk-pills .tswp:active{background:rgba(0,0,0,.08)}
-  .tk-pills .tswp.on{background:#0a0a0b;color:#fff}
+  .tk-pills .tswp:active{background:rgba(255,255,255,.12)}
+  .tk-pills .tswp.on{background:#fff;color:#0a0a0b}
   .tk-pills .tswp.on em{opacity:.7}
-  .tk-flash{background:#0a0a0b;color:#fff;border-radius:11px;padding:10px 14px;text-align:center;
+  .tk-flash{background:#fff;color:#0a0a0b;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;flex:none;overflow:hidden}
-  .tk-vit>div{padding:12px 7px 14px;text-align:center;border-left:1px solid rgba(0,0,0,.12);min-width:0}
+  .tk-vit>div{padding:12px 7px 14px;text-align:center;border-left:1px solid rgba(255,255,255,.14);min-width:0}
   .tk-vit>div:first-child{border-left:none}
   .tk-vit .opt{display:none}
   .tk-vit b{display:block;font-family:var(--mono);font-weight:700;font-size:clamp(20px,5vw,38px);
     line-height:1.16;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .tk.hot .tk-vit b{color:#c81111}
+  .tk.hot .tk-vit b{color:#ff5f57}
   .tk-vit span{display:block;margin-top:5px;font-family:var(--disp);font-weight:600;
-    font-size:clamp(12px,3.1vw,20px);letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.55);white-space:nowrap}
+    font-size:clamp(12px,3.1vw,20px);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);white-space:nowrap}
   /* ?pm5dbg raw-frame readout — diagnostic only, never rendered without the flag */
-  .tk-dbg{flex:none;font-family:var(--mono);font-size:10px;line-height:1.5;color:#222;
-    background:#fff;border-top:2px solid rgba(10,10,11,.12);padding:6px 10px;word-break:break-all}
+  .tk-dbg{flex:none;font-family:var(--mono);font-size:10px;line-height:1.5;color:#bbb;
+    background:transparent;border-top:2px solid rgba(255,255,255,.16);padding:6px 10px;word-break:break-all}
   /* Tablet preview: render the real 1005x600 screen and scale it to the phone */
   body.tabprev .tb-note{display:none}
   /* a sideways drag on the frame walks the row — it belongs to the app, not to the
@@ -7881,7 +7890,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=375;
+  const BUILD=376;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

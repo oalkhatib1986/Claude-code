@@ -360,9 +360,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   A3 mark; Layout > Brand radios set `cfg.display.logo` ("word"|"badge"),
   `applyLogo()` (called from `build()`) swaps the header img and stamps
   `body[data-logo]`. Every surface follows from the header: the TV brand reparents
-  `.mark`, the tablet clones `img.badge`'s src and inverts it black for the white
-  card (`.tk-logo img{filter:invert(1)}`). Assets are cropped tight — no negative
-  margins, no invert on dark grounds, no 186% crop zoom.
+  `.mark`, the tablet clones `img.badge`'s src and shows it as-is — the tablet
+  is DARK since build 376, so the white asset needs NO invert (the old
+  `filter:invert(1)` was for the white card and is gone). Assets are cropped
+  tight — no negative margins, no invert on dark grounds, no 186% crop zoom.
+- **THE TABLET WEARS THE WALL'S THEME (build 376 — Omar: "the same theme and
+  color as the big screen").** `.tk` is DARK: `var(--card)` ground, white
+  type, `color-scheme:dark` (its inputs must render dark like the site's).
+  Emphasis is the wall's own grammar — a SOLID WHITE SLAB with black type:
+  the current work (`.tk-now`), the block pill (`.tk-blk`), the DONE bar,
+  the Save-score button, a selected target pill (`.tswp.on`). Rest =
+  transparent with a DASHED white outline (`.tk-now.rest`), exactly like the
+  wall clock's rest state. Red only while scoring — `#c81111` for red ON the
+  white slab, `#ff5f57` for red on the dark ground (the darker red vanishes
+  there), hot DONE keeps red bg + white text (set `color:#fff` with it — it
+  inherits the slab's black otherwise). Secondary controls (numpad keys,
+  team buttons, unselected pills, Free-this-erg) are transparent with
+  `rgba(255,255,255,.28)`-ish borders; hairlines are `rgba(255,255,255,.14)`;
+  greens are `rgba(58,222,107,…)` bg with `#5fe28e` text. The TV leaderboard
+  (`#board`) stays LIGHT — that contrast is now deliberate.
 - **Sharing is a fact, not a fault.** The allocator caps stations at what the gym
   owns and quietly puts several people on each, so `anyOver()` can no longer fire —
   the old "over capacity" banner is unreachable for ergs. The block card states the
@@ -769,10 +785,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   started — the same every time, since a preview that flickers is not a preview — and
   `demoOn()` is false the instant a session is live, so a real board can never show a
   made-up number. `permach.js` gates both halves.
-- **A scoreboard is LIGHT.** A wall of black on black is a screensaver; the erg tablet
-  is a white card with black type and it reads from anywhere in the gym, so the board
-  is too. `#board` re-declares the ink variables on the TV, which flips names, rules,
-  headings and figures together — never restyle them one at a time.
+- **A scoreboard is LIGHT.** A wall of black on black is a screensaver; the TV
+  leaderboard table (`#board`) is white with black type and reads from anywhere
+  in the gym (Omar signed it off — do not restyle). `#board` re-declares the ink
+  variables on the TV, which flips names, rules, headings and figures together —
+  never restyle them one at a time. The ERG TABLET is no longer that white card:
+  since build 376 it is DARK (see the tablet-theme rule below) — the two
+  surfaces are now deliberately different, do not "re-unify" them.
 - **A WALL SHOWS EIGHT TEAMS, NOT TWENTY.** Twenty rows on a 1080 screen is a 52px
   row and type nobody can read from the floor. `fitRowH()` keeps the rows above
   `PAGEAT` and, when the class is bigger than that allows, shows a page at a time —
