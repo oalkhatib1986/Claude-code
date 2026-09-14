@@ -173,6 +173,39 @@ ok(await p.evaluate(()=>{ const h=document.querySelector('#wkPick .combo-item.hi
     &&h&&/already saved.*different date/i.test(h.textContent); }),
   'the SAME name and date twice is refused');
 await p.mouse.click(5,300); await p.waitForTimeout(200);
+// RENAME FOLLOWS NAME+DATE TOO (build 379 — Omar renamed a dated board to
+// "Upper Body" and was refused although SAVING that name would have filed
+// by date): a taken name with a date on the board files as "Name dd/MM",
+// the typed word rides as the wall title, and the filed entry carries the
+// date it was filed under. The SAME dated name twice stays refused.
+await p.fill('#pgDate','2026-09-08'); await p.waitForTimeout(300);
+await p.click('#wkRen'); await p.waitForTimeout(250);
+await p.fill('.wkrow .renin','Engine');
+await p.click('#renGo'); await p.waitForTimeout(600);
+{ const rd=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+    const e=ps.find(x=>x.name==='Engine 08/09');
+    return {wk:c.wkName,title:c.name,tset:c.titleSet,
+      entry:!!e, edate:e&&e.cfg.prog&&e.cfg.prog.date,
+      oldGone:!ps.some(x=>x.name==='Engine 01/09'),
+      plain:ps.filter(x=>x.name==='Engine').length}; });
+  ok(rd.wk==='Engine 08/09'&&rd.title==='Engine'&&rd.tset===true,
+    'RENAME files a taken name by DATE — the typed word stays the wall title ('+rd.wk+' / '+rd.title+')');
+  ok(rd.entry&&rd.edate==='2026-09-08','the filed entry carries the date it was filed under');
+  ok(rd.oldGone&&rd.plain===1,'the old dated name moved away; last week\'s Engine untouched'); }
+await p.evaluate(()=>{ const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+  ps.push({name:'Engine 15/09',cfg:JSON.parse(JSON.stringify(ps[0].cfg)),ts:6});
+  localStorage.setItem('af_presets_v1',JSON.stringify(ps)); });
+await p.reload(); await p.waitForTimeout(1400);
+await p.click('#stSetup'); await p.waitForTimeout(400);
+await p.fill('#pgDate','2026-09-15'); await p.waitForTimeout(300);
+await p.click('#wkRen'); await p.waitForTimeout(250);
+await p.fill('.wkrow .renin','Engine');
+await p.click('#renGo'); await p.waitForTimeout(400);
+ok(await p.evaluate(()=>{ const m=document.querySelector('.renmsg');
+  return m&&!m.hidden&&/same name, same date/i.test(m.textContent); }),
+  'renaming onto the SAME name+date stays refused');
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
 // the Save button's naming path follows the same rule: never overwrite
 await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
   c.wkName=null; c.titleSet=false; localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
@@ -185,7 +218,7 @@ await p.fill('.dlg input','Engine'); await p.click('.dlg .dok'); await p.waitFor
 ok(await p.evaluate(()=>{ const d=document.querySelector('.dlg .dmsg');
   return d&&/already saved/i.test(d.textContent)
     &&JSON.parse(localStorage.getItem('af_presets_v1'))
-      .filter(x=>x.name==='Engine 01/09').length===1; }),
+      .filter(x=>x.name==='Engine 15/09').length===1; }),
   'Save on a NEW board with a taken name+date refuses instead of overwriting');
 await p.click('.dlg .dok'); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>window.__native===0),

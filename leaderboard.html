@@ -7601,18 +7601,43 @@ window.addEventListener("error",function(ev){
       row.insertAdjacentElement("afterend",msg);
       const closeEd=()=>{ inp.remove(); rb.remove(); msg.remove(); pick.style.display=""; btns.style.display=""; };
       const go=()=>{
-        const n=inp.value.trim().slice(0,60).trim();
-        if(!n||n===old){ closeEd(); return; }
-        if(presets.some((p,j)=>p.name===n&&j!==i&&!(LIBHIDE&&p.seedV))){
-          msg.textContent='A board called “'+n+'” already exists — pick another name.';
-          msg.hidden=false; inp.focus(); return; }
+        const typed=inp.value.trim().slice(0,60).trim();
+        if(!typed||typed===old){ closeEd(); return; }
+        let n=typed, datedTitle=null;
+        if(presets.some((p,j)=>p.name===typed&&j!==i&&!(LIBHIDE&&p.seedV))){
+          // NAME + DATE IS THE IDENTITY — for Rename exactly as for saving
+          // (Omar, build 379: renamed a 14/09 board to "Upper Body" and was
+          // refused although saving that name would have filed by date). A
+          // taken name with a date on THIS board files as "Name dd/MM" and
+          // the typed word rides as the display title; NO date on the board
+          // is a hint to pick one, and the SAME dated name twice is a true
+          // duplicate — still refused, never unique-ified.
+          const suf=dSuf();
+          if(!suf){
+            msg.textContent='A board called “'+typed+'” already exists. Set this board’s Date in Setup and the rename files it as “'+typed+' dd/MM” — the screens still read “'+typed+'”.';
+            msg.hidden=false; inp.focus(); return; }
+          const dated=typed+' '+suf;
+          if(dated===old){ closeEd(); return; }   // it already IS this dated name
+          if(presets.some((p,j)=>p.name===dated&&j!==i&&!(LIBHIDE&&p.seedV))){
+            msg.textContent='“'+dated+'” already exists too — same name, same date. Pick another name or change the date.';
+            msg.hidden=false; inp.focus(); return; }
+          n=dated; datedTitle=typed;
+        }
         const entry=presets[i];   // grab the reference BEFORE the claim splices
         claimName(n);             // a parked built-in under this name makes way
         entry.name=n; entry.ts=Date.now();
         entry.cfg=structuredClone(entry.cfg); entry.cfg.wkName=n;
         // naming is exactly what rename is for, so the CURRENT display title
         // rides along to the library — other devices must read the same wall
-        if(cfg.titleSet){ entry.cfg.name=cfg.name; entry.cfg.titleSet=true; }
+        if(datedTitle){
+          // filed by date: the typed word is the wall title, and the DATE THE
+          // NAME WAS FILED UNDER is stamped on the saved body — the picker's
+          // date hint reads the entry, and a stale date there tells a lie
+          cfg.name=datedTitle; cfg.titleSet=true;
+          entry.cfg.name=datedTitle; entry.cfg.titleSet=true;
+          entry.cfg.prog=Object.assign({},entry.cfg.prog||{},{date:(cfg.prog&&cfg.prog.date)||""});
+        }
+        else if(cfg.titleSet){ entry.cfg.name=cfg.name; entry.cfg.titleSet=true; }
         else if(!entry.cfg.titleSet) entry.cfg.name=n;
         cfg.wkName=n; if(!cfg.titleSet) cfg.name=n;
         closeEd();
@@ -7984,7 +8009,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=378;
+  const BUILD=379;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

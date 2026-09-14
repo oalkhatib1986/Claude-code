@@ -517,10 +517,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   a board with no date shows nothing (Omar, build 348). That is how
   same-named weekly boards are told apart (the hint must read the VISIBLE
   entry, not a parked seed of the same name).
-  Rename collisions stay REFUSED; but SAVING a taken name works when the
-  board carries a DIFFERENT DATE — NAME + DATE IS THE IDENTITY (builds
-  346-347, Omar: "if I pick a date that's different it will save; without a
-  date it won't allow me"): typing "Engine" in the picker when an Engine
+  NAME + DATE IS THE IDENTITY — for SAVING **and for RENAME** (builds
+  346-347 + 379; Omar: "if I pick a date that's different it will save;
+  without a date it won't allow me", then "didn't we fix this issue already
+  by selecting the date?!" when Rename still hard-refused): renaming a DATED
+  board to a taken name files it as "Name dd/MM" (`dSuf()`), the TYPED word
+  rides as the display title (`titleSet`), and the filed entry's
+  `cfg.prog.date` is stamped with the date it was filed under — the picker's
+  date hint reads the entry, and a stale date there tells a lie. NO date on
+  the board → refused with a set-the-Date hint; the SAME dated name twice →
+  refused outright (never unique-ified). `rename.js` pins all three paths.
+  The underlying save-as rule: typing "Engine" in the picker when an Engine
   exists offers `+ Save as "Engine 01/09"` (`o.altAdd`, dd/MM from `dSuf()` =
   the board's own `prog.date`; NO date → a hint row says to pick one, NO
   fallback to today; the SAME date twice → refused), and the TYPED word rides
