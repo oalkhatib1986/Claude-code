@@ -133,6 +133,63 @@ await p.waitForTimeout(700);
   ok(r.live,'the tap sets the hold on the LIVE board');
   ok(r.saved,'…and on the SAVED copy — every device agrees');
   ok(r.okb,'…and says so in the chat'); }
+// 6) A FIX UPDATES THE BOARD, IT NEVER FILES A SIBLING (build 381 — Omar:
+// "give it a comment to fix something and it saves a completely new
+// workout?!"). Three shapes: a tweak that gains a stray date still updates;
+// a tweak addressed by WALL TITLE updates the DATED filing; only a real new
+// date makes next week's board.
+{ // the chat owns "Strength Ladder" (undated, saved by case 5 above); the
+  // fix comes back with today's date attached — still the same board
+  const before=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1')).length);
+  await send({name:'Strength Ladder',date:'2026-09-14',teamKind:'solo',noScore:true,together:true,laps:1,
+    blocks:[{name:'Part B',rounds:1,items:[
+      {dur:540,hold:true,exercises:[{name:'Pendlay Row',amounts:[8],unit:'reps',sets:3}]},
+      {dur:540,exercises:[{name:'Pull Ups',amounts:[8],unit:'reps',sets:3}]}]}]},
+    'make pendlay rows 8 reps');
+  const r=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+    return {wk:c.wkName,count:ps.length,
+      sibs:ps.filter(x=>/^Strength Ladder/.test(x.name)).map(x=>x.name),
+      reps:c.rotation.blocks[0].items[0].exercises[0].amounts[0],
+      date:(c.prog&&c.prog.date)||''}; });
+  ok(r.wk==='Strength Ladder'&&r.count===before&&r.sibs.length===1,
+    'a fix with a stray date UPDATES the chat\'s own board — no sibling ('+r.sibs.join(', ')+')');
+  ok(r.reps===8,'…and the fix itself landed (8 reps)');
+  ok(r.date==='2026-09-14','…the coach\'s date is adopted onto the same board'); }
+{ // a DATED filing addressed by its wall title: tweak "Engine" while
+  // "Engine 08/09" is loaded — updates that filing, no new entry
+  await p.evaluate(()=>{ const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const e2=JSON.parse(JSON.stringify(c));
+    e2.wkName='Engine 08/09'; e2.name='Engine'; e2.titleSet=true;
+    e2.prog={date:'2026-09-08',block:'',week:'',day:'',stype:''};
+    ps.push({name:'Engine 08/09',cfg:e2,ts:7});
+    localStorage.setItem('af_presets_v1',JSON.stringify(ps));
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(e2)); });
+  await p.reload(); await p.waitForTimeout(1500);
+  await p.click('#stSetup'); await p.waitForTimeout(400);
+  const before=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1')).length);
+  await send({name:'Engine',teamKind:'solo',noScore:true,together:true,laps:1,
+    blocks:[{name:'Part A',rounds:2,items:[
+      {dur:90,exercises:[{name:'Ski',amounts:[],unit:'cal',max:true}]}]}]},
+    'make part A two rounds');
+  const r=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+    return {wk:c.wkName,title:c.name,count:ps.length,
+      two:!ps.some(x=>/^Engine \d+$/.test(x.name))}; });
+  ok(r.wk==='Engine 08/09'&&r.title==='Engine'&&r.count===before&&r.two,
+    'a tweak by WALL TITLE updates the dated filing ('+r.wk+' / '+r.title+')'); }
+{ // a genuinely NEW date is next week's board — the weekly flow survives
+  const before=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_presets_v1')).length);
+  await send({name:'Engine',date:'2026-09-22',teamKind:'solo',noScore:true,together:true,laps:1,
+    blocks:[{name:'Part A',rounds:2,items:[
+      {dur:90,exercises:[{name:'Ski',amounts:[],unit:'cal',max:true}]}]}]},
+    'engine for 22 september');
+  const r=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+    return {wk:c.wkName,count:ps.length,old:ps.some(x=>x.name==='Engine 08/09')}; });
+  ok(r.wk==='Engine 22/09'&&r.count===before+1&&r.old,
+    'a coach-given NEW date still files next week\'s board ('+r.wk+')'); }
 // 3) the schema TELLS the AI about dates and filing
 { const sys=await p.evaluate(()=>{ // reconstruct the system prompt through a chat call is heavy;
     // instead assert the source carries the contract
