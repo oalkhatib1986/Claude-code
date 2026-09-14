@@ -3438,23 +3438,33 @@ window.addEventListener("error",function(ev){
           al.teams.forEach((t,j)=>{
             const mm=slots2[j]||{};
             const free=unnamed(t.e.name), nm=t.e.name;
-            let tp=null, isRest=false;
+            let tp=null, tpNum=0, isRest=false, flab="";
             if(curIt&&curIt.rest) isRest=true;
             else if(curIt&&itRot(curIt)){
               const xs2=(curIt.exercises||[]).filter(Boolean); const n2=xs2.length||1;
               const x=xs2[(Math.max(0,j)+((seg2&&seg2.swap)||0))%n2]||{};
               const m2=machineOf(x.name);
-              if(m2&&mm[m2]!=null) tp=m2;
+              // AN ALT WINDOW'S MACHINES BELONG TO THE STATION (build 390 —
+              // Omar: "why Ski 1, 3, 5?!"). The half on the skis reads
+              // SKI 1..k CONTIGUOUS and the SAME skis change hands at the
+              // swap — never each athlete's own erg number, which printed
+              // odd-numbered gaps while the other half worked the floor.
+              // The number is the crew's ordinal WITHIN its half.
+              if(m2&&mm[m2]!=null){ tp=m2;
+                tpNum=curIt.alt?(Math.floor(Math.max(0,j)/n2)%Math.max(1,invOf(m2)||1))+1:mm[m2]; }
               else if(/^rest/i.test(String(x.name||""))) isRest=true;
+              // floor work is NAMED by its exercise — "Wall Balls", never a
+              // blank "Floor" that hides the station (Omar, build 390)
+              else flab=String(x.name||"");
             } else if(curIt){
               const ts2=itemTypes(curIt).filter(m2=>mm[m2]!=null);
-              if(ts2.length) tp=ts2[0];
+              if(ts2.length){ tp=ts2[0]; tpNum=mm[ts2[0]]; }
             }
-            if(tp){ const k=tp+":"+mm[tp];
-              if(!rows[k]){ rows[k]={label:mInfo(tp).short+" "+mm[tp],names:[],free:0}; order.push(k); }
+            if(tp){ const k=tp+":"+tpNum;
+              if(!rows[k]){ rows[k]={label:mInfo(tp).short+" "+tpNum,names:[],free:0}; order.push(k); }
               if(free) rows[k].free++; else rows[k].names.push(nm); }
             else if(isRest) restRows.push({free,nm});
-            else floorRows.push({free,nm});
+            else floorRows.push({free,nm,lab:flab});
           });
           const typeOrd=[...blockUsesTypes(b)];
           order.sort((a2,b2)=>{ const A=a2.split(":"), B=b2.split(":");
@@ -3469,14 +3479,37 @@ window.addEventListener("error",function(ev){
               +`<b class="tn">${label}</b><em class="mtag">${who}</em></span>`; };
           // machines of a kind stack in one COLUMN each — the eye runs down
           // the Skis, then the Bikes, instead of zig-zagging a grid
+          // THE FULL FLOOR OF AN ALT PART, EVERY SLOT (build 390 — Omar: "the
+          // maximum capacity is 36 people... it doesn't show 36 slots!"). An
+          // alt window's stations are fixed places the class grows into: the
+          // machine side runs to the gym's own count (SKI 1..6) and the floor
+          // side matches it (WALL BALLS 1..6) — occupied rows carry the name,
+          // the rest are quiet FREE offers. claimSlots' probing does not
+          // understand the halves, so alt blocks draw their own spares.
+          if(curIt&&curIt.alt&&!finished){
+            const xs3=(curIt.exercises||[]).filter(Boolean);
+            const capM=Math.max(0,...xs3.map(x=>{ const m3=machineOf(x.name);
+              return m3?(invOf(m3)||0):0; }));
+            const capA=capM||Math.ceil(al.teams.length/(xs3.length||1));
+            xs3.forEach(x=>{ const m3=machineOf(x.name);
+              if(m3){ const cap=invOf(m3)||capA;
+                const used=order.filter(k2=>k2.split(":")[0]===m3).length;
+                for(let q=used+1;q<=cap;q++){ const k2=m3+":"+q;
+                  if(!rows[k2]){ rows[k2]={label:mInfo(m3).short+" "+q,names:[],free:1,spare:true}; order.push(k2); } } }
+              else if(!/^rest/i.test(String(x.name||""))){
+                const lb=String(x.name||"Floor");
+                const used=floorRows.filter(r=>(r.lab||"Floor")===lb).length;
+                for(let q=used;q<capA;q++) floorRows.push({free:true,nm:"",lab:lb,spare:true});
+              } });
+          }
           const perType={};
           order.forEach(k=>{ const q=k.split(":");
             (perType[q[0]]=perType[q[0]]||[]).push({num:+q[1],
-              html:chip(rows[k].label,rows[k].names,rows[k].free)}); });
+              html:chip(rows[k].label,rows[k].names,rows[k].free,rows[k].spare)}); });
           // THE CARD LISTS THE FLOOR, NOT THE ROSTER: machines the class size
           // has not reached ride IN THEIR OWN TYPE'S COLUMN, in number order —
           // a spare printed as a stray full-width row broke the columns
-          if(!finished){ const ms=machSlots().byKey;
+          if(!finished&&!(curIt&&curIt.alt)){ const ms=machSlots().byKey;
             claimSlots().filter(s=>s.bi===bi&&!ms[s.key]).forEach(s=>{
               (perType[s.type]=perType[s.type]||[]).push({num:s.num,
                 html:chip(esc(s.short),[],1,true)}); }); }
@@ -3485,10 +3518,17 @@ window.addEventListener("error",function(ev){
           const seenT={}; const ord2=[...typeOrd,...Object.keys(perType)]
             .filter(t2=>perType[t2]&&!seenT[t2]&&(seenT[t2]=1));
           let out2=ord2.map(t2=>tcol(perType[t2])).join("");
-          // Rest and Floor read like the machines: one numbered row per spot
-          const extra=[
-            ...floorRows.map((r,i2)=>({num:i2,html:chip("Floor"+(floorRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)})),
-            ...restRows.map((r,i2)=>({num:floorRows.length+i2,html:chip("Rest"+(restRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)}))];
+          // Rest and Floor read like the machines: one numbered row per spot,
+          // and floor work is NAMED by its exercise ("Wall Balls 3"), grouped
+          // into its own column per exercise so the halves read side by side
+          const byLab={}, labOrd=[];
+          floorRows.forEach(r=>{ const lb=r.lab||"Floor";
+            if(!byLab[lb]){ byLab[lb]=[]; labOrd.push(lb); } byLab[lb].push(r); });
+          labOrd.forEach(lb=>{ const list=byLab[lb];
+            out2+=tcol(list.map((r,i2)=>({num:i2,
+              html:chip(esc(lb)+(list.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0,r.spare)}))); });
+          const extra=restRows.map((r,i2)=>({num:i2,
+            html:chip("Rest"+(restRows.length>1?" "+(i2+1):""),r.free?[]:[r.nm],r.free?1:0)}));
           if(extra.length) out2+=tcol(extra);
           return out2;
         })()}${(!al.teams.length&&!claimSlots().some(s=>s.bi===bi))?`<span class="t" style="opacity:.55">no ${kws()} this round</span>`:""}${(()=>{const p=typePeaks();const badHere=[...blockUsesTypes(b)].filter(m=>p[m]>invOf(m));return badHere.length?`<span class="t overcap">&#9888; uses ${badHere.map(m=>mInfo(m).label).join(" + ")} — over capacity</span>`:"";})()}</div>${(()=>{
@@ -6967,7 +7007,13 @@ window.addEventListener("error",function(ev){
       // merged sheet back into the fresh ergs
       if(s.man) manMerge(s.man);
       if(s.cfg&&JSON.stringify(s.cfg)!==JSON.stringify(cfg)){
-        cfg=s.cfg; migrateLoaded(); save(); applyAccent(); buildControlRoom();
+        cfg=s.cfg; migrateLoaded();
+        // a stale device can still push the WRONG Engine 15/09 (build 390):
+        // mend it on arrival — idle states only, a running class is never
+        // rebuilt under the athletes — and republish the truth
+        if(!(s.run&&s.run.act)&&fix1509(cfg)){ migrateLoaded();
+          setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
+        save(); applyAccent(); buildControlRoom();
       }
       const r=s.run||{};
       // the same move setTeamCount makes mid-class: rebuild clean, then put the
@@ -7111,6 +7157,68 @@ window.addEventListener("error",function(ev){
     const gone=presets.splice(i,1)[0]; savePresets();
     libKill(N,structuredClone(gone.cfg),gone.seedV);
     if(cfg.wkName===N){ cfg.wkName=null; save(); }
+  })();
+  // OMAR'S ENGINE 15/09 FIXES ITSELF (build 390 — "you do it! you fix it!").
+  // The AI-built board collapsed his ladder into three "swap every" windows;
+  // the real sheet is six HELD windows with rests between them (it.alt,
+  // build 389). Importing by hand was one step too many: every device that
+  // opens this build mends its own copies — the library entry (fresh ts, so
+  // the room adopts it), the loaded board, and — via fix1509 inside
+  // sessApply — any old copy the room session ever pushes back while idle.
+  // The shape test is deliberately narrow (no alt item anywhere, under 12
+  // items a part = the WRONG build only), so a board Omar edits later is
+  // never stomped, and the roster/gear/display ride through untouched.
+  function eng1509Blocks(){
+    const W=(d,a,ua,b2,ub)=>({dur:d,fmt:"rotate",alt:true,scored:false,exercises:[
+      {who:"",name:a,amounts:[],unit:ua,max:true},{who:"",name:b2,amounts:[],unit:ub,max:true}]});
+    const RS=d=>({rest:true,dur:d,scored:false,exercises:[]});
+    const L=(a,ua,b2,ub)=>[W(180,a,ua,b2,ub),RS(45),W(180,a,ua,b2,ub),RS(45),
+      W(120,a,ua,b2,ub),RS(30),W(120,a,ua,b2,ub),RS(30),
+      W(60,a,ua,b2,ub),RS(15),W(60,a,ua,b2,ub),RS(15)];
+    return [{name:"Part A",rounds:1,items:L("Ski","cal","Wall Balls","reps")},
+      {name:"Part B",rounds:1,items:L("Row","cal","Burpee Box Jumps","reps")},
+      {name:"Part C",rounds:1,items:L("Run","cal","Bike","cal")}];
+  }
+  function fix1509(c,force){
+    if(!c) return false;
+    if(!force){
+      if(c.wkName!=="Engine 15/09"||!c.rotation) return false;
+      const bs=c.rotation.blocks||[];
+      if(!bs.length||bs.some(b=>(b.items||[]).some(it=>it&&it.alt))) return false;
+      if(!bs.every(b=>(b.items||[]).length<12)) return false;
+    }
+    c.mode="rotation"; c.name="Engine"; c.titleSet=true; c.teamKind="solo";
+    c.noScore=true; c.together=false; c.scoreSrc="manual"; c.autoCrews=false;
+    eng1509Inv(c);
+    c.prog=Object.assign({},c.prog||{},{date:"2026-09-15",day:"Tuesday",stype:"Engine"});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:120,sameRest:true,
+      blocks:eng1509Blocks()});
+    return true;
+  }
+  // ATHL3TE owns SIX of each erg (Omar, build 390: "I have 6 of each machine,
+  // maximum capacity is 36") — a copy of this board that rode in with the
+  // sandbox's five-a-side counts gets the gym's real ones.
+  function eng1509Inv(c){ if(!c) return;
+    c.inventory=Object.assign({},c.inventory||{},{Row:6,Ski:6,Bike:6,Run:6}); }
+  (function fixEngine1509(){
+    const K="af_fixeng1509_v1", NM="Engine 15/09";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    const p=presets.find(x=>x.name===NM&&!x.seedV);
+    if(p&&p.cfg){ p.cfg.wkName=NM;
+      fix1509(p.cfg); eng1509Inv(p.cfg);
+      p.ts=Date.now(); savePresets(); libPush(p); }
+    else if(!p&&!libDead[NM]){
+      const c=structuredClone(DEFAULTS); c.wkName=NM; fix1509(c,true);
+      const entry={name:NM,cfg:c,ts:Date.now()};
+      presets.push(entry); savePresets(); libPush(entry);
+      try{ buildPresetSel(); }catch(e){}
+    }
+    if(cfg.wkName===NM){
+      fix1509(cfg); eng1509Inv(cfg);
+      migrateLoaded(); save();
+      setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
+      if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
+    }
   })();
   function aiSnapshot(){
     return JSON.stringify({name:cfg.name,teamKind:cfg.teamKind,teamSize:cfg.teamSize,noScore:!!cfg.noScore,
@@ -8130,7 +8238,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=389;
+  const BUILD=390;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -667,13 +667,41 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   instead of subdividing at dur/exercises, so rest items can sit BETWEEN
   the swaps and the ladder reads 3:00 / 0:45 / 3:00 / … exactly like the
   sheet. Display: an alt item's time label is just `fmtMS(dur)` — never
-  "swap every", there is no swap inside the window. Each athlete keeps
-  their own machine NUMBER across the swap (the gym owns enough; the
-  GROUPS trade places, Ski crew ↔ Floor crew) — the live map, NOW/NEXT
-  and lanes all follow from `seg.swap` unchanged. In the AI schema and
+  "swap every", there is no swap inside the window. In the AI schema and
   passed through `applyAiWorkout` (`o.alt=true`). `altwin.js` gates the
   card wording, the window/rest clock beat, and that the halves REALLY
-  trade across three windows. — Omar: "it must survive so I
+  trade across three windows.
+- **AN ALT PART'S MAP IS THE FULL FLOOR, CONTIGUOUS (build 390 — Omar:
+  "why Ski 1, 3, 5?!" then "maximum capacity is 36 people... it doesn't
+  show 36 slots!").** On the overview card an alt window's machines belong
+  to the STATION, not the athlete: the working half reads SKI 1..k
+  contiguous (ordinal within the half — `floor(j/ex)+1` — never
+  `machSlots`' per-crew number, which printed odd-numbered gaps while the
+  other half worked the floor), and the SAME machines change hands at the
+  swap. Floor work is a NAMED station in its own column ("Wall Balls 3",
+  never a blank "Floor" — non-alt floor rows keep "Floor"). The card draws
+  EVERY slot to the gym's own count: machine side to `invOf` (SKI 1..6),
+  floor side matching it (WALL BALLS 1..6) — his three-part Engine shows
+  all 36. `claimSlots` probing does not understand the halves, so alt
+  blocks draw their own spares and skip the claimSlots append. Scored alt
+  boards still map tablets by `machSlots.byKey` (per-crew) — align that
+  before anyone SCORES an alt board with tablets. `altwin.js` gates map,
+  numbering, swap and the 36-slot count.
+- **ENGINE 15/09 FIXES ITSELF (build 390 — Omar: "you do it! you fix it!"
+  after the import-code hand-delivery).** `fixEngine1509`
+  (`af_fixeng1509_v1`) mends every copy of the wrongly-built board on
+  every device that opens the build: the library entry (fresh ts +
+  libPush so the room adopts it; a missing entry is seeded unless
+  tombstoned), the loaded cfg, and — via `fix1509` inside `sessApply`,
+  IDLE states only, forever — any stale copy the room session pushes
+  back, which is then re-published. `fix1509`'s shape test is narrow
+  (wkName "Engine 15/09", NO alt item, under 12 items a part = the wrong
+  build only) so an edited board is never stomped; roster/gear/display
+  ride through, and `eng1509Inv` stamps the gym's REAL counts —
+  ATHL3TE owns SIX of each erg (36 capacity), not the sandbox's five;
+  never build a board for Omar with default inventory again. When a wrong
+  board reaches his gym, the fix ships IN the app as a one-shot — never
+  as steps for Omar. `fixeng.js` gates all five paths. — Omar: "it must survive so I
   can point to things we talked about, even if I refresh").** The whole
   builder chat persists in `af_aichat_v1`: the rendered log (`aiLog` — text
   bubbles plus `opts`/`hold` option rows), the model transcript (`aiMsgs`,

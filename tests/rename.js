@@ -193,7 +193,10 @@ await p.click('#renGo'); await p.waitForTimeout(600);
     'RENAME files a taken name by DATE — the typed word stays the wall title ('+rd.wk+' / '+rd.title+')');
   ok(rd.entry&&rd.edate==='2026-09-08','the filed entry carries the date it was filed under');
   ok(rd.oldGone&&rd.plain===1,'the old dated name moved away; last week\'s Engine untouched'); }
-await p.evaluate(()=>{ const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+await p.evaluate(()=>{ // build 390 seeds a real "Engine 15/09" — clear it so
+  // this scenario owns the name and the refusal count stays exact
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'))
+    .filter(x=>x.name!=='Engine 15/09');
   ps.push({name:'Engine 15/09',cfg:JSON.parse(JSON.stringify(ps[0].cfg)),ts:6});
   localStorage.setItem('af_presets_v1',JSON.stringify(ps)); });
 await p.reload(); await p.waitForTimeout(1400);

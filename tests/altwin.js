@@ -28,6 +28,8 @@ await p.evaluate(blocks=>{
   // REAL names — a placeholder crew reads "free" on the live map and hides the swap
   cfg.crews=['Omar','Sara','Ali','Maya','Zed','Lina','Tom','Nour','Kai','Rita','Sam','Dana']
     .map(n=>({name:n}));
+  // ATHL3TE's real floor: six of each erg (Omar, build 390)
+  cfg.inventory=Object.assign({},cfg.inventory,{Row:6,Ski:6,Bike:6,Run:6});
   localStorage.setItem(k,JSON.stringify(cfg));
 },[{name:'Part A',rounds:1,items:LADDER('Ski','cal','Wall Balls','reps')},
   {name:'Part B',rounds:1,items:LADDER('Row','cal','Burpee Box Jumps','reps')},
@@ -47,34 +49,43 @@ await p.click('#tabTrainer'); await p.waitForTimeout(400);
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1300);
 await p.click('#tabBoard'); await p.waitForTimeout(700);
-// who is on the skis vs the floor RIGHT NOW (Part A card). Each athlete keeps
-// their own ski number (the gym owns enough), so the swap shows as the GROUP
-// on skis trading with the group on the floor — not one ski changing hands.
+// THE FULL FLOOR, EVERY SLOT (build 390 — Omar: "maximum capacity is 36
+// people"): an alt part shows the machine side to the gym's own count and
+// the floor side named by its exercise, occupied rows carrying the name.
+// The working half sits on CONTIGUOUS machines (Ski 1+2, never 1,3,5) and
+// the SAME machines change hands at the swap.
 const mapOf=()=>p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[0];
-  const out={ski:[],floor:[]}; [...c.querySelectorAll('.teams .t')].forEach(t=>{
+  const out={}; [...c.querySelectorAll('.teams .t')].forEach(t=>{
     const tn=((t.querySelector('.tn')||{}).textContent||'').trim();
     const who=((t.querySelector('.mtag')||{}).textContent||'').trim();
-    if(!who||who==='free') return;
-    if(/^Ski/i.test(tn)) out.ski.push(who);
-    else if(/^Floor/i.test(tn)) out.floor.push(who); });
-  out.ski.sort(); out.floor.sort(); return out; });
-const same=(a,b)=>a.length&&a.length===b.length&&a.every((v,i)=>v===b[i]);
+    out[tn]=who; });
+  return out; });
 const w1=await mapOf();
+{ const skis=Object.keys(w1).filter(k=>/^Ski \d/i.test(k));
+  const wbs=Object.keys(w1).filter(k=>/^Wall Balls \d/i.test(k));
+  ok(skis.length===6&&wbs.length===6,'Part A shows ALL 12 slots — Ski 1-6 + Wall Balls 1-6 ('+skis.length+'/'+wbs.length+')');
+  ok(!!w1['Ski 1']&&w1['Ski 1']!=='free'&&!!w1['Ski 2']&&w1['Ski 2']!=='free'&&w1['Ski 3']==='free',
+    'the working half sits on Ski 1+2 — CONTIGUOUS, no gaps ('+w1['Ski 1']+', '+w1['Ski 2']+')');
+  ok(w1['Ski 6']==='free'&&w1['Wall Balls 6']==='free','the spare slots read free to the gym cap');
+  ok(!!w1['Wall Balls 1']&&w1['Wall Balls 1']!=='free','floor work is a NAMED station (Wall Balls 1: '+w1['Wall Balls 1']+')'); }
+ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')].reduce((n,c)=>
+    n+[...c.querySelectorAll('.teams .t')].filter(t=>!/^Rest/i.test(((t.querySelector('.tn')||{}).textContent||'').trim())).length,0))===36,
+  "the gym's full capacity is on the map — 36 slots across the parts");
 { const clock=await p.evaluate(()=>document.getElementById('clock').textContent);
-  ok(w1.ski.length===2&&w1.floor.length===2,
-    'window 1: half on skis, half on the floor ('+w1.ski+' / '+w1.floor+')');
   const m=clock.match(/^(\d+):/); ok(m&&+m[1]<3,'window 1: the big clock counts the 3:00 window ('+clock+')'); }
 await p.evaluate(()=>window.__seek(184)); await p.waitForTimeout(800);
 { const lab=await p.evaluate(()=>document.getElementById('clockLab').textContent);
   ok(/rest/i.test(lab),'t≈3:05: the 0:45 rest flips the clock to REST'); }
 await p.evaluate(()=>window.__seek(50)); await p.waitForTimeout(900);   // into window 2
 const w2=await mapOf();
-ok(same(w2.ski,w1.floor)&&same(w2.floor,w1.ski),
-  'window 2: the halves SWAPPED — floor crew on skis, ski crew on the floor ('+w2.ski+' / '+w2.floor+')');
+ok(w2['Ski 1']===w1['Wall Balls 1']&&w2['Ski 2']===w1['Wall Balls 2'],
+  'window 2: the SAME skis changed hands — floor half on Ski 1+2 ('+w2['Ski 1']+', '+w2['Ski 2']+')');
+ok(w2['Wall Balls 1']===w1['Ski 1'],'and the ski half is at the wall balls now');
 await p.evaluate(()=>window.__seek(180)); await p.waitForTimeout(900);  // rest 2 (t≈418)
 await p.evaluate(()=>window.__seek(40)); await p.waitForTimeout(900);   // window 3 (t≈459)
 const w3=await mapOf();
-ok(same(w3.ski,w1.ski),'window 3: the original half is BACK on the skis ('+w3.ski+')');
+ok(w3['Ski 1']===w1['Ski 1']&&w3['Ski 2']===w1['Ski 2'],
+  'window 3: the original half is BACK on Ski 1+2 ('+w3['Ski 1']+', '+w3['Ski 2']+')');
 // no errors across a full part boundary
 await p.evaluate(()=>window.__seek(700)); await p.waitForTimeout(1000);
 ok(await p.evaluate(()=>/^\d+:\d\d$/.test(document.getElementById('clock').textContent)),
