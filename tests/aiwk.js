@@ -107,7 +107,14 @@ await p.waitForTimeout(1400);
 // any questions?!"): a build that lands with stacked strength pieces and no
 // hold gets the app's OWN one-tap offer; the tap sets hold on the live board
 // AND the saved copy.
-await p.reload(); await p.waitForTimeout(1600);   // fresh chat: aiMsgs + the asked-flag reset
+// the chat PERSISTS across reloads now (build 387) — a fresh chat is the
+// New chat button, and that is what resets the asked-flag
+await p.evaluate(()=>document.body.classList.add('aiopen'));
+await p.evaluate(()=>document.getElementById('aiNew').click());
+await p.waitForTimeout(400);
+await p.evaluate(()=>{const d=document.querySelector('.dlg .dok'); if(d) d.click();});
+await p.waitForTimeout(400);
+await p.evaluate(()=>document.body.classList.remove('aiopen'));   // drop the scrim
 await p.click('#stSetup'); await p.waitForTimeout(400);
 await send({name:'Strength Ladder',teamKind:'solo',noScore:true,together:true,laps:1,
   blocks:[{name:'Part B',rounds:1,items:[
@@ -231,6 +238,52 @@ await p.waitForTimeout(700);
   ok(calls>=2&&r.errs===errsBefore&&/staggers/i.test(r.last),
     'an empty 200 is retried silently and the real answer lands ('+calls+' calls, '
     +(r.errs-errsBefore)+' new errors)'); }
+// 9) THE CHAT SURVIVES THE PAGE (build 387 — Omar: "it must survive so I
+// can point to things we talked about, even if I refresh"): bubbles come
+// back after a refresh, an unanswered question comes back TAPPABLE and
+// still builds, and New chat wipes transcript + store.
+await p.reload(); await p.waitForTimeout(1700);
+await p.evaluate(()=>document.body.classList.add('aiopen'));
+await p.waitForTimeout(400);
+{ const r=await p.evaluate(()=>({n:document.querySelectorAll('.aichat .msg').length,
+    hidden:document.getElementById('aiChat').hidden}));
+  ok(r.n>3&&!r.hidden,'the transcript is rebuilt after a refresh ('+r.n+' bubbles)'); }
+await p.unroute('https://relay.test/**');
+let ask2=true;
+await p.route('https://relay.test/**',async route=>{
+  const body=JSON.parse(route.request().postData()||'{}');
+  if(body.op) return route.fulfill({json:{ok:1,v:null,now:Date.now(),presets:[]}});
+  lastChat=body.messages||null;
+  if(ask2){ ask2=false; return route.fulfill({json:{content:[{type:'text',
+    text:JSON.stringify({reply:'Scored or not?',options:['Score it','No scores'],workout:null})}]}}); }
+  return route.fulfill({json:reply({name:'Persist Test',teamKind:'solo',noScore:true,together:true,laps:1,
+    blocks:[{name:'Part A',rounds:1,items:[{dur:60,exercises:[{name:'Row',amounts:[500],unit:'m'}]}]}]})});
+});
+await p.fill('#aiText','persist test');
+await p.evaluate(()=>document.getElementById('aiSend').click());
+await p.waitForTimeout(1200);
+await p.reload(); await p.waitForTimeout(1700);
+await p.evaluate(()=>document.body.classList.add('aiopen'));
+await p.waitForTimeout(400);
+{ const r=await p.evaluate(()=>{ const rows=[...document.querySelectorAll('.aichat .msg.aiopts')];
+    const last=rows[rows.length-1];
+    return {live:!!last&&!last.classList.contains('done'),
+      pills:last?last.querySelectorAll('.aiopt').length:0}; });
+  ok(r.live&&r.pills===2,'an unanswered question comes back TAPPABLE after refresh'); }
+await p.evaluate(()=>{ const rows=[...document.querySelectorAll('.aichat .msg.aiopts')];
+  rows[rows.length-1].querySelectorAll('.aiopt')[1].click(); });
+await p.waitForTimeout(1500);
+{ const r=await p.evaluate(()=>({wk:JSON.parse(localStorage.getItem('af_erg_cfg_v8')).wkName}));
+  const lu=(lastChat||[]).filter(m=>m.role==='user').pop();
+  ok(r.wk==='Persist Test'&&!!lu&&/No scores/.test(lu.content),
+    'the restored pill still answers and the build completes ('+r.wk+')'); }
+await p.evaluate(()=>document.getElementById('aiNew').click());
+await p.waitForTimeout(400);
+await p.evaluate(()=>{const d=document.querySelector('.dlg .dok'); if(d) d.click();});
+await p.waitForTimeout(400);
+{ const r=await p.evaluate(()=>({n:document.querySelectorAll('.aichat .msg').length,
+    store:localStorage.getItem('af_aichat_v1')}));
+  ok(r.n===0&&!r.store,'New chat clears the transcript and the store'); }
 // 3) the schema TELLS the AI about dates and filing
 { const sys=await p.evaluate(()=>{ // reconstruct the system prompt through a chat call is heavy;
     // instead assert the source carries the contract

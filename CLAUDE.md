@@ -663,6 +663,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   between items, also tappable in Control's part list `.ptr`), stops the
   clock at the boundary ("Next part — press start") and is in the AI schema.
   `setbeat.js` gates beat + labels + hold end to end.
+- **THE CHAT SURVIVES THE PAGE (build 387 — Omar: "it must survive so I
+  can point to things we talked about, even if I refresh").** The whole
+  builder chat persists in `af_aichat_v1`: the rendered log (`aiLog` — text
+  bubbles plus `opts`/`hold` option rows), the model transcript (`aiMsgs`,
+  capped at 30), the chat's owned board (`aiOwnBoard`) and the asked-flag.
+  `aiRestoreChat()` rebuilds it at boot through the SAME renderers
+  (`aiRenderOpts`/`aiRenderHold`): an unanswered option row comes back
+  TAPPABLE (the hold-fix is the named `aiHoldFix(bi,ii,label)` so a restored
+  pill can still act), an answered one is frozen with `.picked` lit. Errors
+  are the one thing NOT persisted. A reload therefore no longer resets the
+  chat — "New chat" (`#aiNew`, dlgConfirm'd, `aiClearChat()`) is the reset,
+  and suites must use it instead of reloading. `aiwk.js` (30) pins restore,
+  live-after-refresh pills, and the wipe.
 - **THE AI ASKS, IT NEVER GUESSES (build 377 — Omar: "it asks me questions
   and I just select what I want").** The chat protocol carries
   `options:[...]` beside reply/workout: when a sheet honestly allows

@@ -2162,7 +2162,7 @@
   <button id="aiFab" type="button" aria-label="Build with AI" title="Build with AI"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span id="aiFabX" role="button" aria-label="Hide the AI button">&times;</span></button>
   <div id="aiScrim"></div>
   <div id="aiPanel">
-    <div class="aiph"><b>Build with AI</b><button class="iconbtn" id="aiClose" aria-label="Close">&times;</button></div>
+    <div class="aiph"><b>Build with AI</b><button class="btn small" id="aiNew" type="button" style="margin-left:auto;margin-right:10px">New chat</button><button class="iconbtn" id="aiClose" aria-label="Close">&times;</button></div>
     <div class="aipb">
       <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the Setup fills itself for you to review and save. Unclear bits come back as questions. Dictate with your keyboard's mic or the Voice button.</div>
       <div id="aiChat" class="aichat" hidden></div>
@@ -6810,6 +6810,20 @@ window.addEventListener("error",function(ev){
       if(/^https:\/\//.test(v)){ aiUrl=v; localStorage.setItem(AIKEY,v); } } }catch(e){}
   let aiMsgs=[], aiBusy=false;
   let aiOwnBoard=null;   // the filing name THIS CHAT last saved — its tweaks update, never sibling
+  // THE CHAT SURVIVES THE PAGE (Omar, build 387: "it must survive so I can
+  // point to things we talked about, even if I refresh — same like between
+  // me and you"). Every bubble and option row, the transcript the model
+  // sees, the board this chat owns and whether it has asked all persist in
+  // af_aichat_v1 and are rebuilt at boot: unanswered option pills come back
+  // LIVE, answered ones frozen with the picked pill lit. Errors are
+  // transient and are the one thing not kept. "New chat" wipes it.
+  const AIC="af_aichat_v1";
+  let aiLog=[], aiRestoring=false;
+  function aiSaveChat(){ try{ localStorage.setItem(AIC,JSON.stringify({v:1,
+      msgs:aiMsgs.slice(-30),log:aiLog.slice(-80),own:aiOwnBoard,asked:aiAskedOnce})); }catch(e){} }
+  function aiClearChat(){ aiMsgs=[]; aiLog=[]; aiOwnBoard=null; aiAskedOnce=false;
+    try{ localStorage.removeItem(AIC); }catch(e){}
+    const c=$("aiChat"); if(c){ c.innerHTML=""; c.hidden=true; } }
 
   /* ============ shared workout library ============ */
   // THE GYM HAS ONE LIBRARY. A board saved on any device rides the relay into
@@ -7158,6 +7172,7 @@ window.addEventListener("error",function(ev){
     const c=$("aiChat"); if(!c) return; c.hidden=false;
     const d=document.createElement("div"); d.className="msg "+cls; d.textContent=text;
     c.appendChild(d); d.scrollIntoView({block:"nearest"});
+    if(!aiRestoring&&cls!=="err"){ aiLog.push({c:cls,t:String(text)}); aiSaveChat(); }
   }
   // THE COACH TAPS AN ANSWER (Omar, build 377: "it asks me questions and I
   // just select what I want"). When the AI genuinely can read a sheet two
@@ -7166,15 +7181,25 @@ window.addEventListener("error",function(ev){
   // (marking the tapped one) so the transcript shows what was chosen.
   let aiAskedOnce=false;   // the AI asked this chat — trust its build, don't re-nag
   function aiOptions(list){
-    const c=$("aiChat"); if(!c||!Array.isArray(list)||!list.length) return;
+    if(!Array.isArray(list)||!list.length) return;
+    const row={c:"opts",list:list.slice(0,4).map(t=>String(t).slice(0,90)),done:false,picked:-1};
+    aiLog.push(row); aiSaveChat();
+    aiRenderOpts(row);
+  }
+  // ONE renderer for a live row and a restored one (build 387): an
+  // unanswered row is tappable again after a refresh; an answered one is
+  // frozen with the picked pill lit, so the transcript keeps the choice.
+  function aiRenderOpts(row){
+    const c=$("aiChat"); if(!c) return; c.hidden=false;
     aiAskedOnce=true;
-    c.hidden=false;
-    const d=document.createElement("div"); d.className="msg aiopts";
-    list.slice(0,4).forEach(t=>{ const b=document.createElement("button");
-      b.type="button"; b.className="aiopt"; b.textContent=String(t).slice(0,90);
+    const d=document.createElement("div"); d.className="msg aiopts"+(row.done?" done":"");
+    row.list.forEach((t,i)=>{ const b=document.createElement("button");
+      b.type="button"; b.className="aiopt"+(row.done&&row.picked===i?" picked":"");
+      b.textContent=t;
       b.onclick=()=>{ if(aiBusy||d.classList.contains("done")) return;
         d.classList.add("done"); b.classList.add("picked");
-        const ta=$("aiText"); if(ta) ta.value=b.textContent;
+        row.done=true; row.picked=i; aiSaveChat();
+        const ta=$("aiText"); if(ta) ta.value=t;
         aiSend(); };
       d.appendChild(b); });
     c.appendChild(d); d.scrollIntoView({block:"nearest"});
@@ -7198,30 +7223,40 @@ window.addEventListener("error",function(ev){
         out.push({bi,ii:i,label:b.name||("Part "+(bi+1))}); } });
     return out;
   }
+  // the hold fix is a NAMED action so a restored, still-unanswered offer row
+  // can run it after a refresh exactly as the live one would
+  function aiHoldFix(bi,ii,label){
+    const it=((R().blocks[bi]||{}).items||[])[ii]; if(!it) return;
+    it.hold=true; save();
+    // the saved copy must carry the hold too, or another device loads
+    // the board without it
+    const p=presets.find(x=>x.name===cfg.wkName);
+    if(p){ const b2=(((p.cfg||{}).rotation||{}).blocks||[])[bi];
+      const it2=b2&&(b2.items||[])[ii];
+      if(it2){ it2.hold=true; p.ts=Date.now(); savePresets(); libPush(p); } }
+    aiBubble("ok",label+": the clock now stops there — you press Start for the next piece.");
+  }
+  function aiRenderHold(row){
+    const c=$("aiChat"); if(!c) return; c.hidden=false;
+    const d=document.createElement("div"); d.className="msg aiopts"+(row.done?" done":"");
+    const mk=(txt,i,act)=>{ const b=document.createElement("button"); b.type="button";
+      b.className="aiopt"+(row.done&&row.picked===i?" picked":"");
+      b.textContent=txt;
+      b.onclick=()=>{ if(d.classList.contains("done")) return;
+        d.classList.add("done"); b.classList.add("picked");
+        row.done=true; row.picked=i; aiSaveChat(); if(act) act(); };
+      d.appendChild(b); };
+    mk("‖ Trainer starts it",0,()=>aiHoldFix(row.bi,row.ii,row.label));
+    mk("▸ Leave it flowing",1,null);
+    c.appendChild(d); d.scrollIntoView({block:"nearest"});
+  }
   function aiOfferHolds(){
     if(aiAskedOnce) return;
     aiHoldGaps().slice(0,2).forEach(g=>{
-      const c=$("aiChat"); if(!c) return;
       aiBubble("ai",g.label+" — after its first piece the next one flows straight on. Should the trainer start it instead?");
-      const d=document.createElement("div"); d.className="msg aiopts";
-      const mk=(txt,act)=>{ const b=document.createElement("button"); b.type="button";
-        b.className="aiopt"; b.textContent=txt;
-        b.onclick=()=>{ if(d.classList.contains("done")) return;
-          d.classList.add("done"); b.classList.add("picked"); if(act) act(); };
-        d.appendChild(b); };
-      mk("‖ Trainer starts it",()=>{
-        const it=((R().blocks[g.bi]||{}).items||[])[g.ii]; if(!it) return;
-        it.hold=true; save();
-        // the saved copy must carry the hold too, or another device loads
-        // the board without it
-        const p=presets.find(x=>x.name===cfg.wkName);
-        if(p){ const b2=(((p.cfg||{}).rotation||{}).blocks||[])[g.bi];
-          const it2=b2&&(b2.items||[])[g.ii];
-          if(it2){ it2.hold=true; p.ts=Date.now(); savePresets(); libPush(p); } }
-        aiBubble("ok",g.label+": the clock now stops there — you press Start for the next piece.");
-      });
-      mk("▸ Leave it flowing",null);
-      c.appendChild(d); d.scrollIntoView({block:"nearest"});
+      const row={c:"hold",bi:g.bi,ii:g.ii,label:g.label,done:false,picked:-1};
+      aiLog.push(row); aiSaveChat();
+      aiRenderHold(row);
     });
   }
   function applyAiWorkout(w){
@@ -7367,7 +7402,7 @@ window.addEventListener("error",function(ev){
       if(!raw.trim())
         throw new Error("empty reply from the model"
           +(data?" (stop: "+(data.stop_reason||"?")+", blocks: "+((data.content||[]).length||0)+")":""));
-      aiMsgs.push({role:"assistant",content:raw});
+      aiMsgs.push({role:"assistant",content:raw}); aiSaveChat();
       let obj=null;
       try{ obj=JSON.parse(raw.replace(/^```(json)?|```$/g,"").trim()); }catch(e){
         const m=raw.match(/\{[\s\S]*\}/); if(m){ try{ obj=JSON.parse(m[0]); }catch(e2){} } }
@@ -7379,7 +7414,7 @@ window.addEventListener("error",function(ev){
       if(obj&&obj.reply) aiBubble("ai",obj.reply);
       if(obj&&obj.options&&!obj.workout) aiOptions(obj.options);
       if(obj&&obj.workout){ const nm=applyAiWorkout(obj.workout);
-        aiOwnBoard=nm;
+        aiOwnBoard=nm; aiSaveChat();
         // the confirmation STAYS \u2014 an auto-close ate the name before anyone
         // could read it (Omar); the trainer closes the panel when done
         aiBubble("ok","Saved as \u201c"+nm+"\u201d"
@@ -7392,11 +7427,29 @@ window.addEventListener("error",function(ev){
       // the coach's words go BACK in the box — a failure must never cost a
       // retyped paragraph — and the failed turn leaves the history so a
       // retry doesn't send it twice
-      if(aiMsgs.length&&aiMsgs[aiMsgs.length-1].role==="user") aiMsgs.pop();
+      if(aiMsgs.length&&aiMsgs[aiMsgs.length-1].role==="user"){ aiMsgs.pop(); aiSaveChat(); }
       ta.value=txt;
     }
     aiBusy=false; btn.disabled=false; btn.textContent="Build it";
   }
+  // rebuild the saved chat at boot — bubbles, frozen choices, live pills,
+  // and the chat's memory (transcript, owned board, asked-flag)
+  (function aiRestoreChat(){
+    let s=null; try{ s=JSON.parse(localStorage.getItem(AIC)||"null"); }catch(e){}
+    if(!s||!Array.isArray(s.log)||!s.log.length) return;
+    aiRestoring=true;
+    try{
+      aiMsgs=Array.isArray(s.msgs)?s.msgs.slice(-30):[];
+      aiOwnBoard=s.own||null; aiAskedOnce=!!s.asked;
+      aiLog=[];
+      s.log.slice(-80).forEach(r=>{ if(!r) return;
+        aiLog.push(r);
+        if(r.c==="opts") aiRenderOpts(r);
+        else if(r.c==="hold") aiRenderHold(r);
+        else aiBubble(r.c,r.t); });
+      aiAskedOnce=!!s.asked||aiAskedOnce;
+    } finally { aiRestoring=false; }
+  })();
   function aiOpen(){
     document.body.classList.add("aiopen");
     if(!aiUrl) $("aiSetupNote").hidden=false;
@@ -7428,6 +7481,9 @@ window.addEventListener("error",function(ev){
           fx.addEventListener("click",e=>{ e.stopPropagation();
             fab.dataset.off="1"; fab.style.display="none"; }); } }
       $("aiClose").onclick=aiCloseP;
+      { const nb=$("aiNew"); if(nb) nb.onclick=async()=>{
+          if(aiLog.length&&!await dlgConfirm("Start a new chat? The old conversation is cleared on this device.","New chat")) return;
+          aiClearChat(); }; }
       const sc=$("aiScrim"); if(sc) sc.onclick=aiCloseP;
       document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&document.body.classList.contains("aiopen")) aiCloseP(); });
       const t=$("aiText");
@@ -8115,7 +8171,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=386;
+  const BUILD=387;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
