@@ -190,6 +190,25 @@ await p.waitForTimeout(700);
     return {wk:c.wkName,count:ps.length,old:ps.some(x=>x.name==='Engine 08/09')}; });
   ok(r.wk==='Engine 22/09'&&r.count===before+1&&r.old,
     'a coach-given NEW date still files next week\'s board ('+r.wk+')'); }
+// 7) TALKING IS NEVER AN ERROR (build 382 — Omar: "it doesn't reply, it
+// doesn't talk to me"): a plain-text answer renders as the assistant's own
+// bubble, no error, nothing saved.
+{ nextAsk={__raw:'Great question — for a strength day I would keep Part C unscored so the class focuses on quality.'};
+  // reroute: fulfil with raw text instead of JSON
+  await p.unroute('https://relay.test/**');
+  await p.route('https://relay.test/**',async route=>{
+    const body=JSON.parse(route.request().postData()||'{}');
+    if(body.op) return route.fulfill({json:{ok:1,v:null,now:Date.now(),presets:[]}});
+    return route.fulfill({json:{content:[{type:'text',text:'Great question — for a strength day I would keep Part C unscored so the class focuses on quality.'}]}});
+  });
+  const errsBefore=await p.evaluate(()=>document.querySelectorAll('.aichat .msg.err').length);
+  await p.fill('#aiText','should part C be scored?');
+  await p.evaluate(()=>document.getElementById('aiSend').click());
+  await p.waitForTimeout(1200);
+  const r=await p.evaluate(()=>({errs:document.querySelectorAll('.aichat .msg.err').length,
+    last:[...document.querySelectorAll('.aichat .msg.ai')].pop().textContent}));
+  ok(r.errs===errsBefore&&/keep Part C unscored/i.test(r.last),
+    'a plain-text answer is a MESSAGE bubble, never an error'); }
 // 3) the schema TELLS the AI about dates and filing
 { const sys=await p.evaluate(()=>{ // reconstruct the system prompt through a chat call is heavy;
     // instead assert the source carries the contract
