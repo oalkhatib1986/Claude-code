@@ -4525,6 +4525,12 @@ window.addEventListener("error",function(ev){
     const rows=Object.entries(PM5.dbg||{}).map(([k,v])=>k+" · "+v).join("<br>");
     return `${PM5.state} · ${L.kind||"—"} · m ${Math.round(L.m)} · t ${Math.round(L.t)} · cal ${L.cal} · pace ${L.pace?L.pace.toFixed(1):"0"} · w ${L.watts} · spm ${L.spm}<br>${rows||"no frames yet"}`; }
   const pm5BtnHtml=()=>{ if(!pm5Can()) return "";
+    // UNDER MANUAL SCORING THE PAIRING OFFER IS NOISE (Omar, build 375: "why
+    // do I see connect PM5!") \u2014 the class types its scores; nobody at a
+    // tablet should be starting a Bluetooth pairing. A monitor that is
+    // ALREADY paired (or mid-pairing) keeps its status button \u2014 that is a
+    // live erg test in progress, and hiding its state would strand it.
+    if(!scoreAuto()&&PM5.state==="off") return "";
     const lab=PM5.state==="on"?"PM5 \u2713":PM5.state==="connecting"?"Pairing\u2026":PM5.state==="lost"?"Reconnect PM5":"Connect PM5";
     return `<button type="button" class="tk-blk tk-ble ${PM5.state}" id="tbBle">${lab}</button>`; };
   try{ window.__pm5=PM5; window.__pm5Connect=pm5Connect; }catch(e){}
@@ -7875,7 +7881,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=374;
+  const BUILD=375;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
