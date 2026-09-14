@@ -629,22 +629,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   glued-name headings). Invented samples encode the author's own assumptions —
   the gallery caught "cal Calories (any erg)" on two real boards the samples
   missed, the day it was written.
-- **A LADDER READS ONCE (build 386 — Omar: "too much text, so much
-  repetition").** `blockLadder(b)`: a ONE-round block that strictly
-  alternates work/rest (≥3 work items, every work item the SAME exercises,
-  format, prescription and scored flag — full signature match) collapses in
-  `exLines` to a single `.exg`: heading "LADDER · stations swap" (or
-  "N × M minutes" when the windows are uniform), a `Work:` row of time
-  tokens, a `Rest:` row (or "0:45 between" when uniform), then the
-  exercises ONCE, notes deduped by `noteRedundant`. Live, the group wears
-  `.pnow` and the RUNNING window's token gets `.ladon` (inset underline in
-  currentColor — reads on the dark card and the white slab alike). The
-  `.win` footer stays (total; the between-part rest lives in the divider on
-  the overview, `.winbr` is wall-only as ever). Two different pieces never
-  collapse; EMOM wins precedence. Labels ride `.emord.ladlab` (auto width —
-  the 2.4em ordinal box clips "Work:"). `ladder.js` gates it; a note that
-  echoes its own line is dropped globally (`noteRedundant`, build 385,
-  pinned in `wording.js`).
+- **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
+  it was!").** Build 386 collapsed repeated-rung ladders into one compact
+  block (Work:/Rest: token rows, exercises once). He approved the idea from
+  a mock but rejected it on sight: the wall must keep EVERY rung written
+  out — what he wanted was only the removal of the useless lines INSIDE the
+  old layout (the echo notes, build 385). The collapse (`blockLadder`, the
+  exLines branch, `.ladt`/`.ladon` CSS, `ladder.js`) is fully removed — do
+  NOT rebuild it, and treat this as the standing example that a layout mock
+  approved in chat still needs his eyes on the REAL screen before it is
+  the new normal. The echo-note dedupe (`noteRedundant`, build 385) STAYS
+  and is pinned in `wording.js`.
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.

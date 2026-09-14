@@ -1178,11 +1178,6 @@
      ordinal is a fixed COLUMN so a wrapped line lands exactly under the text. */
   .exl.exlw{padding-left:2.4em;text-indent:-2.4em}
   .exl.exlw .emord{display:inline-block;width:2.4em;text-indent:0;white-space:nowrap}
-  /* the ladder's time tokens: the RUNNING window is underlined in the line's
-     own ink, so it reads on the dark card and on the white NOW slab alike */
-  .emord.ladlab{width:auto;margin-right:.45em}
-  .ladt{white-space:nowrap}
-  .ladt.ladon{font-weight:800;box-shadow:inset 0 -3px 0 currentColor;padding:0 2px}
   .exl i{color:var(--hot);font-style:normal;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-left:7px}
   #updBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;
     background:var(--accent);color:#000;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;
@@ -3008,33 +3003,6 @@ window.addEventListener("error",function(ev){
     if(!its.every(it=>it.dur===60&&(it.rest||(it.exercises||[]).length))) return 0;
     if(!its.some(it=>!it.rest)) return 0;
     const R=bRounds(b); return R>=1?R*its.length:0; };
-  // A LADDER READS ONCE (Omar, build 386: "too much text, so much
-  // repetition"): the same exercises over shrinking windows — 3:00/3:00/
-  // 2:00/2:00/1:00/1:00 with rests between — printed every rung in full,
-  // six times over. When a one-round block strictly alternates work and
-  // rest and every work item carries the SAME exercises (same format, same
-  // prescription), the card collapses to the coach's own slide: the work
-  // times on one line, the rests on the next, the exercises once.
-  const blockLadder=b=>{
-    if(isWin(b)||isAmrap(b)||bRounds(b)>1||bRRest(b)||finItems(b).length) return null;
-    const its=roundItems(b); if(its.length<5) return null;
-    const sigOf=it=>(it.fmt||"")+"§"+(it.scored?1:0)+"§"+((it.exercises||[]).filter(Boolean)
-      .map(x=>[x.name,x.unit,x.max?1:0,(x.amounts||[]).join("/"),exSets(x)||0,
-        x.each?1:0,x.rpe||0,x.rm||0,x.who||"",x.note||""].join("~")).join("|"));
-    const works=[],rests=[],workIx=[],restIx=[];
-    for(let i=0;i<its.length;i++){ const it=its[i];
-      if(i%2===0){
-        if(it.rest||it.text!=null||(it.every&&it.every.sec)||!(it.exercises||[]).filter(Boolean).length||!(it.dur>0)) return null;
-        works.push(it); workIx.push((b.items||[]).indexOf(it));
-      } else {
-        if(!it.rest||!(it.dur>0)) return null;
-        rests.push(it); restIx.push((b.items||[]).indexOf(it));
-      } }
-    if(works.length<3) return null;
-    const s0=sigOf(works[0]);
-    if(!works.every(w=>sigOf(w)===s0)) return null;
-    return {works,rests,workIx,restIx};
-  };
   const blockSchemeTxt=b=>{
     const m=blockEmom(b); if(m) return `EMOM × ${m} minute${m>1?"s":""}`;
     if(isWin(b)||isAmrap(b)) return "";
@@ -3071,29 +3039,6 @@ window.addEventListener("error",function(ev){
     const cur=(seg&&seg.i>=0)?seg.i:-1;
     const bs=blockSchemeTxt(b);          // "EMOM × 9 minutes" / "Every 2:30 for 10 minutes"
     const emom=blockEmom(b)>0;
-    // the collapsed ladder: heading, the times, the rests, the exercises ONCE
-    const lad=(!emom&&!bs)?blockLadder(b):null;
-    if(lad){
-      const isNow=cur>=0;
-      const curW=lad.workIx.indexOf(cur), curR=lad.restIx.indexOf(cur);
-      const durs=lad.works.map(w=>w.dur), rr=lad.rests.map(r=>r.dur);
-      const uniW=durs.every(d=>d===durs[0]), uniR=rr.length>0&&rr.every(d=>d===rr[0]);
-      const tok=(t,on)=>`<span class="ladt${on?" ladon":""}">${t}</span>`;
-      const it0=lad.works[0], xs=(it0.exercises||[]).filter(Boolean);
-      const us=xs.length&&xs.every(x2=>exSets(x2)&&exSets(x2)===exSets(xs[0]))?exSets(xs[0]):0;
-      const lab=uniW?`${durs.length} × ${minTxt(durs[0])}`:"Ladder";
-      const fmtTag=itRot(it0)?" · stations swap":it0.fmt==="waves"?` · ${itWaves(it0)} waves`
-        :itShare(it0)?` · share in ${itShare(it0)}s`:"";
-      const head=`<span class="exg-h">${isNow?`<em class="ptag">Now</em>`:""}${esc(lab)}${esc(fmtTag)}${it0.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>`;
-      const workRow=uniW?"":`<div class="exl exlw"><span class="emord ladlab">Work:</span>${durs.map((d,k)=>tok(fmtMS(d),k===curW)).join(" · ")}</div>`;
-      const restRow=!rr.length?"":uniR
-        ?`<div class="exl exlw"><span class="emord ladlab">Rest:</span>${tok(fmtMS(rr[0]),curR>=0)} between</div>`
-        :`<div class="exl exlw"><span class="emord ladlab">Rest:</span>${rr.map((d,k)=>tok(fmtMS(d),k===curR)).join(" · ")}</div>`;
-      const lines=xs.map(x=>`<div class="exl">${exHtml(x,{noSets:us>0})}</div>`
-        +(String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"")).join("")
-        +(String(it0.note||"").trim()?`<div class="exl exnote">${esc(it0.note)}</div>`:"");
-      return `<div class="exg${isNow?" pnow":""}">${head}${workRow}${restRow}${lines}</div>`;
-    }
     const head0=bs?`<div class="exg"><span class="exg-h">${esc(bs)}</span></div>`:"";
     // ONLY the running part is marked. The card already lists the parts in order,
     // so drawing a box round the one after it just says the same thing twice —
@@ -8171,7 +8116,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=387;
+  const BUILD=388;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
