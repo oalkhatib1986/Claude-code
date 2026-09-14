@@ -1724,8 +1724,6 @@
     .amtchip .amt{width:auto;min-width:40px}
     .maxbtn{padding:7px 11px}
     .exr2 .dsel{width:100%;margin-left:0;min-width:0}
-    #segMode{flex-wrap:nowrap}
-    #segMode button{flex:1 1 0;min-width:0;padding:9px 4px;overflow:hidden;text-overflow:ellipsis}
     .tabs{margin-left:0;width:100%;justify-content:stretch;padding:4px;gap:2px}
     .tabs button{flex:1 1 0;min-width:0;padding:8px 2px;font-size:11px;letter-spacing:.16em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .controls .hint{display:none}
@@ -1983,10 +1981,14 @@
       <div class="card wide">
         <h3>Session type</h3>
         <div class="body">
-          <div class="pills" id="segMode">
-            <button data-v="rotation" aria-pressed="true">Blocks</button>
-            <button data-v="waves" aria-pressed="false">Waves</button>
-          </div>
+          <!-- THE MODE PILL IS GONE (build 383, Omar's ok): "Waves" and
+               "Sequence" were retired prototype ENGINES, not options — one
+               tap threw away the parts and loaded an ancient race format
+               (it wrecked his Engine and once crashed the page). Blocks is
+               the only engine; every real choice (one block at a time vs
+               all at once, rotate/waves/share per part) lives inside it.
+               Legacy boards still LOAD and RUN (legacymode.js) — they just
+               cannot be switched into any more. -->
           <div class="fld" id="flowFld" style="max-width:360px"><label>Class flow</label>
             <select id="rFlow"><option value="together">One block at a time — the whole class together</option><option value="stations">All blocks at once — split across the blocks and rotate</option></select></div>
           <div class="note" id="modeExplain"></div>
@@ -5248,7 +5250,7 @@ window.addEventListener("error",function(ev){
 
   /* ================= control room ================= */
   const pillGroup=(elId,val,setter,after)=>{
-    const box=$(elId);
+    const box=$(elId); if(!box) return;   // a retired control simply is not there
     box.querySelectorAll("button").forEach(btn=>{
       btn.setAttribute("aria-pressed",btn.dataset.v===val);
       btn.onclick=()=>{ setter(btn.dataset.v); box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===btn)); save(); if(after)after(); };
@@ -5265,7 +5267,7 @@ window.addEventListener("error",function(ev){
       ? (cfg.together
         ? `<b>Blocks · everyone together</b> — the whole class does the same block at the same time (${kws()} alternate on their own machine) and moves to the next block as one. The trainer starts each block; anything marked scored banks to the leaderboard.`
         : `<b>Blocks · stations</b> — ${kws()} are assigned to machines automatically, start on different blocks and rotate each round. Only the scored window counts; leaderboard = sum of every scored window. This is your Send It Saturday format.`)
-      : `<b>Waves</b> — wave 1 starts on the trainer's go and races through the stations in order. The next wave is released when the wave ahead clears station 1 (or by the trainer). Leaderboard = fastest total time from your own wave's release.`;
+      : `<b>Waves</b> — a RETIRED format from an old save: wave 1 races through the stations in order, the next wave releases when station 1 clears. It still runs, but it cannot be edited into a normal workout — pick another board in the picker above, or press <b>New</b> to start fresh.`;
   }
   function syncSeqScoring(){
     $("scPlacing").classList.toggle("on",cfg.scoring.mode==="placing");
@@ -8037,7 +8039,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=382;
+  const BUILD=383;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

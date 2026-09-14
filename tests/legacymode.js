@@ -25,6 +25,13 @@ await p.waitForTimeout(1800);
 await p.click('#tabBoard'); await p.waitForTimeout(800);
 ok(errs.length===0&&await p.evaluate(()=>document.querySelectorAll('#lanes .lane').length>0),
   'a waves board RUNS and paints lanes without a single error');
+// the retired engines cannot be SWITCHED INTO any more (build 383): the mode
+// pill is gone from Setup, and a legacy board says how to get back
+await p.click('#stSetup'); await p.waitForTimeout(500);
+ok(await p.evaluate(()=>!document.getElementById('segMode')),
+  'the Blocks/Waves engine pill is GONE from Setup');
+ok(await p.evaluate(()=>/RETIRED format/i.test((document.getElementById('modeExplain')||{}).textContent||'')),
+  'a legacy board explains itself and points back to the picker');
 await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
   c.mode='sequence'; localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
 await p.reload(); await p.waitForTimeout(1500);

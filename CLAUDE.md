@@ -1021,6 +1021,18 @@ zero rework, which was the whole point of the parked design.
   ask/strip/numpad/save, swap, trainer sheet, reset, merge semantics, auto,
   unscored, kiosk + phone formatting. `window.__man` is the suite hook.
 
+## The mode pill is GONE (build 383 — Omar's ok)
+
+**BLOCKS IS THE ONLY ENGINE.** Setup's "Session type" pill (Blocks/Waves)
+is removed: "Waves" and "Sequence" were retired prototype ENGINES whose one
+tap threw away the parts and loaded an ancient race format (it wrecked
+Omar's Engine and once crashed the page). Every real choice lives inside
+Blocks — Class flow (one block at a time / all at once), per-part formats
+(rotate / waves / share). `pillGroup()` no-ops on a missing element; a
+LOADED legacy board still runs (`legacymode.js`) and its `#modeExplain`
+says it is a retired format and points back to the picker/New. Never
+reintroduce an engine switcher; legacy cfgs stay load-only.
+
 ## Audit scope rule (build 380 — the waves-mode crash Omar caught)
 
 **EVERY REACHABLE MODE IS IN SCOPE, NOT EVERY USED MODE.** The gym runs
