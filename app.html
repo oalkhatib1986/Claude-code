@@ -7274,11 +7274,22 @@ window.addEventListener("error",function(ev){
       // allowed") and it is luck-of-the-draw per request — retry a few times
       // before bothering the coach; a fresh request often lands an allowed
       // route (build 365, Omar hit it mid-build).
-      let res=null;
-      for(let att=0;att<3;att++){
+      let res=null, data=null, raw="";
+      for(let att=0;att<4;att++){
         res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
           body:JSON.stringify({model:"claude-sonnet-5",max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
-        if(res.ok||(res.status!==403&&res.status!==429&&res.status!==529)) break;
+        if(!res.ok){
+          if(res.status!==403&&res.status!==429&&res.status!==529) break;
+          btn.textContent="Retrying…";
+          await new Promise(r=>setTimeout(r,700*(att+1))); continue;
+        }
+        data=await res.json();
+        raw=((data.content||[]).find(c=>c.type==="text")||{}).text||"";
+        if(raw.trim()) break;
+        // A 200 WITH NOTHING INSIDE IS A HICCUP, NOT AN ANSWER (Omar, build
+        // 384: "sometimes it gives this message then works again") — the
+        // provider occasionally returns an empty body; retry it exactly like
+        // a 529 instead of bothering the coach.
         btn.textContent="Retrying…";
         await new Promise(r=>setTimeout(r,700*(att+1)));
       }
@@ -7286,8 +7297,9 @@ window.addEventListener("error",function(ev){
         // surface the provider's own words — a bare status number is undiagnosable
         // from a phone screenshot
         throw new Error("relay "+res.status+(t?" — "+t.replace(/\s+/g," "):"")); }
-      const data=await res.json();
-      const raw=((data.content||[]).find(c=>c.type==="text")||{}).text||"";
+      if(!raw.trim())
+        throw new Error("empty reply from the model"
+          +(data?" (stop: "+(data.stop_reason||"?")+", blocks: "+((data.content||[]).length||0)+")":""));
       aiMsgs.push({role:"assistant",content:raw});
       let obj=null;
       try{ obj=JSON.parse(raw.replace(/^```(json)?|```$/g,"").trim()); }catch(e){
@@ -7295,11 +7307,8 @@ window.addEventListener("error",function(ev){
       // A CONVERSATIONAL ANSWER IS A MESSAGE, NEVER AN ERROR (build 382 —
       // Omar: "it doesn't reply, it doesn't talk to me"): a reply that
       // arrives as plain text instead of the JSON shape is shown as the
-      // assistant's own bubble; only an EMPTY reply is a failure.
-      if(!obj){
-        if(raw.trim()) aiBubble("ai",raw.trim());
-        else throw new Error("empty reply");
-      }
+      // assistant's own bubble (raw is guaranteed non-empty by the loop).
+      if(!obj) aiBubble("ai",raw.trim());
       if(obj&&obj.reply) aiBubble("ai",obj.reply);
       if(obj&&obj.options&&!obj.workout) aiOptions(obj.options);
       if(obj&&obj.workout){ const nm=applyAiWorkout(obj.workout);
@@ -8039,7 +8048,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=383;
+  const BUILD=384;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

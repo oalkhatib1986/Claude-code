@@ -209,6 +209,28 @@ await p.waitForTimeout(700);
     last:[...document.querySelectorAll('.aichat .msg.ai')].pop().textContent}));
   ok(r.errs===errsBefore&&/keep Part C unscored/i.test(r.last),
     'a plain-text answer is a MESSAGE bubble, never an error'); }
+// 8) AN EMPTY 200 IS A HICCUP, NOT AN ANSWER (build 384 — Omar: "sometimes
+// it gives this message then works again"): a response with no text is
+// retried silently, and the coach only ever sees the real answer.
+{ let calls=0;
+  await p.unroute('https://relay.test/**');
+  await p.route('https://relay.test/**',async route=>{
+    const body=JSON.parse(route.request().postData()||'{}');
+    if(body.op) return route.fulfill({json:{ok:1,v:null,now:Date.now(),presets:[]}});
+    calls++;
+    if(calls===1) return route.fulfill({json:{content:[],stop_reason:'end_turn'}});
+    return route.fulfill({json:{content:[{type:'text',
+      text:JSON.stringify({reply:'All good — Part A staggers Ski and Wall Balls.',workout:null,options:null})}]}});
+  });
+  const errsBefore=await p.evaluate(()=>document.querySelectorAll('.aichat .msg.err').length);
+  await p.fill('#aiText','some start on ski some on wall balls');
+  await p.evaluate(()=>document.getElementById('aiSend').click());
+  await p.waitForTimeout(2600);
+  const r=await p.evaluate(()=>({errs:document.querySelectorAll('.aichat .msg.err').length,
+    last:([...document.querySelectorAll('.aichat .msg.ai')].pop()||{}).textContent||''}));
+  ok(calls>=2&&r.errs===errsBefore&&/staggers/i.test(r.last),
+    'an empty 200 is retried silently and the real answer lands ('+calls+' calls, '
+    +(r.errs-errsBefore)+' new errors)'); }
 // 3) the schema TELLS the AI about dates and filing
 { const sys=await p.evaluate(()=>{ // reconstruct the system prompt through a chat call is heavy;
     // instead assert the source carries the contract
