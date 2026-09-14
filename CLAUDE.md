@@ -658,7 +658,22 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   between items, also tappable in Control's part list `.ptr`), stops the
   clock at the boundary ("Next part — press start") and is in the AI schema.
   `setbeat.js` gates beat + labels + hold end to end.
-- **THE CHAT SURVIVES THE PAGE (build 387 — Omar: "it must survive so I
+- **ALTERNATING WINDOWS (build 389 — Omar's Engine 15/09, typed out in
+  full: "some start on Ski, some on Wall Balls", swapping between timed
+  windows with REAL rests in between).** `it.alt` on a `fmt:"rotate"` item
+  makes the WHOLE item ONE window: the halves hold their stations for its
+  full length and swap on the NEXT alt window of the block — `segAt`'s alt
+  branch sets `swap = (altIxOf(b,i) + round*altCount(b)) % exercises.length`
+  instead of subdividing at dur/exercises, so rest items can sit BETWEEN
+  the swaps and the ladder reads 3:00 / 0:45 / 3:00 / … exactly like the
+  sheet. Display: an alt item's time label is just `fmtMS(dur)` — never
+  "swap every", there is no swap inside the window. Each athlete keeps
+  their own machine NUMBER across the swap (the gym owns enough; the
+  GROUPS trade places, Ski crew ↔ Floor crew) — the live map, NOW/NEXT
+  and lanes all follow from `seg.swap` unchanged. In the AI schema and
+  passed through `applyAiWorkout` (`o.alt=true`). `altwin.js` gates the
+  card wording, the window/rest clock beat, and that the halves REALLY
+  trade across three windows. — Omar: "it must survive so I
   can point to things we talked about, even if I refresh").** The whole
   builder chat persists in `af_aichat_v1`: the rendered log (`aiLog` — text
   bubbles plus `opts`/`hold` option rows), the model transcript (`aiMsgs`,
