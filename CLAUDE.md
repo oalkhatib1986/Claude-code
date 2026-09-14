@@ -625,6 +625,32 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **"Max" is a word, so its unit is one too.** `exUnit()` writes the metre suffix tight
   against a number (500m); glued onto Max it read "Maxm". `maxUnit()` spells it out —
   Max metres, Max cal, Max reps, Max seconds.
+- **A SUPERSET'S CLOCK BEATS EVERY SET (build 377 — Omar's Part B: "3 minutes
+  × 3 rounds, not one 9-minute window").** When every exercise on a group
+  item shares one sets count (`itSetsN(it)` — group, not rotate/waves/rest,
+  all `exSets` equal and >1), `segAt` subdivides the item at dur/sets exactly
+  as a rotate item subdivides at its swaps: `seg.set`/`seg.setN` ride the
+  segment, `remain` counts THE SET. The big wall clock, the card's `.bclk`
+  and the tablet clock all inherit it through `seg.remain`; the card's
+  `.bwhere` adds "Set 2 of 3" and the tablet's clock label says it. Mixed
+  sets counts (3 vs 4) get NO invented beat — the window stays whole. The
+  heading already promised "3 ROUNDS × 3 MINUTES"; the clock keeps that
+  promise. TRAINER-STARTED TRANSITIONS between pieces are `it.hold` — it
+  ALREADY EXISTS (Setup's "‖ trainer starts next / ▸ flows into next" toggle
+  between items, also tappable in Control's part list `.ptr`), stops the
+  clock at the boundary ("Next part — press start") and is in the AI schema.
+  `setbeat.js` gates beat + labels + hold end to end.
+- **THE AI ASKS, IT NEVER GUESSES (build 377 — Omar: "it asks me questions
+  and I just select what I want").** The chat protocol carries
+  `options:[...]` beside reply/workout: when a sheet honestly allows
+  materially different builds (flow vs trainer-start, scored or not, solo vs
+  teams, staggered vs together) the AI sets workout:null, asks ONE short
+  question and sends 2-4 COMPLETE answers; `aiOptions()` renders them as
+  `.aiopt` pills, a tap sends the pill text as the coach's own message
+  (`ta.value=…; aiSend()`), and the row freezes with the picked pill lit
+  (`.aiopts.done .picked`) so the transcript shows the choice. Never more
+  than one question per turn; never ask about what the schema defaults.
+  `aiwk.js` drives the ask → tap → build round trip with the relay mocked.
 - **A finisher runs once, after the rounds.** "Four rounds of this, then four minutes
   all together" is on the gym's wall constantly, and a block could only ever repeat ALL
   of its items — so the last piece repeated too, or had to become a block of its own and

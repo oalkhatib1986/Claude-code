@@ -10,13 +10,16 @@ const reply=w=>({content:[{type:'text',text:JSON.stringify({reply:'Built it.',wo
 const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 const p=await br.newPage({viewport:{width:1366,height:1000}});
 p.on('pageerror',e=>{fail++;console.log('FAIL pageerror:',e.message);});
-let nextWorkout=null;
+let nextWorkout=null, nextAsk=null, lastChat=null;
 await p.route('https://relay.test/**',async route=>{
   const body=JSON.parse(route.request().postData()||'{}');
   if(body.op==='lib.list') return route.fulfill({json:{presets:[]}});
   if(body.op==='lib.put') return route.fulfill({json:{ok:1,ts:1}});
   if(body.op==='s.get') return route.fulfill({json:{v:null,now:Date.now()}});
   if(body.op==='s.put') return route.fulfill({json:{ok:1,now:Date.now()}});
+  lastChat=body.messages||null;                      // what the coach "said"
+  if(nextAsk){ const a=nextAsk; nextAsk=null;
+    return route.fulfill({json:{content:[{type:'text',text:JSON.stringify(a)}]}}); }
   return route.fulfill({json:reply(nextWorkout)});   // the chat call
 });
 await p.goto('file:///home/user/Claude-code/leaderboard.html');
@@ -65,6 +68,38 @@ await send({name:'Leg Day',teamKind:'solo',noScore:true,together:true,laps:1,
 { const r=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
     return {wk:c.wkName,date:(c.prog&&c.prog.date)||''}; });
   ok(r.wk==='Leg Day'&&r.date==='','a fresh-named AI board carries NO inherited date ('+JSON.stringify(r)+')'); }
+// 4) ASK, DON'T GUESS (build 377 — Omar: "it asks me questions and I just
+// select"): an ambiguous sheet comes back as ONE question with tappable
+// options; the tapped pill becomes the coach's next message and the build
+// completes from it, with the pill row frozen on the choice.
+const oksBefore=await p.evaluate(()=>document.querySelectorAll('.aichat .msg.ok').length);
+nextAsk={reply:'Part B has two supersets — how does the second one start?',
+  options:['The trainer starts the second superset','It flows straight on']};
+await send({name:'Push Day',teamKind:'solo',noScore:true,together:true,laps:1,
+  blocks:[{name:'Part B',rounds:1,items:[
+    {dur:540,hold:true,exercises:[{name:'Pendlay Row',amounts:[6],unit:'reps',sets:3}]},
+    {dur:540,exercises:[{name:'Pull Ups',amounts:[8],unit:'reps',sets:3}]}]}]},
+  'push day with two supersets');
+{ const r=await p.evaluate(()=>({pills:[...document.querySelectorAll('.aiopt')].map(b=>b.textContent),
+    oks:document.querySelectorAll('.aichat .msg.ok').length}));
+  ok(r.pills.length===2&&/trainer starts/i.test(r.pills[0]),
+    'an ambiguous sheet comes back as tappable options ('+r.pills.length+')');
+  ok(r.oks===oksBefore,'nothing is built before the coach answers'); }
+await p.evaluate(()=>document.querySelectorAll('.aiopt')[0].click());
+await p.waitForTimeout(1400);
+{ const r=await p.evaluate(()=>({
+    lastUser:null,
+    picked:!!document.querySelector('.aiopts.done .aiopt.picked'),
+    frozen:!!document.querySelector('.aiopts.done'),
+    wk:JSON.parse(localStorage.getItem('af_erg_cfg_v8')).wkName,
+    hold:!!JSON.parse(localStorage.getItem('af_erg_cfg_v8')).rotation.blocks[0].items[0].hold,
+    ok:[...document.querySelectorAll('.aichat .msg.ok')].length>0}));
+  const lastUser=(lastChat||[]).filter(m=>m.role==='user').pop();
+  ok(lastUser&&/trainer starts the second superset/i.test(lastUser.content),
+    'the tapped pill is sent as the coach\'s own message');
+  ok(r.picked&&r.frozen,'the pill row freezes on the choice');
+  ok(r.ok&&r.wk==='Push Day'&&r.hold,
+    'the build completes from the answer — hold rides the first superset'); }
 // 3) the schema TELLS the AI about dates and filing
 { const sys=await p.evaluate(()=>{ // reconstruct the system prompt through a chat call is heavy;
     // instead assert the source carries the contract
