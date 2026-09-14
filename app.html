@@ -3026,12 +3026,15 @@ window.addEventListener("error",function(ev){
     return ""; };
   // ONE label for a part, wherever the trainer reads a list of them. The exercise
   // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
-  const partLabel=(it,ii)=>{
+  const partLabel=(it,ii,b)=>{
     if(!it) return "";
     if(it.rest) return "Rest";
     if(it.text!=null){ const f=String(it.text).split("\n").find(l=>l.trim())||"";
       return f.length>44?f.slice(0,42)+"\u2026":f; }
-    const xs=(it.exercises||[]).filter(Boolean);
+    let xs=(it.exercises||[]).filter(Boolean);
+    // an alt window is written as its own station (build 391 \u2014 see exLines):
+    // the trainer's lists read "Max cal Ski", never both halves lumped
+    if(it.alt&&itRot(it)&&b&&xs.length>1) xs=[xs[altIxOf(b,ii||0)%xs.length]];
     const work=xs.length?xs.map(x=>exTxt(x)).join(" \u00b7 "):"";
     // a part named after its own exercises adds nothing — once or many times over
     const same=(xs.length===1&&String(it.name||"").trim().toLowerCase()
@@ -3039,7 +3042,7 @@ window.addEventListener("error",function(ev){
     let nm=(it.name&&!same)?(work?it.name+" \u00b7 "+work:it.name):(work||("Part "+((ii||0)+1)));
     if(it.fmt==="waves") nm+=" \u00b7 "+itWaves(it)+" waves";
     else if(itSelf(it)) nm+=" \u00b7 self-paced circuit";
-    else if(itRot(it)) nm+=" \u00b7 rotating";
+    else if(itRot(it)&&!it.alt) nm+=" \u00b7 rotating";
     else if(itShare(it)) nm+=" \u00b7 in "+itShare(it)+"s";
     const st=clamp(parseInt(it.stations,10)||0,0,60);
     if(st) nm+=" \u00b7 "+st+" station"+(st>1?"s":"");
@@ -3077,7 +3080,15 @@ window.addEventListener("error",function(ev){
       // whole item, so it heads the list rather than hiding at the tail.
       const evy=it.every&&it.every.sec>0
         ?`<div class="exl exev">Every ${fmtMS(it.every.sec)} — ${esc(it.every.who||"1 partner")}: ${esc([it.every.amt,it.every.name].filter(Boolean).join(" "))}${esc(exUnit(it.every.unit||""))}</div>`:"";
-      const xs=it.exercises||[];
+      // AN ALT WINDOW IS WRITTEN AS ITS OWN STATION (build 391 — Omar's
+      // sheet: "3 min Max Cal Ski / 45 sec rest / 3 min Max Wall Balls",
+      // never both lumped into one window). The card prints ONE exercise
+      // per window, alternating down the part exactly like the sheet; the
+      // other half works the opposite window's station and the machine map
+      // below carries both sides.
+      const xsAll=it.exercises||[];
+      const xs=(it.alt&&itRot(it)&&xsAll.length>1)
+        ?[xsAll[altIxOf(b,i)%xsAll.length]]:xsAll;
       // uniform sets ride the heading ("Every 3:00 × 3 sets"), never every line
       const us=xs.length&&xs.every(x2=>exSets(x2)&&exSets(x2)===exSets(xs[0]))?exSets(xs[0]):0;
       // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
@@ -4416,7 +4427,8 @@ window.addEventListener("error",function(ev){
       return myW===seg.wave?`${segLabel} — wave ${seg.wave+1}/${seg.waves}: GO`
         :`Wave ${seg.wave+1}/${seg.waves} working — you're wave ${myW+1}`; }
     if(seg.swap!=null){ const x=(seg.it.exercises||[])[(Math.max(0,j)+seg.swap)%seg.swaps];
-      return x?`Now: ${x.name} · rotation ${seg.swap+1}/${seg.swaps}`:segLabel; }
+      // an alt window has no rotation inside it — the station IS the window
+      return x?(seg.it.alt?`Now: ${x.name}`:`Now: ${x.name} · rotation ${seg.swap+1}/${seg.swaps}`):segLabel; }
     if(itShare(seg.it)) return `${segLabel} — share the station in ${itShare(seg.it)}s & alternate`;
     return segLabel; }
   // simulated PM5 warm-up feed (per machine) + last-effort cache (per team) —
@@ -6587,7 +6599,7 @@ window.addEventListener("error",function(ev){
     if(it.rest) return "Rest \u00b7 "+fmtMS(it.dur);
     const label=(it.exercises&&it.exercises.length===1&&!it.name)?"":(it.name||"Group");
     const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} \u00d7 ${itWaves(it)} waves`
-      :itSelf(it)?`${it.exercises.length} stations \u00b7 self-paced`:itRot(it)?`${fmtMS(it.dur)} \u00b7 swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`
+      :itSelf(it)?`${it.exercises.length} stations \u00b7 self-paced`:itRot(it)?(it.alt?fmtMS(it.dur):`${fmtMS(it.dur)} \u00b7 swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`)
       :itShare(it)?`${fmtMS(it.dur)} \u00b7 share in ${itShare(it)}s, alternate`
       :fmtMS(it.dur);
     return (label?label+" \u00b7 ":"")+tlab;
@@ -8055,7 +8067,7 @@ window.addEventListener("error",function(ev){
     if(holding){ let acc=0; for(let i=0;i<its.length;i++){ acc+=its[i].dur; if(acc<=rot.elapsed+0.01) from=i+1; } }
     const parts=[];
     for(let i=from;i<its.length;i++){ const it=its[i];
-      parts.push(`${esc(partLabel(it,i))} <i>${fmtMS(itLen(it))}</i>`);
+      parts.push(`${esc(partLabel(it,i,b))} <i>${fmtMS(itLen(it))}</i>`);
       if(it.hold&&i<its.length-1) break;
     }
     if(!parts.length) return "";
@@ -8164,7 +8176,7 @@ window.addEventListener("error",function(ev){
       const cls=isDone?"done":isCur?"cur":"next";
       const rbAll=bRounds(b);
       const segNow=(!finished&&r===rot.round&&running)?segAt(b,rot.elapsed):null;
-      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:segNow.waves?`Wave ${segNow.wave+1}/${segNow.waves}`:segNow.swaps?`Rotation ${segNow.swap+1}/${segNow.swaps}`:(rbAll>1?`Round ${segNow.round+1}/${rbAll}`:"Running")):"Done — stations finishing")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
+      const status=isDone?"Done":isCur?(running?(holding?"Waiting — press start":paused?"Paused":(segNow?(segNow.it.rrest?`Rest · round ${segNow.round+1} done`:segNow.waves?`Wave ${segNow.wave+1}/${segNow.waves}`:(segNow.swaps&&!segNow.it.alt)?`Rotation ${segNow.swap+1}/${segNow.swaps}`:(rbAll>1?`Round ${segNow.round+1}/${rbAll}`:"Running")):"Done — stations finishing")):rot.phase==="rest"?"Rest":"Up next"):"Queued";
       // Any block can be opened to see what is in it — a queued block that will not
       // say what is coming is no use to a trainer planning the next two minutes.
       const open=isCur||rlOpen.has(r);
@@ -8175,7 +8187,7 @@ window.addEventListener("error",function(ev){
         // a preview: what is in it, in order, with no live clock
         (b.items||[]).forEach((it,ii)=>{
           out+=`<div class="prt peek ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span>`
-            +`<b>${esc(partLabel(it,ii))}</b><i>${fmtMS(itLen(it))}</i></div>`;
+            +`<b>${esc(partLabel(it,ii,b))}</b><i>${fmtMS(itLen(it))}</i></div>`;
         });
         if(bRounds(b)>1&&bRRest(b)>0)
           out+=`<div class="prt peek"><span class="pd"></span><b>Rest between rounds</b><i>${fmtMS(bRRest(b))}</i></div>`;
@@ -8188,7 +8200,7 @@ window.addEventListener("error",function(ev){
         (b.items||[]).forEach((it,ii)=>{
           const st=acc; acc+=itLen(it);
           const es=!running?"":(tt>=acc?"done":tt>=st?"cur":"nextp");
-          const nm=partLabel(it,ii);
+          const nm=partLabel(it,ii,b);
           out+=`<div class="prt ${es} ${it.scored&&!cfg.noScore?"scored":""}"><span class="pd"></span><b>${esc(nm)}</b><i>${es==="cur"?fmtMS(Math.max(0,acc-tt)):fmtMS(itLen(it))}</i></div>`;
           if(ii<(b.items||[]).length-1) out+=`<div class="ptr ${it.hold?"on":""}" data-ii="${ii}" role="button">${it.hold?"&#8214; trainer starts next":"&#9656; flows into next"}</div>`;
         });
@@ -8238,7 +8250,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=390;
+  const BUILD=391;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

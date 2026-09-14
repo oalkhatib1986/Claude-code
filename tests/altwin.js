@@ -39,10 +39,13 @@ await p.reload(); await p.waitForTimeout(1800);
 { const A=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[0]
     .innerText.replace(/\s+/g,' '));
   ok(!/swap every/i.test(A),'an alt window never says "swap every"');
-  ok((A.match(/Max cal Ski/gi)||[]).length===6&&(A.match(/Max Wall Balls/gi)||[]).length===6,
-    'all six windows list both stations, like the sheet');
-  ok(/REST · 0:45.*REST · 0:45.*REST · 0:30.*REST · 0:30.*REST · 0:15.*REST · 0:15/i.test(A),
-    'every rest is written where it happens');
+  // THE SHEET, LINE FOR LINE (build 391 — Omar: "3 min Ski, rest, then you
+  // move to station 2 which is 3 min Wall Balls" — NEVER both lumped into
+  // one window): each window prints ONE station, alternating down the part
+  ok((A.match(/Max cal Ski/gi)||[]).length===3&&(A.match(/Max Wall Balls/gi)||[]).length===3,
+    'each window is ONE station — three Ski windows, three Wall Balls windows');
+  ok(/3:00 Max cal Ski.*REST · 0:45.*3:00 Max Wall Balls.*REST · 0:45.*2:00 Max cal Ski.*REST · 0:30.*2:00 Max Wall Balls.*REST · 0:30.*1:00 Max cal Ski.*REST · 0:15.*1:00 Max Wall Balls.*REST · 0:15/i.test(A),
+    'the card reads exactly like the sheet, in order');
   ok(/15:00 total/i.test(A),'each part totals 15:00'); }
 // the halves REALLY trade stations between windows
 await p.click('#tabTrainer'); await p.waitForTimeout(400);
@@ -73,6 +76,10 @@ ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')].reduc
   "the gym's full capacity is on the map — 36 slots across the parts");
 { const clock=await p.evaluate(()=>document.getElementById('clock').textContent);
   const m=clock.match(/^(\d+):/); ok(m&&+m[1]<3,'window 1: the big clock counts the 3:00 window ('+clock+')'); }
+{ const slab=await p.evaluate(()=>{ const e=document.querySelector('#blockCards .exg.pnow');
+    return e?e.innerText.replace(/\s+/g,' '):''; });
+  ok(/Max cal Ski/i.test(slab)&&!/Wall Balls/i.test(slab),
+    'the NOW slab carries only the running window\'s station ('+slab.slice(0,40)+')'); }
 await p.evaluate(()=>window.__seek(184)); await p.waitForTimeout(800);
 { const lab=await p.evaluate(()=>document.getElementById('clockLab').textContent);
   ok(/rest/i.test(lab),'t≈3:05: the 0:45 rest flips the clock to REST'); }

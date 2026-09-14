@@ -666,11 +666,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   branch sets `swap = (altIxOf(b,i) + round*altCount(b)) % exercises.length`
   instead of subdividing at dur/exercises, so rest items can sit BETWEEN
   the swaps and the ladder reads 3:00 / 0:45 / 3:00 / … exactly like the
-  sheet. Display: an alt item's time label is just `fmtMS(dur)` — never
-  "swap every", there is no swap inside the window. In the AI schema and
-  passed through `applyAiWorkout` (`o.alt=true`). `altwin.js` gates the
-  card wording, the window/rest clock beat, and that the halves REALLY
-  trade across three windows.
+  sheet. DISPLAY IS THE SHEET (build 391 — Omar: "3 min Ski, rest, then
+  you move to station 2 which is 3 min Wall Balls", NEVER both stations
+  lumped into one window): every surface prints ONE exercise per alt
+  window — the lead station `xs[altIxOf(b,i)%xs.length]` — alternating
+  down the part exactly as the coach typed it; the other half works the
+  opposite window's station and only the machine map carries both sides.
+  `exLines` filters to the lead, `partLabel` takes the block as its third
+  arg to do the same, the time label is just `fmtMS(dur)` (never "swap
+  every"), and no "rotating"/"rotation n/N" wording prints for alt (the
+  tablet's line is `Now: <station>` bare; Control's status says Running).
+  The DATA still lists every station on every alt item — display filters,
+  it never rewrites. In the AI schema and passed through `applyAiWorkout`
+  (`o.alt=true`). `altwin.js` gates the sheet-order card, the NOW slab,
+  the window/rest clock beat, and that the halves REALLY trade across
+  three windows.
 - **AN ALT PART'S MAP IS THE FULL FLOOR, CONTIGUOUS (build 390 — Omar:
   "why Ski 1, 3, 5?!" then "maximum capacity is 36 people... it doesn't
   show 36 slots!").** On the overview card an alt window's machines belong
