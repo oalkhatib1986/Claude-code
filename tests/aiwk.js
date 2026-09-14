@@ -100,6 +100,39 @@ await p.waitForTimeout(1400);
   ok(r.picked&&r.frozen,'the pill row freezes on the choice');
   ok(r.ok&&r.wk==='Push Day'&&r.hold,
     'the build completes from the answer — hold rides the first superset'); }
+{ const nag=await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.ai')]
+    .some(m=>/flows straight on\. Should the trainer/i.test(m.textContent)));
+  ok(!nag,'the app never re-asks a question the AI already asked this chat'); }
+// 5) THE APP CATCHES WHAT THE MODEL MISSES (build 378 — "it didn't ask me
+// any questions?!"): a build that lands with stacked strength pieces and no
+// hold gets the app's OWN one-tap offer; the tap sets hold on the live board
+// AND the saved copy.
+await p.reload(); await p.waitForTimeout(1600);   // fresh chat: aiMsgs + the asked-flag reset
+await p.click('#stSetup'); await p.waitForTimeout(400);
+await send({name:'Strength Ladder',teamKind:'solo',noScore:true,together:true,laps:1,
+  blocks:[{name:'Part B',rounds:1,items:[
+    {dur:540,exercises:[{name:'Pendlay Row',amounts:[6],unit:'reps',sets:3},
+      {name:'Incline DB Bench Press',amounts:[6],unit:'reps',sets:3}]},
+    {dur:540,exercises:[{name:'Pull Ups',amounts:[8],unit:'reps',sets:3},
+      {name:'Plate Front Raises',amounts:[10],unit:'reps',sets:3}]}]}]},
+  'strength ladder again');
+{ const r=await p.evaluate(()=>({offer:[...document.querySelectorAll('.aichat .msg.ai')]
+      .some(m=>/Should the trainer start it instead/i.test(m.textContent)),
+    pills:[...document.querySelectorAll('.aiopt')].map(b=>b.textContent)}));
+  ok(r.offer,'an un-asked strength build gets the APP\'s own question');
+  ok(r.pills.some(t=>/Trainer starts it/i.test(t)),'…with a one-tap fix pill'); }
+await p.evaluate(()=>{[...document.querySelectorAll('.aiopt')]
+  .find(b=>/Trainer starts it/i.test(b.textContent)).click();});
+await p.waitForTimeout(700);
+{ const r=await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const ps=JSON.parse(localStorage.getItem('af_presets_v1'));
+    const pr=ps.find(x=>x.name===c.wkName)||{};
+    const pit=((((pr.cfg||{}).rotation||{}).blocks||[])[0]||{items:[]}).items[0]||{};
+    return {live:!!c.rotation.blocks[0].items[0].hold, saved:!!pit.hold,
+      okb:[...document.querySelectorAll('.aichat .msg.ok')].some(m=>/clock now stops/i.test(m.textContent))}; });
+  ok(r.live,'the tap sets the hold on the LIVE board');
+  ok(r.saved,'…and on the SAVED copy — every device agrees');
+  ok(r.okb,'…and says so in the chat'); }
 // 3) the schema TELLS the AI about dates and filing
 { const sys=await p.evaluate(()=>{ // reconstruct the system prompt through a chat call is heavy;
     // instead assert the source carries the contract
