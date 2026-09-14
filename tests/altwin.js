@@ -59,9 +59,11 @@ await p.click('#tabBoard'); await p.waitForTimeout(700);
 // the SAME machines change hands at the swap.
 const mapOf=()=>p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[0];
   const out={}; [...c.querySelectorAll('.teams .t')].forEach(t=>{
-    const tn=((t.querySelector('.tn')||{}).textContent||'').trim();
+    const tn=t.querySelector('.tn'), nm=tn&&tn.querySelector('.tnm'), no=tn&&tn.querySelector('.tno');
+    const key=nm?((nm.textContent||'').trim()+' '+(no?no.textContent:'').trim())
+      :((tn||{}).textContent||'').trim();
     const who=((t.querySelector('.mtag')||{}).textContent||'').trim();
-    out[tn]=who; });
+    out[key]=who; });
   return out; });
 const w1=await mapOf();
 { const skis=Object.keys(w1).filter(k=>/^Ski \d/i.test(k));
@@ -74,6 +76,19 @@ const w1=await mapOf();
 ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')].reduce((n,c)=>
     n+[...c.querySelectorAll('.teams .t')].filter(t=>!/^Rest/i.test(((t.querySelector('.tn')||{}).textContent||'').trim())).length,0))===36,
   "the gym's full capacity is on the map — 36 slots across the parts");
+ok(await p.evaluate(()=>{ const hs=[...document.querySelectorAll('#blockCards .teams .t')]
+    .map(t=>t.clientHeight);
+  return hs.length>0&&Math.max(...hs)<32; }),
+  'every slot row is ONE line — the tag never drops under the label');
+// the ellipsis eats only the station NAME: the number and a "free" tag
+// always print whole (build 392 — "FR…" and "WALL BALL…" lost the row)
+ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .teams .t.unnamed .mtag,#blockCards .teams .t.spare .mtag')]
+    .every(m=>m.scrollWidth<=m.clientWidth+1)),
+  'a "free" tag never truncates');
+ok(await p.evaluate(()=>{ const ns=[...document.querySelectorAll('#blockCards .teams .t .tno')];
+  return ns.length>0&&ns.every(n=>n.offsetWidth>0&&n.getBoundingClientRect().right
+    <=n.closest('.t').getBoundingClientRect().right+1); }),
+  'the station NUMBER always survives the ellipsis');
 { const clock=await p.evaluate(()=>document.getElementById('clock').textContent);
   const m=clock.match(/^(\d+):/); ok(m&&+m[1]<3,'window 1: the big clock counts the 3:00 window ('+clock+')'); }
 { const slab=await p.evaluate(()=>{ const e=document.querySelector('#blockCards .exg.pnow');
@@ -85,13 +100,13 @@ await p.evaluate(()=>window.__seek(184)); await p.waitForTimeout(800);
   ok(/rest/i.test(lab),'t≈3:05: the 0:45 rest flips the clock to REST'); }
 await p.evaluate(()=>window.__seek(50)); await p.waitForTimeout(900);   // into window 2
 const w2=await mapOf();
-ok(w2['Ski 1']===w1['Wall Balls 1']&&w2['Ski 2']===w1['Wall Balls 2'],
+ok(!!w2['Ski 1']&&w2['Ski 1']!=='free'&&w2['Ski 1']===w1['Wall Balls 1']&&w2['Ski 2']===w1['Wall Balls 2'],
   'window 2: the SAME skis changed hands — floor half on Ski 1+2 ('+w2['Ski 1']+', '+w2['Ski 2']+')');
-ok(w2['Wall Balls 1']===w1['Ski 1'],'and the ski half is at the wall balls now');
+ok(!!w2['Wall Balls 1']&&w2['Wall Balls 1']===w1['Ski 1'],'and the ski half is at the wall balls now');
 await p.evaluate(()=>window.__seek(180)); await p.waitForTimeout(900);  // rest 2 (t≈418)
 await p.evaluate(()=>window.__seek(40)); await p.waitForTimeout(900);   // window 3 (t≈459)
 const w3=await mapOf();
-ok(w3['Ski 1']===w1['Ski 1']&&w3['Ski 2']===w1['Ski 2'],
+ok(!!w3['Ski 1']&&w3['Ski 1']!=='free'&&w3['Ski 1']===w1['Ski 1']&&w3['Ski 2']===w1['Ski 2'],
   'window 3: the original half is BACK on Ski 1+2 ('+w3['Ski 1']+', '+w3['Ski 2']+')');
 // no errors across a full part boundary
 await p.evaluate(()=>window.__seek(700)); await p.waitForTimeout(1000);

@@ -127,6 +127,31 @@ ok(await p.evaluate(()=>{ const e=(JSON.parse(localStorage.getItem('af_presets_v
   await p.waitForTimeout(3500);
   ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).rotation.blocks[0].items.length===13),
     "an EDITED Engine 15/09 (alt already there) rides through untouched"); }
+// 6) the 5-a-side import copy (alt shape fine, counts stale) gets its counts
+({ctx,p}=await boot(br,()=>{ localStorage.removeItem('af_fixeng1509b_v1');
+  const ps=JSON.parse(localStorage.getItem('af_presets_v1'))||[];
+  const e=ps.find(x=>x.name==='Engine 15/09');
+  e.cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+  localStorage.setItem('af_presets_v1',JSON.stringify(ps));
+  const c2=JSON.parse(JSON.stringify(e.cfg));
+  localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c2));
+}));
+{ const got=await p.evaluate(()=>({
+    cfg:JSON.parse(localStorage.getItem('af_erg_cfg_v8')),
+    e:(JSON.parse(localStorage.getItem('af_presets_v1'))||[]).find(x=>x.name==='Engine 15/09')}));
+  ok(got.cfg.inventory.Ski===6&&got.cfg.inventory.Run===6,
+    'a bounced 5-a-side copy gets the real counts at boot');
+  ok(got.e.cfg.inventory.Ski===6,'and so does the library entry'); }
+// 7) the room pushing the 5-a-side copy back gets its counts mended on arrival
+{ const base=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  const c2=JSON.parse(JSON.stringify(base)); c2.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+  sess={ts:Date.now()+90,src:'other-device',kind:'edit',cfg:c2,run:{mode:'rotation',act:false,run:false}};
+  sessPuts=[];
+  await p.waitForTimeout(6500);
+  const now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  ok(now.inventory.Ski===6,'a 5-a-side copy arriving from the room is re-stamped to six');
+  ok(sessPuts.some(v=>v&&v.cfg&&v.cfg.inventory&&v.cfg.inventory.Ski===6),
+    'and the six-count truth is re-published'); }
 await ctx.close();
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

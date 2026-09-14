@@ -695,8 +695,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   all 36. `claimSlots` probing does not understand the halves, so alt
   blocks draw their own spares and skip the claimSlots append. Scored alt
   boards still map tablets by `machSlots.byKey` (per-crew) — align that
-  before anyone SCORES an alt board with tablets. `altwin.js` gates map,
-  numbering, swap and the 36-slot count.
+  before anyone SCORES an alt board with tablets. A SLOT IS ONE LINE,
+  ALWAYS (build 392 — Omar: "each slot cannot take more than 1 line!"):
+  `.t` is `flex-wrap:nowrap`; only the station NAME ellipsises — `chip()`
+  splits a trailing number into `.tno` OUTSIDE the `.tnm` ellipsis span so
+  "WALL BALL… 4" keeps its number, a free/spare `.mtag` is `flex:0 0 auto`
+  so "FREE" never truncates to "FR…", and an occupant list ellipsises
+  rather than spills. Suites reading the label must join `.tnm`+`.tno`
+  (textContent alone drops the space). `altwin.js` gates map, numbering,
+  swap, the 36-slot count, the one-line rows and the tag/number survival.
 - **ENGINE 15/09 FIXES ITSELF (build 390 — Omar: "you do it! you fix it!"
   after the import-code hand-delivery).** `fixEngine1509`
   (`af_fixeng1509_v1`) mends every copy of the wrongly-built board on
@@ -711,7 +718,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   ATHL3TE owns SIX of each erg (36 capacity), not the sandbox's five;
   never build a board for Omar with default inventory again. When a wrong
   board reaches his gym, the fix ships IN the app as a one-shot — never
-  as steps for Omar. `fixeng.js` gates all five paths. — Omar: "it must survive so I
+  as steps for Omar. THE 5-A-SIDE COPY BOUNCED BACK (build 392 — "it only
+  shows 5 not 6!"): his import push reached the room session BEFORE the
+  390 repair ran, and board-follow handed the sandbox-count copy straight
+  back over the mended one. `eng1509InvMend()` recognises the fingerprint
+  (Engine 15/09 with Row/Ski/Bike/Run ALL exactly 5 — the stale import,
+  nothing else) and stamps the six: once locally (`af_fixeng1509b_v1`,
+  entry + loaded cfg) and forever on idle arrival in `sessApply`, then
+  republishes. A push that beats a boot repair WILL come back through the
+  room — every self-repair needs its sessApply arm, not just its one-shot.
+  `fixeng.js` gates all the paths (19). — Omar: "it must survive so I
   can point to things we talked about, even if I refresh").** The whole
   builder chat persists in `af_aichat_v1`: the rendered log (`aiLog` — text
   bubbles plus `opts`/`hold` option rows), the model transcript (`aiMsgs`,

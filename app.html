@@ -194,11 +194,19 @@
   .blk .teams .tcol{min-width:0;display:flex;flex-direction:column;gap:8px}
   .blk .teams>.t{grid-column:1/-1}
   .blk .teams .t{min-width:0;padding:3px 9px;border-radius:8px}
-  .blk .teams .t .mtag{margin-left:auto;max-width:100%;white-space:normal;
-    overflow-wrap:anywhere;text-align:right;line-height:1.35}
-  .blk .teams .t .tn{min-width:0;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* A SLOT IS ONE LINE, ALWAYS (Omar, build 392): the tag never drops under
+     the label. Only the station NAME gives way (ellipsis, sanctioned) — its
+     NUMBER always survives ("WALL BALL… 4"), a "free" tag prints whole, and
+     an occupant list ellipsises rather than spills. */
+  .blk .teams .t .mtag{margin-left:auto;max-width:100%;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:34px;
+    text-align:right;line-height:1.35}
+  .blk .teams .t.unnamed .mtag,.blk .teams .t.spare .mtag{flex:0 0 auto;min-width:0}
+  .blk .teams .t .tn .tnm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .blk .teams .t .tn .tno{font-style:normal;margin-left:4px}
+  .blk .teams .t .tn{min-width:0;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:baseline}
   .blk .teams .overcap,.blk .teams .t:only-child{grid-column:1/-1}
-  .blk .teams .t{display:flex;flex-wrap:wrap;align-items:center;gap:5px 7px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
+  .blk .teams .t{display:flex;flex-wrap:nowrap;align-items:center;gap:5px 7px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
   .blk .teams .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px -1px currentColor}
 
   /* ---------- controls ---------- */
@@ -3485,9 +3493,13 @@ window.addEventListener("error",function(ev){
             const any=names.length>0;
             const who=[names.map(esc).join(", "),freeN?(any?"+"+freeN+" free":(freeN>1?"free ×"+freeN:"free")):""]
               .filter(Boolean).join(" ");
+            // the station NUMBER rides OUTSIDE the ellipsis span — a long
+            // name shortens ("WALL BALL… 4"), the number never disappears
+            const m9=/^(.*?) (\d+)$/.exec(label);
+            const lab=m9?`<span class="tnm">${m9[1]}</span><i class="tno">${m9[2]}</i>`:label;
             return `<span class="t${any?"":" unnamed"}${spare?" spare":""}${!any&&freeN&&urgent&&!spare?" late":""}">`
               +`<span class="dot" style="background:${any?"#3ade6b":"currentColor"};color:${any?"#3ade6b":"currentColor"}"></span>`
-              +`<b class="tn">${label}</b><em class="mtag">${who}</em></span>`; };
+              +`<b class="tn">${lab}</b><em class="mtag">${who}</em></span>`; };
           // machines of a kind stack in one COLUMN each — the eye runs down
           // the Skis, then the Bikes, instead of zig-zagging a grid
           // THE FULL FLOOR OF AN ALT PART, EVERY SLOT (build 390 — Omar: "the
@@ -7020,11 +7032,14 @@ window.addEventListener("error",function(ev){
       if(s.man) manMerge(s.man);
       if(s.cfg&&JSON.stringify(s.cfg)!==JSON.stringify(cfg)){
         cfg=s.cfg; migrateLoaded();
-        // a stale device can still push the WRONG Engine 15/09 (build 390):
-        // mend it on arrival — idle states only, a running class is never
-        // rebuilt under the athletes — and republish the truth
-        if(!(s.run&&s.run.act)&&fix1509(cfg)){ migrateLoaded();
-          setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
+        // a stale device can still push the WRONG Engine 15/09 (build 390) or
+        // the 5-a-side import copy (build 392): mend either on arrival —
+        // idle states only, a running class is never rebuilt under the
+        // athletes — and republish the truth
+        if(!(s.run&&s.run.act)){ const f=fix1509(cfg);
+          if(f) migrateLoaded();
+          if(eng1509InvMend(cfg)||f)
+            setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
         save(); applyAccent(); buildControlRoom();
       }
       const r=s.run||{};
@@ -7228,6 +7243,30 @@ window.addEventListener("error",function(ev){
     if(cfg.wkName===NM){
       fix1509(cfg); eng1509Inv(cfg);
       migrateLoaded(); save();
+      setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
+      if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
+    }
+  })();
+  // THE 5-A-SIDE COPY BOUNCED BACK (build 392 — Omar: "it only shows 5 not
+  // 6!"). His import push reached the room BEFORE the 390 repair ran, so the
+  // room handed the sandbox-count copy straight back over the mended one.
+  // The count fingerprint itself is now recognised — all four ergs at
+  // exactly 5 on Engine 15/09 is the stale import, nothing else — and
+  // stamped to the gym's real six: once locally here, and forever on
+  // arrival in sessApply.
+  function eng1509InvMend(c){
+    if(!c||c.wkName!=="Engine 15/09") return false;
+    const v=c.inventory||{};
+    if(!(v.Row===5&&v.Ski===5&&v.Bike===5&&v.Run===5)) return false;
+    eng1509Inv(c); return true;
+  }
+  (function fixEngine1509b(){
+    const K="af_fixeng1509b_v1", NM="Engine 15/09";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    const p=presets.find(x=>x.name===NM&&!x.seedV);
+    if(p&&p.cfg){ p.cfg.wkName=NM;
+      if(eng1509InvMend(p.cfg)){ p.ts=Date.now(); savePresets(); libPush(p); } }
+    if(eng1509InvMend(cfg)){ save();
       setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
       if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
     }
@@ -8250,7 +8289,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=391;
+  const BUILD=392;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
