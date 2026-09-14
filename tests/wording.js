@@ -24,12 +24,12 @@ await p.evaluate(()=>{
         {name:'Incline DB Bench Press',amounts:[10],unit:'reps',max:false,sets:3}]},
       {name:'Arms Finisher',dur:540,group:true,scored:false,exercises:[
         {name:'Pull Ups',amounts:['2-4'],unit:'reps',max:false,sets:3}]},
-      {dur:180,scored:false,exercises:[{name:'Row',amounts:[500],unit:'m',max:false}]}]},
+      {dur:180,scored:false,exercises:[{name:'Row',amounts:[500],unit:'m',max:false,note:'Max Calories'}]}]},
     {name:'Part C',machine:'Row',rounds:3,items:[
       {dur:60,group:true,scored:false,exercises:[
         {name:'DB Push Press',amounts:[10],unit:'reps',max:false},
         {name:'Max DB Front Rack Hold',amounts:[],unit:'sec',max:true}]},
-      {dur:60,scored:false,exercises:[{name:'Hand Release Push Ups',amounts:['10-15'],unit:'reps',max:false}]},
+      {dur:60,scored:false,exercises:[{name:'Hand Release Push Ups',amounts:['10-15'],unit:'reps',max:false,note:'chest to floor'}]},
       {dur:60,scored:false,exercises:[{name:'Ski',amounts:[12,8],unit:'cal',max:false}]}]}]});
   localStorage.setItem(k,JSON.stringify(cfg));
 });
@@ -51,6 +51,10 @@ ok(/Arms Finisher/i.test(B),'B: a meaningful name is kept');
 ok(/2-4 Pull Ups/i.test(B),'B: ranges read coach-style (2-4 Pull Ups)');
 ok(/3 minutes/i.test(B),'B: a bare duration says minutes, not 3:00');
 ok(/500m Row/i.test(B),'B: metre work reads 500m Row');
+// A NOTE IS A COACH CUE, NEVER AN ECHO (build 385): a note that restates
+// the prescription is dropped; a real cue stays
+ok(!/Max Calories/i.test(B),'B: an echo note ("Max Calories") never prints');
+ok(/chest to floor/i.test(C),'C: a REAL coach cue still prints');
 // Part C — EMOM block heading + numbered single-line minutes
 ok(/EMOM × 9 minutes/i.test(C),'C: heading is EMOM × 9 MINUTES');
 ok(/1st:\s*10 DB Push Press \+ Max DB Front Rack Hold/i.test(C),'C: 1st minute is one numbered line with +');
