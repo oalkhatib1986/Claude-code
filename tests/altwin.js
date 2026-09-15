@@ -91,18 +91,24 @@ ok(await p.evaluate(()=>{ const ns=[...document.querySelectorAll('#blockCards .t
   'the station NUMBER always survives the ellipsis');
 { const clock=await p.evaluate(()=>document.getElementById('clock').textContent);
   const m=clock.match(/^(\d+):/); ok(m&&+m[1]<3,'window 1: the big clock counts the 3:00 window ('+clock+')'); }
-// THE NOW SLAB IS THE LIVE FLOOR (build 393 — Omar: "the people on the
-// wall balls are working too!"): the lit window shows BOTH halves' work,
-// lead station first; the plan lines around it keep the sheet's order
-{ const slab=await p.evaluate(()=>{ const e=document.querySelector('#blockCards .exg.pnow');
-    return e?e.innerText.replace(/\s+/g,' '):''; });
-  ok(/Max cal Ski/i.test(slab)&&/Max Wall Balls/i.test(slab)
-      &&slab.indexOf('Max cal Ski')<slab.indexOf('Max Wall Balls'),
-    'the NOW slab lights BOTH working halves, lead first ('+slab.slice(0,60)+')'); }
+// BOTH ACTIVE STATIONS LIGHT UP, EACH IN ITS OWN PLACE (build 394 —
+// Omar: "Max Cal Ski and Max Wall Balls are SEPARATE stations! both need
+// to be highlighted!"): TWO slabs, one per station, exactly where the
+// sheet wrote them — never one merged box
+{ const slabs=await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')][0]
+    ?[...document.querySelectorAll('#blockCards .blk')[0].querySelectorAll('.exg.pnow')]
+      .map(e=>e.innerText.replace(/\s+/g,' ')):[]);
+  ok(slabs.length===2,'window 1: TWO separate NOW slabs — one per active station ('+slabs.length+')');
+  ok(/Max cal Ski/i.test(slabs[0]||'')&&!/Wall Balls/i.test(slabs[0]||''),
+    'the first slab is the Ski window alone ('+String(slabs[0]).slice(0,40)+')');
+  ok(/Max Wall Balls/i.test(slabs[1]||'')&&!/Ski/i.test(slabs[1]||''),
+    'the second slab is the Wall Balls window alone ('+String(slabs[1]).slice(0,40)+')');
+  ok(/3:00/.test(slabs[0]||'')&&/3:00/.test(slabs[1]||''),
+    'the lit pair is the CURRENT pair — both 3:00 windows'); }
 { const A=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[0]
     .innerText.replace(/\s+/g,' '));
-  ok((A.match(/Max Wall Balls/gi)||[]).length===4,
-    'the queued windows still read like the sheet — one station each'); }
+  ok((A.match(/Max Wall Balls/gi)||[]).length===3&&(A.match(/Max cal Ski/gi)||[]).length===3,
+    'live, every window still reads like the sheet — one station each'); }
 await p.evaluate(()=>window.__seek(184)); await p.waitForTimeout(800);
 { const lab=await p.evaluate(()=>document.getElementById('clockLab').textContent);
   ok(/rest/i.test(lab),'t≈3:05: the 0:45 rest flips the clock to REST'); }
@@ -116,6 +122,10 @@ await p.evaluate(()=>window.__seek(40)); await p.waitForTimeout(900);   // windo
 const w3=await mapOf();
 ok(!!w3['Ski 1']&&w3['Ski 1']!=='free'&&w3['Ski 1']===w1['Ski 1']&&w3['Ski 2']===w1['Ski 2'],
   'window 3: the original half is BACK on Ski 1+2 ('+w3['Ski 1']+', '+w3['Ski 2']+')');
+{ const slabs=await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')[0]
+      .querySelectorAll('.exg.pnow')].map(e=>e.innerText.replace(/\s+/g,' ')));
+  ok(slabs.length===2&&slabs.every(t=>/2:00/.test(t)),
+    'window 3: the highlight moved to the 2:00 pair ('+slabs.map(t=>t.slice(0,24)).join(' | ')+')'); }
 // no errors across a full part boundary
 await p.evaluate(()=>window.__seek(700)); await p.waitForTimeout(1000);
 ok(await p.evaluate(()=>/^\d+:\d\d$/.test(document.getElementById('clock').textContent)),

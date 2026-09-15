@@ -3068,9 +3068,23 @@ window.addEventListener("error",function(ev){
     // so drawing a box round the one after it just says the same thing twice —
     // "next" belongs on the tablet in front of the athlete and in the trainer's
     // NOW/NEXT panel, where it is an instruction rather than a repeat of the list.
+    // BOTH ACTIVE STATIONS LIGHT UP, EACH IN ITS OWN PLACE (build 394 —
+    // Omar: "Max Cal Ski and Max Wall Balls are SEPARATE stations! both
+    // need to be highlighted!", rejecting the merged slab). During an alt
+    // window the halves occupy the two stations of the current PAIR of
+    // written windows (same duration, one station each) — BOTH entries go
+    // NOW as their own slabs, exactly where the sheet wrote them; they are
+    // never merged into one box.
+    const curIt0=cur>=0?its[cur]:null;
+    const curAlt=(curIt0&&!curIt0.rest&&itRot(curIt0)&&curIt0.alt
+      &&(curIt0.exercises||[]).length>1)?altIxOf(b,cur):-1;
     return head0+its.map((it,i)=>{
-      const mk=i===cur?" pnow":"";
-      const tag=i===cur?`<em class="ptag">Now</em>`:"";
+      const altN=(!it.rest&&itRot(it)&&it.alt&&(it.exercises||[]).length>1)
+        ?(it.exercises||[]).length:0;
+      const nowHere=i===cur||(altN>0&&curAlt>=0
+        &&Math.floor(altIxOf(b,i)/altN)===Math.floor(curAlt/altN));
+      const mk=nowHere?" pnow":"";
+      const tag=nowHere?`<em class="ptag">Now</em>`:"";
       if(it.rest) return emom
         ?`<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>Rest</div></div>`
         :`<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
@@ -3093,17 +3107,13 @@ window.addEventListener("error",function(ev){
       // never both lumped into one window). The card prints ONE exercise
       // per window, alternating down the part exactly like the sheet; the
       // other half works the opposite window's station and the machine map
-      // below carries both sides. BUT THE NOW SLAB IS THE LIVE FLOOR
-      // (build 393 — Omar: "the people on the wall balls are working
-      // too!"): the RUNNING window lights every station in play — lead
-      // first, the opposite half under it — because right now BOTH halves
-      // are working; the plan lines around it keep the sheet's order.
+      // below carries both sides. Every entry keeps its OWN single station
+      // — live, the pair-highlight above lights both active entries where
+      // they stand (build 394), never a merged list inside one window.
       const xsAll=it.exercises||[];
       const altOne=it.alt&&itRot(it)&&xsAll.length>1;
       const li=altOne?altIxOf(b,i)%xsAll.length:0;
-      const xs=altOne
-        ?(i===cur?[...xsAll.slice(li),...xsAll.slice(0,li)]:[xsAll[li]])
-        :xsAll;
+      const xs=altOne?[xsAll[li]]:xsAll;
       // uniform sets ride the heading ("Every 3:00 × 3 sets"), never every line
       const us=xs.length&&xs.every(x2=>exSets(x2)&&exSets(x2)===exSets(xs[0]))?exSets(xs[0]):0;
       // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
@@ -8296,7 +8306,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=393;
+  const BUILD=394;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

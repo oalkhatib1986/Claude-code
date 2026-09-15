@@ -677,15 +677,22 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   every"), and no "rotating"/"rotation n/N" wording prints for alt (the
   tablet's line is `Now: <station>` bare; Control's status says Running).
   The DATA still lists every station on every alt item — display filters,
-  it never rewrites. THE NOW SLAB IS THE LIVE FLOOR (build 393 — Omar:
-  "the people on the wall balls are working too!"): the RUNNING window is
-  the one place both halves' work lights up — `exLines` shows the full
-  rotated list (lead station first) for `i===cur` only; every queued and
-  done window keeps the sheet's single station. The plan is the sheet;
-  the lit box is the floor. In the AI schema and passed through
-  `applyAiWorkout` (`o.alt=true`). `altwin.js` gates the sheet-order card,
-  the both-halves NOW slab, the window/rest clock beat, and that the
-  halves REALLY trade across three windows.
+  it never rewrites. BOTH ACTIVE STATIONS LIGHT UP, EACH IN ITS OWN PLACE
+  (build 394 — Omar: "Max Cal Ski and Max Wall Balls are SEPARATE
+  stations! both need to be highlighted!", circling and rejecting build
+  393's merged slab): live, TWO entries go `.pnow` — the current PAIR of
+  written windows (`floor(altIx/ex)` groups them; same duration, one
+  station each) — as two separate slabs exactly where the sheet wrote
+  them. Never merge both stations into one box (393's mistake), and never
+  light only the lead (391's). Every entry always keeps its single
+  station line, idle and live; during a rest only the rest lights. The
+  DISPLAY QUESTION WAS ASKABLE — two rejected builds in a row on the same
+  surface; when a live-state rendering honestly has 2-3 readings, ASK
+  OMAR with the options instead of shipping a guess (Omar: "when you ask
+  me we save time"). In the AI schema and passed through `applyAiWorkout`
+  (`o.alt=true`). `altwin.js` (24) gates the sheet-order card, the
+  two-slab pair highlight and its move to the 2:00 pair, the window/rest
+  clock beat, and that the halves REALLY trade across three windows.
 - **AN ALT PART'S MAP IS THE FULL FLOOR, CONTIGUOUS (build 390 — Omar:
   "why Ski 1, 3, 5?!" then "maximum capacity is 36 people... it doesn't
   show 36 slots!").** On the overview card an alt window's machines belong
