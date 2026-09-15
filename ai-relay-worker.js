@@ -6,6 +6,14 @@
  * workouts in KV so every device shares one library. Deploy per AI_SETUP.md;
  * the library needs a KV namespace bound as LIB.
  */
+// A CONVERSATION OPENS ON THE COACH (build 401): capping history at 30 can
+// slice it so an assistant turn comes first, which the API rejects — drop
+// leading non-user entries so the window always opens on a user message.
+function trimUserFirst(arr) {
+  let i = 0;
+  while (i < arr.length && arr[i] && arr[i].role === "assistant") i++;
+  return arr.slice(i);
+}
 // SCREENSHOTS IN THE CHAT (build 397): a message's content may be an array
 // of vision blocks. Only base64 images of the usual web types (bounded) and
 // text blocks pass; anything else is dropped. Strings pass as before.
@@ -104,27 +112,38 @@ export default {
       model,
       max_tokens: Math.min(parseInt(body.max_tokens, 10) || 4000, MAX_TOKENS_CAP),
       system: String(body.system || "").slice(0, 40000),
-      messages: (Array.isArray(body.messages) ? body.messages : []).slice(-30).map(m => ({
+      messages: trimUserFirst((Array.isArray(body.messages) ? body.messages : []).slice(-30)).map(m => ({
         role: m.role === "assistant" ? "assistant" : "user",
         content: sanitizeContent(m.content),
       })),
     };
 
-    // ANTHROPIC_URL (optional env var) reroutes the call through Cloudflare's
-    // AI Gateway — egress from Cloudflare's core network, immune to the
-    // regional 403 "Request not allowed" some colos hit. Set it to the
-    // gateway's Anthropic endpoint, e.g.
-    // https://gateway.ai.cloudflare.com/v1/<ACCOUNT_ID>/<GATEWAY>/anthropic
-    const base = (env.ANTHROPIC_URL || "https://api.anthropic.com").replace(/\/+$/, "");
-    const res = await fetch(base + "/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify(payload),
-    });
+    // TWO ROADS TO ANTHROPIC (build 401 — the edge's 403 "Request not
+    // allowed" blocked the gateway path on Omar's floor-test day): the
+    // AI Gateway (ANTHROPIC_URL, egress from Cloudflare's core network)
+    // and the direct API are BOTH tried — a 403 door-slam on one road
+    // immediately takes the other in the same request. Only when both
+    // roads refuse does the app ever see the error.
+    const routes = [];
+    {
+      const gw = (env.ANTHROPIC_URL || "").replace(/\/+$/, "");
+      if (gw) routes.push(gw);
+      routes.push("https://api.anthropic.com");
+    }
+    const reqBody = JSON.stringify(payload);
+    let res = null;
+    for (const base of routes) {
+      res = await fetch(base + "/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: reqBody,
+      });
+      if (res.status !== 403) break;
+    }
 
     return new Response(await res.text(), {
       status: res.status,

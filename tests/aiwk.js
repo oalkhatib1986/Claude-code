@@ -427,6 +427,35 @@ await p.waitForTimeout(400);
     'persistent 403s walk the whole ladder ('+models.join(' → ')+')');
   ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.ai')].some(m=>/made it through/.test(m.textContent))),
     'and the chat ANSWERS instead of erroring'); }
+// 9) A CAPPED HISTORY OPENS ON THE COACH (build 401): a stored chat whose
+// window begins with an assistant turn is trimmed before sending
+{ await p.evaluate(()=>{
+    const st=JSON.parse(localStorage.getItem('af_aichats_v1'));
+    const k=JSON.parse(localStorage.getItem('af_erg_cfg_v8')).wkName||'__draft__';
+    st.byKey[k]={v:1,ts:Date.now(),own:null,asked:false,
+      msgs:[{role:'assistant',content:'orphan reply'},{role:'user',content:'earlier ask'},
+        {role:'assistant',content:'earlier answer'}],
+      log:[{c:'ai',t:'orphan reply'},{c:'you',t:'earlier ask'},{c:'ai',t:'earlier answer'}]};
+    localStorage.setItem('af_aichats_v1',JSON.stringify(st)); });
+  await p.reload(); await p.waitForTimeout(1600);
+  let lastBody2=null;
+  await p.unroute('https://relay.test/**');
+  await p.route('https://relay.test/**',async route=>{
+    const body=JSON.parse(route.request().postData()||'{}');
+    if(body.op) return route.fulfill({json:{ok:1,v:null,now:Date.now(),presets:[]}});
+    lastBody2=body;
+    return route.fulfill({json:{content:[{type:'text',
+      text:JSON.stringify({reply:'ok',workout:null,options:null})}]}});
+  });
+  await p.evaluate(()=>{document.getElementById('aiFab').style.display='';
+    document.body.classList.add('aiopen');});
+  await p.fill('#aiText','continue'); await p.evaluate(()=>document.getElementById('aiSend').click());
+  await p.waitForTimeout(1200);
+  const ms=(lastBody2&&lastBody2.messages)||[];
+  ok(ms.length>0&&ms[0].role==='user',
+    'the sent history opens on a USER message ('+(ms[0]&&ms[0].role)+')');
+  ok(ms.some(m=>/earlier ask/.test(String(m.content))),
+    'and the history from that point rides along'); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

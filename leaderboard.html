@@ -6926,6 +6926,10 @@ window.addEventListener("error",function(ev){
   const AICS="af_aichats_v1";
   let aiLog=[], aiRestoring=false, aiCurKey=null, aiSwitchPend=false;
   const aiKeyNow=()=>cfg.wkName||"__draft__";
+  // a capped history must OPEN ON THE COACH (build 401): slicing at 30 can
+  // leave an assistant turn first, which the API rejects
+  const aiUserFirst=a=>{ let i=0;
+    while(i<a.length&&a[i]&&a[i].role==="assistant") i++; return a.slice(i); };
   const aiStore=()=>{ try{ const s=JSON.parse(localStorage.getItem(AICS)||"null");
       if(s&&s.byKey) return s; }catch(e){} return {byKey:{}}; };
   const aiPutStore=st=>{ try{ localStorage.setItem(AICS,JSON.stringify(st)); }catch(e){} };
@@ -6934,7 +6938,7 @@ window.addEventListener("error",function(ev){
     // most recent image messages; older ones keep a placeholder — the
     // bubble's thumbnail lives in aiLog either way
     let seen=0;
-    const msgs=aiMsgs.slice(-30).reverse().map(m=>{
+    const msgs=aiUserFirst(aiMsgs.slice(-30)).reverse().map(m=>{
       if(!Array.isArray(m.content)) return m;
       const keep=(seen++)<2;
       return {role:m.role,content:m.content.map(b2=>(b2&&b2.type==="image"&&!keep)
@@ -7667,7 +7671,7 @@ window.addEventListener("error",function(ev){
       for(let att=0;att<6;att++){
         res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
           body:JSON.stringify({model:AI_MODELS[Math.min(aiModelIx,AI_MODELS.length-1)],
-            max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
+            max_tokens:6000,system:aiSystem(),messages:aiUserFirst(aiMsgs)})});
         if(!res.ok){
           errTxt=""; try{ errTxt=(await res.text()).slice(0,300); }catch(e){}
           if((res.status===400||res.status===404)&&/model/i.test(errTxt)
@@ -8479,7 +8483,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=400;
+  const BUILD=401;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
