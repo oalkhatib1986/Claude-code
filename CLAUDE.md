@@ -89,6 +89,15 @@ copy for cache-free serving; `version.txt` holds the build number.
 2. Run the suites the change can actually affect (see below), all green.
 3. Commit + push to `claude/gym-erg-leaderboard-pyztry` from the repo root.
 
+**SPEED RULE (Omar's Option 1, 16 Sep 2026 — "I don't need to wait 13
+minutes for every small change"):** a SMALL fix (display, wording, one
+surface) runs ONLY its targeted suites before the push — Omar gets the fix
+in ~3-4 minutes — and the FULL sweep runs in the background AFTER the push;
+if the sweep turns anything red, ship the repair immediately and tell him.
+ENGINE changes (allocator, rotation, clock, anything that moves who stands
+where) still take the full sweep BEFORE the push. Never make him wait on
+the full sweep for a small change again.
+
 Omar tests on https://oalkhatib1986.github.io/Claude-code/app.html. Do NOT publish
 a Claude artifact — he never opens it, and it is one more permission prompt.
 
