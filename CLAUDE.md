@@ -697,9 +697,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   650ms lesson); Save/Done repaint with `force`. A mid-class save rebuilds
   via the setTeamCount keep/restore pattern (`bcRebuild()`) so the clock,
   scores and counters ride through and the rAF loop restarts. NO browser
-  windows — the editor is the site's own inputs. `bedit.js` (22) gates
-  button placement, all four editors, cancel, phone no-scroll, route
-  hiding, mode-drop on nav, and the mid-class save with the clock ticking.
+  windows — the editor is the site's own inputs. BUILD 407 (Omar's first
+  contact: "not the same theme… confusing what's clickable… I don't have
+  editing on everything"): every field carries `type="text"` — a BARE
+  `<input>` misses the shared `input[type=text]` rule and lands in
+  Chrome's dress (the CLAUDE.md unlisted-type trap, again); the button
+  sits at the RIGHT of its row; editable rows highlight on hover AND
+  `:active` (touch feedback); a ROTATING part's editor offers "Swap every"
+  (the coach's number — `dur = swap × stations` on save, non-alt only);
+  the exercise editor adds Sets + Unit (a site-styled `<select>`); the
+  block editor adds Rounds + rest-between-rounds; and the `.blkrest`
+  divider (now stamped `data-bi`) edits the rest-after gap — shared
+  `blockRest` when `sameRest`, else that block's `aRest`. `bedit.js` (29)
+  gates button placement, theme'd fields, all editors incl. swap-beat and
+  divider, cancel, phone no-scroll, route hiding, mode-drop on nav, and
+  the mid-class save with the clock ticking.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from

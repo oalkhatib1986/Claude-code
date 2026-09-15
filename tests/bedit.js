@@ -28,7 +28,11 @@ await p.evaluate(()=>{
         {name:'Back Squat',amounts:[6],unit:'reps',max:false,rpe:'8'}]}]},
     {name:'Part B',rounds:1,items:[
       {dur:300,scored:false,group:true,exercises:[
-        {name:'Run',amounts:[600],unit:'m',max:false}]}]}]});
+        {name:'Run',amounts:[600],unit:'m',max:false}]}]},
+    {name:'Part C',rounds:1,items:[
+      {dur:240,fmt:'rotate',rotBy:'clock',scored:false,exercises:[
+        {name:'Ski',amounts:[],unit:'cal',max:true},
+        {name:'Bike',amounts:[],unit:'cal',max:true}]}]}]});
   cfg.crews=[{name:'A1'},{name:'A2'}];
   localStorage.setItem(k,JSON.stringify(cfg));
 });
@@ -50,6 +54,13 @@ ok(await p.evaluate(()=>document.body.classList.contains('bedit')
 await p.click('#blockCards .blk[data-bi="0"] .exg[data-i="0"] .exl[data-xi="0"]');
 await p.waitForTimeout(200);
 ok(await p.evaluate(()=>!!document.querySelector('#blockCards .bef #befA')),'tapping a line opens the inline editor');
+// THE EDITOR WEARS THE SITE (Omar, 407: "not the same theme or font"): a bare
+// <input> misses the shared input[type=text] rule — every field carries it
+ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .bef input')]
+  .every(i=>i.getAttribute('type')==='text')),'407: every editor field is a site-styled input');
+ok(await p.evaluate(()=>{ const r=document.getElementById('bEditRow').getBoundingClientRect();
+  const b=document.getElementById('bEditBtn').getBoundingClientRect();
+  return r.right-b.right<24; }),'407: the Edit button sits at the RIGHT of its row');
 await p.fill('#befA','12'); await p.fill('#befC','9'); await p.fill('#befE','brace hard');
 await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
 { const c=await cfgNow(); const x=c.rotation.blocks[0].items[0].exercises[0];
@@ -86,6 +97,29 @@ await p.fill('#befB','Sprint'); await p.click('[data-bev="cancel"]'); await p.wa
 ok((await cfgNow()).rotation.blocks[1].items[0].exercises[0].name==='Run',
   'Cancel changes nothing');
 ok(await p.evaluate(()=>!document.querySelector('#blockCards .bef')),'Cancel closes the editor');
+// 7b) sets + unit ride the exercise editor (407)
+await p.click('#blockCards .blk[data-bi="1"] .exg[data-i="0"] .exl[data-xi="0"]');
+await p.waitForTimeout(200);
+await p.fill('#befS','3'); await p.selectOption('#befU','cal');
+await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+{ const x=(await cfgNow()).rotation.blocks[1].items[0].exercises[0];
+  ok(x.sets===3&&x.unit==='cal','407: Sets and Unit save to the exercise'); }
+// 7c) "swap every" IS the rotating part's number (Omar: "why is Swap every
+// 2:00 not clickable?") — tap the heading, change the beat, the total follows
+await p.click('#blockCards .blk[data-bi="2"] .exg[data-i="0"] .exg-h');
+await p.waitForTimeout(200);
+ok(await p.evaluate(()=>{ const f=document.querySelector('#blockCards .bef');
+  return !!f&&/Swap every/i.test(f.innerText)&&document.getElementById('befB').value==='2:00'; }),
+  '407: a rotating part offers Swap every, prefilled with its beat');
+await p.fill('#befB','1:30'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+ok((await cfgNow()).rotation.blocks[2].items[0].dur===180,
+  '407: swap 1:30 × 2 stations = a 3:00 part');
+// 7d) the REST DIVIDER between parts is a field too
+await p.click('#blockCards .blkrest[data-bi="0"]'); await p.waitForTimeout(200);
+await p.fill('#befB','1:30'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+ok((await cfgNow()).rotation.blockRest===90,'407: the between-parts rest saves');
+ok(await p.evaluate(()=>/Rest\s*1:30/i.test((document.querySelector('#blockCards .blkrest')||{innerText:''}).innerText.replace(/\s+/g,' '))),
+  '407: the divider reads Rest 1:30 at once');
 // 8) phone width: the open editor never makes the page scroll sideways
 await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(400);
 await p.click('#blockCards .blk[data-bi="0"] .exg[data-i="0"] .exl[data-xi="0"]');

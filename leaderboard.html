@@ -1467,12 +1467,24 @@
      button lives on the trainer's Overview only — a wall shows the workout,
      it never offers to change it. Affordances are OUTLINES (no layout
      shift); the editor is the site's own inputs, never a browser window. */
-  .beditrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
-  .bedithint{font-size:12px;color:var(--ink-mute)}
+  /* the button sits at the summary row's RIGHT (Omar, build 407) — the hint
+     slides in beside it while editing */
+  .beditrow{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+  .bedithint{font-size:12px;color:var(--ink-mute);text-align:right}
   body.bigscreen .beditrow,body.tvroute .beditrow{display:none}
+  /* WHAT IS TAPPABLE LOOKS TAPPABLE (Omar: "it's confusing what's clickable"):
+     every editable row highlights under the pointer and flashes on the tap
+     itself, so a touch gets feedback even without hover. */
   body.bedit:not(.bigscreen) #blockCards .exg[data-i]{outline:1px dashed rgba(255,255,255,.22);outline-offset:3px;border-radius:6px;cursor:pointer}
+  body.bedit:not(.bigscreen) #blockCards .exg[data-i] :where(.exl,.exg-h){border-radius:4px}
+  body.bedit:not(.bigscreen) #blockCards .exg[data-i] :where(.exl,.exg-h):hover{background:rgba(255,255,255,.09)}
+  body.bedit:not(.bigscreen) #blockCards .exg[data-i] :where(.exl,.exg-h):active{background:rgba(255,255,255,.16)}
   body.bedit:not(.bigscreen) #blockCards .bh b{cursor:pointer;text-decoration:underline dashed rgba(255,255,255,.45) 1px;text-underline-offset:4px}
-  .bef{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:10px 0;padding:12px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(255,255,255,.035)}
+  body.bedit:not(.bigscreen) #blockCards .bh b:hover{background:rgba(255,255,255,.09)}
+  body.bedit:not(.bigscreen) #blockCards .blkrest{cursor:pointer}
+  body.bedit:not(.bigscreen) #blockCards .blkrest:hover :where(b,span){color:var(--accent)}
+  .bef{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:10px 0;padding:12px;
+    border:1px solid var(--line-soft);border-radius:12px;background:rgba(255,255,255,.035);grid-column:1/-1}
   .bef label{display:flex;flex-direction:column;gap:4px;font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);min-width:0}
   .bef input{width:auto;min-width:64px;max-width:100%}
   .bef .befw{min-width:min(100%,190px)}
@@ -1813,7 +1825,7 @@
       <span class="pdesc" id="phaseDesc"></span>
     </div>
     <div id="capBanner" hidden></div>
-    <div class="beditrow" id="bEditRow"><button type="button" class="btn small" id="bEditBtn">Edit workout</button><span class="bedithint" id="bEditHint" hidden>Tap a line to change it &middot; totals, SHARE and EMOM lines follow the numbers</span></div>
+    <div class="beditrow" id="bEditRow"><span class="bedithint" id="bEditHint" hidden>Tap anything highlighted &mdash; names, reps, times, rests &middot; totals and SHARE lines update from the numbers</span><button type="button" class="btn small" id="bEditBtn">Edit workout</button></div>
     <div class="blocks" id="blockCards"></div>
 
     <div class="board" id="board">
@@ -3681,7 +3693,7 @@ window.addEventListener("error",function(ev){
           return `<span class="shareline">${per} per station &middot; ${nSt} ${nSt===1?"station":"stations"}</span>`;
         })()}
       </div>`;
-    }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
+    }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest" data-bi="${bi}"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
     fitBlockCols();
   }
   /* ===== EDIT-IN-PLACE ON THE OVERVIEW (build 406 — Omar's Option A) =====
@@ -3699,7 +3711,11 @@ window.addEventListener("error",function(ev){
     m=s.match(/^(\d+)\s*s(?:ec)?s?$/i); if(m) return parseInt(m[1],10);
     return /^\d+$/.test(s)?parseInt(s,10):0; };
   const BEF_BTNS=`<span class="befbtns"><button type="button" class="btn small" data-bev="save">Save</button><button type="button" class="btn small" data-bev="cancel">Cancel</button></span>`;
-  const befF=(lab,id,val,wide)=>`<label>${lab}<input id="${id}"${wide?' class="befw"':""} value="${esc(String(val==null?"":val))}"></label>`;
+  // type="text" is NOT optional: the site styles input[type=text] — a bare
+  // <input> misses the shared rule and lands in Chrome's own dress (Omar,
+  // build 407: "not the same theme of the app or even font")
+  const befF=(lab,id,val,wide)=>`<label>${lab}<input type="text" id="${id}"${wide?' class="befw"':""} value="${esc(String(val==null?"":val))}"></label>`;
+  const befSel=(lab,id,val,opts)=>`<label>${lab}<select id="${id}">${opts.map(o=>`<option value="${o[0]}"${o[0]===val?" selected":""}>${o[1]}</option>`).join("")}</select></label>`;
   function bcCloseForm(){ bcT=null;
     const f=document.querySelector("#blockCards .bef"); if(f) f.remove(); }
   function bcOpenForm(anchor,t){
@@ -3707,12 +3723,25 @@ window.addEventListener("error",function(ev){
     const b=R().blocks[t.bi]; if(!b){ bcT=null; return; }
     const it=t.i!=null?(b.items||[])[t.i]:null;
     const f=document.createElement("div"); f.className="bef";
-    if(t.k==="blk") f.innerHTML=befF("Part name","befA",b.name,1)+BEF_BTNS;
-    else if(t.k==="it") f.innerHTML=(it.rest?"":befF("Name","befA",it.name||"",1))
-      +befF("Time (m:ss)","befB",fmtMS(it.dur||0))+BEF_BTNS;
+    if(t.k==="blk"){ const winb=isWin(b)||isAmrap(b);
+      f.innerHTML=befF("Part name","befA",b.name,1)
+        +(winb?"":befF("Rounds","befR",bRounds(b)))
+        +(winb?"":befF("Rest between rounds","befRR",bRRest(b)?fmtMS(bRRest(b)):""))
+        +BEF_BTNS; }
+    else if(t.k==="brest") f.innerHTML=befF("Rest after this part (m:ss)","befB",fmtMS(restAfterBlock(t.bi)||0))+BEF_BTNS;
+    else if(t.k==="it"){
+      // a rotating part is authored by its BEAT — "swap every 2:00" is the
+      // number the coach owns, the total follows from the stations
+      const rotBeat=!it.rest&&itRot(it)&&!it.alt&&(it.exercises||[]).filter(Boolean).length>1;
+      f.innerHTML=(it.rest?"":befF("Name","befA",it.name||"",1))
+        +(rotBeat?befF("Swap every (m:ss)","befB",fmtMS(Math.round(it.dur/(it.exercises||[]).filter(Boolean).length)))
+                 :befF("Time (m:ss)","befB",fmtMS(it.dur||0)))
+        +BEF_BTNS; }
     else { const x=(it.exercises||[])[t.xi]; if(!x){ bcT=null; return; }
       f.innerHTML=befF("Amount","befA",(x.amounts||[]).join("/"))
         +befF("Exercise","befB",x.name||"",1)
+        +befF("Sets","befS",exSets(x)||"")
+        +befSel("Unit","befU",x.unit||"reps",[["reps","reps"],["cal","cal"],["m","metres"],["sec","seconds"]])
         +befF("RPE","befC",x.rpe||"")
         +befF("% 1RM","befD",x.rm||"")
         +befF("Note","befE",x.note||"",1)+BEF_BTNS; }
@@ -3723,14 +3752,24 @@ window.addEventListener("error",function(ev){
     const t=bcT; if(!t) return;
     const b=R().blocks[t.bi]; if(!b) return;
     const v=id=>{ const el=$(id); return el?el.value.trim():""; };
-    if(t.k==="blk"){ const n=v("befA"); if(n) b.name=n.slice(0,40); }
+    if(t.k==="blk"){ const n=v("befA"); if(n) b.name=n.slice(0,40);
+      if($("befR")&&!(isWin(b)||isAmrap(b))){
+        const r=parseInt(v("befR"),10); if(r>=1&&r<=6) b.rounds=r;
+        const rr=v("befRR"); b.rrest=rr?clamp(parseDurTxt(rr),0,1800):0; } }
+    else if(t.k==="brest"){ const d=clamp(parseDurTxt(v("befB")),0,1800);
+      // one shared gap edits the shared number; per-block gaps edit their own
+      if(R().sameRest===false) b.aRest=d; else R().blockRest=d; }
     else if(t.k==="it"){ const it=(b.items||[])[t.i]; if(!it) return;
       if(!it.rest) it.name=v("befA").slice(0,60);
-      const d=parseDurTxt(v("befB")); if(d>0) it.dur=clamp(d,5,7200); }
+      const d=parseDurTxt(v("befB"));
+      const rotBeat=!it.rest&&itRot(it)&&!it.alt&&(it.exercises||[]).filter(Boolean).length>1;
+      if(d>0) it.dur=clamp(rotBeat?d*(it.exercises||[]).filter(Boolean).length:d,5,7200); }
     else { const it=(b.items||[])[t.i], x=it&&(it.exercises||[])[t.xi]; if(!x) return;
       const a=v("befA");
       x.amounts=a?a.split("/").map(s=>s.trim()).filter(Boolean).slice(0,4):[];
       const nm=v("befB"); if(nm) x.name=nm.slice(0,60);
+      const st=parseInt(v("befS"),10); if(st>=2&&st<=10) x.sets=st; else delete x.sets;
+      const u=v("befU"); if(/^(reps|cal|m|sec)$/.test(u)) x.unit=u;
       x.rpe=v("befC").slice(0,8);
       const rm=parseInt(v("befD"),10); if(rm>0&&rm<=200) x.rm=rm; else delete x.rm;
       x.note=v("befE").slice(0,140); }
@@ -3769,6 +3808,8 @@ window.addEventListener("error",function(ev){
     const bev=ev.target.closest("[data-bev]");
     if(bev){ if(bev.dataset.bev==="save") bcSave(); else bcCloseForm(); return; }
     if(ev.target.closest(".bef")) return;   // typing, not retargeting
+    const br=ev.target.closest(".blkrest[data-bi]");
+    if(br){ bcOpenForm(br,{k:"brest",bi:parseInt(br.dataset.bi,10)}); return; }
     const blk=ev.target.closest(".blk[data-bi]"); if(!blk) return;
     const bi=parseInt(blk.dataset.bi,10); const b=R().blocks[bi]; if(!b) return;
     if(ev.target.closest(".bh b")){ bcOpenForm(blk.querySelector(".bh"),{k:"blk",bi}); return; }
@@ -8670,7 +8711,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=406;
+  const BUILD=407;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
