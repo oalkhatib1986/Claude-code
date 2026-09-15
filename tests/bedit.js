@@ -32,7 +32,12 @@ await p.evaluate(()=>{
     {name:'Part C',rounds:1,items:[
       {dur:240,fmt:'rotate',rotBy:'clock',scored:false,exercises:[
         {name:'Ski',amounts:[],unit:'cal',max:true},
-        {name:'Bike',amounts:[],unit:'cal',max:true}]}]}]});
+        {name:'Bike',amounts:[],unit:'cal',max:true}]}]},
+    {name:'Part D',rounds:1,items:[
+      {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
+        {name:'Walking Lunge',amounts:[20],unit:'reps',max:false}]},
+      {name:'Set 2',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
+        {name:'Walking Lunge',amounts:[20],unit:'reps',max:false}]}]}]});
   cfg.crews=[{name:'A1'},{name:'A2'}];
   localStorage.setItem(k,JSON.stringify(cfg));
 });
@@ -120,6 +125,21 @@ await p.fill('#befB','1:30'); await p.click('[data-bev="save"]'); await p.waitFo
 ok((await cfgNow()).rotation.blockRest===90,'407: the between-parts rest saves');
 ok(await p.evaluate(()=>/Rest\s*1:30/i.test((document.querySelector('#blockCards .blkrest')||{innerText:''}).innerText.replace(/\s+/g,' '))),
   '407: the divider reads Rest 1:30 at once');
+// 7e) THE SHARE LINE IS A FIELD when the number is authored (408 — Omar:
+// "why can I not edit the share in 2s alternate")
+await p.click('#blockCards .blk[data-bi="3"] .exg[data-shr]'); await p.waitForTimeout(200);
+ok(await p.evaluate(()=>{ const f=document.querySelector('#blockCards .bef');
+  return !!f&&/Athletes per station/i.test(f.innerText)&&document.getElementById('befB').value==='2'; }),
+  '408: tapping the share line offers Athletes per station, prefilled');
+await p.fill('#befB','3'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+{ const its=(await cfgNow()).rotation.blocks[3].items;
+  ok(its.every(it=>it.shareN===3),'408: every set of the part takes the new split');
+  ok(/share in 3s, alternate/i.test(await cardTxt(3)),'408: the line reads SHARE IN 3S at once'); }
+// 7f) a share set's own heading also carries the field
+await p.click('#blockCards .blk[data-bi="3"] .exg[data-i="0"] .exg-h'); await p.waitForTimeout(200);
+ok(await p.evaluate(()=>{ const w=document.getElementById('befW');
+  return !!w&&w.value==='3'; }),'408: the set editor carries Athletes per station too');
+await p.click('[data-bev="cancel"]');
 // 8) phone width: the open editor never makes the page scroll sideways
 await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(400);
 await p.click('#blockCards .blk[data-bi="0"] .exg[data-i="0"] .exl[data-xi="0"]');

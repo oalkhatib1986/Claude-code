@@ -1475,10 +1475,11 @@
   /* WHAT IS TAPPABLE LOOKS TAPPABLE (Omar: "it's confusing what's clickable"):
      every editable row highlights under the pointer and flashes on the tap
      itself, so a touch gets feedback even without hover. */
-  body.bedit:not(.bigscreen) #blockCards .exg[data-i]{outline:1px dashed rgba(255,255,255,.22);outline-offset:3px;border-radius:6px;cursor:pointer}
-  body.bedit:not(.bigscreen) #blockCards .exg[data-i] :where(.exl,.exg-h){border-radius:4px}
-  body.bedit:not(.bigscreen) #blockCards .exg[data-i] :where(.exl,.exg-h):hover{background:rgba(255,255,255,.09)}
-  body.bedit:not(.bigscreen) #blockCards .exg[data-i] :where(.exl,.exg-h):active{background:rgba(255,255,255,.16)}
+  body.bedit:not(.bigscreen) #blockCards :is(.exg[data-i],.exg[data-shr]){outline:1px dashed rgba(255,255,255,.22);outline-offset:3px;border-radius:6px;cursor:pointer}
+  body.bedit:not(.bigscreen) #blockCards :is(.exg[data-i],.exg[data-shr]) :where(.exl,.exg-h){border-radius:4px}
+  body.bedit:not(.bigscreen) #blockCards :is(.exg[data-i],.exg[data-shr]) :where(.exl,.exg-h):hover{background:rgba(255,255,255,.09)}
+  body.bedit:not(.bigscreen) #blockCards :is(.exg[data-i],.exg[data-shr]) :where(.exl,.exg-h):active{background:rgba(255,255,255,.16)}
+  .befnote{font-size:13px;color:var(--ink-dim);max-width:440px;line-height:1.45}
   body.bedit:not(.bigscreen) #blockCards .bh b{cursor:pointer;text-decoration:underline dashed rgba(255,255,255,.45) 1px;text-underline-offset:4px}
   body.bedit:not(.bigscreen) #blockCards .bh b:hover{background:rgba(255,255,255,.09)}
   body.bedit:not(.bigscreen) #blockCards .blkrest{cursor:pointer}
@@ -3138,7 +3139,7 @@ window.addEventListener("error",function(ev){
     const emom=blockEmom(b)>0;
     const shr=blockShareTxt(b);          // "Share in 2s, alternate" — said ONCE (build 402)
     const head0=(bs?`<div class="exg"><span class="exg-h">${esc(bs)}</span></div>`:"")
-      +(shr?`<div class="exg"><span class="exg-h">${esc(shr)}</span></div>`:"");
+      +(shr?`<div class="exg" data-shr="1"><span class="exg-h">${esc(shr)}</span></div>`:"");
     // ONLY the running part is marked. The card already lists the parts in order,
     // so drawing a box round the one after it just says the same thing twice —
     // "next" belongs on the tablet in front of the athlete and in the trainer's
@@ -3729,6 +3730,16 @@ window.addEventListener("error",function(ev){
         +(winb?"":befF("Rest between rounds","befRR",bRRest(b)?fmtMS(bRRest(b)):""))
         +BEF_BTNS; }
     else if(t.k==="brest") f.innerHTML=befF("Rest after this part (m:ss)","befB",fmtMS(restAfterBlock(t.bi)||0))+BEF_BTNS;
+    else if(t.k==="shr"){
+      // THE SHARE LINE IS A FIELD WHEN THE NUMBER IS AUTHORED (build 408 —
+      // Omar: "why can I not edit the share in 2s alternate"). When the
+      // split comes from the gym's machines instead, the honest answer is
+      // WHERE the number lives, not a field that would change nothing.
+      const shIts=(b.items||[]).filter(x2=>x2&&!x2.rest&&x2.fmt==="share");
+      const g=shIts.length?itGear(shIts[0]):0;
+      if(g){ const wt=Math.max(1,worstTeamsPerBlock());
+        f.innerHTML=`<span class="befnote">This split is worked out from the class size (${wt}) shared over the gym's ${Math.min(g,wt)} station${Math.min(g,wt)>1?"s":""} — change the class in Control, or the machine counts in Layout.</span><span class="befbtns"><button type="button" class="btn small" data-bev="cancel">Close</button></span>`; }
+      else f.innerHTML=befF("Athletes per station (2–6)","befB",shIts.length?itShare(shIts[0]):2)+BEF_BTNS; }
     else if(t.k==="it"){
       // a rotating part is authored by its BEAT — "swap every 2:00" is the
       // number the coach owns, the total follows from the stations
@@ -3736,6 +3747,7 @@ window.addEventListener("error",function(ev){
       f.innerHTML=(it.rest?"":befF("Name","befA",it.name||"",1))
         +(rotBeat?befF("Swap every (m:ss)","befB",fmtMS(Math.round(it.dur/(it.exercises||[]).filter(Boolean).length)))
                  :befF("Time (m:ss)","befB",fmtMS(it.dur||0)))
+        +(it.fmt==="share"&&!itGear(it)?befF("Athletes per station","befW",itShare(it)||2):"")
         +BEF_BTNS; }
     else { const x=(it.exercises||[])[t.xi]; if(!x){ bcT=null; return; }
       f.innerHTML=befF("Amount","befA",(x.amounts||[]).join("/"))
@@ -3759,11 +3771,16 @@ window.addEventListener("error",function(ev){
     else if(t.k==="brest"){ const d=clamp(parseDurTxt(v("befB")),0,1800);
       // one shared gap edits the shared number; per-block gaps edit their own
       if(R().sameRest===false) b.aRest=d; else R().blockRest=d; }
+    else if(t.k==="shr"){ const n=parseInt(v("befB"),10);
+      if(n>=2&&n<=6) (b.items||[]).forEach(x2=>{
+        if(x2&&!x2.rest&&x2.fmt==="share"&&!itGear(x2)) x2.shareN=n; }); }
     else if(t.k==="it"){ const it=(b.items||[])[t.i]; if(!it) return;
       if(!it.rest) it.name=v("befA").slice(0,60);
       const d=parseDurTxt(v("befB"));
       const rotBeat=!it.rest&&itRot(it)&&!it.alt&&(it.exercises||[]).filter(Boolean).length>1;
-      if(d>0) it.dur=clamp(rotBeat?d*(it.exercises||[]).filter(Boolean).length:d,5,7200); }
+      if(d>0) it.dur=clamp(rotBeat?d*(it.exercises||[]).filter(Boolean).length:d,5,7200);
+      if(it.fmt==="share"&&$("befW")){ const w=parseInt(v("befW"),10);
+        if(w>=2&&w<=6) it.shareN=w; } }
     else { const it=(b.items||[])[t.i], x=it&&(it.exercises||[])[t.xi]; if(!x) return;
       const a=v("befA");
       x.amounts=a?a.split("/").map(s=>s.trim()).filter(Boolean).slice(0,4):[];
@@ -3813,6 +3830,8 @@ window.addEventListener("error",function(ev){
     const blk=ev.target.closest(".blk[data-bi]"); if(!blk) return;
     const bi=parseInt(blk.dataset.bi,10); const b=R().blocks[bi]; if(!b) return;
     if(ev.target.closest(".bh b")){ bcOpenForm(blk.querySelector(".bh"),{k:"blk",bi}); return; }
+    const sh=ev.target.closest(".exg[data-shr]");
+    if(sh){ bcOpenForm(sh,{k:"shr",bi}); return; }
     const eg=ev.target.closest(".exg[data-i]"); if(!eg) return;
     const i=parseInt(eg.dataset.i,10); const it=(b.items||[])[i]; if(!it) return;
     const ln=ev.target.closest("[data-xi]");
@@ -8711,7 +8730,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=407;
+  const BUILD=408;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

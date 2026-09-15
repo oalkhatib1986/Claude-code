@@ -711,7 +711,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `blockRest` when `sameRest`, else that block's `aRest`. `bedit.js` (29)
   gates button placement, theme'd fields, all editors incl. swap-beat and
   divider, cancel, phone no-scroll, route hiding, mode-drop on nav, and
-  the mid-class save with the clock ticking.
+  the mid-class save with the clock ticking. BUILD 408 (Omar: "why can I
+  not edit the share in 2s alternate"): the hoisted SHARE line
+  (`data-shr` on its head0 `.exg`) is a FIELD when the split is AUTHORED
+  — "Athletes per station (2–6)" writes `shareN` to every share set of
+  the part, and a share set's own heading editor carries the same field
+  (`#befW`); when the split is EQUIPMENT-DRIVEN (`itGear`>0) the tap
+  opens an honest `.befnote` saying where the number lives (class size ÷
+  stations — Control / Layout), never a field that would change nothing.
+  `bedit.js` (33) pins both.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from
