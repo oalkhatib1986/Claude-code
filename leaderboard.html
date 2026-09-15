@@ -2414,6 +2414,9 @@ window.addEventListener("error",function(ev){
   };
   const KEY="af_erg_cfg_v8";
   let cfg; try{ cfg=JSON.parse(localStorage.getItem(KEY))||null; }catch(e){ cfg=null; }
+  // cfg as it stood when Setup was entered (build 411's keep-or-undo ask);
+  // declared HERE because boot one-shots call loadLib before show() exists
+  let setupSnap=null;
   if(!cfg||!cfg.mode) cfg=structuredClone(DEFAULTS);
   if(cfg.autoCrews===undefined) cfg.autoCrews=false;
   if(cfg.collab===undefined) cfg.collab=!!cfg.coLogo;
@@ -4590,6 +4593,28 @@ window.addEventListener("error",function(ev){
     // tablet's own layout — body.kioskon strips the page's padding and pins a
     // 1005x600 frame — and left behind they warp every other page instead.
     if(which!=="tablet") document.body.classList.remove("kioskon","tabprev","tabwall","tabone");
+    // A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: leaving Setup
+    // must ask keep-or-not, mid-class included). Entering Setup snapshots
+    // the cfg; leaving with a different one asks in the site's own dialog.
+    // "Undo changes" restores the snapshot — mid-class through the
+    // keep/restore rebuild so the clock rides through. Only the buttons
+    // answer (noDismiss): a stray tap outside must never undo work.
+    // Loading a board, an AI build and a remote apply REFRESH the snapshot
+    // — those are facts, not pending edits.
+    { const inSetup=(which==="board"&&subTab==="setup");
+      if(show._inSetup&&!inSetup&&setupSnap!=null){
+        const snap=setupSnap; setupSnap=null;
+        if(JSON.stringify(cfg)!==snap)
+          dlg({msg:"Keep the changes you made in Setup?",ok:"Keep changes",
+               cancel:"Undo changes",noDismiss:true,noVal:"undo"})
+            .then(v=>{ if(v!=="undo") return;
+              cfg=JSON.parse(snap); migrateLoaded();
+              if(sessionActive||running) bcRebuild();
+              else { save(); build(); }
+              try{ buildControlRoom(); }catch(e){} });
+      }
+      if(inSetup&&setupSnap==null) setupSnap=JSON.stringify(cfg);
+      show._inSetup=inSetup; }
     // NAVIGATION DROPS EDIT MODE (build 406): the wall and every other tab
     // show the workout, they never offer to change it.
     if(document.body.classList.contains("bedit")){
@@ -6913,6 +6938,7 @@ window.addEventListener("error",function(ev){
     cfg=structuredClone(p.cfg); cfg.wkName=p.name;
     if(keep.length) cfg.crews=keep;               // the roster is the room, not the board
     migrateLoaded(); stampSeed(p); save(); applyAccent();
+    if(setupSnap!=null) setupSnap=JSON.stringify(cfg);   // a pick is a fact, not a pending edit
     buildControlRoom(); if(!running&&!sessionActive) build();
     return true;
   }
@@ -7554,7 +7580,9 @@ window.addEventListener("error",function(ev){
       syncRotChrome();   // a skip lands between blocks — the banner and the
                          // start button must say so, not just the cards
       renderBlockCards(); renderLanesRot(); renderTablet(true);
-    } finally { sessApplying=false; }
+    } finally { sessApplying=false;
+      // a remote apply is the room's fact — never a pending Setup edit
+      if(setupSnap!=null) setupSnap=JSON.stringify(cfg); }
   }
   async function sessPull(){
     if(!aiUrl||document.hidden) return;
@@ -7973,6 +8001,7 @@ window.addEventListener("error",function(ev){
     if(libDead[nm]){ delete libDead[nm]; saveDead(); }
     libPush(entry);
     save(); applyAccent(); buildControlRoom(); if(!running&&!sessionActive) build();
+    if(setupSnap!=null) setupSnap=JSON.stringify(cfg);   // the AI's board is a fact too
     return nm;
   }
   async function aiSend(){
@@ -8500,11 +8529,13 @@ window.addEventListener("error",function(ev){
       if(inp) inp.value=typeof o.input==="string"?o.input:"";
       const done=v=>{ back.remove(); document.removeEventListener("keydown",key,true); res(v); };
       const okv=()=>done(hasIn?inp.value.trim():true);
-      const key=e=>{ if(e.key==="Escape"){ e.preventDefault(); done(null); }
+      // noDismiss: a question whose "no" DOES something (undo) must be
+      // answered with a button — a stray tap outside cannot answer it
+      const key=e=>{ if(e.key==="Escape"&&!o.noDismiss){ e.preventDefault(); done(null); }
         else if(e.key==="Enter"&&(!hasIn||e.target===inp)){ e.preventDefault(); okv(); } };
       back.querySelector(".dok").onclick=okv;
-      const no=back.querySelector(".dno"); if(no) no.onclick=()=>done(null);
-      back.addEventListener("pointerdown",e=>{ if(e.target===back) done(null); });
+      const no=back.querySelector(".dno"); if(no) no.onclick=()=>done(o.noVal===undefined?null:o.noVal);
+      back.addEventListener("pointerdown",e=>{ if(e.target===back&&!o.noDismiss) done(null); });
       document.addEventListener("keydown",key,true);
       document.body.appendChild(back);
       if(inp){ inp.focus(); inp.select(); } else back.querySelector(".dok").focus();
@@ -8821,7 +8852,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=410;
+  const BUILD=411;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

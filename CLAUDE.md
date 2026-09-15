@@ -755,6 +755,23 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   because people share equipment (the mis-built teams-of-2 Lower Body
   was this bug). `attend.js` (13) gates the picker, the pairs wording,
   attendance memory + invalidation, solo/3s paths and the All-N recount.
+- **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
+  tabs and I haven't saved it must ask me… and if I click no then it
+  doesn't show the changes", mid-class included).** Entering Setup
+  snapshots the cfg (`setupSnap`, declared BESIDE `let cfg` — boot
+  one-shots call `loadLib` long before `show()` exists, a later `let` is
+  a TDZ crash); leaving Setup with a DIFFERENT cfg asks "Keep the changes
+  you made in Setup?" in the site's own dialog. Undo restores the
+  snapshot — mid-class via `bcRebuild()` so the clock, scores and
+  counters ride through; idle via save()+build(). ONLY THE TWO BUTTONS
+  ANSWER: `dlg()` grew `noDismiss` (backdrop tap and Escape do nothing)
+  and `noVal` (the cancel button can carry a real value, "undo") — a
+  stray tap outside must never silently undo work, so dismissal means
+  KEEP. Loading a board, an AI build (`applyAiWorkout`) and a remote
+  apply (`sessApply`'s finally) REFRESH the snapshot: facts, not pending
+  edits. The library Save button is unchanged — it FILES the board; this
+  ask is about the live cfg only. `setupkeep.js` (11) gates ask/undo/
+  keep/no-change/no-dismiss and the mid-class undo with the clock alive.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from
