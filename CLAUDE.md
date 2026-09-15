@@ -719,7 +719,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (`#befW`); when the split is EQUIPMENT-DRIVEN (`itGear`>0) the tap
   opens an honest `.befnote` saying where the number lives (class size ÷
   stations — Control / Layout), never a field that would change nothing.
-  `bedit.js` (33) pins both.
+  BUILD 409 (Omar: "what if I want to change share in 2s to something else
+  completely"): THE FORMAT IS A CHOICE, NOT A SENTENCE — the set editor
+  and the share line carry Setup's own four-way Format select (`#befFmt`:
+  Everyone at once / Share & alternate / Waves / Rotate stations — rotate
+  offered only with >1 exercises, defaults `rotBy:"done"` like Setup's
+  pill), the share line's pick applies to EVERY set of the part, and a
+  `change` on the select re-renders the form so the number field matches
+  (`t.fmtSel` + `t.anchor`/`t.keep` — the typed name survives). ALT items
+  offer no switch (it would wreck the ladder), and an ERG exercise's
+  share split stays machine-driven — format offered, no phantom number
+  field (`itGear` counts INVENTORY for erg names, not just cfg.gear —
+  "Run" is equipment even with an empty gear list). The time field's
+  meaning always matches its rendered label; the swap-beat label now also
+  requires `itRotBy==="clock"` (a self-paced circuit has no beat).
+  `bedit.js` (39) pins the whole matrix.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from

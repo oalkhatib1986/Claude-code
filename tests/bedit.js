@@ -129,9 +129,9 @@ ok(await p.evaluate(()=>/Rest\s*1:30/i.test((document.querySelector('#blockCards
 // "why can I not edit the share in 2s alternate")
 await p.click('#blockCards .blk[data-bi="3"] .exg[data-shr]'); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>{ const f=document.querySelector('#blockCards .bef');
-  return !!f&&/Athletes per station/i.test(f.innerText)&&document.getElementById('befB').value==='2'; }),
+  return !!f&&/Athletes per station/i.test(f.innerText)&&document.getElementById('befW').value==='2'; }),
   '408: tapping the share line offers Athletes per station, prefilled');
-await p.fill('#befB','3'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+await p.fill('#befW','3'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
 { const its=(await cfgNow()).rotation.blocks[3].items;
   ok(its.every(it=>it.shareN===3),'408: every set of the part takes the new split');
   ok(/share in 3s, alternate/i.test(await cardTxt(3)),'408: the line reads SHARE IN 3S at once'); }
@@ -139,6 +139,33 @@ await p.fill('#befB','3'); await p.click('[data-bev="save"]'); await p.waitForTi
 await p.click('#blockCards .blk[data-bi="3"] .exg[data-i="0"] .exg-h'); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>{ const w=document.getElementById('befW');
   return !!w&&w.value==='3'; }),'408: the set editor carries Athletes per station too');
+await p.click('[data-bev="cancel"]');
+// 7g) THE FORMAT ITSELF SWITCHES from the same editor (409 — Omar: "what if
+// I want to change share in 2s to something else completely"): pick Waves
+// on the share line and every set of the part changes together
+await p.click('#blockCards .blk[data-bi="3"] .exg[data-shr]'); await p.waitForTimeout(200);
+ok(await p.evaluate(()=>!!document.getElementById('befFmt')),'409: the share line offers a Format choice');
+await p.selectOption('#befFmt','waves'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>{ const f=document.querySelector('#blockCards .bef');
+  return !!f&&/Waves \(2/i.test(f.innerText); }),'409: picking Waves re-labels the number field');
+await p.fill('#befW','3'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+{ const its=(await cfgNow()).rotation.blocks[3].items;
+  ok(its.every(it=>it.fmt==='waves'&&it.wavesN===3&&it.shareN==null),
+    '409: every set of the part becomes 3 waves, share gone');
+  ok(/3 waves/i.test(await cardTxt(3))&&!/share in/i.test(await cardTxt(3)),
+    '409: the card re-words itself (× 3 waves, no share line)'); }
+// 7h) a single set switches format from its own heading (floor exercise —
+// an ERG exercise's split is machine-driven and rightly offers no number)
+await p.click('#blockCards .blk[data-bi="0"] .exg[data-i="0"] .exg-h'); await p.waitForTimeout(200);
+await p.selectOption('#befFmt','share'); await p.waitForTimeout(300);
+await p.fill('#befW','2'); await p.click('[data-bev="save"]'); await p.waitForTimeout(400);
+{ const it=(await cfgNow()).rotation.blocks[0].items[0];
+  ok(it.fmt==='share'&&it.shareN===2,'409: a set switches Everyone-at-once -> Share in 2s'); }
+// 7i) an ERG set offers the format but no phantom number field
+await p.click('#blockCards .blk[data-bi="1"] .exg[data-i="0"] .exg-h'); await p.waitForTimeout(200);
+await p.selectOption('#befFmt','share'); await p.waitForTimeout(300);
+ok(await p.evaluate(()=>!document.getElementById('befW')&&!!document.getElementById('befFmt')),
+  '409: an erg set (machine-driven split) shows no per-station field');
 await p.click('[data-bev="cancel"]');
 // 8) phone width: the open editor never makes the page scroll sideways
 await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(400);

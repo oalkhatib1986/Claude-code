@@ -3720,7 +3720,7 @@ window.addEventListener("error",function(ev){
   function bcCloseForm(){ bcT=null;
     const f=document.querySelector("#blockCards .bef"); if(f) f.remove(); }
   function bcOpenForm(anchor,t){
-    bcCloseForm(); bcT=t;
+    bcCloseForm(); bcT=t; t.anchor=anchor;
     const b=R().blocks[t.bi]; if(!b){ bcT=null; return; }
     const it=t.i!=null?(b.items||[])[t.i]:null;
     const f=document.createElement("div"); f.className="bef";
@@ -3739,15 +3739,34 @@ window.addEventListener("error",function(ev){
       const g=shIts.length?itGear(shIts[0]):0;
       if(g){ const wt=Math.max(1,worstTeamsPerBlock());
         f.innerHTML=`<span class="befnote">This split is worked out from the class size (${wt}) shared over the gym's ${Math.min(g,wt)} station${Math.min(g,wt)>1?"s":""} — change the class in Control, or the machine counts in Layout.</span><span class="befbtns"><button type="button" class="btn small" data-bev="cancel">Close</button></span>`; }
-      else f.innerHTML=befF("Athletes per station (2–6)","befB",shIts.length?itShare(shIts[0]):2)+BEF_BTNS; }
+      else { const fmtSel=t.fmtSel||"share";
+        f.innerHTML=befSel("Format","befFmt",fmtSel,
+            [["share","Share & alternate"],["together","Everyone at once"],["waves","Waves"],["rotate","Rotate stations"]])
+          +(fmtSel==="share"?befF("Athletes per station (2–6)","befW",shIts.length?itShare(shIts[0]):2)
+           :fmtSel==="waves"?befF("Waves (2–6)","befW",2):"")
+          +BEF_BTNS; } }
     else if(t.k==="it"){
-      // a rotating part is authored by its BEAT — "swap every 2:00" is the
-      // number the coach owns, the total follows from the stations
-      const rotBeat=!it.rest&&itRot(it)&&!it.alt&&(it.exercises||[]).filter(Boolean).length>1;
+      // THE FORMAT IS A CHOICE, NOT A SENTENCE (build 409 — Omar: "what if
+      // I want to change share in 2s to something else completely"): the
+      // same four-way choice Setup offers rides the editor, and the wall
+      // re-words itself from it. Picking a format re-renders the form so
+      // its number field matches (t.fmtSel; the change handler below). An
+      // ALT item keeps its ladder — no format switch there.
+      const xsN=(it.exercises||[]).filter(Boolean).length, canRot=xsN>1;
+      const curFmt=it.fmt==="share"?"share":it.fmt==="waves"?"waves":(it.fmt==="rotate"&&canRot)?"rotate":"together";
+      const fmtSel=t.fmtSel||curFmt;
+      // a CLOCK rotation is authored by its BEAT — "swap every 2:00" is the
+      // coach's number, the total follows from the stations
+      const beat=fmtSel==="rotate"&&!it.rest&&!it.alt&&canRot
+        &&it.fmt==="rotate"&&itRotBy(it)==="clock";
       f.innerHTML=(it.rest?"":befF("Name","befA",it.name||"",1))
-        +(rotBeat?befF("Swap every (m:ss)","befB",fmtMS(Math.round(it.dur/(it.exercises||[]).filter(Boolean).length)))
-                 :befF("Time (m:ss)","befB",fmtMS(it.dur||0)))
-        +(it.fmt==="share"&&!itGear(it)?befF("Athletes per station","befW",itShare(it)||2):"")
+        +(it.rest||it.alt?"":befSel("Format","befFmt",fmtSel,
+          [["together","Everyone at once"],["share","Share & alternate"],["waves","Waves"]]
+            .concat(canRot?[["rotate","Rotate stations"]]:[])))
+        +(beat?befF("Swap every (m:ss)","befB",fmtMS(Math.round(it.dur/xsN)))
+              :befF("Time (m:ss)","befB",fmtMS(it.dur||0)))
+        +(fmtSel==="share"&&!itGear(it)?befF("Athletes per station","befW",itShare(it)||2)
+         :fmtSel==="waves"?befF("Waves (2–6)","befW",itWaves(it)):"")
         +BEF_BTNS; }
     else { const x=(it.exercises||[])[t.xi]; if(!x){ bcT=null; return; }
       f.innerHTML=befF("Amount","befA",(x.amounts||[]).join("/"))
@@ -3758,6 +3777,8 @@ window.addEventListener("error",function(ev){
         +befF("% 1RM","befD",x.rm||"")
         +befF("Note","befE",x.note||"",1)+BEF_BTNS; }
     anchor.insertAdjacentElement("afterend",f);
+    // a format re-render keeps the name the trainer already typed
+    if(t.keep){ const nm=$("befA"); if(nm&&t.keep.befA!=null) nm.value=t.keep.befA; delete t.keep; }
     const first=f.querySelector("input"); if(first){ first.focus(); first.select(); }
   }
   function bcSave(){
@@ -3771,15 +3792,37 @@ window.addEventListener("error",function(ev){
     else if(t.k==="brest"){ const d=clamp(parseDurTxt(v("befB")),0,1800);
       // one shared gap edits the shared number; per-block gaps edit their own
       if(R().sameRest===false) b.aRest=d; else R().blockRest=d; }
-    else if(t.k==="shr"){ const n=parseInt(v("befB"),10);
-      if(n>=2&&n<=6) (b.items||[]).forEach(x2=>{
-        if(x2&&!x2.rest&&x2.fmt==="share"&&!itGear(x2)) x2.shareN=n; }); }
+    else if(t.k==="shr"){
+      // the whole part changes format together — the hoisted line spoke for
+      // every set, so its editor writes every set (Setup's own semantics:
+      // rotate needs >1 exercises and defaults self-paced, like its pill)
+      const fv=$("befFmt")?v("befFmt"):"share";
+      const w=parseInt(v("befW"),10);
+      (b.items||[]).forEach(x2=>{ if(!x2||x2.rest||x2.fmt!=="share") return;
+        if(fv==="share"){ if(w>=2&&w<=6&&!itGear(x2)) x2.shareN=w; }
+        else if(fv==="waves"){ x2.fmt="waves"; x2.wavesN=clamp((w>=2&&w<=6)?w:2,2,6); delete x2.shareN; }
+        else if(fv==="rotate"){ if((x2.exercises||[]).filter(Boolean).length>1){
+          x2.fmt="rotate"; x2.rotBy=x2.rotBy||"done"; delete x2.shareN; } }
+        else if(fv==="together"){ delete x2.fmt; delete x2.shareN; } }); }
     else if(t.k==="it"){ const it=(b.items||[])[t.i]; if(!it) return;
       if(!it.rest) it.name=v("befA").slice(0,60);
+      const xsN=(it.exercises||[]).filter(Boolean).length, canRot=xsN>1;
+      const fv=$("befFmt")?v("befFmt"):null;
+      const eff=fv||(it.fmt==="rotate"?"rotate":it.fmt||"together");
+      // the time field's MEANING matches what its label said at render
+      const beat=eff==="rotate"&&!it.rest&&!it.alt&&canRot
+        &&it.fmt==="rotate"&&itRotBy(it)==="clock";
       const d=parseDurTxt(v("befB"));
-      const rotBeat=!it.rest&&itRot(it)&&!it.alt&&(it.exercises||[]).filter(Boolean).length>1;
-      if(d>0) it.dur=clamp(rotBeat?d*(it.exercises||[]).filter(Boolean).length:d,5,7200);
-      if(it.fmt==="share"&&$("befW")){ const w=parseInt(v("befW"),10);
+      if(d>0) it.dur=clamp(beat?d*xsN:d,5,7200);
+      if(fv&&!it.rest){
+        if(fv==="share"){ it.fmt="share"; const w=parseInt(v("befW"),10);
+          it.shareN=clamp((w>=2&&w<=6)?w:(parseInt(it.shareN,10)||2),2,6); delete it.wavesN; }
+        else if(fv==="waves"){ it.fmt="waves"; const w=parseInt(v("befW"),10);
+          it.wavesN=clamp((w>=2&&w<=6)?w:(parseInt(it.wavesN,10)||2),2,6); delete it.shareN; }
+        else if(fv==="rotate"&&canRot){ it.fmt="rotate"; it.rotBy=it.rotBy||"done";
+          delete it.wavesN; delete it.shareN; }
+        else if(fv==="together"){ delete it.fmt; delete it.wavesN; delete it.shareN; } }
+      else if(it.fmt==="share"&&$("befW")){ const w=parseInt(v("befW"),10);
         if(w>=2&&w<=6) it.shareN=w; } }
     else { const it=(b.items||[])[t.i], x=it&&(it.exercises||[])[t.xi]; if(!x) return;
       const a=v("befA");
@@ -3842,6 +3885,14 @@ window.addEventListener("error",function(ev){
     if(!ev.target.closest||!ev.target.closest(".bef")) return;
     if(ev.key==="Enter"){ ev.preventDefault(); bcSave(); }
     else if(ev.key==="Escape") bcCloseForm();
+  });
+  // picking a format re-renders the form so its number field matches
+  $("blockCards").addEventListener("change",ev=>{
+    if(ev.target&&ev.target.id==="befFmt"&&bcT&&bcT.anchor){
+      const t=bcT; t.fmtSel=ev.target.value;
+      const nm=$("befA"); t.keep={befA:nm?nm.value:null};
+      bcOpenForm(t.anchor,t);
+    }
   });
 
   // ONE ROW WHILE THEY FIT, EVEN ROWS WHEN THEY DO NOT. Packing as many cards as
@@ -8730,7 +8781,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=408;
+  const BUILD=409;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
