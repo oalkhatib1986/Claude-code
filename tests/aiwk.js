@@ -307,10 +307,10 @@ await p.waitForTimeout(400);
   await p.fill('#aiText','hello'); await p.evaluate(()=>document.getElementById('aiSend').click());
   await p.waitForTimeout(1200);
   ok(models[0]==='claude-fable-5-1','the chat asks for the TOP model first ('+models[0]+')');
-  ok(models[1]==='claude-opus-5','a model the account lacks steps DOWN the ladder ('+models[1]+')');
+  ok(models[1]==='claude-fable-5','a model the account lacks steps DOWN the ladder ('+models[1]+')');
   await p.fill('#aiText','hello again'); await p.evaluate(()=>document.getElementById('aiSend').click());
   await p.waitForTimeout(1200);
-  ok(models[models.length-1]==='claude-opus-5'&&models.length===3,
+  ok(models[models.length-1]==='claude-fable-5'&&models.length===3,
     'the working model STICKS — no re-probe on the next message');
   ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.ai')].some(m=>/ok/.test(m.textContent))),
     'the chat still answers through the step-down'); }
@@ -422,7 +422,8 @@ await p.waitForTimeout(400);
   await p.waitForTimeout(3500);
   ok(models[0]==='claude-fable-5-1'&&models[1]==='claude-fable-5-1',
     'a 403 retries the SAME model once (route luck) before stepping');
-  ok(models.includes('claude-opus-5')&&models[models.length-1]==='claude-sonnet-5',
+  ok(models.includes('claude-fable-5')&&models.includes('claude-opus-5')
+      &&models[models.length-1]==='claude-sonnet-5',
     'persistent 403s walk the whole ladder ('+models.join(' → ')+')');
   ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.ai')].some(m=>/made it through/.test(m.textContent))),
     'and the chat ANSWERS instead of erroring'); }

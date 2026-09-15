@@ -6867,7 +6867,7 @@ window.addEventListener("error",function(ev){
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
   // THE COACH'S AI RUNS THE TOP MODEL (build 395): most capable first,
   // stepping down only when the account genuinely lacks one (see aiSend)
-  const AI_MODELS=["claude-fable-5-1","claude-opus-5","claude-sonnet-5"];
+  const AI_MODELS=["claude-fable-5-1","claude-fable-5","claude-opus-5","claude-sonnet-5"];
   let aiModelIx=0;
   // SCREENSHOTS IN THE CHAT (build 397 — Omar: "paste images or screenshots
   // so I can point out things"): pasted or picked images are downscaled ON
@@ -8479,7 +8479,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=399;
+  const BUILD=400;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
