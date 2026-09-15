@@ -2949,8 +2949,14 @@ window.addEventListener("error",function(ev){
   const bmShort=b=>{ const m=blockMachine(b); return m?mInfo(m).short:"\u2014"; };
   const BLKCOL=["255,255,255","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
-  const whoShown=x=>{ const w=(x.who||"").trim(); if(!w) return "";
+  const whoShown=(x,it)=>{ const w=(x.who||"").trim(); if(!w) return "";
     if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|solo|athlete ?\d+)$/i.test(w)) return "";
+    // "ALL 2" ON A SHARE ITEM RESTATES THE FORMAT (build 403 — Omar: "why does
+    // it have to say All 2, it's repetitive!"): the share wording already says
+    // everyone on the station works it, alternating. A who that names EVERYONE
+    // says nothing there and is dropped; a real split (Pair 1 / Pair 2 doing
+    // different work) still prints. Callers pass the item as o.it where known.
+    if(it&&itShare(it)&&/^(everyone|all ?\d*)$/i.test(w)) return "";
     return w; };
   // A target is either a fixed number (10) or a range (8-10). An amount you haven't
   // finished typing ("", "8-") is not an amount yet and never reaches a screen.
@@ -2983,7 +2989,7 @@ window.addEventListener("error",function(ev){
     if(x.max&&/^max\b/i.test(String(x.name||""))) a=a.replace(/^Max( cal| metres)?/,"").trim();
     if(s) a=a?s+" × "+a:s+" sets";
     return a; };
-  const exTxt=(x,o)=>{ const w=whoShown(x); const rm=exRM(x);
+  const exTxt=(x,o)=>{ const w=whoShown(x,o&&o.it); const rm=exRM(x);
     const rpe=String(x.rpe||"").trim();
     const a=exAmt(x,o&&o.noSets);
     return `${w?w+" — ":""}${a?a+" ":""}${x.name}${x.each?" · each side":""}${rm?" @ "+rm+"% 1RM":""}${rpe?" @ RPE "+rpe:""}`; };
@@ -2992,7 +2998,7 @@ window.addEventListener("error",function(ev){
   // "20" at the end of one line and "reps" at the start of the next, or a separator
   // hanging off the end with nothing after it. The amount, its unit and the dot in
   // front of them move together or not at all; the break lands after the exercise.
-  const exHtml=(x,o)=>{ const w=whoShown(x); const rm=exRM(x);
+  const exHtml=(x,o)=>{ const w=whoShown(x,o&&o.it); const rm=exRM(x);
     const rpe=String(x.rpe||"").trim();
     const a=exAmt(x,o&&o.noSets);
     return `${w?esc(w)+" — ":""}`
@@ -3068,7 +3074,7 @@ window.addEventListener("error",function(ev){
     // an alt window is written as its own station (build 391 \u2014 see exLines):
     // the trainer's lists read "Max cal Ski", never both halves lumped
     if(it.alt&&itRot(it)&&b&&xs.length>1) xs=[xs[altIxOf(b,ii||0)%xs.length]];
-    const work=xs.length?xs.map(x=>exTxt(x)).join(" \u00b7 "):"";
+    const work=xs.length?xs.map(x=>exTxt(x,{it})).join(" \u00b7 "):"";
     // a part named after its own exercises adds nothing — once or many times over
     const same=(xs.length===1&&String(it.name||"").trim().toLowerCase()
       ===String(xs[0].name||"").trim().toLowerCase())||nameRedundant(it,xs);
@@ -3146,12 +3152,12 @@ window.addEventListener("error",function(ev){
       // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
       // Front Rack Hold" — under the block's own "EMOM × N minutes" heading.
       if(emom){
-        const eml=`<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0})).join(" + ")}</div>`
+        const eml=`<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0,it})).join(" + ")}</div>`
           +xs.map(x=>String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
           +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
         return `<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
       }
-      const lines=evy+xs.map(x=>`<div class="exl">${exHtml(x,{noSets:us>0})}</div>`
+      const lines=evy+xs.map(x=>`<div class="exl">${exHtml(x,{noSets:us>0,it})}</div>`
         +(String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"")).join("")
         +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
       // the label survives only when it says something the exercises do not
@@ -4977,7 +4983,7 @@ window.addEventListener("error",function(ev){
         const fIts=(fb.items||[]), fI=fIts.findIndex(x=>!x.rest), fIt=fI>=0?fIts[fI]:null;
         const fSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
-        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x))}</em>`);
+        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
         const fThen=fIts.slice(fI+1).map(fSum).join(" · ");
         scr.innerHTML=`
@@ -5182,7 +5188,7 @@ window.addEventListener("error",function(ev){
       const nowIt=nowI>=0?wIts[nowI]:null;
       const itSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
         :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
-      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x))}</em>`);
+      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:nowIt}))}</em>`);
       if(!nowLines.length) nowLines=[`<em>${esc(nowIt?itSum(nowIt):(wBlk.desc||wBlk.name||"Work"))}</em>`];
       let after=wIts.slice(nowI+1).map(itSum), thenLab="then";
       if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
@@ -6150,14 +6156,14 @@ window.addEventListener("error",function(ev){
     if(it.rest) return "Rest \u00b7 "+fmtMS(it.dur);
     const xs=(it.exercises||[]).filter(Boolean);
     if(!xs.length) return it.name||"Work";
-    if(itRot(it)){ const x=xs[(Math.max(0,j)+(swap||0))%xs.length]; return x?exTxt(x):""; }
+    if(itRot(it)){ const x=xs[(Math.max(0,j)+(swap||0))%xs.length]; return x?exTxt(x,{it}):""; }
     // Pair 1 and Pair 2 are two people doing two different things. Running them
     // together on one line reads as one instruction; they get a line each.
-    return xs.map(x=>exTxt(x)).join(BRK);
+    return xs.map(x=>exTxt(x,{it})).join(BRK);
   };
   // the same part with every group moved on one \u2014 what a swap looks like
   const wkSwap=it=>{ const xs=(it.exercises||[]).filter(Boolean);
-    return xs.map((x,k)=>exTxt(Object.assign({},xs[(k+1)%xs.length],{who:x.who}))).join(BRK); };
+    return xs.map((x,k)=>exTxt(Object.assign({},xs[(k+1)%xs.length],{who:x.who}),{it})).join(BRK); };
   // A leaderboard lane has one line at 10.5px on a phone: names only, no amounts,
   // no group prefixes, and cut short rather than allowed to run past the row.
   const wkShort=(it,j,swap,rot2)=>{
@@ -6737,7 +6743,7 @@ window.addEventListener("error",function(ev){
           (it.scored&&!cfg.noScore)?" \u00b7 SCORED":"");
         L.push({h:6*s});
         (it.exercises||[]).forEach(x=>{ ctx.font=`400 ${30*s}px ${UIF}`; sp(0);
-          wrap(exTxt(x),inner).forEach(ln=>L.push({txt:ln,font:`400 ${30*s}px ${UIF}`,ls:0,col:"#fff",h:43*s})); });
+          wrap(exTxt(x,{it}),inner).forEach(ln=>L.push({txt:ln,font:`400 ${30*s}px ${UIF}`,ls:0,col:"#fff",h:43*s})); });
       });
       L.push({h:26*s});
       pushLab(briefWinLine(b).toUpperCase(),`600 ${19*s}px ${DISP}`,2.5*s,"#cfd3d8",28*s,"");
@@ -7452,7 +7458,7 @@ window.addEventListener("error",function(ev){
   function aiSystem(){
     return 'You are ATHL3TE gym\'s coach assistant \u2014 a knowledgeable, friendly training partner living inside the class app. You CONVERSE like Claude: answer the coach\'s questions (programming, exercise selection, how the app files and shows things), explain your thinking, chat back naturally \u2014 AND you build workouts. Every reply is still exactly ONE JSON object and nothing else \u2014 no markdown fences, no text outside it: {"reply":"your message to the coach \u2014 real conversation, 1-4 sentences, longer when genuinely useful","workout":<object or null>,"options":["tappable answer",...] or null}. A pure conversation turn is workout:null, options:null \u2014 talking is always allowed and never an error. The coach may ATTACH SCREENSHOTS \u2014 of the app\u2019s own screens or a written programme: read them carefully, refer to what is actually visible in them, and build or fix from them exactly as you would from typed text. After building, reply says in a sentence or two WHAT you built and anything worth double-checking. ASK, DON\'T GUESS: when the sheet honestly allows materially different builds \u2014 does the next strength piece flow automatically or does the trainer start it (hold)? scored or not? solo or teams? staggered stations or everyone together? \u2014 set workout to null, ask ONE short question in reply and put 2-4 short COMPLETE answers in options (the coach taps one and it comes back as their next message). One question per turn, the most important first; never ask when the sheet is unambiguous, and never ask about things the schema defaults sensibly. Once clear, produce the workout, a one-line reply, and options:null.\n'
       +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), alt:bool (with fmt:"rotate": the WHOLE item is ONE window — no swapping inside it; the halves hold their stations for the item and swap on the NEXT alt item, so a ladder can put real REST items between the swaps. "3:00 ski / rest / 3:00 wall balls, half start on each" = a rest item between two alt items each listing BOTH exercises), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short COACH CUE only — pacing, standard, safety; NEVER a restatement of the prescription (no "Max Calories" on a max-cal line, no repeating the name or reps — the app drops such notes); omit unless it adds something}]}]}]}\n'
-      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. SHARED STATIONS: sets where 2+ athletes share one machine and alternate = fmt:"share" with the SAME shareN on EVERY set of the part — the app prints "Share in Ns, alternate" ONCE on its own line under the part heading and each set below reads clean ("Set 1 · 2:30"). NEVER write share/alternate/format wording into a block or item NAME (names are cut short on the wall) and never repeat it in notes — the app says the format itself. When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
+      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. SHARED STATIONS: sets where 2+ athletes share one machine and alternate = fmt:"share" with the SAME shareN on EVERY set of the part — the app prints "Share in Ns, alternate" ONCE on its own line under the part heading and each set below reads clean ("Set 1 · 2:30"). NEVER write share/alternate/format wording into a block or item NAME (names are cut short on the wall) and never repeat it in notes — the app says the format itself. On share exercises OMIT who entirely — never "All 2"/"Everyone" (the share wording already says who; the app drops such labels); who is only for real splits doing DIFFERENT work (Pair 1 / Pair 2). When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
@@ -8500,7 +8506,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=402;
+  const BUILD=403;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

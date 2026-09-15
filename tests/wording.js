@@ -141,15 +141,17 @@ ok(/EMOM × 20 minutes/i.test(TB)&&/50 sec Box Jump Overs/i.test(TB)&&/4th:\s*Re
 await p.evaluate(()=>{
   const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
   cfg.gear=[];
-  Object.assign(cfg,{name:'Lower Body',wkName:null,mode:'rotation',teamKind:'solo',together:true,noScore:true});
+  // TEAMS on purpose: solo already drops "All …" labels — the 403 rule must
+  // hold where the AI actually wrote them (Omar's Lower Body was teams of 2)
+  Object.assign(cfg,{name:'Lower Body',wkName:null,mode:'rotation',teamKind:'teams',teamSize:2,together:true,noScore:true});
   const SET=n=>({name:'Set '+n,dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
-    {name:'Back Squat',amounts:[8],unit:'reps',max:false},
-    {name:'DB Lunges',amounts:[10],unit:'reps',max:false}]});
+    {name:'Back Squat',amounts:[8],unit:'reps',max:false,who:'All 2'},
+    {name:'DB Lunges',amounts:[10],unit:'reps',max:false,who:'All 2'}]});
   cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:0,blocks:[
     {name:'Part A',rounds:1,items:[SET(1),SET(2),SET(3),SET(4)]},
     {name:'Part B',rounds:1,items:[SET(1),
       {name:'Set 2',dur:150,fmt:'share',shareN:3,scored:false,group:true,exercises:[
-        {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false}]}]}]});
+        {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false,who:'Pair 1'}]}]}]});
   localStorage.setItem(k,JSON.stringify(cfg));
 });
 await p.reload(); await p.waitForTimeout(1500);
@@ -163,6 +165,11 @@ ok((SA.match(/share in 2s, alternate/ig)||[]).length===1,'402 A: the share forma
 ok(/Set 1 · 2:30/i.test(SA)&&/Set 4 · 2:30/i.test(SA),'402 A: the sets read clean (Set 1 · 2:30)');
 ok((SB.match(/share in/ig)||[]).length===2&&/share in 2s/i.test(SB)&&/share in 3s/i.test(SB),
   '402 B: MIXED splits keep the per-set wording');
+// "ALL 2" ON A SHARE ITEM RESTATES THE FORMAT (build 403 — Omar: "why does
+// it have to say All 2, it's repetitive!"): dropped on every share line,
+// while a REAL split (Pair 1) still prints.
+ok(!/All 2/i.test(SA)&&!/All 2/i.test(SB),'403: "All 2" never prints on a share line');
+ok(/Pair 1/i.test(SB),'403: a real split (Pair 1) still prints');
 { const f=await p.evaluate(()=>({sx:document.documentElement.scrollWidth-innerWidth,
     bad:[...document.querySelectorAll('#blockCards .exl,#blockCards .exg-h')]
       .filter(e=>e.scrollWidth>e.clientWidth+1).length}));

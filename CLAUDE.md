@@ -641,8 +641,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   block). The precipitating bug: the app AI, lacking the element, folded the
   format text into the part NAME, and `applyAiWorkout`'s 28-char name slice
   printed "ALTERN" — so `aiSystem()` now carries the law (same shareN on
-  every set; NEVER format wording in a block/item name or note). `wording.js`
-  pins once-per-block, line position, clean sets and the mixed-split case.
+  every set; NEVER format wording in a block/item name or note). AND THE WHO
+  LABEL FOLLOWS (build 403 — Omar: "why does it have to say All 2, it's
+  repetitive!"): on a SHARE item a who that names EVERYONE ("All 2",
+  "Everyone") restates the format and is dropped by `whoShown(x,it)` — the
+  item rides as `o.it` through `exTxt`/`exHtml`, so the card, tablet, Control
+  lists and PDF all drop it at once; a REAL split (Pair 1 / Pair 2 doing
+  different work) still prints, and solo keeps its blanket who-drop. The AI
+  prompt says to omit who on share exercises outright. `wording.js`
+  pins once-per-block, line position, clean sets, the mixed-split case, the
+  dropped "All 2" (in TEAMS mode — solo dropped it already) and the kept
+  "Pair 1".
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from
