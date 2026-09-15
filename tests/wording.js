@@ -132,6 +132,41 @@ ok(!/then .* rest/i.test(TA)&&!/then .* rest/i.test(TB),
   'Tue: no rest-after line rides inside a card');
 ok(/EMOM × 20 minutes/i.test(TB)&&/50 sec Box Jump Overs/i.test(TB)&&/4th:\s*Rest/i.test(TB),
   'Tue B: Row EMOM reads the same way');
+// SAY THE FORMAT ONCE (build 402 — Omar's Lower Body: "Share in 2s,
+// alternate" was repeated on every set and read as clutter; the AI's
+// fold-into-the-name workaround truncated to "ALTERN"). A block whose every
+// working part shares the same split carries ONE line for it, directly under
+// the part heading, and the sets below read clean ("Set 1 · 2:30"). A block
+// with MIXED splits keeps the per-set wording — a single line would lie.
+await p.evaluate(()=>{
+  const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
+  cfg.gear=[];
+  Object.assign(cfg,{name:'Lower Body',wkName:null,mode:'rotation',teamKind:'solo',together:true,noScore:true});
+  const SET=n=>({name:'Set '+n,dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
+    {name:'Back Squat',amounts:[8],unit:'reps',max:false},
+    {name:'DB Lunges',amounts:[10],unit:'reps',max:false}]});
+  cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:0,blocks:[
+    {name:'Part A',rounds:1,items:[SET(1),SET(2),SET(3),SET(4)]},
+    {name:'Part B',rounds:1,items:[SET(1),
+      {name:'Set 2',dur:150,fmt:'share',shareN:3,scored:false,group:true,exercises:[
+        {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false}]}]}]});
+  localStorage.setItem(k,JSON.stringify(cfg));
+});
+await p.reload(); await p.waitForTimeout(1500);
+const shCards=await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')]
+  .map(c=>c.innerText.replace(/\s+/g,' ').trim()));
+const SA=shCards[0]||'', SB=shCards[1]||'';
+ok((SA.match(/share in 2s, alternate/ig)||[]).length===1,'402 A: the share format is said ONCE');
+{ const U=SA.toUpperCase();
+  ok(U.indexOf('SHARE IN 2S')>=0&&U.indexOf('SHARE IN 2S')<U.indexOf('SET 1'),
+    '402 A: the format line sits under the heading, above the sets'); }
+ok(/Set 1 · 2:30/i.test(SA)&&/Set 4 · 2:30/i.test(SA),'402 A: the sets read clean (Set 1 · 2:30)');
+ok((SB.match(/share in/ig)||[]).length===2&&/share in 2s/i.test(SB)&&/share in 3s/i.test(SB),
+  '402 B: MIXED splits keep the per-set wording');
+{ const f=await p.evaluate(()=>({sx:document.documentElement.scrollWidth-innerWidth,
+    bad:[...document.querySelectorAll('#blockCards .exl,#blockCards .exg-h')]
+      .filter(e=>e.scrollWidth>e.clientWidth+1).length}));
+  ok(f.sx<=0&&f.bad===0,'402: nothing scrolls or clips ('+f.sx+'/'+f.bad+')'); }
 await p.screenshot({path:'wording_wall.png'});
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

@@ -629,6 +629,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   glued-name headings). Invented samples encode the author's own assumptions —
   the gallery caught "cal Calories (any erg)" on two real boards the samples
   missed, the day it was written.
+- **A SHARED FORMAT IS SAID ONCE (build 402 — Omar's Lower Body: "why do we
+  need to repeat Share in 2S, alternate every time, why not mention it once
+  in a line below Part A").** `blockShareTxt(b)`: when EVERY working item of
+  a block is `fmt:"share"` with the SAME `itShare()` count, the card prints
+  "Share in 2s, alternate" ONCE as its own `.exg-h` line directly under the
+  part heading (beside `blockSchemeTxt`'s line in `exLines`' head0) and each
+  set's own label drops the suffix — "Set 1 · 2:30" clean. MIXED splits keep
+  the per-set wording: a hoisted line that covers only some sets lies. The
+  PDF brief does the same (`briefItemLabel(it,shr)` + one lab line per
+  block). The precipitating bug: the app AI, lacking the element, folded the
+  format text into the part NAME, and `applyAiWorkout`'s 28-char name slice
+  printed "ALTERN" — so `aiSystem()` now carries the law (same shareN on
+  every set; NEVER format wording in a block/item name or note). `wording.js`
+  pins once-per-block, line position, clean sets and the mixed-split case.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from
