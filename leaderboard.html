@@ -7551,7 +7551,8 @@ window.addEventListener("error",function(ev){
         // athletes — and republish the truth
         if(!(s.run&&s.run.act)){ const f=fix1509(cfg);
           if(f) migrateLoaded();
-          if(eng1509InvMend(cfg)||f)
+          const lb=lbSoloMend(cfg); if(lb){ try{ normCrewNames(); }catch(e){} }
+          if(eng1509InvMend(cfg)||f||lb)
             setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
         save(); applyAccent(); buildControlRoom();
       }
@@ -7782,6 +7783,44 @@ window.addEventListener("error",function(ev){
     if(p&&p.cfg){ p.cfg.wkName=NM;
       if(eng1509InvMend(p.cfg)){ p.ts=Date.now(); savePresets(); libPush(p); } }
     if(eng1509InvMend(cfg)){ save();
+      setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
+      if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
+    }
+  })();
+  // SHARING IS A FORMAT, NOT A TEAM (build 412 — Omar: "this is not really
+  // a team workout, it's just pairing"). His Lower Body was built as teams
+  // of 2 when every working part is a SHARE — individuals pairing on a bar.
+  // The fingerprint is exactly that mis-build and nothing else: a "Lower
+  // Body" board, teams of 2, EVERY working item fmt:"share". A real partner
+  // workout (any non-share work) or a board already flipped never matches.
+  // The mend goes SOLO, keeps the sharing, and drops the "All N" echo
+  // labels from the data. Per the standing rule, it ships IN the app:
+  // one-shot at boot, and forever on idle arrival in sessApply.
+  function lbSoloMend(c){
+    if(!c) return false;
+    if(!/^lower body/i.test(String(c.wkName||c.name||"").trim())) return false;
+    if(c.teamKind!=="teams"||(parseInt(c.teamSize,10)||0)!==2) return false;
+    const bs=(c.rotation&&c.rotation.blocks)||[]; if(!bs.length) return false;
+    let work=0;
+    for(const b of bs) for(const it of (b.items||[])){
+      if(!it||it.rest) continue; work++;
+      if(it.fmt!=="share") return false; }
+    if(!work) return false;
+    c.teamKind="solo";
+    for(const b of bs) for(const it of (b.items||[]))
+      (it.exercises||[]).forEach(x=>{
+        if(x&&/^(everyone|all ?\d*)$/i.test(String(x.who||"").trim())) delete x.who; });
+    return true;
+  }
+  (function fixLB1609(){
+    const K="af_fixlb1609_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    let touched=false;
+    presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&lbSoloMend(p.cfg)){
+      p.ts=Date.now(); touched=true; libPush(p); } });
+    if(touched) savePresets();
+    if(lbSoloMend(cfg)){ try{ normCrewNames(); }catch(e){}
+      migrateLoaded(); save();
       setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
       if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
     }
@@ -8852,7 +8891,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=411;
+  const BUILD=412;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

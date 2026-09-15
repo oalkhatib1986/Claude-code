@@ -755,6 +755,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   because people share equipment (the mis-built teams-of-2 Lower Body
   was this bug). `attend.js` (13) gates the picker, the pairs wording,
   attendance memory + invalidation, solo/3s paths and the All-N recount.
+  AND THE MIS-BUILT BOARD FIXES ITSELF (build 412 — Omar: "you said you
+  will set the workout to solo… did you not do some of my edits?!"; the
+  standing rule holds, a fix reaches his gym IN the app, never as steps
+  for Omar): `lbSoloMend(c)` fingerprints EXACTLY the mis-build — a
+  "Lower Body" board (wkName/name prefix), teams of 2, EVERY working
+  item `fmt:"share"` — flips it to solo, keeps the sharing, and deletes
+  the "All N" who labels from the data; one non-share item anywhere =
+  a real partner board = never touched. One-shot `fixLB1609`
+  (`af_fixlb1609_v1`) mends every matching library entry (fresh ts +
+  libPush) and the loaded cfg (+ `normCrewNames`), and the sessApply
+  idle-arrival arm mends any stale teams copy the room pushes back,
+  then republishes — the 392 lesson applied from day one. `lbsolo.js`
+  (11) gates entry+loaded+push, arrival mend+republish, and the
+  untouched real-teams board.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup
