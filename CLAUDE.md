@@ -773,6 +773,30 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   BUILD (the alt law shipped that way in 389) — the app's AI knows only
   what that prompt carries. `aiwk.js` pins the ladder: top model first,
   step-down on the named 404, sticky, still answering.
+- **THE BUBBLE LIVES WHERE THE WORKOUT IS READ (build 396 — Omar: "also
+  in the overview page").** `show()`'s fab gate carries Overview
+  (`subTab==="workout"`) AND Setup; boot shows it from the first paint
+  when there is no `#screen`/`#workout` hash (a route hides it through
+  the gate a moment later); every other page drops it and closes the
+  panel. `aiwk.js` pins boot visibility and the four-tab walk.
+- **SCREENSHOTS IN THE CHAT (build 397 — Omar: "paste images or
+  screenshots so I can point out things").** The composer takes images
+  two ways — the Photo button (`#aiImg` → `#aiImgFile`, phone gallery)
+  and a straight paste on `#aiText` — into `aiPend` (max 3), downscaled
+  ON THE DEVICE (longest edge 1568px, JPEG .85; a 140px thumb rides the
+  bubble and transcript). `aiSend` sends real vision blocks
+  (`[{type:"image",source:{base64,jpeg}},…,{type:"text"}]`); text may be
+  empty when an image rides. `aiSaveChat` keeps FULL image data only on
+  the two most recent image messages (older → a text placeholder) so
+  localStorage never bloats; the bubble thumb persists in `aiLog.imgs`
+  either way. `ai-relay-worker.js` `sanitizeContent()` passes bounded
+  base64 jpeg/png/webp/gif + text blocks and nothing else — string
+  content rides as before, so old app versions are unaffected, BUT AN
+  OLD DEPLOYED WORKER STRING-COERCES ARRAYS to garbage: image messages
+  need the 397 worker deployed. `aiSystem()` tells the model screenshots
+  may arrive and to read what is actually visible. `aiwk.js` (43) pins
+  pick → pending thumb → vision block + words → bubble thumb → survives
+  refresh; the sanitizer is unit-checked in-repo.
 - **THE AI ASKS, IT NEVER GUESSES (build 377 — Omar: "it asks me questions
   and I just select what I want").** The chat protocol carries
   `options:[...]` beside reply/workout: when a sheet honestly allows

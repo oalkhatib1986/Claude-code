@@ -1099,6 +1099,16 @@
   .aiph b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
   .aipb{flex:0 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 4px;min-height:0}
   #aiPanel .aibar{padding:10px 16px 14px;margin-top:0;border-top:1px solid var(--line-soft)}
+  /* screenshots in the chat (build 397): pending thumbs above the box,
+     sent ones inside the bubble — always small, never a wall of image */
+  .aipend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .aipend .apw{position:relative}
+  .aipend img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+  .aipend .apx{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;
+    background:var(--card);border:1px solid var(--line);color:var(--ink);font-size:12px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .aichat .msg img.aimg{display:block;max-width:150px;max-height:110px;object-fit:cover;
+    border-radius:8px;border:1px solid rgba(255,255,255,.18);margin:0 0 6px}
   .aichat{display:flex;flex-direction:column;gap:8px;margin:12px 0 2px}
   .aichat .msg{border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;font-size:14px;line-height:1.5;max-width:94%;white-space:pre-wrap}
   .aichat .msg.you{align-self:flex-end;background:var(--field);color:var(--ink)}
@@ -2173,8 +2183,11 @@
         <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
       </div>
     <div class="aibar">
+        <div id="aiPend" class="aipend" hidden></div>
         <textarea id="aiText" rows="4" placeholder="e.g. 3 parts, everyone together, no scores. A: deadlifts every 2:00 for 10 min, share benches in 3s…"></textarea>
       <div class="aibtns">
+        <button class="btn small" id="aiImg" type="button"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Photo</button>
+        <input id="aiImgFile" type="file" accept="image/*" multiple hidden>
         <button class="btn small" id="aiMic" type="button" hidden><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>Voice</button>
         <button class="btn" id="aiSend" type="button">Build it</button>
         </div>
@@ -4284,9 +4297,14 @@ window.addEventListener("error",function(ev){
       // everyone else lands on the wall and picks
       tbView=matchMedia(TBKQ).matches?"one":"wall";
       buildTabletSel(); syncTbView(); renderWall(); renderTablet(true); fitTablet(); }
-    { const fab=$("aiFab"); const onSetup=(which==="board"&&subTab==="setup");
-      if(fab) fab.style.display=(onSetup&&fab.dataset.off!=="1")?"":"none";
-      if(!onSetup) document.body.classList.remove("aiopen"); }
+    // THE AI BUBBLE LIVES WHERE THE WORKOUT IS READ (build 396 — Omar:
+    // "also in the overview page, so I can build or give comments without
+    // going to Setup every time"): Overview AND Setup carry it; every
+    // other page drops it and closes the panel.
+    { const fab=$("aiFab");
+      const onAi=(which==="board"&&(subTab==="setup"||subTab==="workout"));
+      if(fab) fab.style.display=(onAi&&fab.dataset.off!=="1")?"":"none";
+      if(!onAi) document.body.classList.remove("aiopen"); }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
     fitScreen();
   }
@@ -6848,6 +6866,33 @@ window.addEventListener("error",function(ev){
   // stepping down only when the account genuinely lacks one (see aiSend)
   const AI_MODELS=["claude-fable-5-1","claude-opus-5","claude-sonnet-5"];
   let aiModelIx=0;
+  // SCREENSHOTS IN THE CHAT (build 397 — Omar: "paste images or screenshots
+  // so I can point out things"): pasted or picked images are downscaled ON
+  // THE DEVICE (longest edge 1568px, JPEG — a phone screenshot becomes a
+  // few hundred KB) and ride the message as real vision blocks; a small
+  // thumbnail rides the bubble and the saved transcript.
+  let aiPend=[];   // [{data: base64 jpeg, thumb: dataURL}]
+  function aiRenderPend(){ const w=$("aiPend"); if(!w) return;
+    w.hidden=!aiPend.length;
+    w.innerHTML=aiPend.map((p,i)=>`<span class="apw"><img src="${p.thumb}" alt="">`
+      +`<button class="apx" type="button" data-i="${i}" aria-label="Remove">&times;</button></span>`).join("");
+  }
+  function aiAddImage(file){
+    if(!file||!/^image\//.test(file.type||"")||aiPend.length>=3) return;
+    const rd=new FileReader();
+    rd.onload=()=>{ const img=new Image();
+      img.onload=()=>{
+        const mk=(edge,q)=>{ const s=Math.min(1,edge/Math.max(img.width,img.height));
+          const cv=document.createElement("canvas");
+          cv.width=Math.max(1,Math.round(img.width*s)); cv.height=Math.max(1,Math.round(img.height*s));
+          cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+          return cv.toDataURL("image/jpeg",q); };
+        aiPend.push({data:mk(1568,.85).split(",")[1],thumb:mk(140,.7)});
+        aiRenderPend();
+      };
+      img.src=rd.result; };
+    rd.readAsDataURL(file);
+  }
   // A TV has no keyboard worth typing on: the relay link can ride the URL once
   // (app.html?relay=https://...#screen) and is remembered like a pasted one.
   // ?r= is the short form, and a bare hostname is accepted — every character
@@ -6867,8 +6912,20 @@ window.addEventListener("error",function(ev){
   // transient and are the one thing not kept. "New chat" wipes it.
   const AIC="af_aichat_v1";
   let aiLog=[], aiRestoring=false;
-  function aiSaveChat(){ try{ localStorage.setItem(AIC,JSON.stringify({v:1,
-      msgs:aiMsgs.slice(-30),log:aiLog.slice(-80),own:aiOwnBoard,asked:aiAskedOnce})); }catch(e){} }
+  function aiSaveChat(){ try{
+    // the transcript stays SMALL: full image data survives only on the two
+    // most recent image messages (the model can still see what was just
+    // discussed after a refresh); older ones keep a placeholder — the
+    // bubble's thumbnail lives in aiLog either way
+    let seen=0;
+    const msgs=aiMsgs.slice(-30).reverse().map(m=>{
+      if(!Array.isArray(m.content)) return m;
+      const keep=(seen++)<2;
+      return {role:m.role,content:m.content.map(b2=>(b2&&b2.type==="image"&&!keep)
+        ?{type:"text",text:"[a screenshot was attached earlier]"}:b2)};
+    }).reverse();
+    localStorage.setItem(AIC,JSON.stringify({v:1,
+      msgs,log:aiLog.slice(-80),own:aiOwnBoard,asked:aiAskedOnce})); }catch(e){} }
   function aiClearChat(){ aiMsgs=[]; aiLog=[]; aiOwnBoard=null; aiAskedOnce=false;
     try{ localStorage.removeItem(AIC); }catch(e){}
     const c=$("aiChat"); if(c){ c.innerHTML=""; c.hidden=true; } }
@@ -7305,17 +7362,24 @@ window.addEventListener("error",function(ev){
           exercises:(it.exercises||[]).map(x=>({who:x.who,name:x.name,amounts:x.amounts,unit:x.unit,max:!!x.max}))})}))});
   }
   function aiSystem(){
-    return 'You are ATHL3TE gym\'s coach assistant \u2014 a knowledgeable, friendly training partner living inside the class app. You CONVERSE like Claude: answer the coach\'s questions (programming, exercise selection, how the app files and shows things), explain your thinking, chat back naturally \u2014 AND you build workouts. Every reply is still exactly ONE JSON object and nothing else \u2014 no markdown fences, no text outside it: {"reply":"your message to the coach \u2014 real conversation, 1-4 sentences, longer when genuinely useful","workout":<object or null>,"options":["tappable answer",...] or null}. A pure conversation turn is workout:null, options:null \u2014 talking is always allowed and never an error. After building, reply says in a sentence or two WHAT you built and anything worth double-checking. ASK, DON\'T GUESS: when the sheet honestly allows materially different builds \u2014 does the next strength piece flow automatically or does the trainer start it (hold)? scored or not? solo or teams? staggered stations or everyone together? \u2014 set workout to null, ask ONE short question in reply and put 2-4 short COMPLETE answers in options (the coach taps one and it comes back as their next message). One question per turn, the most important first; never ask when the sheet is unambiguous, and never ask about things the schema defaults sensibly. Once clear, produce the workout, a one-line reply, and options:null.\n'
+    return 'You are ATHL3TE gym\'s coach assistant \u2014 a knowledgeable, friendly training partner living inside the class app. You CONVERSE like Claude: answer the coach\'s questions (programming, exercise selection, how the app files and shows things), explain your thinking, chat back naturally \u2014 AND you build workouts. Every reply is still exactly ONE JSON object and nothing else \u2014 no markdown fences, no text outside it: {"reply":"your message to the coach \u2014 real conversation, 1-4 sentences, longer when genuinely useful","workout":<object or null>,"options":["tappable answer",...] or null}. A pure conversation turn is workout:null, options:null \u2014 talking is always allowed and never an error. The coach may ATTACH SCREENSHOTS \u2014 of the app\u2019s own screens or a written programme: read them carefully, refer to what is actually visible in them, and build or fix from them exactly as you would from typed text. After building, reply says in a sentence or two WHAT you built and anything worth double-checking. ASK, DON\'T GUESS: when the sheet honestly allows materially different builds \u2014 does the next strength piece flow automatically or does the trainer start it (hold)? scored or not? solo or teams? staggered stations or everyone together? \u2014 set workout to null, ask ONE short question in reply and put 2-4 short COMPLETE answers in options (the coach taps one and it comes back as their next message). One question per turn, the most important first; never ask when the sheet is unambiguous, and never ask about things the schema defaults sensibly. Once clear, produce the workout, a one-line reply, and options:null.\n'
       +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), alt:bool (with fmt:"rotate": the WHOLE item is ONE window — no swapping inside it; the halves hold their stations for the item and swap on the NEXT alt item, so a ladder can put real REST items between the swaps. "3:00 ski / rest / 3:00 wall balls, half start on each" = a rest item between two alt items each listing BOTH exercises), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short COACH CUE only — pacing, standard, safety; NEVER a restatement of the prescription (no "Max Calories" on a max-cal line, no repeating the name or reps — the app drops such notes); omit unless it adds something}]}]}]}\n'
       +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
-  function aiBubble(cls,text){
+  function aiBubble(cls,text,imgs){
     const c=$("aiChat"); if(!c) return; c.hidden=false;
-    const d=document.createElement("div"); d.className="msg "+cls; d.textContent=text;
+    const d=document.createElement("div"); d.className="msg "+cls;
+    // a screenshot rides IN the bubble (build 397 — Omar: "paste images so
+    // I can point out things"): thumbnails first, the words under them
+    (imgs||[]).forEach(u=>{ const im=document.createElement("img");
+      im.className="aimg"; im.src=u; d.appendChild(im); });
+    if(text){ const t=document.createElement("span"); t.textContent=text; d.appendChild(t); }
     c.appendChild(d); d.scrollIntoView({block:"nearest"});
-    if(!aiRestoring&&cls!=="err"){ aiLog.push({c:cls,t:String(text)}); aiSaveChat(); }
+    if(!aiRestoring&&cls!=="err"){ const row={c:cls,t:String(text||"")};
+      if(imgs&&imgs.length) row.imgs=imgs.slice(0,3);
+      aiLog.push(row); aiSaveChat(); }
   }
   // THE COACH TAPS AN ANSWER (Omar, build 377: "it asks me questions and I
   // just select what I want"). When the AI genuinely can read a sheet two
@@ -7510,11 +7574,16 @@ window.addEventListener("error",function(ev){
   async function aiSend(){
     if(aiBusy) return;
     const ta=$("aiText"); const txt=(ta.value||"").trim();
-    if(!txt) return;
+    if(!txt&&!aiPend.length) return;
     if(!aiUrl){ $("aiSetupNote").hidden=false; return; }
     aiBusy=true; const btn=$("aiSend"); btn.disabled=true; btn.textContent="Thinking\u2026";
-    aiBubble("you",txt); ta.value="";
-    aiMsgs.push({role:"user",content:txt});
+    // screenshots ride the message as vision blocks (build 397)
+    const imgs=aiPend.slice(); aiPend=[]; aiRenderPend();
+    aiBubble("you",txt,imgs.map(p=>p.thumb)); ta.value="";
+    aiMsgs.push({role:"user",content:imgs.length
+      ?[...imgs.map(p=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:p.data}})),
+        {type:"text",text:txt||"(see the screenshot)"}]
+      :txt});
     try{
       // ANTHROPIC GEO-BLOCKS SOME CLOUDFLARE ROUTES (403 "Request not
       // allowed") and it is luck-of-the-draw per request — retry a few times
@@ -7601,7 +7670,7 @@ window.addEventListener("error",function(ev){
         aiLog.push(r);
         if(r.c==="opts") aiRenderOpts(r);
         else if(r.c==="hold") aiRenderHold(r);
-        else aiBubble(r.c,r.t); });
+        else aiBubble(r.c,r.t,r.imgs); });
       aiAskedOnce=!!s.asked||aiAskedOnce;
     } finally { aiRestoring=false; }
   })();
@@ -7643,10 +7712,24 @@ window.addEventListener("error",function(ev){
       document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&document.body.classList.contains("aiopen")) aiCloseP(); });
       const t=$("aiText");
       if(t) t.addEventListener("input",()=>{ t.style.height="auto"; t.style.height=Math.min(150,t.scrollHeight)+"px"; });
-      fab.style.display="none"; // shown when the Setup subtab opens
+      // visible from the first paint: the app lands on the Overview, which
+      // carries the bubble (build 396); a #screen/#workout route hides it
+      // through show()'s own gate a moment later
+      fab.style.display=location.hash?"none":"";
     } }
   { const b=$("aiSend"); if(b) b.onclick=aiSend;
     const ta=$("aiText"); if(ta) ta.onkeydown=e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); aiSend(); } };
+    // screenshots in: the Photo button (phone gallery) and a straight paste
+    { const ib=$("aiImg"), inp=$("aiImgFile");
+      if(ib&&inp){ ib.onclick=()=>inp.click();
+        inp.onchange=()=>{ [...(inp.files||[])].forEach(aiAddImage); inp.value=""; }; }
+      const w=$("aiPend"); if(w) w.onclick=e=>{ const x=e.target.closest(".apx");
+        if(x){ aiPend.splice(+x.dataset.i,1); aiRenderPend(); } };
+      if(ta) ta.addEventListener("paste",e=>{
+        const its=(e.clipboardData||{}).items||[];
+        for(const it of its){ if(it.type&&/^image\//.test(it.type)){
+          e.preventDefault(); aiAddImage(it.getAsFile()); } }
+      }); }
 
     const ui=$("aiUrl"), us=$("aiUrlSave");
     if(ui&&us){ ui.value=aiUrl;
@@ -8326,7 +8409,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=395;
+  const BUILD=397;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

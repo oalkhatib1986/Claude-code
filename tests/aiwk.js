@@ -314,6 +314,61 @@ await p.waitForTimeout(400);
     'the working model STICKS — no re-probe on the next message');
   ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.ai')].some(m=>/ok/.test(m.textContent))),
     'the chat still answers through the step-down'); }
+// 5) THE AI BUBBLE LIVES WHERE THE WORKOUT IS READ (build 396 — Omar:
+// "also in the overview page"): visible on Overview from the first paint
+// and on Setup; gone everywhere else, panel closed with it
+{ await p.reload(); await p.waitForTimeout(1500);   // fresh boot, no hash
+  const vis=()=>p.evaluate(()=>{ const f=document.getElementById('aiFab');
+    return f&&getComputedStyle(f).display!=='none'; });
+  ok(await vis(),'the bubble is on the OVERVIEW from the first paint');
+  await p.click('#stLayout'); await p.waitForTimeout(300);
+  ok(!(await vis()),'Layout does not carry it');
+  await p.click('#stSetup'); await p.waitForTimeout(300);
+  ok(await vis(),'Setup still carries it');
+  await p.click('#stWorkout'); await p.waitForTimeout(300);
+  ok(await vis(),'and back on Overview it returns'); }
+// 6) SCREENSHOTS IN THE CHAT (build 397): picked from the gallery, sent as
+// a real vision block beside the words, thumbnail in the bubble, and the
+// thumb still there after a refresh
+{ await p.unroute('https://relay.test/**');
+  let lastBody=null;
+  await p.route('https://relay.test/**',async route=>{
+    const body=JSON.parse(route.request().postData()||'{}');
+    if(body.op) return route.fulfill({json:{ok:1,v:null,now:Date.now(),presets:[]}});
+    lastBody=body;
+    return route.fulfill({json:{content:[{type:'text',
+      text:JSON.stringify({reply:'I can see the screenshot — the Part B rest is wrong, want me to fix it?',workout:null,options:null})}]}});
+  });
+  await p.evaluate(()=>{ document.body.classList.add('aiopen'); });
+  await p.waitForTimeout(300);
+  // a 3x3 red PNG
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAIAAADZSiLoAAAAEUlEQVR4nGP8z8DAxMDAwMAAAA0MAQL9nDIRAAAAAElFTkSuQmCC','base64');
+  await p.setInputFiles('#aiImgFile',{name:'shot.png',mimeType:'image/png',buffer:png});
+  await p.waitForTimeout(600);
+  ok(await p.evaluate(()=>!document.getElementById('aiPend').hidden
+      &&document.querySelectorAll('#aiPend img').length===1),
+    'a picked screenshot shows as a pending thumbnail');
+  await p.fill('#aiText','the rest in part B should be 45 sec');
+  await p.evaluate(()=>document.getElementById('aiSend').click());
+  await p.waitForTimeout(1200);
+  { const lu=(lastBody&&lastBody.messages||[]).filter(m=>m.role==='user').pop();
+    const blocks=Array.isArray(lu&&lu.content)?lu.content:[];
+    ok(blocks.length===2&&blocks[0].type==='image'
+        &&blocks[0].source&&blocks[0].source.media_type==='image/jpeg'
+        &&blocks[0].source.data.length>50
+        &&blocks[1].type==='text'&&/45 sec/.test(blocks[1].text),
+      'the message carries a REAL vision block plus the words'); }
+  ok(await p.evaluate(()=>{ const b=[...document.querySelectorAll('.aichat .msg.you')].pop();
+      return !!b&&!!b.querySelector('img.aimg')&&/45 sec/.test(b.textContent); }),
+    'the bubble shows the thumbnail with the words');
+  ok(await p.evaluate(()=>document.getElementById('aiPend').hidden),
+    'sending clears the pending strip');
+  await p.reload(); await p.waitForTimeout(1500);
+  await p.evaluate(()=>{document.getElementById('aiFab').style.display='';
+    document.body.classList.add('aiopen');});
+  ok(await p.evaluate(()=>{ const b=[...document.querySelectorAll('.aichat .msg.you')].pop();
+      return !!b&&!!b.querySelector('img.aimg'); }),
+    'the screenshot thumbnail SURVIVES a refresh'); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

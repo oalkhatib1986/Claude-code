@@ -6,6 +6,25 @@
  * workouts in KV so every device shares one library. Deploy per AI_SETUP.md;
  * the library needs a KV namespace bound as LIB.
  */
+// SCREENSHOTS IN THE CHAT (build 397): a message's content may be an array
+// of vision blocks. Only base64 images of the usual web types (bounded) and
+// text blocks pass; anything else is dropped. Strings pass as before.
+const IMG_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+function sanitizeContent(c) {
+  if (!Array.isArray(c)) return String(c || "").slice(0, 20000);
+  const out = [];
+  for (const b of c.slice(0, 8)) {
+    if (!b) continue;
+    if (b.type === "image" && b.source && b.source.type === "base64"
+        && IMG_TYPES.includes(b.source.media_type)
+        && typeof b.source.data === "string" && b.source.data.length <= 2500000) {
+      out.push({ type: "image", source: { type: "base64", media_type: b.source.media_type, data: b.source.data } });
+    } else if (b.type === "text") {
+      out.push({ type: "text", text: String(b.text || "").slice(0, 20000) });
+    }
+  }
+  return out.length ? out : "(empty)";
+}
 // Most capable first — the first entry is also the fallback for any
 // unknown model an older app requests (build 395: the coach's AI runs
 // the same model family as the engineering assistant).
@@ -87,7 +106,7 @@ export default {
       system: String(body.system || "").slice(0, 40000),
       messages: (Array.isArray(body.messages) ? body.messages : []).slice(-30).map(m => ({
         role: m.role === "assistant" ? "assistant" : "user",
-        content: String(m.content || "").slice(0, 20000),
+        content: sanitizeContent(m.content),
       })),
     };
 
