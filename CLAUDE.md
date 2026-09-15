@@ -734,6 +734,27 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   meaning always matches its rendered label; the swap-beat label now also
   requires `itRotBy==="clock"` (a self-paced circuit has no beat).
   `bedit.js` (39) pins the whole matrix.
+- **THE TRAINER COUNTS ATHLETES, NOT TEAMS (build 410 — Omar: "the trainer
+  can input the number of athletes because that's what he sees on the
+  Glofox app").** In teams mode Control's picker takes ATTENDANCE: the
+  label is "Athletes today" in BOTH modes, options and the field read
+  "23 athletes · 12 pairs (last has 1)" (`showT` — ceil over `teamSize`,
+  a short last team said outright), `cfg.attend` remembers the typed
+  count and is IGNORED the moment the roster changes by any other path
+  (claims, late arrivals — validity: `ceil(attend/size)===crews.length`).
+  "Fit the gym" and the tap-in note speak athletes too. TWO PEOPLE ARE A
+  PAIR, NOT A "TEAM OF 2": the trainer pages (sub-tab, headings, add
+  button, Control's workout line) and the summary chip say "pairs"/PAIRS
+  when `teamSize===2`; the signed-off TV board keeps "Team". AND AN
+  "ALL N" WHO LABEL FOLLOWS THE TEAM SIZE (Omar flipped 3→2 and a line
+  still said "All 3"): `whoShown` re-counts any `all N` to the CURRENT
+  size at display, and Setup's team-size change rewrites them in the
+  DATA so its own fields agree. `aiSystem()` also carries the SOLO law:
+  sharing a station is a FORMAT (`teamKind:"solo"` + `fmt:"share"`), and
+  teams exist ONLY for a real partner workout sharing one score — never
+  because people share equipment (the mis-built teams-of-2 Lower Body
+  was this bug). `attend.js` (13) gates the picker, the pairs wording,
+  attendance memory + invalidation, solo/3s paths and the All-N recount.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from

@@ -3000,6 +3000,12 @@ window.addEventListener("error",function(ev){
     // says nothing there and is dropped; a real split (Pair 1 / Pair 2 doing
     // different work) still prints. Callers pass the item as o.it where known.
     if(it&&itShare(it)&&/^(everyone|all ?\d*)$/i.test(w)) return "";
+    // AN "ALL N" LABEL FOLLOWS THE TEAM SIZE (build 410 — Omar changed teams
+    // of 3 back to 2 and an exercise still said "All 3"): the label means
+    // EVERYONE, so its count is the team's, never a stale typed number.
+    { const m=w.match(/^all ?(\d+)$/i);
+      if(m&&cfg.teamKind!=="solo"){ const sz=clamp(parseInt(cfg.teamSize,10)||4,2,6);
+        if(parseInt(m[1],10)!==sz) return "All "+sz; } }
     return w; };
   // A target is either a fixed number (10) or a range (8-10). An amount you haven't
   // finished typing ("", "8-") is not an amount yet and never reaches a screen.
@@ -3278,7 +3284,9 @@ window.addEventListener("error",function(ev){
     const untimed=!sessionTotal();
     $("evSummary").innerHTML=`<span class="schip"><b>${nBlocks()}</b><i>${untimed?(nBlocks()!==1?"parts":"part"):("block"+(nBlocks()!==1?"s":""))}</i></span>`
       +(untimed?"":`<span class="schip"><b>${laps()}</b><i>round${laps()!==1?"s":""}</i></span>`)
-      +(untimed?"":(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`:`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`))
+      +(untimed?"":(cfg.teamKind==="solo"?`<span class="schip"><b>SOLO</b><i>format</i></span>`
+        :(parseInt(cfg.teamSize,10)||4)===2?`<span class="schip"><b>PAIRS</b><i>format</i></span>`
+        :`<span class="schip"><b>${cfg.teamSize||4}</b><i>per team</i></span>`))
       +(untimed?"":`<span class="schip"><b>${fmtLong(sessionTotal())}</b><i>total</i></span>`);
     fitSummary();
     // the unit rides with the number ("9 CAL"), so the heading is one word — a
@@ -6365,14 +6373,25 @@ window.addEventListener("error",function(ev){
       if(sub) sub.textContent=cfg.mode==="rotation"
         ? `${nBlocks()} block${nBlocks()===1?"":"s"} \u00b7 `
           +`${laps()} round${laps()!==1?"s":""} \u00b7 `
-          +(cfg.teamKind==="solo"?"solo":`${cfg.teamSize||4} per team`)
+          +(cfg.teamKind==="solo"?"solo":(parseInt(cfg.teamSize,10)||4)===2?"pairs":`${cfg.teamSize||4} per team`)
           +` \u00b7 ${fmtLong(sessionTotal())}`
         : ""; }
     const solo=cfg.teamKind==="solo";
-    ["tcLabel","tcLabel2"].forEach(id=>{ const lb=$(id); if(lb) lb.textContent=solo?"Athletes today":"Teams today"; });
-    { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":"Teams"; }
-    { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":"Teams"; }
-    { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":"+ Add team"; }
+    // TWO PEOPLE ARE A PAIR, NOT A "TEAM OF 2" (build 410) — the trainer's
+    // pages say it the way the gym does; the signed-off board keeps "Team".
+    const tcSize=Math.max(1,parseInt(cfg.teamSize,10)||4);
+    const pairish=!solo&&tcSize===2;
+    // THE TRAINER COUNTS ATHLETES, NOT TEAMS (build 410 — Omar: "the
+    // trainer can input the number of athletes because that's what he sees
+    // on the Glofox app"): the picker takes ATTENDANCE and derives the
+    // teams itself (ceil — an odd headcount leaves one short team, said
+    // outright). cfg.attend remembers the typed count; a roster changed by
+    // any other path (claims, late arrivals) invalidates it and the
+    // display falls back to full teams.
+    ["tcLabel","tcLabel2"].forEach(id=>{ const lb=$(id); if(lb) lb.textContent="Athletes today"; });
+    { const x=$("ctTeams"); if(x) x.textContent=solo?"Athletes":pairish?"Pairs":"Teams"; }
+    { const x=$("teamsH3"); if(x) x.textContent=solo?"Athletes":pairish?"Pairs":"Teams"; }
+    { const x=$("addCrew"); if(x) x.textContent=solo?"+ Add athlete":pairish?"+ Add pair":"+ Add team"; }
     { const x=$("rankHead"); if(x) x.textContent=(solo?"Athlete":"Team")+" name"; }
     // the two flows differ in HOW MANY BLOCKS RUN AT ONCE — lead with that, and name
     // who gets split in the class's own word
@@ -6386,25 +6405,41 @@ window.addEventListener("error",function(ev){
       :(solo
       ?"Athletes are <b>assigned automatically in order</b>: Athletes 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next athletes take Block 2, and so on. Every round the groups move together to the next block; the screens tell everyone where to go. Names fill in <b>automatically when an athlete types theirs on the erg tablet</b> — and you can edit any of them here."
       :"Teams are <b>assigned automatically in order</b>: Teams 1, 2, 3 fill Block 1&rsquo;s machines 1, 2, 3; the next teams take Block 2, and so on. Every round each group moves together to the next block; the screens tell every team where to go. Names fill in <b>automatically when a team types theirs on the erg tablet</b> — and you can edit any of them here.")); }
-    const unit=n=>n+" "+(solo?(n>1?"athletes":"athlete"):(n>1?"teams":"team"));
-    const FITLAB=()=>{ const n=gymFit(); return n?`Fit the gym \u2014 ${unit(n)}`:""; };
+    const tWord=n=>pairish?(n>1?"pairs":"pair"):(n>1?"teams":"team");
+    const athU=a=>a+" "+(a>1?"athletes":"athlete");
+    const unit=n=>solo?athU(n):n+" "+tWord(n);
+    // "23 athletes \u00b7 12 pairs (last has 1)" \u2014 attendance first, the derived
+    // teams beside it, and a short team said outright
+    const showT=a=>{ const t=clamp(Math.ceil(a/tcSize),1,60), last=a-tcSize*(t-1);
+      return `${athU(a)} \u00b7 ${t} ${tWord(t)}${(last>0&&last<tcSize)?` (last has ${last})`:""}`; };
+    const attValid=!solo&&cfg.attend>0&&Math.ceil(cfg.attend/tcSize)===cfg.crews.length;
+    const attNow=attValid?cfg.attend:cfg.crews.length*(solo?1:tcSize);
+    const FITLAB=()=>{ const n=gymFit(); return n?`Fit the gym \u2014 ${solo?unit(n):showT(n*tcSize)}`:""; };
     ["tcPick","tcPick2"].forEach(id=>{ const wp=$(id); if(!wp) return;
       wp.innerHTML="";
       wp.appendChild(menuField(
-        ()=>{ const f=FITLAB(); return (f?[f]:[]).concat(Array.from({length:60},(_,i)=>unit(i+1))); },
-        ()=>unit(clamp(cfg.crews.length,1,60))+(cfg.autoCrews&&gymFit()?" \u00b7 gym fit":""),
-        v=>{ if(/^Fit the gym/.test(String(v))){ cfg.autoCrews=true; save(); applyGymFit(); syncTeamCount(); return; }
-          const n=clamp(parseInt(v,10)||1,1,60);
-          // a number typed by hand is the trainer taking it over
+        ()=>{ const f=FITLAB(); return (f?[f]:[])
+          .concat(Array.from({length:60},(_,i)=>solo?unit(i+1):showT(i+1))); },
+        ()=>(solo?unit(clamp(cfg.crews.length,1,60)):showT(clamp(attNow,1,120)))
+          +(cfg.autoCrews&&gymFit()?" \u00b7 gym fit":""),
+        v=>{ if(/^Fit the gym/.test(String(v))){ cfg.autoCrews=true; delete cfg.attend;
+            save(); applyGymFit(); syncTeamCount(); return; }
+          // a number typed by hand is the trainer taking it over \u2014 and in
+          // teams mode the number IS the athletes (Glofox attendance)
           cfg.autoCrews=false;
-          if(n!==cfg.crews.length) setTeamCount(n); else { save(); syncTeamCount(); } },
-        {numeric:true, addable:true, addLabel:"Set", searchPh:"Type a number\u2026"}
+          if(solo){ delete cfg.attend;
+            const n=clamp(parseInt(v,10)||1,1,60);
+            if(n!==cfg.crews.length) setTeamCount(n); else { save(); syncTeamCount(); } }
+          else { const a=clamp(parseInt(v,10)||1,1,120); cfg.attend=a;
+            const t=clamp(Math.ceil(a/tcSize),1,60);
+            if(t!==cfg.crews.length) setTeamCount(t); else { save(); syncTeamCount(); } } },
+        {numeric:true, addable:true, addLabel:"Set", searchPh:"How many athletes\u2026"}
       )); });
     ["tcNote","tcNote2"].forEach(id=>{ const el=$(id); if(!el) return;
       const n=gymFit();
       el.textContent=!n?""
         :cfg.autoCrews?`Set from your equipment \u2014 every machine is live, and tapping in on one past this number raises it.`
-        :`Your number \u2014 tapping in on a machine past it raises it. Tap ${unit(n)} to follow the gym again.`; });
+        :`Your number \u2014 tapping in on a machine past it raises it. Tap ${solo?unit(n):athU(n*tcSize)} to follow the gym again.`; });
   }
   const posShort=s=>{ s=String(s||"");
     const cut=s.split(/\s+[@(·,]/)[0].split(" · ")[0].trim();
@@ -7733,7 +7768,7 @@ window.addEventListener("error",function(ev){
   function aiSystem(){
     return 'You are ATHL3TE gym\'s coach assistant \u2014 a knowledgeable, friendly training partner living inside the class app. You CONVERSE like Claude: answer the coach\'s questions (programming, exercise selection, how the app files and shows things), explain your thinking, chat back naturally \u2014 AND you build workouts. Every reply is still exactly ONE JSON object and nothing else \u2014 no markdown fences, no text outside it: {"reply":"your message to the coach \u2014 real conversation, 1-4 sentences, longer when genuinely useful","workout":<object or null>,"options":["tappable answer",...] or null}. A pure conversation turn is workout:null, options:null \u2014 talking is always allowed and never an error. The coach may ATTACH SCREENSHOTS \u2014 of the app\u2019s own screens or a written programme: read them carefully, refer to what is actually visible in them, and build or fix from them exactly as you would from typed text. After building, reply says in a sentence or two WHAT you built and anything worth double-checking. ASK, DON\'T GUESS: when the sheet honestly allows materially different builds \u2014 does the next strength piece flow automatically or does the trainer start it (hold)? scored or not? solo or teams? staggered stations or everyone together? \u2014 set workout to null, ask ONE short question in reply and put 2-4 short COMPLETE answers in options (the coach taps one and it comes back as their next message). One question per turn, the most important first; never ask when the sheet is unambiguous, and never ask about things the schema defaults sensibly. Once clear, produce the workout, a one-line reply, and options:null.\n'
       +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), alt:bool (with fmt:"rotate": the WHOLE item is ONE window — no swapping inside it; the halves hold their stations for the item and swap on the NEXT alt item, so a ladder can put real REST items between the swaps. "3:00 ski / rest / 3:00 wall balls, half start on each" = a rest item between two alt items each listing BOTH exercises), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short COACH CUE only — pacing, standard, safety; NEVER a restatement of the prescription (no "Max Calories" on a max-cal line, no repeating the name or reps — the app drops such notes); omit unless it adds something}]}]}]}\n'
-      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. SHARED STATIONS: sets where 2+ athletes share one machine and alternate = fmt:"share" with the SAME shareN on EVERY set of the part — the app prints "Share in Ns, alternate" ONCE on its own line under the part heading and each set below reads clean ("Set 1 · 2:30"). NEVER write share/alternate/format wording into a block or item NAME (names are cut short on the wall) and never repeat it in notes — the app says the format itself. On share exercises OMIT who entirely — never "All 2"/"Everyone" (the share wording already says who; the app drops such labels); who is only for real splits doing DIFFERENT work (Pair 1 / Pair 2). When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
+      +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. SHARED STATIONS: sets where 2+ athletes share one machine and alternate = fmt:"share" with the SAME shareN on EVERY set of the part — the app prints "Share in Ns, alternate" ONCE on its own line under the part heading and each set below reads clean ("Set 1 · 2:30"). NEVER write share/alternate/format wording into a block or item NAME (names are cut short on the wall) and never repeat it in notes — the app says the format itself. On share exercises OMIT who entirely — never "All 2"/"Everyone" (the share wording already says who; the app drops such labels); who is only for real splits doing DIFFERENT work (Pair 1 / Pair 2). SHARING A STATION IS A FORMAT, NOT A TEAM: athletes pairing up on a bar or machine to alternate is teamKind:"solo" WITH fmt:"share" — each athlete stays an individual with their own name and score. Use teamKind:"teams" ONLY for a real partner workout where the pair/team shares ONE score — never just because people share equipment. When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
   }
@@ -8228,7 +8263,12 @@ window.addEventListener("error",function(ev){
       buildBlocks(); if(!sessionActive&&!running) build(); });
     [...$("fmtScore").children].forEach(x=>x.setAttribute("aria-pressed",String((x.dataset.v==="off")===cfg.noScore)));
     $("fmtSize").value=String(cfg.teamSize||4);
-    $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6); save(); buildCrews(); if(!sessionActive&&!running) build(); };
+    $("fmtSize").onchange=e=>{ cfg.teamSize=clamp(parseInt(e.target.value,10)||4,2,6);
+      // "All 3" typed while teams were 3 means EVERYONE — re-count it in the
+      // DATA too, so Setup's own who fields agree with the new size
+      (R().blocks||[]).forEach(b=>(b.items||[]).forEach(it=>(it.exercises||[]).forEach(x=>{
+        if(x&&/^all ?\d+$/i.test(String(x.who||"").trim())) x.who="All "+cfg.teamSize; })));
+      save(); buildCrews(); if(!sessionActive&&!running) build(); };
     { const w=$("fmtSize").closest(".dsel"); if(w){ const o=$("fmtSize").options[$("fmtSize").selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:""; } }
     syncFmt();
     $("rBRest").value=String(R().blockRest||0);
@@ -8781,7 +8821,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=409;
+  const BUILD=410;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
