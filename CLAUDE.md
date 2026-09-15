@@ -657,10 +657,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   item rides as `o.it` through `exTxt`/`exHtml`, so the card, tablet, Control
   lists and PDF all drop it at once; a REAL split (Pair 1 / Pair 2 doing
   different work) still prints, and solo keeps its blanket who-drop. The AI
-  prompt says to omit who on share exercises outright. `wording.js`
+  prompt says to omit who on share exercises outright. AND THE CUE (build
+  404 — Omar: "the comment applies to all sets, show it at the end before
+  10:00 total"): in a sets LADDER (every working item the same exercise
+  list) ONE distinct note is guidance for the whole part — `exLines` hoists
+  it out of its set to a single `.exnote` line after the last set, just
+  above the `.win` total; the same note on every set dedupes to that one
+  line too. Several DIFFERENT notes are per-set instructions ("set 4:
+  grind it") and stay under their own sets — a hoist there would lose which
+  set they belong to. `wording.js`
   pins once-per-block, line position, clean sets, the mixed-split case, the
-  dropped "All 2" (in TEAMS mode — solo dropped it already) and the kept
-  "Pair 1".
+  dropped "All 2" (in TEAMS mode — solo dropped it already), the kept
+  "Pair 1", the end-of-part cue and the kept per-set notes.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from

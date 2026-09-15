@@ -3111,6 +3111,26 @@ window.addEventListener("error",function(ev){
     const curIt0=cur>=0?its[cur]:null;
     const curAlt=(curIt0&&!curIt0.rest&&itRot(curIt0)&&curIt0.alt
       &&(curIt0.exercises||[]).length>1)?altIxOf(b,cur):-1;
+    // A CUE FOR THE WHOLE PART SITS AT ITS END (build 404 — Omar: "the
+    // comment applies to all sets, show it at the end before 10:00 total").
+    // In a sets ladder — every working item the same exercise list — ONE
+    // note is guidance for the part: it leaves its set and prints once,
+    // last, just above the total. Several DIFFERENT notes are per-set
+    // instructions ("set 4: grind it") and stay exactly where written.
+    let tailNote="";
+    { const work=its.filter(x2=>x2&&!x2.rest&&x2.text==null&&(x2.exercises||[]).filter(Boolean).length);
+      const sig=w2=>(w2.exercises||[]).filter(Boolean)
+        .map(x2=>String(x2.name||"").trim().toLowerCase()).join("|");
+      if(work.length>1&&work.every(w2=>sig(w2)===sig(work[0]))){
+        const notes=[];
+        work.forEach(w2=>{ const g=(w2.exercises||[]).filter(Boolean);
+          g.forEach(x2=>{ const t=String(x2.note||"").trim();
+            if(t&&!noteRedundant(t,x2)) notes.push(t); });
+          const tn=String(w2.note||"").trim(); if(tn) notes.push(tn); });
+        if(notes.length&&notes.every(t=>t.toLowerCase()===notes[0].toLowerCase()))
+          tailNote=notes[0];
+      } }
+    const tail0=tailNote?`<div class="exg"><div class="exl exnote">${esc(tailNote)}</div></div>`:"";
     return head0+its.map((it,i)=>{
       const altN=(!it.rest&&itRot(it)&&it.alt&&(it.exercises||[]).length>1)
         ?(it.exercises||[]).length:0;
@@ -3153,13 +3173,13 @@ window.addEventListener("error",function(ev){
       // Front Rack Hold" — under the block's own "EMOM × N minutes" heading.
       if(emom){
         const eml=`<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0,it})).join(" + ")}</div>`
-          +xs.map(x=>String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
-          +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
+          +(tailNote?"":xs.map(x=>String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
+          +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:""));
         return `<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
       }
       const lines=evy+xs.map(x=>`<div class="exl">${exHtml(x,{noSets:us>0,it})}</div>`
-        +(String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"")).join("")
-        +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
+        +(!tailNote&&String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"")).join("")
+        +(!tailNote&&String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
       // the label survives only when it says something the exercises do not
       const label=(it.name&&!nameRedundant(it,xs))?esc(it.name):"";
       const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${xs.length} stations · self-paced`:itRot(it)?(it.alt?fmtMS(it.dur):`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/xs.length))}`):itShare(it)?(shr?minTxt(it.dur):`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`)
@@ -3181,7 +3201,7 @@ window.addEventListener("error",function(ev){
       })();
       const hh=(tag||head||(it.scored&&!cfg.noScore))?`<span class="exg-h">${tag}${head}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>`:"";
       return `<div class="exg${mk}">${hh}${lines}</div>`;
-    }).join("");
+    }).join("")+tail0;
   };
 
   function fitSummary(){
@@ -8506,7 +8526,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=403;
+  const BUILD=404;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

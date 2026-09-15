@@ -151,7 +151,14 @@ await p.evaluate(()=>{
     {name:'Part A',rounds:1,items:[SET(1),SET(2),SET(3),SET(4)]},
     {name:'Part B',rounds:1,items:[SET(1),
       {name:'Set 2',dur:150,fmt:'share',shareN:3,scored:false,group:true,exercises:[
-        {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false,who:'Pair 1'}]}]}]});
+        {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false,who:'Pair 1'}]}]},
+    {name:'Part C',rounds:1,items:[
+      {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
+        {name:'Front Squat',amounts:[8],unit:'reps',max:false,note:'slow eccentric'}]},
+      {name:'Set 2',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
+        {name:'Front Squat',amounts:[6],unit:'reps',max:false,note:'go heavy'}]}]}]});
+  // ONE cue on set 1 of a ladder is guidance for the whole part (build 404)
+  cfg.rotation.blocks[0].items[0].exercises[0].note='Own the pause, quick bar changes';
   localStorage.setItem(k,JSON.stringify(cfg));
 });
 await p.reload(); await p.waitForTimeout(1500);
@@ -170,6 +177,19 @@ ok((SB.match(/share in/ig)||[]).length===2&&/share in 2s/i.test(SB)&&/share in 3
 // while a REAL split (Pair 1) still prints.
 ok(!/All 2/i.test(SA)&&!/All 2/i.test(SB),'403: "All 2" never prints on a share line');
 ok(/Pair 1/i.test(SB),'403: a real split (Pair 1) still prints');
+// A CUE FOR THE WHOLE PART SITS AT ITS END (build 404 — Omar: "the comment
+// applies to all sets, show it at the end before 10:00 total"): in a sets
+// ladder ONE note prints once, after the last set, before the total; two
+// DIFFERENT notes are per-set instructions and stay under their own sets.
+{ const U=SA.toUpperCase();
+  ok((SA.match(/Own the pause/ig)||[]).length===1,'404 A: one part-wide cue prints ONCE');
+  ok(U.indexOf('OWN THE PAUSE')>U.indexOf('SET 4')
+    &&U.indexOf('OWN THE PAUSE')<U.indexOf('10:00 TOTAL'),
+    '404 A: the cue sits at the END, after the last set, before the total'); }
+{ const SC=(shCards[2]||''), UC=SC.toUpperCase();
+  ok(/slow eccentric/i.test(SC)&&/go heavy/i.test(SC)
+    &&UC.indexOf('SLOW ECCENTRIC')<UC.indexOf('SET 2'),
+    '404 C: DIFFERENT per-set notes stay under their own sets'); }
 { const f=await p.evaluate(()=>({sx:document.documentElement.scrollWidth-innerWidth,
     bad:[...document.querySelectorAll('#blockCards .exl,#blockCards .exg-h')]
       .filter(e=>e.scrollWidth>e.clientWidth+1).length}));
