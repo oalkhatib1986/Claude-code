@@ -677,6 +677,29 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   dropped "All 2" (in TEAMS mode — solo dropped it already), the kept
   "Pair 1", the end-of-part cue, the kept per-set notes and the
   "2s or 3s" range.
+- **THE OVERVIEW EDITS IN PLACE (build 406 — Omar's Option A: "I can change
+  the number of reps, or the RPE or the headline… instead of telling the AI
+  or going to Setup").** An `Edit workout` button (`#bEditRow`, hidden on
+  `body.bigscreen`/`body.tvroute`, dropped by ANY navigation in `show()`)
+  puts `body.bedit` on: every `.exg[data-i]` gets a dashed outline, tapping
+  an exercise line (`.exl[data-xi]`) opens the inline `.bef` editor
+  (amount/name/RPE/%1RM/note), a set heading opens name+time
+  (`parseDurTxt`: m:ss, "3m", plain seconds), a rest offers time only, the
+  part title (`.bh b`) renames. COMPUTED lines (scheme/share headings,
+  totals) are not editable — they follow the numbers. Structure (parts,
+  formats, stations) stays with Setup/AI. Mechanics that matter: data-bi/
+  data-i/data-xi ride the card markup ALWAYS (the wall ignores them; the
+  alt branch stamps the REAL exercise index li); every control is DELEGATED
+  on `#blockCards` (cards are innerHTML-rebuilt wholesale); EDITING FREEZES
+  THE PICTURE — `renderBlockCards(force)` returns early while a `.bef` is
+  open or (running && bedit), because the live loop repaints every frame
+  and a repaint between finger-down and -up eats the tap (the tablet's
+  650ms lesson); Save/Done repaint with `force`. A mid-class save rebuilds
+  via the setTeamCount keep/restore pattern (`bcRebuild()`) so the clock,
+  scores and counters ride through and the rAF loop restarts. NO browser
+  windows — the editor is the site's own inputs. `bedit.js` (22) gates
+  button placement, all four editors, cancel, phone no-scroll, route
+  hiding, mode-drop on nav, and the mid-class save with the clock ticking.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from

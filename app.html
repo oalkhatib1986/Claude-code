@@ -1463,6 +1463,20 @@
   body.wkscreen:not(.mobscreen) .blkrest span{font-size:17px;margin-left:0}
   body.wkscreen:not(.mobscreen) .win .winbr{display:inline}
   .tlbrest{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);text-align:center;padding:7px 0;border-left:2px dashed rgba(255,255,255,.18);margin:4px 0 4px 7px}
+  /* EDIT-IN-PLACE ON THE OVERVIEW (build 406 — Omar's Option A): the Edit
+     button lives on the trainer's Overview only — a wall shows the workout,
+     it never offers to change it. Affordances are OUTLINES (no layout
+     shift); the editor is the site's own inputs, never a browser window. */
+  .beditrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+  .bedithint{font-size:12px;color:var(--ink-mute)}
+  body.bigscreen .beditrow,body.tvroute .beditrow{display:none}
+  body.bedit:not(.bigscreen) #blockCards .exg[data-i]{outline:1px dashed rgba(255,255,255,.22);outline-offset:3px;border-radius:6px;cursor:pointer}
+  body.bedit:not(.bigscreen) #blockCards .bh b{cursor:pointer;text-decoration:underline dashed rgba(255,255,255,.45) 1px;text-underline-offset:4px}
+  .bef{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:10px 0;padding:12px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(255,255,255,.035)}
+  .bef label{display:flex;flex-direction:column;gap:4px;font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);min-width:0}
+  .bef input{width:auto;min-width:64px;max-width:100%}
+  .bef .befw{min-width:min(100%,190px)}
+  .befbtns{display:flex;gap:8px;align-items:center}
   .stn .brow{display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap;margin:9px 0 2px;padding-left:2px;min-width:0}
   .stn .brow:empty{display:none}
   .stn .brow .bgrp{display:flex;align-items:center;gap:6px;min-width:0}
@@ -1799,6 +1813,7 @@
       <span class="pdesc" id="phaseDesc"></span>
     </div>
     <div id="capBanner" hidden></div>
+    <div class="beditrow" id="bEditRow"><button type="button" class="btn small" id="bEditBtn">Edit workout</button><span class="bedithint" id="bEditHint" hidden>Tap a line to change it &middot; totals, SHARE and EMOM lines follow the numbers</span></div>
     <div class="blocks" id="blockCards"></div>
 
     <div class="board" id="board">
@@ -3154,8 +3169,8 @@ window.addEventListener("error",function(ev){
       const mk=nowHere?" pnow":"";
       const tag=nowHere?`<em class="ptag">Now</em>`:"";
       if(it.rest) return emom
-        ?`<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>Rest</div></div>`
-        :`<div class="exg${mk}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
+        ?`<div class="exg${mk}" data-i="${i}">${tag?`<span class="exg-h">${tag}</span>`:""}<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>Rest</div></div>`
+        :`<div class="exg${mk}" data-i="${i}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
       // AN AS-WRITTEN PART IS THE COACH'S OWN WORDS. The programme is written as
       // prose — RPE schemes, supersets, clusters — that no builder should mangle:
       // every line lands on the wall exactly as the sheet wrote it.
@@ -3163,7 +3178,7 @@ window.addEventListener("error",function(ev){
         const body=String(it.text).split("\n").map(ln=>ln.trim()
           ?`<div class="exl">${esc(ln)}</div>`:`<div class="exl exlgap">&nbsp;</div>`).join("");
         const h=[tag]; if(it.dur>0) h.push(fmtMS(it.dur));
-        return `<div class="exg${mk}">${(tag||it.dur>0)?`<span class="exg-h">${h.join("")}</span>`:""}${body}</div>`;
+        return `<div class="exg${mk}" data-i="${i}">${(tag||it.dur>0)?`<span class="exg-h">${h.join("")}</span>`:""}${body}</div>`;
       }
       // a coach's note is guidance, not work: its own dim line under the exercise.
       // The EVERY overlay ("every 4:00 — 1 partner: 20 wall balls") interrupts the
@@ -3187,13 +3202,13 @@ window.addEventListener("error",function(ev){
       // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
       // Front Rack Hold" — under the block's own "EMOM × N minutes" heading.
       if(emom){
-        const eml=`<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0,it})).join(" + ")}</div>`
+        const eml=`<div class="exl exlw" data-xi="0"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0,it})).join(" + ")}</div>`
           +(tailNote?"":xs.map(x=>String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
           +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:""));
-        return `<div class="exg${mk}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
+        return `<div class="exg${mk}" data-i="${i}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
       }
-      const lines=evy+xs.map(x=>`<div class="exl">${exHtml(x,{noSets:us>0,it})}</div>`
-        +(!tailNote&&String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"")).join("")
+      const lines=evy+xs.map((x,k)=>`<div class="exl" data-xi="${altOne?li:k}">${exHtml(x,{noSets:us>0,it})}</div>`
+        +(!tailNote&&String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote" data-xi="${altOne?li:k}">${esc(x.note)}</div>`:"")).join("")
         +(!tailNote&&String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
       // the label survives only when it says something the exercises do not
       const label=(it.name&&!nameRedundant(it,xs))?esc(it.name):"";
@@ -3215,7 +3230,7 @@ window.addEventListener("error",function(ev){
         return `${sp<0?"":label.slice(0,sp)+" "}<span class="amt">${glue}</span>`;
       })();
       const hh=(tag||head||(it.scored&&!cfg.noScore))?`<span class="exg-h">${tag}${head}${it.scored&&!cfg.noScore?` <i>scored</i>`:""}</span>`:"";
-      return `<div class="exg${mk}">${hh}${lines}</div>`;
+      return `<div class="exg${mk}" data-i="${i}">${hh}${lines}</div>`;
     }).join("")+tail0;
   };
 
@@ -3490,8 +3505,14 @@ window.addEventListener("error",function(ev){
     el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. ${cfg.teamKind==="solo"?"Switch <b>Format</b> to teams of 2\u20133 so athletes share a machine and alternate, or fix the workout in Setup / machine counts in Layout.":`Use fewer ${kws()} (bigger teams share each machine), add waves to the piece in Setup, or fix the machine counts in Layout.`}`;
     el.hidden=false;
   }
-  function renderBlockCards(){
+  function renderBlockCards(force){
     if(cfg.mode!=="rotation") return;
+    // EDITING FREEZES THE PICTURE (build 406): a repaint replaces the element
+    // under the trainer's finger (the tablet's 650ms lesson), so while an
+    // editor is open — or the live loop is repainting under edit mode — the
+    // cards hold still. Save and Done repaint explicitly (force).
+    if(!force){ const bc=$("blockCards");
+      if(bc&&(bc.querySelector(".bef")||(running&&document.body.classList.contains("bedit")))) return; }
     updateCapBanner();
     syncErgless();
     if(!nBlocks()){
@@ -3517,7 +3538,7 @@ window.addEventListener("error",function(ev){
         if(seg.setN>1) bits.push(`Set ${seg.set+1} of ${seg.setN}`);
       }
       const stat=state==="queued"?"Up next":state==="donez"?"Done":"";
-      return `<div class="blk ${hot?"scoring":""} ${state} bcw">
+      return `<div class="blk ${hot?"scoring":""} ${state} bcw" data-bi="${bi}">
         <div class="bh"><b>${esc(b.name)}</b>${live
           ?`<span class="bclk"><b>${fmtMS(Math.max(0,Math.ceil(seg.remain)))}</b><i>left</i></span>`
           :stat?`<span class="bstat q">${stat}</span>`:""}</div>
@@ -3663,6 +3684,105 @@ window.addEventListener("error",function(ev){
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
     fitBlockCols();
   }
+  /* ===== EDIT-IN-PLACE ON THE OVERVIEW (build 406 — Omar's Option A) =====
+     The trainer taps Edit, then any LINE of the card: an exercise line opens
+     amount/name/RPE/%1RM/note, a set heading opens name/time, a part title
+     opens the name. Only real FIELDS are editable — computed lines (scheme
+     headings, share lines, totals) follow the numbers. The wall never shows
+     any of it, and a mid-class save keeps the clock via the setTeamCount
+     restore pattern. All controls are DELEGATED on #blockCards — the cards
+     are innerHTML-rebuilt wholesale, so nothing may hold an element. */
+  let bcT=null;   // the open editor's target {k:"blk"|"it"|"ex",bi,i,xi}
+  const parseDurTxt=s=>{ s=String(s||"").trim();
+    let m=s.match(/^(\d+):([0-5]?\d)$/); if(m) return parseInt(m[1],10)*60+parseInt(m[2],10);
+    m=s.match(/^(\d+(?:\.\d+)?)\s*m(?:in)?s?$/i); if(m) return Math.round(parseFloat(m[1])*60);
+    m=s.match(/^(\d+)\s*s(?:ec)?s?$/i); if(m) return parseInt(m[1],10);
+    return /^\d+$/.test(s)?parseInt(s,10):0; };
+  const BEF_BTNS=`<span class="befbtns"><button type="button" class="btn small" data-bev="save">Save</button><button type="button" class="btn small" data-bev="cancel">Cancel</button></span>`;
+  const befF=(lab,id,val,wide)=>`<label>${lab}<input id="${id}"${wide?' class="befw"':""} value="${esc(String(val==null?"":val))}"></label>`;
+  function bcCloseForm(){ bcT=null;
+    const f=document.querySelector("#blockCards .bef"); if(f) f.remove(); }
+  function bcOpenForm(anchor,t){
+    bcCloseForm(); bcT=t;
+    const b=R().blocks[t.bi]; if(!b){ bcT=null; return; }
+    const it=t.i!=null?(b.items||[])[t.i]:null;
+    const f=document.createElement("div"); f.className="bef";
+    if(t.k==="blk") f.innerHTML=befF("Part name","befA",b.name,1)+BEF_BTNS;
+    else if(t.k==="it") f.innerHTML=(it.rest?"":befF("Name","befA",it.name||"",1))
+      +befF("Time (m:ss)","befB",fmtMS(it.dur||0))+BEF_BTNS;
+    else { const x=(it.exercises||[])[t.xi]; if(!x){ bcT=null; return; }
+      f.innerHTML=befF("Amount","befA",(x.amounts||[]).join("/"))
+        +befF("Exercise","befB",x.name||"",1)
+        +befF("RPE","befC",x.rpe||"")
+        +befF("% 1RM","befD",x.rm||"")
+        +befF("Note","befE",x.note||"",1)+BEF_BTNS; }
+    anchor.insertAdjacentElement("afterend",f);
+    const first=f.querySelector("input"); if(first){ first.focus(); first.select(); }
+  }
+  function bcSave(){
+    const t=bcT; if(!t) return;
+    const b=R().blocks[t.bi]; if(!b) return;
+    const v=id=>{ const el=$(id); return el?el.value.trim():""; };
+    if(t.k==="blk"){ const n=v("befA"); if(n) b.name=n.slice(0,40); }
+    else if(t.k==="it"){ const it=(b.items||[])[t.i]; if(!it) return;
+      if(!it.rest) it.name=v("befA").slice(0,60);
+      const d=parseDurTxt(v("befB")); if(d>0) it.dur=clamp(d,5,7200); }
+    else { const it=(b.items||[])[t.i], x=it&&(it.exercises||[])[t.xi]; if(!x) return;
+      const a=v("befA");
+      x.amounts=a?a.split("/").map(s=>s.trim()).filter(Boolean).slice(0,4):[];
+      const nm=v("befB"); if(nm) x.name=nm.slice(0,60);
+      x.rpe=v("befC").slice(0,8);
+      const rm=parseInt(v("befD"),10); if(rm>0&&rm<=200) x.rm=rm; else delete x.rm;
+      x.note=v("befE").slice(0,140); }
+    bcCloseForm();
+    bcRebuild();
+  }
+  // The setTeamCount pattern: rebuild the floor, put the running state back,
+  // restart the loop build() killed. An idle board just rebuilds.
+  function bcRebuild(){
+    save();
+    if(!sessionActive&&!running){ build(); renderBlockCards(true); return; }
+    const was={round:rot.round,phase:rot.phase,elapsed:rot.elapsed,remain:rot.remain,
+      act:sessionActive,run:running,fin:finished,t:t0,rt:restT0};
+    const keep={}; ergs.forEach(e=>{ keep[e.id]={m:e.m,cals:e.cals,score:e.score,blockCals:e.blockCals,
+      byType:structuredClone(e.byType||{}),shown:structuredClone(e.shown||{}),lastMach:e.lastMach}; });
+    build();
+    ergs.forEach(e=>{ const k=keep[e.id]; if(k) Object.assign(e,k); });
+    rot.round=was.round; rot.phase=was.phase; rot.elapsed=was.elapsed; rot.remain=was.remain;
+    sessionActive=was.act; running=was.run; finished=was.fin; t0=was.t; restT0=was.rt;
+    resetBtn.disabled=!was.act;
+    if(running&&!paused){ startBtn.disabled=true;
+      startBtn.textContent=`${whereNow(false)} running…`;
+      cancelAnimationFrame(raf); raf=requestAnimationFrame(frameRotation); }
+    else { syncRotChrome(); renderLanesRot(); }
+    renderBlockCards(true); renderTablet(true);
+  }
+  { const be=$("bEditBtn");
+    if(be) be.onclick=()=>{
+      const on=!document.body.classList.contains("bedit");
+      document.body.classList.toggle("bedit",on);
+      be.textContent=on?"Done editing":"Edit workout";
+      const h=$("bEditHint"); if(h) h.hidden=!on;
+      if(!on){ bcCloseForm(); renderBlockCards(true); } }; }
+  $("blockCards").addEventListener("click",ev=>{
+    if(!document.body.classList.contains("bedit")) return;
+    const bev=ev.target.closest("[data-bev]");
+    if(bev){ if(bev.dataset.bev==="save") bcSave(); else bcCloseForm(); return; }
+    if(ev.target.closest(".bef")) return;   // typing, not retargeting
+    const blk=ev.target.closest(".blk[data-bi]"); if(!blk) return;
+    const bi=parseInt(blk.dataset.bi,10); const b=R().blocks[bi]; if(!b) return;
+    if(ev.target.closest(".bh b")){ bcOpenForm(blk.querySelector(".bh"),{k:"blk",bi}); return; }
+    const eg=ev.target.closest(".exg[data-i]"); if(!eg) return;
+    const i=parseInt(eg.dataset.i,10); const it=(b.items||[])[i]; if(!it) return;
+    const ln=ev.target.closest("[data-xi]");
+    if(ln&&!it.rest&&it.text==null){ bcOpenForm(eg,{k:"ex",bi,i,xi:parseInt(ln.dataset.xi,10)}); return; }
+    bcOpenForm(eg,{k:"it",bi,i});
+  });
+  $("blockCards").addEventListener("keydown",ev=>{
+    if(!ev.target.closest||!ev.target.closest(".bef")) return;
+    if(ev.key==="Enter"){ ev.preventDefault(); bcSave(); }
+    else if(ev.key==="Escape") bcCloseForm();
+  });
 
   // ONE ROW WHILE THEY FIT, EVEN ROWS WHEN THEY DO NOT. Packing as many cards as
   // will go across and letting the rest fall underneath is what printed A · B · C
@@ -4351,6 +4471,13 @@ window.addEventListener("error",function(ev){
     // tablet's own layout — body.kioskon strips the page's padding and pins a
     // 1005x600 frame — and left behind they warp every other page instead.
     if(which!=="tablet") document.body.classList.remove("kioskon","tabprev","tabwall","tabone");
+    // NAVIGATION DROPS EDIT MODE (build 406): the wall and every other tab
+    // show the workout, they never offer to change it.
+    if(document.body.classList.contains("bedit")){
+      document.body.classList.remove("bedit");
+      try{ bcCloseForm(); }catch(e){}
+      const be=$("bEditBtn"); if(be) be.textContent="Edit workout";
+      const bh2=$("bEditHint"); if(bh2) bh2.hidden=true; }
     if(which==="tablet"){
       // a real tablet bolted to an erg in landscape is ALREADY at its machine;
       // everyone else lands on the wall and picks
@@ -8543,7 +8670,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=405;
+  const BUILD=406;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
