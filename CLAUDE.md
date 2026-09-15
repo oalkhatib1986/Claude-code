@@ -745,19 +745,26 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   entry + loaded cfg) and forever on idle arrival in `sessApply`, then
   republishes. A push that beats a boot repair WILL come back through the
   room — every self-repair needs its sessApply arm, not just its one-shot.
-  `fixeng.js` gates all the paths (19). — Omar: "it must survive so I
-  can point to things we talked about, even if I refresh").** The whole
-  builder chat persists in `af_aichat_v1`: the rendered log (`aiLog` — text
-  bubbles plus `opts`/`hold` option rows), the model transcript (`aiMsgs`,
-  capped at 30), the chat's owned board (`aiOwnBoard`) and the asked-flag.
-  `aiRestoreChat()` rebuilds it at boot through the SAME renderers
-  (`aiRenderOpts`/`aiRenderHold`): an unanswered option row comes back
-  TAPPABLE (the hold-fix is the named `aiHoldFix(bi,ii,label)` so a restored
-  pill can still act), an answered one is frozen with `.picked` lit. Errors
-  are the one thing NOT persisted. A reload therefore no longer resets the
-  chat — "New chat" (`#aiNew`, dlgConfirm'd, `aiClearChat()`) is the reset,
-  and suites must use it instead of reloading. `aiwk.js` (30) pins restore,
-  live-after-refresh pills, and the wipe.
+  `fixeng.js` gates all the paths (19).
+- **EVERY WORKOUT KEEPS ITS OWN CONVERSATION (build 398 — Omar: "save
+  chat history for each workout"; supersedes 387's single chat).**
+  `af_aichats_v1` holds one chat per FILING NAME (`{byKey:{name:state}}`,
+  `"__draft__"` for an unsaved board); each state is the old shape — log
+  (bubbles + opts/hold rows), transcript (`aiMsgs`, 30), `aiOwnBoard`,
+  asked-flag, plus `ts`. The panel ALWAYS shows the loaded board's chat:
+  `aiSyncChat()` rides `build()` (TDZ-guarded try — the chat cluster
+  initialises after the first boot build), no-ops while the key is
+  unchanged, and defers a real switch while `aiBusy` (applied in aiSend's
+  tail). A chat that SAVES/FILES a board MOVES under that name (the
+  `aiOwnBoard===newKey` re-key branch — allowed mid-send, never reloads
+  over the live conversation); Rename calls `aiRenameChat(old,new)` so
+  the history rides the move. "New chat" deletes ONLY the current
+  board's entry. Switching away `aiArchiveKey`s the old chat (full image
+  data → placeholder, bubble thumbs stay); the store keeps the 12 most
+  recent chats by ts; the legacy `af_aichat_v1` migrates once under the
+  board it owned. `aiLoadChat(key)` replays through the SAME renderers —
+  unanswered pills come back TAPPABLE. Errors are still never persisted.
+  `aiwk.js` (51) pins switch/return/move/New-chat-scope/refresh.
 - **THE COACH'S AI RUNS THE TOP MODEL (build 395 — Omar: "the AI in the
   app is not as capable as you").** `aiSend` asks for the most capable
   model first (`AI_MODELS = fable-5-1 → opus-5 → sonnet-5`) and steps

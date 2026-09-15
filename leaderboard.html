@@ -4159,6 +4159,9 @@ window.addEventListener("error",function(ev){
   function build(){
     finished=false; running=false; sessionActive=false;
     applyLogo();      // the cfg carries the brand choice, and build() sees every cfg
+    // the AI panel follows the loaded board (build 398) — TDZ-safe: the
+    // chat cluster initialises after the first boot builds
+    try{ aiSyncChat(); }catch(e){}
     makeErgs();
     // a rebuild zeroes every erg — the manual score sheet survives it and is
     // written straight back (a reload or a remote apply must not eat scores)
@@ -6910,12 +6913,25 @@ window.addEventListener("error",function(ev){
   // af_aichat_v1 and are rebuilt at boot: unanswered option pills come back
   // LIVE, answered ones frozen with the picked pill lit. Errors are
   // transient and are the one thing not kept. "New chat" wipes it.
-  const AIC="af_aichat_v1";
-  let aiLog=[], aiRestoring=false;
-  function aiSaveChat(){ try{
+  // EVERY WORKOUT KEEPS ITS OWN CONVERSATION (build 398 — Omar: "save chat
+  // history for each workout"). af_aichats_v1 holds one chat per FILING
+  // NAME (plus "__draft__" for an unsaved board); the panel always shows
+  // the LOADED board's chat (aiSyncChat, from build()). A chat that SAVES
+  // a board MOVES under that board's name — the conversation follows its
+  // workout, never reloads over itself mid-send; Rename carries the chat
+  // with the entry. An archived (non-current) chat drops full image data
+  // (thumbs stay in the bubbles); the store keeps the 12 most recent
+  // chats; the pre-398 single chat migrates under the board it owned.
+  const AIC="af_aichat_v1";        // legacy single-chat key — migrated once
+  const AICS="af_aichats_v1";
+  let aiLog=[], aiRestoring=false, aiCurKey=null, aiSwitchPend=false;
+  const aiKeyNow=()=>cfg.wkName||"__draft__";
+  const aiStore=()=>{ try{ const s=JSON.parse(localStorage.getItem(AICS)||"null");
+      if(s&&s.byKey) return s; }catch(e){} return {byKey:{}}; };
+  const aiPutStore=st=>{ try{ localStorage.setItem(AICS,JSON.stringify(st)); }catch(e){} };
+  function aiChatState(){
     // the transcript stays SMALL: full image data survives only on the two
-    // most recent image messages (the model can still see what was just
-    // discussed after a refresh); older ones keep a placeholder — the
+    // most recent image messages; older ones keep a placeholder — the
     // bubble's thumbnail lives in aiLog either way
     let seen=0;
     const msgs=aiMsgs.slice(-30).reverse().map(m=>{
@@ -6924,11 +6940,62 @@ window.addEventListener("error",function(ev){
       return {role:m.role,content:m.content.map(b2=>(b2&&b2.type==="image"&&!keep)
         ?{type:"text",text:"[a screenshot was attached earlier]"}:b2)};
     }).reverse();
-    localStorage.setItem(AIC,JSON.stringify({v:1,
-      msgs,log:aiLog.slice(-80),own:aiOwnBoard,asked:aiAskedOnce})); }catch(e){} }
-  function aiClearChat(){ aiMsgs=[]; aiLog=[]; aiOwnBoard=null; aiAskedOnce=false;
-    try{ localStorage.removeItem(AIC); }catch(e){}
+    return {v:1,msgs,log:aiLog.slice(-80),own:aiOwnBoard,asked:aiAskedOnce,ts:Date.now()};
+  }
+  function aiSaveChat(){ try{
+    if(aiCurKey==null) aiCurKey=aiKeyNow();
+    const st=aiStore(); st.byKey[aiCurKey]=aiChatState();
+    const ks=Object.keys(st.byKey).sort((a,b)=>(st.byKey[b].ts||0)-(st.byKey[a].ts||0));
+    ks.slice(12).forEach(k=>delete st.byKey[k]);
+    aiPutStore(st); }catch(e){} }
+  // switching away parks the chat: full image data goes, thumbs stay
+  function aiArchiveKey(k){ try{ const st=aiStore(); const c=st.byKey[k]; if(!c) return;
+    c.msgs=(c.msgs||[]).map(m=>!Array.isArray(m.content)?m
+      :{role:m.role,content:m.content.map(b2=>(b2&&b2.type==="image")
+        ?{type:"text",text:"[a screenshot was attached earlier]"}:b2)});
+    aiPutStore(st); }catch(e){} }
+  function aiClearChat(){ aiMsgs=[]; aiLog=[]; aiOwnBoard=null; aiAskedOnce=false; aiPend=[];
+    try{ aiRenderPend(); }catch(e){}
+    try{ const st=aiStore(); delete st.byKey[aiCurKey==null?aiKeyNow():aiCurKey]; aiPutStore(st); }catch(e){}
     const c=$("aiChat"); if(c){ c.innerHTML=""; c.hidden=true; } }
+  function aiLoadChat(key){
+    aiCurKey=key;
+    aiMsgs=[]; aiLog=[]; aiOwnBoard=null; aiAskedOnce=false;
+    const c=$("aiChat"); if(c){ c.innerHTML=""; c.hidden=true; }
+    let s=null; try{ s=aiStore().byKey[key]||null; }catch(e){}
+    if(!s||!Array.isArray(s.log)||!s.log.length) return;
+    aiRestoring=true;
+    try{
+      aiMsgs=Array.isArray(s.msgs)?s.msgs.slice(-30):[];
+      aiOwnBoard=s.own||null; aiAskedOnce=!!s.asked;
+      s.log.slice(-80).forEach(r=>{ if(!r) return;
+        aiLog.push(r);
+        if(r.c==="opts") aiRenderOpts(r);
+        else if(r.c==="hold") aiRenderHold(r);
+        else aiBubble(r.c,r.t,r.imgs); });
+    } finally { aiRestoring=false; }
+  }
+  // the panel follows the LOADED board — called from build(), cheap no-op
+  // while the key is unchanged; a switch mid-send waits for the reply
+  function aiSyncChat(){
+    const k=aiKeyNow();
+    if(aiCurKey==null){ aiCurKey=k; return; }
+    if(k===aiCurKey) return;
+    if(aiOwnBoard&&k===aiOwnBoard){
+      // this chat just saved/filed its board: the conversation FOLLOWS it
+      try{ const st=aiStore();
+        if(st.byKey[aiCurKey]){ st.byKey[k]=st.byKey[aiCurKey]; delete st.byKey[aiCurKey]; aiPutStore(st); } }catch(e){}
+      aiCurKey=k; aiSaveChat(); return; }
+    if(aiBusy){ aiSwitchPend=true; return; }
+    aiArchiveKey(aiCurKey);
+    aiLoadChat(k);
+  }
+  // Rename is a move for the chat too — the board's history rides along
+  function aiRenameChat(oldName,newName){ try{
+    const st=aiStore();
+    if(st.byKey[oldName]&&!st.byKey[newName]){ st.byKey[newName]=st.byKey[oldName]; delete st.byKey[oldName]; aiPutStore(st); }
+    if(aiCurKey===oldName) aiCurKey=newName;
+    if(aiOwnBoard===oldName) aiOwnBoard=newName; }catch(e){} }
 
   /* ============ shared workout library ============ */
   // THE GYM HAS ONE LIBRARY. A board saved on any device rides the relay into
@@ -7655,24 +7722,18 @@ window.addEventListener("error",function(ev){
       ta.value=txt;
     }
     aiBusy=false; btn.disabled=false; btn.textContent="Build it";
+    // a board switch that arrived mid-send happens now, on the settled chat
+    if(aiSwitchPend){ aiSwitchPend=false; try{ aiSyncChat(); }catch(e){} }
   }
-  // rebuild the saved chat at boot — bubbles, frozen choices, live pills,
-  // and the chat's memory (transcript, owned board, asked-flag)
-  (function aiRestoreChat(){
-    let s=null; try{ s=JSON.parse(localStorage.getItem(AIC)||"null"); }catch(e){}
-    if(!s||!Array.isArray(s.log)||!s.log.length) return;
-    aiRestoring=true;
-    try{
-      aiMsgs=Array.isArray(s.msgs)?s.msgs.slice(-30):[];
-      aiOwnBoard=s.own||null; aiAskedOnce=!!s.asked;
-      aiLog=[];
-      s.log.slice(-80).forEach(r=>{ if(!r) return;
-        aiLog.push(r);
-        if(r.c==="opts") aiRenderOpts(r);
-        else if(r.c==="hold") aiRenderHold(r);
-        else aiBubble(r.c,r.t,r.imgs); });
-      aiAskedOnce=!!s.asked||aiAskedOnce;
-    } finally { aiRestoring=false; }
+  // boot: migrate the pre-398 single chat under the board it owned, then
+  // open the LOADED board's own conversation
+  (function aiBoot(){
+    try{ const leg=JSON.parse(localStorage.getItem(AIC)||"null");
+      if(leg&&Array.isArray(leg.log)&&leg.log.length){
+        const st=aiStore(); const k=leg.own||cfg.wkName||"__draft__";
+        if(!st.byKey[k]){ leg.ts=Date.now(); st.byKey[k]=leg; aiPutStore(st); } }
+      localStorage.removeItem(AIC); }catch(e){}
+    aiLoadChat(aiKeyNow());
   })();
   function aiOpen(){
     document.body.classList.add("aiopen");
@@ -8040,6 +8101,7 @@ window.addEventListener("error",function(ev){
         else if(cfg.titleSet){ entry.cfg.name=cfg.name; entry.cfg.titleSet=true; }
         else if(!entry.cfg.titleSet) entry.cfg.name=n;
         cfg.wkName=n; if(!cfg.titleSet) cfg.name=n;
+        try{ aiRenameChat(old,n); }catch(e){}   // the board's chat rides the move
         closeEd();
         savePresets(); save(); buildPresetSel();
         libKill(old);                                    // bare tombstone: moved, not binned
@@ -8409,7 +8471,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=397;
+  const BUILD=398;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

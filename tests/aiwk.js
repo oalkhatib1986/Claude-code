@@ -369,6 +369,37 @@ await p.waitForTimeout(400);
   ok(await p.evaluate(()=>{ const b=[...document.querySelectorAll('.aichat .msg.you')].pop();
       return !!b&&!!b.querySelector('img.aimg'); }),
     'the screenshot thumbnail SURVIVES a refresh'); }
+// 7) EVERY WORKOUT KEEPS ITS OWN CONVERSATION (build 398): the panel
+// follows the loaded board; New chat wipes only that board's history;
+// each board's chat survives a refresh
+{ const k1=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).wkName);
+  const n1=await p.evaluate(()=>document.querySelectorAll('.aichat .msg').length);
+  ok(!!k1&&n1>0,'a board with a conversation is loaded ('+k1+', '+n1+' bubbles)');
+  await p.evaluate(()=>window.__loadLib('Engine 15/09'));
+  await p.waitForTimeout(900);
+  ok(await p.evaluate(()=>document.querySelectorAll('.aichat .msg').length===0),
+    "switching boards opens THAT board's (empty) chat");
+  await p.evaluate(()=>{document.body.classList.add('aiopen');});
+  await p.fill('#aiText','make part C harder');
+  await p.evaluate(()=>document.getElementById('aiSend').click());
+  await p.waitForTimeout(1200);
+  ok(await p.evaluate(()=>document.querySelectorAll('.aichat .msg').length>=2),
+    'the new board gets its own messages');
+  await p.evaluate(k=>window.__loadLib(k),k1); await p.waitForTimeout(900);
+  ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.you')].some(m=>/45 sec/.test(m.textContent))),
+    "switching BACK brings the old board's history back");
+  ok(await p.evaluate(()=>![...document.querySelectorAll('.aichat .msg.you')].some(m=>/part C harder/.test(m.textContent))),
+    "the other board's messages stay in ITS chat");
+  await p.evaluate(()=>document.getElementById('aiNew').click()); await p.waitForTimeout(300);
+  await p.evaluate(()=>{const d=document.querySelector('.dlg .dok'); if(d) d.click();}); await p.waitForTimeout(300);
+  ok(await p.evaluate(()=>document.querySelectorAll('.aichat .msg').length===0),
+    'New chat clears THIS board');
+  await p.evaluate(()=>window.__loadLib('Engine 15/09')); await p.waitForTimeout(900);
+  ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.you')].some(m=>/part C harder/.test(m.textContent))),
+    "and only this board — the other board's history survives");
+  await p.reload(); await p.waitForTimeout(1600);
+  ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.you')].some(m=>/part C harder/.test(m.textContent))),
+    'per-board history survives a refresh'); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
