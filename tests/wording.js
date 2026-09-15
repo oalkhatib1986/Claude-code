@@ -156,7 +156,14 @@ await p.evaluate(()=>{
       {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
         {name:'Front Squat',amounts:[8],unit:'reps',max:false,note:'slow eccentric'}]},
       {name:'Set 2',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
-        {name:'Front Squat',amounts:[6],unit:'reps',max:false,note:'go heavy'}]}]}]});
+        {name:'Front Squat',amounts:[6],unit:'reps',max:false,note:'go heavy'}]}]},
+    {name:'Part D',rounds:1,items:[
+      {name:'Set 1',dur:150,fmt:'share',stations:2,scored:false,group:true,exercises:[
+        {name:'Hip Thrust',amounts:[10],unit:'reps',max:false}]},
+      {name:'Set 2',dur:150,fmt:'share',stations:2,scored:false,group:true,exercises:[
+        {name:'Hip Thrust',amounts:[8],unit:'reps',max:false}]}]}]});
+  // 5 teams over Part D's 2 stations = pairs on one, a three on the other
+  cfg.crews=[{name:'T1'},{name:'T2'},{name:'T3'},{name:'T4'},{name:'T5'}];
   // ONE cue on set 1 of a ladder is guidance for the whole part (build 404)
   cfg.rotation.blocks[0].items[0].exercises[0].note='Own the pause, quick bar changes';
   localStorage.setItem(k,JSON.stringify(cfg));
@@ -190,6 +197,13 @@ ok(/Pair 1/i.test(SB),'403: a real split (Pair 1) still prints');
   ok(/slow eccentric/i.test(SC)&&/go heavy/i.test(SC)
     &&UC.indexOf('SLOW ECCENTRIC')<UC.indexOf('SET 2'),
     '404 C: DIFFERENT per-set notes stay under their own sets'); }
+// AN UNEVEN FLOOR SAYS BOTH NUMBERS (build 405 — Omar: "what if I want to
+// say shares in 2s or 3s"): 5 teams over 2 stations is a pair and a three —
+// the line reads the range, once, and the sets stay clean.
+{ const SD=shCards[3]||'';
+  ok((SD.match(/share in/ig)||[]).length===1&&/share in 2s or 3s, alternate/i.test(SD),
+    '405 D: an uneven floor reads "Share in 2s or 3s, alternate" once');
+  ok(/Set 1 · 2:30/i.test(SD)&&/Set 2 · 2:30/i.test(SD),'405 D: the sets still read clean'); }
 { const f=await p.evaluate(()=>({sx:document.documentElement.scrollWidth-innerWidth,
     bad:[...document.querySelectorAll('#blockCards .exl,#blockCards .exg-h')]
       .filter(e=>e.scrollWidth>e.clientWidth+1).length}));

@@ -2530,6 +2530,21 @@ window.addEventListener("error",function(ev){
     if(n) return Math.max(1,Math.ceil(wt/Math.max(1,Math.min(n,wt))));
     return clamp(parseInt(it.shareN,10)||0,0,6);   // saved workouts only
   };
+  // AN UNEVEN FLOOR SAYS BOTH NUMBERS (build 405 — Omar: "what if I want to
+  // say shares in 2s or 3s"). 15 athletes over 6 racks is pairs on some and
+  // threes on others; the ceiling alone ("in 3s") tells half the room the
+  // wrong thing. itShareLo is the small group; shareNs renders "2s" when the
+  // split is even and "2s or 3s" when it is not. An authored shareN (saved
+  // boards with no equipment link) is one number by definition.
+  const itShareLo=it=>{
+    if(!it||it.fmt!=="share") return 0;
+    const wt=Math.max(1,worstTeamsPerBlock());
+    const g=itGear(it)||clamp(parseInt(it.stations,10)||0,0,60);
+    if(!g) return itShare(it);
+    const S=Math.max(1,Math.min(g,wt));
+    return Math.max(1,Math.floor(wt/S)); };
+  const shareNs=it=>{ const hi=itShare(it); if(!hi) return "";
+    const lo=itShareLo(it); return (lo>0&&lo<hi?lo+"s or ":"")+hi+"s"; };
   const itRot=it=>!!(it&&it.fmt==="rotate"&&(it.exercises||[]).length>1);
   // circuits are self-paced by default; items built before this existed stay on the clock
   const itRotBy=it=>(it&&it.rotBy==="done")?"done":(it&&it.rotBy==="clock")?"clock":"clock";
@@ -3060,9 +3075,9 @@ window.addEventListener("error",function(ev){
   // covers only some of the sets tells a lie.
   const blockShareTxt=b=>{ const its=(b.items||[]).filter(it=>it&&!it.rest);
     if(!its.length) return "";
-    const n=itShare(its[0]);
-    if(!n||!its.every(it=>it.fmt==="share"&&itShare(it)===n)) return "";
-    return `Share in ${n}s, alternate`; };
+    const ns=shareNs(its[0]);
+    if(!ns||!its.every(it=>it.fmt==="share"&&shareNs(it)===ns)) return "";
+    return `Share in ${ns}, alternate`; };
   // ONE label for a part, wherever the trainer reads a list of them. The exercise
   // NAME alone made "6 reps", "4 reps" and "2 reps" three identical rows.
   const partLabel=(it,ii,b)=>{
@@ -3082,7 +3097,7 @@ window.addEventListener("error",function(ev){
     if(it.fmt==="waves") nm+=" \u00b7 "+itWaves(it)+" waves";
     else if(itSelf(it)) nm+=" \u00b7 self-paced circuit";
     else if(itRot(it)&&!it.alt) nm+=" \u00b7 rotating";
-    else if(itShare(it)) nm+=" \u00b7 in "+itShare(it)+"s";
+    else if(itShare(it)) nm+=" \u00b7 in "+shareNs(it);
     const st=clamp(parseInt(it.stations,10)||0,0,60);
     if(st) nm+=" \u00b7 "+st+" station"+(st>1?"s":"");
     return nm; };
@@ -3182,7 +3197,7 @@ window.addEventListener("error",function(ev){
         +(!tailNote&&String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:"");
       // the label survives only when it says something the exercises do not
       const label=(it.name&&!nameRedundant(it,xs))?esc(it.name):"";
-      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${xs.length} stations · self-paced`:itRot(it)?(it.alt?fmtMS(it.dur):`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/xs.length))}`):itShare(it)?(shr?minTxt(it.dur):`${fmtMS(it.dur)} · share in ${itShare(it)}s, alternate`)
+      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`:itSelf(it)?`${xs.length} stations · self-paced`:itRot(it)?(it.alt?fmtMS(it.dur):`${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/xs.length))}`):itShare(it)?(shr?minTxt(it.dur):`${fmtMS(it.dur)} · share in ${shareNs(it)}, alternate`)
         :us?((it.dur>0&&it.dur%us===0)?`${us} rounds × ${minTxt(it.dur/us)}`:`${us} sets`)
         :(bs&&its.length===1)?"":minTxt(it.dur);
       // A heading breaks at a WORD, never in front of its own separator. The last
@@ -3636,7 +3651,8 @@ window.addEventListener("error",function(ev){
           // instead, or the trainer walks into four athletes on one rower blind.
           const wt=worstTeamsPerBlock(), nSt=blockStations(b);
           if(!(wt>nSt)||!nSt) return "";
-          const per=Math.ceil(wt/nSt);
+          const hi=Math.ceil(wt/nSt), fl=Math.max(1,Math.floor(wt/nSt));
+          const per=fl<hi?`${fl}-${hi}`:hi;
           // NOT a .t — a chip is a machine, and anything counting machines must not
           // pick this up. It is a footnote under them — and it lives OUTSIDE the
           // teams grid: a full-span item inside it stops auto-fit collapsing the
@@ -4524,7 +4540,7 @@ window.addEventListener("error",function(ev){
     if(seg.swap!=null){ const x=(seg.it.exercises||[])[(Math.max(0,j)+seg.swap)%seg.swaps];
       // an alt window has no rotation inside it — the station IS the window
       return x?(seg.it.alt?`Now: ${x.name}`:`Now: ${x.name} · rotation ${seg.swap+1}/${seg.swaps}`):segLabel; }
-    if(itShare(seg.it)) return `${segLabel} — share the station in ${itShare(seg.it)}s & alternate`;
+    if(itShare(seg.it)) return `${segLabel} — share the station in ${shareNs(seg.it)} & alternate`;
     return segLabel; }
   // simulated PM5 warm-up feed (per machine) + last-effort cache (per team) —
   // the real Web Bluetooth stream replaces tbWuFor/team.split as the source later
@@ -5744,7 +5760,8 @@ window.addEventListener("error",function(ev){
               const out=document.createElement("span"); out.className="lfld nfld shareout";
               const lab=mkHelpLab("Share in","sharein");
               const val=document.createElement("b");
-              if(nSt&&per) val.innerHTML=`${per}s <i>${wt} \u00f7 ${Math.min(nSt,wt)} station${Math.min(nSt,wt)>1?"s":""}</i>`;
+              if(nSt&&per){ const lo=itShareLo(it);
+                val.innerHTML=`${lo<per?lo+"\u2013":""}${per}s <i>${wt} \u00f7 ${Math.min(nSt,wt)} station${Math.min(nSt,wt)>1?"s":""}</i>`; }
               else if(per) val.innerHTML=`${per}s <i>saved</i>`;
               else val.innerHTML=`&mdash; <i>link equipment</i>`;
               out.append(lab,val); fp.appendChild(out);
@@ -6695,7 +6712,7 @@ window.addEventListener("error",function(ev){
     const label=(it.exercises&&it.exercises.length===1&&!it.name)?"":(it.name||"Group");
     const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} \u00d7 ${itWaves(it)} waves`
       :itSelf(it)?`${it.exercises.length} stations \u00b7 self-paced`:itRot(it)?(it.alt?fmtMS(it.dur):`${fmtMS(it.dur)} \u00b7 swap every ${fmtMS(Math.round(it.dur/it.exercises.length))}`)
-      :itShare(it)?(shr?fmtMS(it.dur):`${fmtMS(it.dur)} \u00b7 share in ${itShare(it)}s, alternate`)
+      :itShare(it)?(shr?fmtMS(it.dur):`${fmtMS(it.dur)} \u00b7 share in ${shareNs(it)}, alternate`)
       :fmtMS(it.dur);
     return (label?label+" \u00b7 ":"")+tlab;
   }
@@ -8526,7 +8543,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=404;
+  const BUILD=405;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

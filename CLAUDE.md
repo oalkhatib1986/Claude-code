@@ -665,10 +665,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   above the `.win` total; the same note on every set dedupes to that one
   line too. Several DIFFERENT notes are per-set instructions ("set 4:
   grind it") and stay under their own sets — a hoist there would lose which
-  set they belong to. `wording.js`
+  set they belong to. AN UNEVEN FLOOR SAYS BOTH NUMBERS (build 405 — Omar:
+  "what if I want to say shares in 2s or 3s"): 15 athletes over 6 racks is
+  pairs on some and threes on others, and the ceiling alone told half the
+  room the wrong thing — `itShareLo()` is the small group, `shareNs(it)`
+  renders "2s" / "2s or 3s", and EVERY share-wording site reads it (share
+  line, per-set tlab, partLabel, tablet ask, PDF, Setup's share-in field
+  "2–3s", the card's shareline "2-3 per station"). An authored `shareN`
+  (no equipment link) stays one number by definition. `wording.js`
   pins once-per-block, line position, clean sets, the mixed-split case, the
   dropped "All 2" (in TEAMS mode — solo dropped it already), the kept
-  "Pair 1", the end-of-part cue and the kept per-set notes.
+  "Pair 1", the end-of-part cue, the kept per-set notes and the
+  "2s or 3s" range.
 - **OMAR REJECTED THE LADDER COLLAPSE (build 388 — "take it back to what
   it was!").** Build 386 collapsed repeated-rung ladders into one compact
   block (Work:/Rest: token rows, exercises once). He approved the idea from
