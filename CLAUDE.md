@@ -774,7 +774,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   cannot use wear the SAME 403 "Request not allowed", so a 403 retries
   the same model once, then walks the ladder until something answers;
   the working index (`aiModelIx`) sticks for the page-load and a reload
-  probes the top again. `ai-relay-worker.js`'s `ALLOWED_MODELS` leads with the
+  probes the top again. The ladder is fable-5-1 → fable-5 → opus-5 →
+  sonnet-5 (build 400 — an account can hold one Fable and not the
+  other). AND THE TELL (Omar, build 400): a 403 that survives the WHOLE
+  ladder — sonnet included — is never model access, it is Anthropic
+  blocking the worker's egress route (the build-365 block, stuck on
+  bad); the cure is the worker's `ANTHROPIC_URL` env var pointed at a
+  Cloudflare AI Gateway
+  (`https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/anthropic`)
+  so calls leave from Cloudflare's core network instead of the colo.
+  `ai-relay-worker.js`'s `ALLOWED_MODELS` leads with the
   same ladder and maps any unknown request to its first entry, so an old
   deployed worker quietly serves what it has: THE MODEL UPGRADE ONLY
   LANDS WHEN OMAR REDEPLOYS THE WORKER on his Cloudflare (paste the repo
