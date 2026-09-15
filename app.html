@@ -7801,11 +7801,17 @@ window.addEventListener("error",function(ev){
     if(!/^lower body/i.test(String(c.wkName||c.name||"").trim())) return false;
     if(c.teamKind!=="teams"||(parseInt(c.teamSize,10)||0)!==2) return false;
     const bs=(c.rotation&&c.rotation.blocks)||[]; if(!bs.length) return false;
-    let work=0;
+    // build 413 — the 412 print was TOO narrow: Omar's real board carries a
+    // strength FINISHER part (no share format), so "every working item is a
+    // share" refused it and his board stayed teams ("it's still not set to
+    // solo!!"). The general rule stays all-share; HIS board is pinned by its
+    // own date — Lower Body · pairs · 16 Sept 2026 is this one mis-build.
+    let share=0,other=0;
     for(const b of bs) for(const it of (b.items||[])){
-      if(!it||it.rest) continue; work++;
-      if(it.fmt!=="share") return false; }
-    if(!work) return false;
+      if(!it||it.rest) continue;
+      if(it.fmt==="share") share++; else other++; }
+    if(!share) return false;
+    if(other&&String((c.prog||{}).date||"")!=="2026-09-16") return false;
     c.teamKind="solo";
     for(const b of bs) for(const it of (b.items||[]))
       (it.exercises||[]).forEach(x=>{
@@ -7813,7 +7819,9 @@ window.addEventListener("error",function(ev){
     return true;
   }
   (function fixLB1609(){
-    const K="af_fixlb1609_v1";
+    // v2: v1 ran on Omar's devices with the too-narrow print and did
+    // nothing — a fresh key runs the widened mend once more everywhere
+    const K="af_fixlb1609_v2";
     try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
     let touched=false;
     presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&lbSoloMend(p.cfg)){
@@ -8891,7 +8899,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=412;
+  const BUILD=413;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

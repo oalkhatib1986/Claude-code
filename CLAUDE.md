@@ -766,9 +766,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (`af_fixlb1609_v1`) mends every matching library entry (fresh ts +
   libPush) and the loaded cfg (+ `normCrewNames`), and the sessApply
   idle-arrival arm mends any stale teams copy the room pushes back,
-  then republishes — the 392 lesson applied from day one. `lbsolo.js`
-  (11) gates entry+loaded+push, arrival mend+republish, and the
-  untouched real-teams board.
+  then republishes — the 392 lesson applied from day one. BUT THE 412
+  PRINT WAS TOO NARROW (build 413 — Omar: "it's still not set to
+  solo!!"): his real board carries a strength FINISHER part with no
+  share format, so "every working item share" refused it and the
+  one-shot no-opped. The widened print: at least one share item, and a
+  non-share part is allowed ONLY when `prog.date==="2026-09-16"` — his
+  exact board, pinned by its own date; any other mixed Lower Body stays
+  a team board. The one-shot key bumped to `af_fixlb1609_v2` (v1 was
+  consumed doing nothing). LESSON: fingerprint a repair against the
+  REAL board (screenshots showed the finisher!), not the idealized
+  shape — and when a one-shot misfires, a fresh KEY re-arms it.
+  `lbsolo.js` (14) gates his real shape, the finisher surviving
+  un-shared with its "All 2" stripped, arrival mend, the different-week
+  mixed board untouched, and the dateless all-share mend.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup

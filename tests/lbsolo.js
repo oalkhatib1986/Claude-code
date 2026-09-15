@@ -7,6 +7,8 @@ const {chromium}=require('playwright');
 let pass=0,fail=0;
 const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
 const F='file:///home/user/Claude-code/leaderboard.html';
+// HIS REAL SHAPE (the 412 lesson): share sets PLUS a strength finisher part
+// that carries NO share format — the all-share print refused exactly this
 const shareBlocks=()=>[
   {name:'Part A',rounds:1,items:[
     {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
@@ -16,7 +18,11 @@ const shareBlocks=()=>[
       {name:'Paused Back Squat',amounts:[6],unit:'reps',max:false,who:'All 2'}]}]},
   {name:'Part B',rounds:1,items:[
     {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
-      {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false}]}]}];
+      {name:'Romanian Deadlift',amounts:[10],unit:'reps',max:false}]}]},
+  {name:'Finisher',rounds:1,items:[
+    {dur:540,scored:false,group:true,exercises:[
+      {name:'Goblet Squat',amounts:[12],unit:'reps',max:false,sets:3,who:'All 2'},
+      {name:'Walking Lunge',amounts:[20],unit:'reps',max:false,sets:3}]}]}];
 let libPuts=[], sessPuts=[], sess=null;
 async function wire(ctx){
   await ctx.route('https://relay.test/**',async route=>{
@@ -51,7 +57,7 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 // 1) a device holding the mis-built board — preset AND loaded — mends both
 libPuts=[]; sessPuts=[]; sess=null;
 let {ctx,p}=await boot(br,blocks=>{
-  localStorage.removeItem('af_fixlb1609_v1');
+  localStorage.removeItem('af_fixlb1609_v2');
   const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
   Object.assign(cfg,{name:'Lower Body',wkName:'Lower Body 16/09',titleSet:true,
     mode:'rotation',teamKind:'teams',teamSize:2,together:true,noScore:true,
@@ -72,6 +78,8 @@ let {ctx,p}=await boot(br,blocks=>{
   ok(got.cfg.teamKind==='solo','the LOADED board goes SOLO');
   ok(got.cfg.rotation.blocks[0].items[0].fmt==='share','the sharing itself stays');
   ok(!got.cfg.rotation.blocks[0].items[0].exercises[0].who,'the "All 2" echo label leaves the data');
+  ok(!got.cfg.rotation.blocks[2].items[0].fmt,'the finisher part keeps its own (non-share) format');
+  ok(!got.cfg.rotation.blocks[2].items[0].exercises[0].who,'the finisher\'s "All 2" is stripped too');
   ok(libPuts.some(b2=>b2.name==='Lower Body 16/09'&&b2.cfg&&b2.cfg.teamKind==='solo'),
     'the fixed board is PUSHED to the room library');
   ok(await p.evaluate(()=>document.getElementById('tcLabel')&&true),'the page survives the mend');
@@ -84,6 +92,7 @@ libPuts=[]; sessPuts=[]; sess=null;
 { const base=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
   const stale=Object.assign({},base,{name:'Lower Body',wkName:'Lower Body 16/09',titleSet:true,
     mode:'rotation',teamKind:'teams',teamSize:2,together:true,noScore:true,gear:[],
+    prog:{date:'2026-09-16',day:'Wednesday',stype:'Strength',block:'',week:''},
     rotation:Object.assign({},base.rotation,{laps:1,blockRest:120,blocks:shareBlocks()})});
   sess={ts:Date.now(),src:'other-device',kind:'edit',cfg:stale,
     run:{mode:'rotation',act:false,run:false}};
@@ -97,11 +106,24 @@ libPuts=[]; sessPuts=[]; sess=null;
   const bl=shareBlocks(); bl[1].items.push({dur:240,fmt:'rotate',rotBy:'clock',scored:false,
     exercises:[{name:'Ski',amounts:[],unit:'cal',max:true},{name:'Bike',amounts:[],unit:'cal',max:true}]});
   const c2=Object.assign({},real,{name:'Lower Body',wkName:'Lower Body 23/09',
-    teamKind:'teams',teamSize:2,rotation:Object.assign({},real.rotation,{blocks:bl})});
+    teamKind:'teams',teamSize:2,
+    prog:{date:'2026-09-23',day:'Wednesday',stype:'Strength',block:'',week:''},
+    rotation:Object.assign({},real.rotation,{blocks:bl})});
   sess={ts:Date.now()+50,src:'other-device',kind:'edit',cfg:c2,run:{mode:'rotation',act:false,run:false}};
   await p.waitForTimeout(3500);
   ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).teamKind==='teams'),
-    'a Lower Body with REAL mixed work stays a team board'); }
+    'a DIFFERENT-week Lower Body with mixed work stays a team board'); }
+// 4) an ALL-share pairs board mends on the general rule, no date needed
+{ const real=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  const bl=shareBlocks().slice(0,2);   // share sets only, no finisher
+  const c3=Object.assign({},real,{name:'Lower Body',wkName:'Lower Body 30/09',
+    teamKind:'teams',teamSize:2,
+    prog:{date:'2026-09-30',day:'Wednesday',stype:'Strength',block:'',week:''},
+    rotation:Object.assign({},real.rotation,{blocks:bl})});
+  sess={ts:Date.now()+90,src:'other-device',kind:'edit',cfg:c3,run:{mode:'rotation',act:false,run:false}};
+  await p.waitForTimeout(3500);
+  ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).teamKind==='solo'),
+    'an ALL-share pairs board mends regardless of its date'); }
 await ctx.close();
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
