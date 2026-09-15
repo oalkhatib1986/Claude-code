@@ -3505,7 +3505,9 @@ window.addEventListener("error",function(ev){
           const typeOrd=[...blockUsesTypes(b)];
           order.sort((a2,b2)=>{ const A=a2.split(":"), B=b2.split(":");
             const d=typeOrd.indexOf(A[0])-typeOrd.indexOf(B[0]); return d||(+A[1]-+B[1]); });
-          const urgent=running&&showLeaderboard();
+          // an alt part's free rows are CAPACITY, never missing people —
+          // they don't go red, and they don't fade (build 395)
+          const urgent=running&&showLeaderboard()&&!(curIt&&curIt.alt);
           const chip=(label,names,freeN,spare)=>{
             const any=names.length>0;
             const who=[names.map(esc).join(", "),freeN?(any?"+"+freeN+" free":(freeN>1?"free ×"+freeN:"free")):""]
@@ -3531,15 +3533,18 @@ window.addEventListener("error",function(ev){
             const capM=Math.max(0,...xs3.map(x=>{ const m3=machineOf(x.name);
               return m3?(invOf(m3)||0):0; }));
             const capA=capM||Math.ceil(al.teams.length/(xs3.length||1));
+            // every slot the same weight: an alt part's free rows never
+            // fade or dash — six equal stations, not four people and two
+            // dimmed offers (build 395, Omar: "it's fading as you go down")
             xs3.forEach(x=>{ const m3=machineOf(x.name);
               if(m3){ const cap=invOf(m3)||capA;
                 const used=order.filter(k2=>k2.split(":")[0]===m3).length;
                 for(let q=used+1;q<=cap;q++){ const k2=m3+":"+q;
-                  if(!rows[k2]){ rows[k2]={label:mInfo(m3).short+" "+q,names:[],free:1,spare:true}; order.push(k2); } } }
+                  if(!rows[k2]){ rows[k2]={label:mInfo(m3).short+" "+q,names:[],free:1}; order.push(k2); } } }
               else if(!/^rest/i.test(String(x.name||""))){
                 const lb=String(x.name||"Floor");
                 const used=floorRows.filter(r=>(r.lab||"Floor")===lb).length;
-                for(let q=used;q<capA;q++) floorRows.push({free:true,nm:"",lab:lb,spare:true});
+                for(let q=used;q<capA;q++) floorRows.push({free:true,nm:"",lab:lb});
               } });
           }
           const perType={};
@@ -6839,6 +6844,10 @@ window.addEventListener("error",function(ev){
   const AIKEY="af_ai_url";
   try{ localStorage.removeItem("af_ai_fabpos"); }catch(e){}
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
+  // THE COACH'S AI RUNS THE TOP MODEL (build 395): most capable first,
+  // stepping down only when the account genuinely lacks one (see aiSend)
+  const AI_MODELS=["claude-fable-5-1","claude-opus-5","claude-sonnet-5"];
+  let aiModelIx=0;
   // A TV has no keyboard worth typing on: the relay link can ride the URL once
   // (app.html?relay=https://...#screen) and is remembered like a pasted one.
   // ?r= is the short form, and a bare hostname is accepted — every character
@@ -7511,11 +7520,22 @@ window.addEventListener("error",function(ev){
       // allowed") and it is luck-of-the-draw per request — retry a few times
       // before bothering the coach; a fresh request often lands an allowed
       // route (build 365, Omar hit it mid-build).
-      let res=null, data=null, raw="";
-      for(let att=0;att<4;att++){
+      // THE COACH'S AI RUNS THE TOP MODEL (build 395 — Omar: "the AI in
+      // the app is not as capable as you"): the chat asks for the most
+      // capable model first and steps DOWN the ladder only when the
+      // account genuinely lacks it (a 400/404 naming the model) — never
+      // for a transient error. A pre-395 deployed relay quietly maps an
+      // unknown model to its own first allowed one, so nothing breaks
+      // before the worker is redeployed.
+      let res=null, data=null, raw="", errTxt="";
+      for(let att=0;att<6;att++){
         res=await fetch(aiUrl,{method:"POST",headers:{"content-type":"application/json"},
-          body:JSON.stringify({model:"claude-sonnet-5",max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
+          body:JSON.stringify({model:AI_MODELS[Math.min(aiModelIx,AI_MODELS.length-1)],
+            max_tokens:6000,system:aiSystem(),messages:aiMsgs})});
         if(!res.ok){
+          errTxt=""; try{ errTxt=(await res.text()).slice(0,300); }catch(e){}
+          if((res.status===400||res.status===404)&&/model/i.test(errTxt)
+              &&aiModelIx<AI_MODELS.length-1){ aiModelIx++; continue; }
           if(res.status!==403&&res.status!==429&&res.status!==529) break;
           btn.textContent="Retrying…";
           await new Promise(r=>setTimeout(r,700*(att+1))); continue;
@@ -7530,10 +7550,10 @@ window.addEventListener("error",function(ev){
         btn.textContent="Retrying…";
         await new Promise(r=>setTimeout(r,700*(att+1)));
       }
-      if(!res.ok){ let t=""; try{ t=(await res.text()).slice(0,300); }catch(e){}
+      if(!res.ok){
         // surface the provider's own words — a bare status number is undiagnosable
         // from a phone screenshot
-        throw new Error("relay "+res.status+(t?" — "+t.replace(/\s+/g," "):"")); }
+        throw new Error("relay "+res.status+(errTxt?" — "+errTxt.replace(/\s+/g," "):"")); }
       if(!raw.trim())
         throw new Error("empty reply from the model"
           +(data?" (stop: "+(data.stop_reason||"?")+", blocks: "+((data.content||[]).length||0)+")":""));
@@ -8306,7 +8326,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=394;
+  const BUILD=395;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

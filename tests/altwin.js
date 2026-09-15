@@ -89,6 +89,12 @@ ok(await p.evaluate(()=>{ const ns=[...document.querySelectorAll('#blockCards .t
   return ns.length>0&&ns.every(n=>n.offsetWidth>0&&n.getBoundingClientRect().right
     <=n.closest('.t').getBoundingClientRect().right+1); }),
   'the station NUMBER always survives the ellipsis');
+// SIX EQUAL STATIONS, ONE WEIGHT (build 395 — Omar: "it's fading as you
+// go down"): no alt row fades, dashes, or wears the dimmed spare style
+ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .teams .t')]
+    .every(t=>!t.classList.contains('spare')&&getComputedStyle(t).opacity==='1'
+      &&getComputedStyle(t.querySelector('.mtag')).borderStyle!=='dashed')),
+  'every slot row has the SAME weight — no fade down the column');
 { const clock=await p.evaluate(()=>document.getElementById('clock').textContent);
   const m=clock.match(/^(\d+):/); ok(m&&+m[1]<3,'window 1: the big clock counts the 3:00 window ('+clock+')'); }
 // BOTH ACTIVE STATIONS LIGHT UP, EACH IN ITS OWN PLACE (build 394 —

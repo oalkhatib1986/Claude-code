@@ -714,8 +714,14 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   "WALL BALL… 4" keeps its number, a free/spare `.mtag` is `flex:0 0 auto`
   so "FREE" never truncates to "FR…", and an occupant list ellipsises
   rather than spills. Suites reading the label must join `.tnm`+`.tno`
-  (textContent alone drops the space). `altwin.js` gates map, numbering,
-  swap, the 36-slot count, the one-line rows and the tag/number survival.
+  (textContent alone drops the space). SIX EQUAL STATIONS, ONE WEIGHT
+  (build 395 — Omar: "there's a color difference as you go down, like
+  it's fading"): an alt part's free rows are CAPACITY, never dimmed
+  offers or missing people — the synthetic rows carry NO `.spare` class
+  (no 0.7 fade, no dashed tag) and `urgent` excludes alt blocks so they
+  never go `.late` red either. Non-alt boards keep the quiet dashed
+  spare. `altwin.js` gates map, numbering, swap, the 36-slot count, the
+  one-line rows, the tag/number survival and the uniform row weight.
 - **ENGINE 15/09 FIXES ITSELF (build 390 — Omar: "you do it! you fix it!"
   after the import-code hand-delivery).** `fixEngine1509`
   (`af_fixeng1509_v1`) mends every copy of the wrongly-built board on
@@ -752,6 +758,21 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   chat — "New chat" (`#aiNew`, dlgConfirm'd, `aiClearChat()`) is the reset,
   and suites must use it instead of reloading. `aiwk.js` (30) pins restore,
   live-after-refresh pills, and the wipe.
+- **THE COACH'S AI RUNS THE TOP MODEL (build 395 — Omar: "the AI in the
+  app is not as capable as you").** `aiSend` asks for the most capable
+  model first (`AI_MODELS = fable-5-1 → opus-5 → sonnet-5`) and steps
+  DOWN only on a 400/404 that names the model (the account lacks it) —
+  never on a transient error; the working index (`aiModelIx`) sticks for
+  the page-load. `ai-relay-worker.js`'s `ALLOWED_MODELS` leads with the
+  same ladder and maps any unknown request to its first entry, so an old
+  deployed worker quietly serves what it has: THE MODEL UPGRADE ONLY
+  LANDS WHEN OMAR REDEPLOYS THE WORKER on his Cloudflare (paste the repo
+  file, Deploy — one time); until then chat runs exactly as before. And
+  the capability gap is never only the model: every workout-authoring or
+  engine law added to CLAUDE.md must land in `aiSystem()` IN THE SAME
+  BUILD (the alt law shipped that way in 389) — the app's AI knows only
+  what that prompt carries. `aiwk.js` pins the ladder: top model first,
+  step-down on the named 404, sticky, still answering.
 - **THE AI ASKS, IT NEVER GUESSES (build 377 — Omar: "it asks me questions
   and I just select what I want").** The chat protocol carries
   `options:[...]` beside reply/workout: when a sheet honestly allows

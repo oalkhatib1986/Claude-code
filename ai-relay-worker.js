@@ -6,7 +6,10 @@
  * workouts in KV so every device shares one library. Deploy per AI_SETUP.md;
  * the library needs a KV namespace bound as LIB.
  */
-const ALLOWED_MODELS = ["claude-sonnet-5", "claude-haiku-4-5-20251001"];
+// Most capable first — the first entry is also the fallback for any
+// unknown model an older app requests (build 395: the coach's AI runs
+// the same model family as the engineering assistant).
+const ALLOWED_MODELS = ["claude-fable-5-1", "claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5-20251001"];
 const MAX_TOKENS_CAP = 8000;
 const LIB_KEY = "library";
 const LIB_MAX = 20_000_000;   // KV value cap is 25MB — refuse before we hit it
