@@ -768,9 +768,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **THE COACH'S AI RUNS THE TOP MODEL (build 395 — Omar: "the AI in the
   app is not as capable as you").** `aiSend` asks for the most capable
   model first (`AI_MODELS = fable-5-1 → opus-5 → sonnet-5`) and steps
-  DOWN only on a 400/404 that names the model (the account lacks it) —
-  never on a transient error; the working index (`aiModelIx`) sticks for
-  the page-load. `ai-relay-worker.js`'s `ALLOWED_MODELS` leads with the
+  DOWN on a 400/404 that names the model, AND — build 399, Omar hit
+  "Request not allowed" right after the upgrade — on a REPEATED 403:
+  Anthropic's luck-of-the-draw route block and a model the account
+  cannot use wear the SAME 403 "Request not allowed", so a 403 retries
+  the same model once, then walks the ladder until something answers;
+  the working index (`aiModelIx`) sticks for the page-load and a reload
+  probes the top again. `ai-relay-worker.js`'s `ALLOWED_MODELS` leads with the
   same ladder and maps any unknown request to its first entry, so an old
   deployed worker quietly serves what it has: THE MODEL UPGRADE ONLY
   LANDS WHEN OMAR REDEPLOYS THE WORKER on his Cloudflare (paste the repo

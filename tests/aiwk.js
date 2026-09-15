@@ -400,6 +400,32 @@ await p.waitForTimeout(400);
   await p.reload(); await p.waitForTimeout(1600);
   ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.you')].some(m=>/part C harder/.test(m.textContent))),
     'per-board history survives a refresh'); }
+// 8) A 403 IS TWO PROBLEMS WEARING ONE MESSAGE (build 399): Anthropic's
+// route block and a model the account lacks both say 403 "Request not
+// allowed" — retry once, then walk the ladder until the chat answers
+{ await p.reload(); await p.waitForTimeout(1600);   // fresh page = probe the top again
+  const models=[];
+  await p.unroute('https://relay.test/**');
+  await p.route('https://relay.test/**',async route=>{
+    const body=JSON.parse(route.request().postData()||'{}');
+    if(body.op) return route.fulfill({json:{ok:1,v:null,now:Date.now(),presets:[]}});
+    models.push(body.model);
+    if(body.model!=='claude-sonnet-5')
+      return route.fulfill({status:403,contentType:'application/json',
+        body:JSON.stringify({error:{type:'forbidden',message:'Request not allowed'}})});
+    return route.fulfill({json:{content:[{type:'text',
+      text:JSON.stringify({reply:'made it through',workout:null,options:null})}]}});
+  });
+  await p.evaluate(()=>{document.getElementById('aiFab').style.display='';
+    document.body.classList.add('aiopen');});
+  await p.fill('#aiText','hello'); await p.evaluate(()=>document.getElementById('aiSend').click());
+  await p.waitForTimeout(3500);
+  ok(models[0]==='claude-fable-5-1'&&models[1]==='claude-fable-5-1',
+    'a 403 retries the SAME model once (route luck) before stepping');
+  ok(models.includes('claude-opus-5')&&models[models.length-1]==='claude-sonnet-5',
+    'persistent 403s walk the whole ladder ('+models.join(' → ')+')');
+  ok(await p.evaluate(()=>[...document.querySelectorAll('.aichat .msg.ai')].some(m=>/made it through/.test(m.textContent))),
+    'and the chat ANSWERS instead of erroring'); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

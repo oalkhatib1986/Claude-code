@@ -7672,6 +7672,14 @@ window.addEventListener("error",function(ev){
           errTxt=""; try{ errTxt=(await res.text()).slice(0,300); }catch(e){}
           if((res.status===400||res.status===404)&&/model/i.test(errTxt)
               &&aiModelIx<AI_MODELS.length-1){ aiModelIx++; continue; }
+          // A 403 IS TWO PROBLEMS WEARING ONE MESSAGE (build 399 — Omar hit
+          // "Request not allowed" after the model upgrade): Anthropic's
+          // luck-of-the-draw route block AND a model the account cannot use
+          // both come back as 403 "Request not allowed". Retry the same
+          // model once, then walk DOWN the ladder — whichever it was, the
+          // chat answers; a page reload probes the top model again.
+          if(res.status===403&&att>=1&&aiModelIx<AI_MODELS.length-1){
+            aiModelIx++; btn.textContent="Retrying…"; continue; }
           if(res.status!==403&&res.status!==429&&res.status!==529) break;
           btn.textContent="Retrying…";
           await new Promise(r=>setTimeout(r,700*(att+1))); continue;
@@ -8471,7 +8479,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=398;
+  const BUILD=399;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
