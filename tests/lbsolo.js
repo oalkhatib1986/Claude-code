@@ -125,13 +125,13 @@ libPuts=[]; sessPuts=[]; sess=null;
   ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).teamKind==='solo'),
     'an ALL-share pairs board mends regardless of its date'); }
 await ctx.close();
-// 5) PART B BECOMES OMAR'S REAL FLOOR (build 415, superseding 414's
-// superset): three 4:00 self-paced two-station rounds — partners start on
-// different exercises and swap when they finish, the clock caps the round —
-// then the 9-minute core piece runs ONCE as the finisher
+// 5) PART B BECOMES OMAR'S REAL FLOOR (build 417, superseding 415/416's
+// rounds+finisher): the repeat lives ON THE PIECE — part rounds 1, the
+// superset a 4:00 self-paced window with Repeats × 3 and the hold, the
+// 9-minute core piece plain (one part round runs it once)
 libPuts=[]; sessPuts=[]; sess=null;
 ({ctx,p}=await boot(br,()=>{
-  localStorage.removeItem('af_fixlbpb_v3');
+  localStorage.removeItem('af_fixlbpb_v4');
   const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
   Object.assign(cfg,{name:'Lower Body',wkName:'Lower Body 16/09',titleSet:true,
     mode:'rotation',teamKind:'solo',together:true,noScore:true,gear:[],
@@ -152,17 +152,17 @@ libPuts=[]; sessPuts=[]; sess=null;
 }));
 { const c=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
   const b=c.rotation.blocks[1];
-  ok(b.rounds===3,'415: Part B runs 3 rounds');
-  ok(b.items[0].fmt==='rotate'&&b.items[0].rotBy==='done'&&b.items[0].dur===240,
-    '415: each round is a 4:00 self-paced two-station window');
-  ok(b.items[0].exercises.every(x=>!x.sets),'415: no sets on the lines — the rounds ARE the sets');
-  ok(b.items[0].hold===true,'416: the superset piece carries the trainer-starts-next hold');
-  ok(b.items[1].fin===true&&b.items[1].dur===540,'415: the 9-minute core piece runs ONCE (finisher)');
+  ok(b.rounds===1,'417: Part B runs ONCE — the repeat lives on the piece');
+  ok(b.items[0].fmt==='rotate'&&b.items[0].rotBy==='done'&&b.items[0].dur===240&&b.items[0].rpt===3,
+    '417: the superset is a 4:00 self-paced window with Repeats × 3');
+  ok(b.items[0].exercises.every(x=>!x.sets),'417: no sets on the lines — Repeats carries the count');
+  ok(b.items[0].hold===true,'417: the trainer-starts-next hold stays on the piece');
+  ok(!b.items[1].fin&&b.items[1].dur===540,'417: the core piece is PLAIN — one part round runs it once');
   const card=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[1].innerText.replace(/\s+/g,' '));
-  ok(/self-paced/i.test(card),'415: the card says self-paced');
-  ok(/3 rounds × 4:00/i.test(card)&&/then 9:00 finish/i.test(card),
-    '415: the footer reads 3 rounds × 4:00 · then 9:00 finish');
-  ok(!/63:00/.test(card)&&/21:00 total/i.test(card),'415: the part totals 21:00, not 63:00');
+  ok(/self-paced/i.test(card),'417: the card says self-paced');
+  ok(/3 × 4:00/.test(card),'417: the piece line reads 3 × 4:00');
+  ok(!/3 rounds/i.test(card),'417: no block-rounds footer — the count is on the piece');
+  ok(!/63:00/.test(card)&&/21:00 total/i.test(card),'417: the part totals 21:00, not 63:00');
   // 5b) BOTH stale shapes arriving from the room get mended: the original
   // 12:00 rotate, and 414's superset in-between
   const stale=JSON.parse(JSON.stringify(c));
@@ -174,10 +174,11 @@ libPuts=[]; sessPuts=[]; sess=null;
   sessPuts=[];
   await p.waitForTimeout(4500);
   let now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
-  ok(now.rotation.blocks[1].items[0].dur===240&&now.rotation.blocks[1].items[1].fin===true,
-    '415: the ORIGINAL shape arriving from the room is mended on arrival');
-  ok(sessPuts.some(v=>v&&v.cfg&&v.cfg.rotation.blocks[1].items[0].dur===240),
-    '415: and the truth is re-published');
+  ok(now.rotation.blocks[1].rounds===1&&now.rotation.blocks[1].items[0].dur===240
+    &&now.rotation.blocks[1].items[0].rpt===3&&!now.rotation.blocks[1].items[1].fin,
+    '417: the ORIGINAL shape arriving from the room is mended on arrival');
+  ok(sessPuts.some(v=>v&&v.cfg&&v.cfg.rotation.blocks[1].items[0].rpt===3),
+    '417: and the truth is re-published');
   const mid=JSON.parse(JSON.stringify(c));
   mid.rotation.blocks[1].rounds=1; delete mid.rotation.blocks[1].items[1].fin;
   mid.rotation.blocks[1].items[0]={name:'For Quality',dur:720,scored:false,group:true,
@@ -186,12 +187,13 @@ libPuts=[]; sessPuts=[]; sess=null;
   sess={ts:Date.now()+140,src:'other-device',kind:'edit',cfg:mid,run:{mode:'rotation',act:false,run:false}};
   await p.waitForTimeout(4000);
   now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
-  ok(now.rotation.blocks[1].rounds===3&&now.rotation.blocks[1].items[0].rotBy==='done'
+  ok(now.rotation.blocks[1].rounds===1&&now.rotation.blocks[1].items[0].rotBy==='done'
+    &&now.rotation.blocks[1].items[0].rpt===3
     &&now.rotation.blocks[1].items[0].exercises.every(x=>!x.sets),
-    "415: 414's superset in-between shape converts too"); }
-// 6) THE CLOCK PARKS ONCE, BEFORE THE FINISHER ONLY (416): rounds flow into
-// each other; after round 3 the board says "press start" until the trainer
-// starts the 9-minute section
+    "417: 414's superset in-between shape converts too"); }
+// 6) THE CLOCK PARKS ONCE, AFTER THE LAST REPEAT ONLY (417): the repeat
+// windows flow into each other; after 3 × 4:00 the board says "press start"
+// until the trainer starts the 9-minute section
 await p.click('#tabTrainer'); await p.waitForTimeout(500);
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(800);
@@ -201,14 +203,18 @@ await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(800);
 await p.evaluate(()=>window.__seek(235)); await p.waitForTimeout(1600);
 ok(await p.evaluate(()=>!/press start/i.test(document.getElementById('clockState').textContent)),
-  '416: round 1 flows into round 2 — no stop between rounds');
+  '417: window 1 flows into window 2 — no stop between repeats');
+await p.evaluate(()=>window.__seek(50)); await p.waitForTimeout(900);   // __seek is RELATIVE: ~236 -> ~287, inside window 2
+ok(await p.evaluate(()=>{ const w=document.querySelector('#blockCards .blk.live .bwhere');
+  return !!w&&/Round 2 of 3/.test(w.textContent); }),
+  '417: the live card says Round 2 of 3 inside the second window');
 await p.evaluate(()=>window.__seek(715)); await p.waitForTimeout(1600);
 ok(await p.evaluate(()=>/press start/i.test(document.getElementById('clockState').textContent)),
-  '416: after round 3 the clock parks — "Next part — press start"');
+  '417: after the third window the clock parks — "Next part — press start"');
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1200);
 ok(await p.evaluate(()=>!/press start/i.test(document.getElementById('clockState').textContent)),
-  '416: the trainer\'s start releases the 9-minute section');
+  '417: the trainer\'s start releases the 9-minute section');
 await ctx.close();
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

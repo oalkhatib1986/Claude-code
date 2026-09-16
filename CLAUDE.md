@@ -814,6 +814,37 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   its end, press start) before seeking inside Part B. `lbsolo.js` (28)
   adds the hold shape, flow-between-rounds, the park at the finisher
   and the trainer's release.
+- **REPEATS LIVE ON THE PIECE (build 417 — Omar: "why can't I set rounds
+  on the piece level?!… honestly this is so confusing so we need to fine
+  tune it").** The 414-416 saga was the app forcing three different
+  idioms (sets, finisher, hold) onto one plain sentence — "this piece
+  runs 3 × 4:00, the rest of the part once". First-class now: `it.rpt`
+  (1-6) = **Repeats** — N back-to-back windows of the piece's OWN dur,
+  on any format except waves and alt (`itReps()` returns 1 there and for
+  rests). THE MODEL TO TEACH: **Repeats = this piece · Rounds = the
+  whole part · Sets = words on the line.** Mechanics: `itLen` ×= reps;
+  `segAt` folds time into the CURRENT window (`winL=L/rp`, `off` local
+  to it) BEFORE the per-format branches, so clocked-rotate swaps, share
+  and plain items all beat inside each window unchanged (winL===dur —
+  the old math holds); `seg.rep`/`seg.repN` ride the segment and the
+  card's `.bwhere` prints "Round 2 of 3" ("Rep" when the part itself has
+  rounds — two "Round"s would collide); `remain` counts THE WINDOW, so
+  wall clock/`.bclk`/tablet inherit it; the sets-beat only fires when
+  rp===1 (a repeating piece already HAS its beat — sets stay words).
+  Display leads with the count: tlab "3 × 4:00" (self-paced appends "· 3
+  × 4:00"; share/rotate/plain prefix `rpre`), `partLabel` "· ×3", PDF
+  matches. Authoring: Setup's time row grows a "× N repeats" menuField
+  (hidden on rest/alt/waves); the tap-editor's item form a Repeats field
+  (`befRp`); the AI schema carries `repeats:1-6` + the PIECE-LEVEL
+  ROUNDS law (`applyAiWorkout` → `o.rpt`, never with alt/waves). `hold`
+  parks AFTER the whole repeated piece (holdBounds uses itLen — the
+  boundary is all N windows). Part B mends to its natural shape (v4,
+  key `af_fixlbpb_v4`): part rounds 1 · superset rotate/done dur 240
+  rpt 3 hold · core piece PLAIN (no fin — one part round runs it once).
+  TEST GOTCHA: `window.__seek(s)` is RELATIVE — it advances the clock
+  by s, never sets it. `lbsolo.js` (30) pins the v4 shape, both stale
+  conversions, "3 × 4:00" on the card, "Round 2 of 3" live, the flow
+  between windows and the park after window 3.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup
