@@ -323,6 +323,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   The lane's name is repainted in `renderLanesRot()`, NOT written once in `build()` —
   a claim has to reach the board or it calls them "Athlete 1" all session.
   `noname.js` gates it.
+- **THE PART LIVES WITH ITS WORK; THE CORNER NAMES THE MACHINE (build 423
+  — Omar: "Part A needs to be in the box above Max Cal Ski and the SkiErg
+  number goes to the right corner").** On both tablet screens the header's
+  right-corner white pill (`.tk-blk`) carries the MACHINE label; `.tk-mach`
+  no longer renders in the header (its CSS remains for the wall/idle
+  banners). The part name (+ round when laps>1) rides the instruction card
+  as `.tk-blk.tk-part` — an inline white pill heading `.tk-inst`, above
+  the tag/head, in ALL THREE variants (pre-session claim, live claim,
+  normal). The occupant (`.tk-who`) keeps its spot beside the corner pill.
 - **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a

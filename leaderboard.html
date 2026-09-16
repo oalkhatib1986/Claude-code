@@ -390,6 +390,12 @@
   /* the block pill is a small slab: solid white, black type — the wall's own emphasis */
   .tk-blk{flex:none;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,20px);letter-spacing:.14em;
     text-transform:uppercase;color:#0a0a0b;background:#fff;border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
+  /* THE PART LIVES WITH ITS WORK (build 423 — Omar: "Part A needs to be in
+     the box above Max Cal Ski, and the SkiErg number goes to the right
+     corner"): the header's corner pill is the MACHINE's name, and the part
+     pill heads the instruction card, right above the work it names. */
+  .tk-inst .tk-blk.tk-part{display:inline-block;width:max-content;max-width:100%;
+    overflow:hidden;text-overflow:ellipsis;margin:0 0 10px}
   .tk-name{display:flex;flex-direction:column;gap:8px;padding:13px 18px;flex:none}
   .tk-name label{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6)}
   .tk-name>div{display:flex;gap:10px}
@@ -5358,13 +5364,13 @@ window.addEventListener("error",function(ev){
         <div class="tk">
           <div class="tk-card tk-id">
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
-            <div class="tk-mach">${mLabel}</div>
             <div class="tk-who unnamed">Nobody yet</div>
-            <div class="tk-blk">${esc(fb.name||"")}</div>${pm5BtnHtml()}
+            <div class="tk-blk">${mLabel}</div>${pm5BtnHtml()}
           </div>
           <div class="tk-main">
             <div class="tk-col">
               <div class="tk-card tk-inst tk-claim">
+                <div class="tk-blk tk-part">${esc(fb.name||"")}</div>
                 <div class="tk-tag">Free \u2014 take it</div>
                 <div class="tk-head">Tap in to claim it</div>
                 <div class="tk-claimrow">
@@ -5592,15 +5598,15 @@ window.addEventListener("error",function(ev){
         <div class="tk ${hot?"hot":""} ${mcls==="live"?"live":""}">
           <div class="tk-card tk-id">
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
-            <div class="tk-mach">${mLabel}</div>
             <div class="tk-who ${team&&unnamed(team.name)?"unnamed":""}">${
               team?(claimed?esc(team.name):(showLeaderboard()?"Nobody yet":"")):`No ${kw()} here`}</div>
-            <div class="tk-blk">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>${pm5BtnHtml()}
+            <div class="tk-blk">${mLabel}</div>${pm5BtnHtml()}
           </div>
           ${nameBand}${askStrip}
           <div class="tk-main">
             <div class="tk-col">
               ${(ask&&askFull)?askCard:claiming?`<div class="tk-card tk-inst tk-claim${claimed?" got":""}">
+                <div class="tk-blk tk-part">${esc(b.name)}${laps()>1?` \u00b7 R${lapOf(rot.round)+1}`:""}</div>
                 <div class="tk-tag">${claimed?"You\u2019re on this one":preClock?"Free \u2014 take it":"You\u2019re up here now"}</div>
                 <div class="tk-head">${claimed?esc(team.name):preClock?"Tap in to claim it":"Tap your name in"}</div>
                 ${claimed
@@ -5612,6 +5618,7 @@ window.addEventListener("error",function(ev){
                        <button type="button" class="btn" id="tbClaimGo" data-tid="${team.id}">I\u2019m on</button>
                      </div>`}
               </div>`:`<div class="tk-card tk-inst">
+                <div class="tk-blk tk-part">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
                 <div class="tk-tag">${(mts&&mtag&&!running)?mtag:jTag}</div>
                 <div class="tk-head">${jHead}</div>
                 ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
@@ -9070,7 +9077,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=422;
+  const BUILD=423;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
