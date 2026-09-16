@@ -1442,6 +1442,12 @@
      clock is running it IS one */
   .blk .teams .t.unnamed{color:var(--ink-mute);background:transparent}
   .blk .teams .t.unnamed .mtag{border-color:var(--line);color:var(--ink-mute)}
+  /* A TAG THAT CAN NEVER CHANGE SAYS NOTHING (build 424 — Omar's option 1):
+     on an UNSCORED board nothing can claim, so "free"/"free ×N" would read
+     FREE from first minute to last. The dead tags go; the station map stays
+     and a row somebody NAMED keeps its name. */
+  body.unscored #blockCards .teams .t.unnamed .mtag,
+  body.unscored #blockCards .teams .t.spare .mtag{display:none}
   /* a machine beyond the class size is an offer, never a shortfall — it is quiet
      and it never turns red */
   /* sharing is a fact, not a fault: stated plainly, never in warning colours */
@@ -3017,6 +3023,11 @@ window.addEventListener("error",function(ev){
     try{ gearSplit=cfg.mode==="rotation"
       &&R().blocks.some(b=>(b.items||[]).some(it=>it&&!it.rest&&itGear(it)>0)); }catch(e){}
     document.body.classList.toggle("noroster",off&&!showLeaderboard()&&!gearSplit);
+    // A TAG THAT CAN NEVER CHANGE SAYS NOTHING (build 424 — Omar, on his
+    // unscored Engine's wall of FREE: "what is the use of this part?"):
+    // unscored = no claiming, so a free tag reads FREE forever — the CSS
+    // drops those tags while the station map (his build-390 ask) stays.
+    document.body.classList.toggle("unscored",!showLeaderboard());
   }
   try{ window.__claim=claimSlots; window.__slots=machSlots; window.__teamsAt=bi=>teamsAt(bi); }catch(e){}
 
@@ -9077,7 +9088,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=423;
+  const BUILD=424;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

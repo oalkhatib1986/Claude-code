@@ -1047,8 +1047,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   offers or missing people — the synthetic rows carry NO `.spare` class
   (no 0.7 fade, no dashed tag) and `urgent` excludes alt blocks so they
   never go `.late` red either. Non-alt boards keep the quiet dashed
-  spare. `altwin.js` gates map, numbering, swap, the 36-slot count, the
-  one-line rows, the tag/number survival and the uniform row weight.
+  spare. A TAG THAT CAN NEVER CHANGE SAYS NOTHING (build 424 — Omar,
+  on his unscored Engine's wall of FREE: "what is the use of this
+  part?", then his pick of option 1): on an UNSCORED board
+  (`body.unscored`, toggled in `syncErgless` off `showLeaderboard()`)
+  the free tags are display:none — no claiming means FREE forever —
+  while the station map itself stays (his 390 ask) and a row somebody
+  NAMED keeps its name. Scored boards keep every tag; the map only
+  sheds what cannot move. `altwin.js` gates map, numbering, swap, the
+  36-slot count, the one-line rows, the tag/number survival, the
+  uniform row weight and the dropped-vs-kept tags; `ovdock.js` pins
+  the scored board keeping its FREE tags.
 - **ENGINE 15/09 FIXES ITSELF (build 390 — Omar: "you do it! you fix it!"
   after the import-code hand-delivery).** `fixEngine1509`
   (`af_fixeng1509_v1`) mends every copy of the wrongly-built board on

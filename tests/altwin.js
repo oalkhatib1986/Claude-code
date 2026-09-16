@@ -72,6 +72,15 @@ const w1=await mapOf();
   ok(!!w1['Ski 1']&&w1['Ski 1']!=='free'&&!!w1['Ski 2']&&w1['Ski 2']!=='free'&&w1['Ski 3']==='free',
     'the working half sits on Ski 1+2 — CONTIGUOUS, no gaps ('+w1['Ski 1']+', '+w1['Ski 2']+')');
   ok(w1['Ski 6']==='free'&&w1['Wall Balls 6']==='free','the spare slots read free to the gym cap');
+  // A TAG THAT CAN NEVER CHANGE SAYS NOTHING (build 424): this board is
+  // UNSCORED, so the free tags are dropped from the picture — the station
+  // map stays, and a NAMED row keeps its name
+  ok(await p.evaluate(()=>getComputedStyle(document.querySelector('#blockCards .teams .t.unnamed .mtag')).display==='none'),
+    '424: an unscored board hides the dead FREE tags');
+  ok(await p.evaluate(()=>{ const t=[...document.querySelectorAll('#blockCards .teams .t')]
+      .find(x=>!x.classList.contains('unnamed')&&x.querySelector('.mtag'));
+    return !!t&&getComputedStyle(t.querySelector('.mtag')).display!=='none'; }),
+    '424: a NAMED row keeps its name on the map');
   ok(!!w1['Wall Balls 1']&&w1['Wall Balls 1']!=='free','floor work is a NAMED station (Wall Balls 1: '+w1['Wall Balls 1']+')'); }
 ok(await p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')].reduce((n,c)=>
     n+[...c.querySelectorAll('.teams .t')].filter(t=>!/^Rest/i.test(((t.querySelector('.tn')||{}).textContent||'').trim())).length,0))===36,

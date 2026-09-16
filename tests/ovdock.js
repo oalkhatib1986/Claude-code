@@ -60,6 +60,10 @@ ok(await seen('ovStart')&&await p.evaluate(()=>document.getElementById('ovStart'
 ok(await p.evaluate(()=>!!document.querySelector('#ovPick .mfield')),
   'the athletes picker is IN the strip');
 ok(await clearOfCards(),'idle: the strip clears the first card');
+// a SCORED board keeps its free tags — claiming is real there (424)
+ok(await p.evaluate(()=>{ const m=document.querySelector('#blockCards .teams .t.unnamed .mtag');
+  return !m||getComputedStyle(m).display!=='none'; }),
+  'a scored board keeps its FREE tags — claiming is live there');
 // the stacked pills wear ONE width (Omar: "the pills need to be same size!")
 await p.waitForTimeout(600);
 { const w=await p.evaluate(()=>({s:document.getElementById('ovStart').getBoundingClientRect().width,
