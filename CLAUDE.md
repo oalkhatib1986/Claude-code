@@ -876,21 +876,27 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   strip idle/run, never-covers-a-card (rect check idle+running,
   desktop+phone), lock/skip/publish/pause, dock opt-in + memory + no
   bdFlow, route/phone. Control itself is UNTOUCHED in stage 1.
-- **SOLO HAS NO WHO COLUMN (build 419 — Omar: "why is the exercise box
-  so small although you have a lot of space!").** Setup's `.exr1.slim`
-  grid opens with Who's fixed 118px track; a solo board renders no Who
-  field, so auto-placement dropped the Exercise picker into that track
-  ("Paused …" truncated beside a page of void — the column-shift family
-  again: a fixed grid whose first child is CONDITIONAL needs a class
-  flip, not hope). `exerciseRow` adds `.nowho` when solo and the grid
-  drops the track (`1fr 32px`); the phone media's span-all rule is
-  scoped back to `auto` for `.nowho` so the picker shares its row with
-  the buttons. `exwide.js` (8) gates solo-wide/teams-unchanged/phone.
-  ANSWERED, NOT CHANGED: Omar asked why the Sets menu has no "1 ×" —
-  "— none" IS one set (Sets is the multiplier written on the line;
-  one set is just "8 reps"), a 1 × option would be a second name for
-  the same state. If the label confuses him again, rename the option
-  ("— single set"), never add a duplicate state.
+- **THE WHO LABEL IS EDITABLE EVERYWHERE (build 420 — Omar found
+  "P1 —" on Part C's card with no field anywhere: "how is that set? I
+  can't find it in setup?!").** A solo board carries REAL splits too
+  (P1 cycles the AMRAP, P2 holds the wall sit), so hiding the Who field
+  on solo orphaned honest data from every editor. Now: Setup's Who
+  dropdown renders in BOTH modes (`whoOpts` offers P1/P2/Pair on solo),
+  the first option "— everyone" (any "—"-leading pick) DELETES the
+  label, and the Overview tap-editor's exercise form carries a Who
+  field (`befWho`, blank = everyone). Build 419's `.nowho` grid fix is
+  RETIRED — its cause (a fixed grid whose first child was conditional)
+  is gone because the child no longer is; the 419 lesson stands: a
+  fixed grid track needs its tenant, always. AND THE SINGLE-SET STATE
+  IS NAMED "1 ×" (Omar: "I want to see 1x because it's confusing") —
+  same state as the old "— none" (one set stores nothing, the line
+  just says "8 reps"), purely renamed in the Sets picker; never add a
+  duplicate stored state for it. AND NO FIELD TRUNCATES ITS OWN TEXT:
+  Sets/RPE were stuck at `.mwrap.time`'s fixed 84px ("— n…") —
+  `width:auto;min-width:96px` like `.irm`, the no-fixed-widths law.
+  `exwide.js` (13) gates who-on-solo, clear-to-everyone, tap-editor
+  who round trip onto the card, "1 ×", a machine check that NO
+  `.exr2/.exr3` field clips (`scrollWidth>clientWidth`), and phone.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup

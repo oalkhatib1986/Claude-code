@@ -972,6 +972,11 @@
   .mwrap.time.irotby{width:auto;min-width:118px}
   .mwrap.time.igear{width:auto;min-width:132px}
   .mwrap.time.irm{width:auto;min-width:96px}
+  /* Sets and RPE were stuck at .time's fixed 84px and truncated their own
+     text ("— n…") — the no-fixed-widths house rule applies to every
+     value-bearing field (build 420) */
+  .mwrap.time.isets{width:auto;min-width:96px}
+  .mwrap.time.irpe{width:auto;min-width:96px}
   .mfield{width:100%;text-align:left;font-family:var(--ui);font-size:16px;color:var(--ink);background:var(--field);
     border:1px solid var(--line);border-radius:11px;padding:10px 32px 10px 13px;cursor:pointer;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .15s;
@@ -1136,12 +1141,9 @@
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px;align-items:end}
   .exr1.slim.hasx2{grid-template-columns:118px 1fr 32px 32px;align-items:end}
-  /* SOLO HAS NO WHO COLUMN (build 419 — Omar: "why is the exercise box so
-     small although you have a lot of space"): with the Who field absent,
-     auto-placement dropped the Exercise picker into Who's 118px track and
-     the name truncated beside a page of void. No Who = no 118px track. */
-  .exr1.slim.nowho{grid-template-columns:1fr 32px}
-  .exr1.slim.nowho.hasx2{grid-template-columns:1fr 32px 32px}
+  /* build 419's .nowho fix is RETIRED in 420: the Who field renders in BOTH
+     modes now (solo splits are real — P1/P2), so the 118px track always has
+     its tenant and the Exercise picker always gets the 1fr. */
   .exr1 .iconbtn{margin-bottom:3px}
   .psec-h{display:flex;align-items:baseline;gap:10px}
   .psec-h b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
@@ -1810,8 +1812,6 @@
     .exr1.slim{grid-template-columns:1fr 32px}
     .exr1.slim.hasx2{grid-template-columns:1fr 32px 32px}
     .exr1.slim>.lfld:first-child{grid-column:1/-1}
-    /* no Who field = the exercise shares its row with the buttons */
-    .exr1.slim.nowho>.lfld:first-child{grid-column:auto}
     .exr2{gap:6px}
     .amtchips{gap:5px}
     .amtchip .amt{width:auto;min-width:40px}
@@ -3868,7 +3868,8 @@ window.addEventListener("error",function(ev){
     else { const x=(it.exercises||[])[t.xi]; if(!x){ bcT=null; return; }
       f.innerHTML=befF("Amount","befA",(x.amounts||[]).join("/"))
         +befF("Exercise","befB",x.name||"",1)
-        +befF("Sets","befS",exSets(x)||"")
+        +befF("Who (blank = everyone)","befWho",x.who||"")
+        +befF("Sets","befS",exSets(x)||1)
         +befSel("Unit","befU",x.unit||"reps",[["reps","reps"],["cal","cal"],["m","metres"],["sec","seconds"]])
         +befF("RPE","befC",x.rpe||"")
         +befF("% 1RM","befD",x.rm||"")
@@ -3927,6 +3928,9 @@ window.addEventListener("error",function(ev){
       const a=v("befA");
       x.amounts=a?a.split("/").map(s=>s.trim()).filter(Boolean).slice(0,4):[];
       const nm=v("befB"); if(nm) x.name=nm.slice(0,60);
+      // the Who label (build 420): blank or "— everyone" clears it
+      { const wv=v("befWho"); if(wv&&!/^—|^everyone$/i.test(wv)) x.who=wv.slice(0,24);
+        else delete x.who; }
       const st=parseInt(v("befS"),10); if(st>=2&&st<=10) x.sets=st; else delete x.sets;
       const u=v("befU"); if(/^(reps|cal|m|sec)$/.test(u)) x.unit=u;
       x.rpe=v("befC").slice(0,8);
@@ -5849,7 +5853,11 @@ window.addEventListener("error",function(ev){
       const partsEl=box.querySelector(".bparts");
 
       const newEx=()=>({who:cfg.teamKind==="solo"?"":"All "+clamp(cfg.teamSize||4,2,6),name:cfg.library[0]||"Run",amounts:[],max:true,unit:""});
-      const whoOpts=()=>{ const n=clamp(cfg.teamSize||4,2,6); const o=["Everyone","All "+n];
+      const whoOpts=()=>{
+        // solo splits are real (Part C: P1 works, P2 holds) — offer the
+        // shapes a solo floor actually uses
+        if(cfg.teamKind==="solo") return ["— everyone","P1","P2","P3","Pair 1","Pair 2"];
+        const n=clamp(cfg.teamSize||4,2,6); const o=["— everyone","All "+n];
         for(let k2=2;k2<n;k2++) o.push("All "+k2);
         for(let p=1;p<=Math.ceil(n/2);p++) o.push("Pair "+p);
         o.push("Solo");
@@ -5861,8 +5869,15 @@ window.addEventListener("error",function(ev){
         const r1=document.createElement("div"); r1.className="exr1 slim";
         const lwrap=(t,key,node)=>{ const w=document.createElement("div"); w.className="lfld";
           w.appendChild(mkHelpLab(t,key)); w.appendChild(node); return w; };
-        if(cfg.teamKind!=="solo") r1.appendChild(lwrap("Who","who",menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"})));
-        else r1.classList.add("nowho");   // no Who column — the exercise takes the row (build 419)
+        // THE WHO LABEL IS EDITABLE EVERYWHERE (build 420 — Omar found P1/P2
+        // on the card with no field anywhere in Setup): a solo board carries
+        // real splits too, so the field renders in BOTH modes. "— everyone"
+        // clears the label; whoShown still drops the redundant ones.
+        r1.appendChild(lwrap("Who","who",menuField(()=>whoOpts(), ()=>x.who||"— everyone",
+          v=>{ const s=String(v).trim();
+            if(!s||/^—/.test(s)) delete x.who; else x.who=s.slice(0,24);
+            save(); if(!sessionActive&&!running) build(); },
+          {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"})));
         // Picking the exercise loads the kit it needs: the link is remembered per
         // exercise NAME, so "Back Squat -> Squat Rack" is set once and set for good.
         r1.appendChild(lwrap("Exercise","exercise",menuField(()=>cfg.library, ()=>x.name,
@@ -5929,9 +5944,12 @@ window.addEventListener("error",function(ev){
         // FIELDS, not prose: they render structured on every surface and the
         // engine can keep ignoring what is guidance rather than timing.
         const r3=document.createElement("div"); r3.className="exr3";
-        { const setsOpts=()=>["— none","2 ×","3 ×","4 ×","5 ×","6 ×","8 ×","10 ×"];
+        // "1 ×" IS the single-set state (build 420 — Omar: "I want to see 1x
+        // because it's confusing"): one set stores nothing and the line just
+        // says "8 reps" — the option is a name for that, never a new state
+        { const setsOpts=()=>["1 ×","2 ×","3 ×","4 ×","5 ×","6 ×","8 ×","10 ×"];
           const setsFld=menuField(setsOpts,
-            ()=>exSets(x)?exSets(x)+" ×":"— none",
+            ()=>exSets(x)?exSets(x)+" ×":"1 ×",
             v=>{ const n=parseInt(String(v).replace(/[^0-9]/g,""),10);
               if(n>=2&&n<=30) x.sets=n; else delete x.sets;
               save(); if(!sessionActive&&!running) build(); },
@@ -9104,7 +9122,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=419;
+  const BUILD=420;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
