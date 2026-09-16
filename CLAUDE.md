@@ -845,6 +845,31 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   by s, never sets it. `lbsolo.js` (30) pins the v4 shape, both stale
   conversions, "3 × 4:00" on the card, "Round 2 of 3" live, the flow
   between windows and the park after window 3.
+- **THE DOCK IS CONTROL'S HAND ON THE WORKOUT PAGE (build 418 — Omar:
+  "I'm thinking of combining the control and overview pages", stage 1 of
+  the merge; stage 2 — folding Control's deep panels in as collapsed
+  sections and possibly retiring the tab — WAITS ON HIS VERDICT after he
+  runs a real class with this).** `#bdock` was already the whole answer
+  (transport, lock, Reset, Start, publishing) but booted tucked behind
+  the edge chevron — merged-in-code, invisible-in-practice. Now: OPEN BY
+  DEFAULT, the chevron's tuck remembered per device (`af_dock_v1` — a
+  PREFERENCE that flips forever, not a one-shot); an IDLE shape
+  (`#bdock.idle`, toggled off `running` on the 400ms tick — a hold park
+  keeps `running` true so the transport never vanishes mid-class) that
+  shows only Start + the athletes pill (`#bdWho`, written in
+  `syncTeamCount` from the same attendance the Control picker shows,
+  hidden under `body.noroster`, tap = go to Control) and hides the dead
+  transport icons; and STACKING BY MEASUREMENT — the dock's real height
+  rides `:root --dockh` (measured on the tick, 0 when tucked) and the
+  page bottom padding, the AI bubble (`#aiFab`) and the chevron all
+  offset by it, because fixed offsets collide the moment the dock wraps
+  on a phone. The FAB's × was ALREADY eating the chevron's taps at
+  bottom:34px — any new fixed-corner element must be checked against
+  every other fixed-corner element, both states. The route
+  (`body.tvroute`) shows neither dock nor chevron; `body.bigscreen`
+  already hid both. `ovdock.js` (23) gates default-open, idle shape,
+  the pill's text and door, lock/skip/publish/pause from the dock, tuck
+  memory, route/phone. Control itself is UNTOUCHED in stage 1.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup

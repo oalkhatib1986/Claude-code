@@ -1303,6 +1303,24 @@
   #bdock b.hot{color:var(--hot)}
   #bdock b:empty{display:none}
   body.bigscreen #bdock{display:none}
+  /* THE DOCK IS THE CONTROL STRIP (build 418): before the clock it offers the
+     two things Control does then — who's coming and Start — and the dead
+     transport icons stay out of sight; running brings them back. */
+  #bdock .bdwho{font-family:var(--disp);font-weight:600;font-size:12.5px;letter-spacing:.05em;
+    color:var(--ink-dim);background:none;border:1px solid var(--line);border-radius:999px;
+    padding:8px 14px;cursor:pointer;max-width:58vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #bdock .bdwho:hover{color:var(--ink)}
+  #bdock #bdWho{display:none}
+  #bdock.idle #bdWho{display:block}
+  body.noroster #bdock #bdWho{display:none}
+  #bdock.idle .tico,#bdock.idle #bdReset,#bdock.idle #bdInfo{display:none}
+  /* the open dock floats over the page bottom — everything that lives down
+     there stacks ABOVE it by its real height (--dockh, measured on the tick):
+     the last card, the AI bubble, the chevron. Fixed offsets collide the
+     moment the dock wraps to two rows on a phone. */
+  body.dockup:not(.bigscreen):not(.tvroute) #viewBoard{padding-bottom:calc(var(--dockh,64px) + 30px)}
+  body.dockup:not(.bigscreen):not(.tvroute) #aiFab{bottom:calc(max(20px, env(safe-area-inset-bottom) + 12px) + var(--dockh,64px) + 12px)}
+  body.tvroute #bdock,body.tvroute #bdockTab{display:none}
   #viewBoard{padding-bottom:86px}
   .tb-namer{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.03)}
   .tb-namer label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
@@ -1356,7 +1374,10 @@
   .fmtrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:4px}
   #bdock{padding-right:46px}
   #bdock.tucked{display:none}
-  #bdockTab{position:fixed;right:0;bottom:max(34px,env(safe-area-inset-bottom));z-index:61;width:24px;height:58px;border-radius:12px 0 0 12px;
+  /* the chevron rides ABOVE the AI bubble's corner and above the open dock
+     (--dockh) — at the old bottom:34px the bubble's × sat on it and ate
+     every tap (caught by ovdock.js the day the dock opened by default) */
+  #bdockTab{position:fixed;right:0;bottom:calc(max(34px,env(safe-area-inset-bottom)) + var(--dockh,0px) + 62px);z-index:61;width:24px;height:58px;border-radius:12px 0 0 12px;
     background:#fff;border:none;color:#0a0a0a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 2px 0 0;
     box-shadow:0 8px 26px rgba(0,0,0,.5);opacity:.95;transition:opacity .15s,transform .15s}
   #bdockTab:hover{opacity:1}
@@ -1836,6 +1857,7 @@
 
     <div id="bdock" class="tucked">
       <b id="bdInfo"></b>
+      <button class="bdwho" id="bdWho" type="button" title="Athletes today &mdash; tap to change in Control"></button>
       <button class="tico lock" id="bdLock" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
       <button class="tico" id="bdPrev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
       <button class="tico" id="bdb10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
@@ -6483,6 +6505,9 @@ window.addEventListener("error",function(ev){
       return `${athU(a)} \u00b7 ${t} ${tWord(t)}${(last>0&&last<tcSize)?` (last has ${last})`:""}`; };
     const attValid=!solo&&cfg.attend>0&&Math.ceil(cfg.attend/tcSize)===cfg.crews.length;
     const attNow=attValid?cfg.attend:cfg.crews.length*(solo?1:tcSize);
+    // the dock's athletes pill reads the same attendance the Control picker
+    // shows — one number, two places (build 418)
+    { const x=$("bdWho"); if(x) x.textContent=solo?unit(clamp(cfg.crews.length,1,60)):showT(clamp(attNow,1,120)); }
     const FITLAB=()=>{ const n=gymFit(); return n?`Fit the gym \u2014 ${solo?unit(n):showT(n*tcSize)}`:""; };
     ["tcPick","tcPick2"].forEach(id=>{ const wp=$(id); if(!wp) return;
       wp.innerHTML="";
@@ -8737,7 +8762,7 @@ window.addEventListener("error",function(ev){
       if(!await dlgConfirm("Delete this result?","Delete")) return;
       results.splice(+b.dataset.i,1); saveResults(); renderResults(); });
   }
-  let paused=false, pauseMark=0, rlSig="";
+  let paused=false, pauseMark=0, rlSig="", dockHPrev=0;
   // which queued blocks the trainer has opened to look inside
   const rlOpen=new Set();
   let tkLock=true, tkLockTimer=0;
@@ -8916,8 +8941,17 @@ window.addEventListener("error",function(ev){
     const b=$("resetBtn"); if(b&&!b.disabled) b.click(); } };
   $("tkprev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
   function setDock(open){ $("bdock").classList.toggle("tucked",!open); $("bdockTab").classList.toggle("open",open);
+    document.body.classList.toggle("dockup",open);
+    try{ localStorage.setItem("af_dock_v1",open?"1":"0"); }catch(e){}
     $("bdockTab").setAttribute("aria-label",open?"Hide controls":"Show controls"); }
   $("bdockTab").onclick=()=>setDock($("bdock").classList.contains("tucked"));
+  // STAGE 1 OF THE CONTROL/OVERVIEW MERGE (build 418, Omar's go): the dock IS
+  // Control's promise on the Workout page, so it shows itself — open by
+  // default, and the chevron's tuck is remembered per device (a preference,
+  // not a one-shot; it may flip forever).
+  { let dp="1"; try{ dp=localStorage.getItem("af_dock_v1")||"1"; }catch(e){}
+    setDock(dp!=="0"); }
+  $("bdWho").onclick=()=>{ $("tabTrainer").click(); };
   $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
   syncLockUi();
 
@@ -9010,13 +9044,21 @@ window.addEventListener("error",function(ev){
     $("tState").textContent=clockState.textContent;
     if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
+    // idle = before the clock: the dock offers Start + today's athletes and
+    // hides the transport it cannot use yet (build 418); its measured height
+    // rides :root as --dockh so the page bottom, the AI bubble and the
+    // chevron all stack above whatever it wraps to
+    { const dk=$("bdock"); if(dk){ dk.classList.toggle("idle",!running);
+        const h=dk.classList.contains("tucked")?0:dk.offsetHeight;
+        if(h!==+(dockHPrev||0)){ dockHPrev=h;
+          document.documentElement.style.setProperty("--dockh",h+"px"); } } }
     // RESET lights up only when there is a session to reset — and never while locked
     { const br2=$("bdReset"); if(br2) br2.disabled=tkLock||resetBtn.disabled; }
     const bq=$("bdInfo"); if(bq){ bq.textContent=clockEl.parentElement.hidden?"":clockEl.textContent; bq.classList.toggle("hot",clockEl.classList.contains("hot")); }
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=417;
+  const BUILD=418;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
