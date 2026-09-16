@@ -1019,7 +1019,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   all 36. `claimSlots` probing does not understand the halves, so alt
   blocks draw their own spares and skip the claimSlots append. Scored alt
   boards still map tablets by `machSlots.byKey` (per-crew) — align that
-  before anyone SCORES an alt board with tablets. A SLOT IS ONE LINE,
+  before anyone SCORES an alt board with tablets. **GO-LIVE GATE (Omar,
+  16 Sep 2026: "leave as is. Please remind me of this later before we go
+  live"): when Omar says the gym is going live — or asks to score any
+  alternating-windows board (Engine 15/09 family) with tablets — RAISE
+  THIS FIRST and build the alignment before it ships. He knows unscored
+  alt boards ask for no names (369 law, explained and accepted); the
+  parked piece is only scored-alt + tablets.** A SLOT IS ONE LINE,
   ALWAYS (build 392 — Omar: "each slot cannot take more than 1 line!"):
   `.t` is `flex-wrap:nowrap`; only the station NAME ellipsises — `chip()`
   splits a trailing number into `.tno` OUTSIDE the `.tnm` ellipsis span so
