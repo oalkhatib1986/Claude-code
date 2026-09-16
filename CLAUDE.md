@@ -332,6 +332,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   as `.tk-blk.tk-part` — an inline white pill heading `.tk-inst`, above
   the tag/head, in ALL THREE variants (pre-session claim, live claim,
   normal). The occupant (`.tk-who`) keeps its spot beside the corner pill.
+- **THE BOLTED TABLET SHOWS ITS OWN STATION (build 426 — Omar: "it just
+  tells the person on the erg where to go after his work on the erg is
+  done").** On a ROTATING part (itRot, not self-paced — circuits keep
+  `cir`'s richer guide) the machine hosts ONE station: the work card
+  filters to the exercise whose `machineOf` matches `mtype`, the
+  `then`/window-ladder line is dropped (the big screen carries the
+  ladder for the room), and the `.tk-nxt` box reads "Next ·
+  <station> · <prescription>" — the station the athlete walks to,
+  `(myIx+1)%n` in the cycle, wearing its equipment name where linked
+  (`gearFor||name`, the 425 rule). Applies to BOTH tablet screens
+  (screen 1 gains `fRot`, screen 2 `rotNext`; the rotNext override
+  sits BEFORE `cir`'s so circuits win). `altwin.js` gates the
+  single-line card, the dropped ladder and the next box.
 - **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a
