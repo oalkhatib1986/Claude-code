@@ -125,6 +125,54 @@ libPuts=[]; sessPuts=[]; sess=null;
   ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).teamKind==='solo'),
     'an ALL-share pairs board mends regardless of its date'); }
 await ctx.close();
+// 5) PART B DECLUTTERS ITSELF (build 414): part-rounds 3 wanted only the
+// first piece repeated — the mend turns it into ONE 12:00 window with
+// sets:3 (heading "3 ROUNDS × 4 MINUTES") and drops the part to 1 round
+libPuts=[]; sessPuts=[]; sess=null;
+({ctx,p}=await boot(br,()=>{
+  localStorage.removeItem('af_fixlbpb_v1');
+  const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
+  Object.assign(cfg,{name:'Lower Body',wkName:'Lower Body 16/09',titleSet:true,
+    mode:'rotation',teamKind:'solo',together:true,noScore:true,gear:[],
+    prog:{date:'2026-09-16',day:'Wednesday',stype:'Strength',block:'',week:''}});
+  cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:120,sameRest:true,blocks:[
+    {name:'Part A',rounds:1,items:[
+      {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
+        {name:'Paused Back Squat',amounts:[8],unit:'reps',max:false}]}]},
+    {name:'Part B',rounds:3,items:[
+      {name:'For Quality',dur:720,fmt:'rotate',rotBy:'done',scored:false,exercises:[
+        {name:'Barbell FFE Reverse Lunge',amounts:[8],unit:'reps',each:true,max:false},
+        {name:'B-Stance Dumbbell Hip Thrust',amounts:[6],unit:'reps',each:true,max:false}]},
+      {name:'9 mins to complete',dur:540,fmt:'rotate',rotBy:'clock',scored:false,exercises:[
+        {name:'Front Rack March',amounts:[45],unit:'sec',max:false},
+        {name:'Front Plank',amounts:[45],unit:'sec',max:false},
+        {name:'Dead Bugs',amounts:[12],unit:'reps',each:true,max:false}]}]}]});
+  localStorage.setItem(k,JSON.stringify(cfg));
+}));
+{ const c=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  const b=c.rotation.blocks[1];
+  ok(b.rounds===1,'414: Part B drops to 1 round');
+  ok(!b.items[0].fmt&&b.items[0].dur===720,'414: the piece becomes ONE 12:00 group window');
+  ok(b.items[0].exercises.every(x=>x.sets===3),'414: both exercises carry Sets 3');
+  ok(b.items[1].fmt==='rotate'&&b.items[1].dur===540,'414: the 9-minute core piece is untouched');
+  const card=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[1].innerText.replace(/\s+/g,' '));
+  ok(/3 rounds × 4 minutes/i.test(card),'414: the heading reads 3 ROUNDS × 4 MINUTES');
+  ok(!/63:00/.test(card)&&/21:00 total/i.test(card),'414: the part totals 21:00, not 63:00');
+  // 5b) the room pushing the OLD Part B back gets decluttered on arrival
+  const stale=JSON.parse(JSON.stringify(c));
+  stale.rotation.blocks[1].rounds=3;
+  stale.rotation.blocks[1].items[0]={name:'For Quality',dur:720,fmt:'rotate',rotBy:'done',scored:false,
+    exercises:[{name:'Barbell FFE Reverse Lunge',amounts:[8],unit:'reps',each:true,max:false},
+      {name:'B-Stance Dumbbell Hip Thrust',amounts:[6],unit:'reps',each:true,max:false}]};
+  sess={ts:Date.now()+70,src:'other-device',kind:'edit',cfg:stale,run:{mode:'rotation',act:false,run:false}};
+  sessPuts=[];
+  await p.waitForTimeout(4500);
+  const now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  ok(now.rotation.blocks[1].rounds===1&&now.rotation.blocks[1].items[0].exercises.every(x=>x.sets===3),
+    '414: an old Part B arriving from the room is decluttered on arrival');
+  ok(sessPuts.some(v=>v&&v.cfg&&v.cfg.rotation.blocks[1]&&v.cfg.rotation.blocks[1].rounds===1),
+    '414: and the truth is re-published'); }
+await ctx.close();
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

@@ -779,7 +779,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   shape — and when a one-shot misfires, a fresh KEY re-arms it.
   `lbsolo.js` (14) gates his real shape, the finisher surviving
   un-shared with its "All 2" stripped, arrival mend, the different-week
-  mixed board untouched, and the dateless all-share mend.
+  mixed board untouched, and the dateless all-share mend. AND PART B
+  DECLUTTERS ITSELF (build 414 — Omar set the PART's rounds to 3 wanting
+  only the first piece repeated 3 × 4:00, got 63:00, "can you do it and
+  then I'll see how it's done in the setup"): `lbPartBMend` — pinned to
+  the 16 Sept board AND the two exercise names (reverse lunge + hip
+  thrust) — turns the piece into ONE group window, dur 720, `sets:3` on
+  both exercises (heading "3 ROUNDS × 4 MINUTES", the 377 set-beat), and
+  drops the part to rounds:1 so the 9-minute core runs once. One-shot
+  `af_fixlbpb_v1` + the sessApply arm, same as every self-repair. The
+  TEACHING POINT for Omar: part Rounds repeat EVERYTHING in the part;
+  "one piece repeats" is SETS on its exercises with the item's time as
+  the whole window. `lbsolo.js` (22) adds the mend, the untouched core
+  piece, the heading, the 21:00 total and the arrival arm.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup

@@ -7552,7 +7552,8 @@ window.addEventListener("error",function(ev){
         if(!(s.run&&s.run.act)){ const f=fix1509(cfg);
           if(f) migrateLoaded();
           const lb=lbSoloMend(cfg); if(lb){ try{ normCrewNames(); }catch(e){} }
-          if(eng1509InvMend(cfg)||f||lb)
+          const pb=lbPartBMend(cfg);
+          if(eng1509InvMend(cfg)||f||lb||pb)
             setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
         save(); applyAccent(); buildControlRoom();
       }
@@ -7829,6 +7830,45 @@ window.addEventListener("error",function(ev){
     if(touched) savePresets();
     if(lbSoloMend(cfg)){ try{ normCrewNames(); }catch(e){}
       migrateLoaded(); save();
+      setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
+      if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
+    }
+  })();
+  // PART B, DONE THE WAY THE APP MEANS IT (build 414 — Omar: "can you do it
+  // and then I'll see how it's done in the setup"). He set the PART's rounds
+  // to 3 wanting only the FIRST piece to repeat 3 × 4:00 — but part rounds
+  // repeat everything (63:00). The app's word for "one piece repeats" is
+  // SETS: the piece becomes ONE group window of 12:00 with sets:3 on both
+  // exercises — the heading then reads "3 ROUNDS × 4 MINUTES" and the clock
+  // beats each set — and the part's rounds drop to 1 so the 9-minute core
+  // piece runs once. Pinned to HIS board (Lower Body · 16 Sept) AND to the
+  // exact two exercises; an already-mended or hand-edited Part B no-ops.
+  function lbPartBMend(c){
+    if(!c) return false;
+    if(!/^lower body/i.test(String(c.wkName||c.name||"").trim())) return false;
+    if(String((c.prog||{}).date||"")!=="2026-09-16") return false;
+    const b=(((c.rotation||{}).blocks)||[]).find(x=>x&&/^part b/i.test(String(x.name||"").trim()));
+    if(!b) return false;
+    const it=(b.items||[]).find(x=>x&&!x.rest); if(!it) return false;
+    const xs=(it.exercises||[]).filter(Boolean);
+    if(xs.length<2) return false;
+    const names=xs.map(x=>String(x.name||"").toLowerCase()).join(" | ");
+    if(!/reverse lunge/.test(names)||!/hip thrust/.test(names)) return false;
+    if(!((parseInt(b.rounds,10)||1)>1||it.fmt)) return false;   // already the taught shape
+    b.rounds=1; b.rrest=0;
+    delete it.fmt; delete it.rotBy; delete it.alt; delete it.shareN; delete it.wavesN;
+    it.dur=720;
+    xs.forEach(x=>{ x.sets=3; });
+    return true;
+  }
+  (function fixLBPartB(){
+    const K="af_fixlbpb_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    let touched=false;
+    presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&lbPartBMend(p.cfg)){
+      p.ts=Date.now(); touched=true; libPush(p); } });
+    if(touched) savePresets();
+    if(lbPartBMend(cfg)){ migrateLoaded(); save();
       setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
       if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
     }
@@ -8899,7 +8939,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=413;
+  const BUILD=414;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
