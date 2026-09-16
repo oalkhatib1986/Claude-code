@@ -845,37 +845,45 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   by s, never sets it. `lbsolo.js` (30) pins the v4 shape, both stale
   conversions, "3 × 4:00" on the card, "Round 2 of 3" live, the flow
   between windows and the park after window 3.
-- **THE CONTROLS SIT IN THE PAGE, NOT ON IT (builds 418-419 — Omar:
+- **THE CONTROLS SIT IN THE PAGE, NOT ON IT (builds 418-421 — Omar:
   "I'm thinking of combining the control and overview pages", stage 1
   of the merge; stage 2 — folding Control's deep panels in as collapsed
   sections and possibly retiring the tab — WAITS ON HIS VERDICT after
   he runs a real class with this).** Build 418 opened the floating dock
-  (`#bdock`) by default and OMAR REJECTED IT ON SIGHT ("I don't like
-  how it covers the workout") — the start-flow paragraph (`bdFlow`)
-  ballooned it into a slab over the cards. He circled the empty
-  subhead space beside the title: that is where the controls live now.
-  `#ovCtl` rides the subhead IN FLOW — on a phone it wraps to its own
+  by default and OMAR REJECTED IT ON SIGHT ("I don't like how it
+  covers the workout"); 419 made it opt-in but his device had 418's
+  stored "open" and he hit it AGAIN ("it's hovering over the workout!
+  remove it from down!") — LESSON: a preference a rejected build wrote
+  is the rejected build still shipping; when Omar rejects a surface,
+  REMOVE it, don't default it away. THE DOCK AND ITS CHEVRON ARE GONE
+  FROM THE DOM (421) — `#ovCtl` in the subhead is the ONE control
+  surface on the Workout page, IN FLOW: on a phone it wraps to its own
   full-width row and PUSHES the cards down; it can never cover one.
   IDLE (`.ovctl:not(.run)`, toggled off `running` on the 400ms tick —
   a hold park keeps `running` true so the transport never vanishes
-  mid-class): the athletes pill (`#ovWho`, written in `syncTeamCount`
-  beside `#bdWho` from the same attendance the Control picker shows,
-  hidden under `body.noroster`, tap = go to Control) + Start (label
-  mirrors `startBtn` on the tick). RUNNING (`.ovctl.run`,
-  `flex:1 1 100%` — its own row under the clock): lock ‹ ⏸ › + the
-  Start mirror; every ov* control is in `syncLockUi`/`pauseUi`/the
-  interval's disabled lists and its handlers are the SAME pattern as
-  bd* (nextPart+sessPushNow etc. — the publish audit applies). Hidden
-  on `body.bigscreen`/`body.tvroute`. The dock is OPT-IN again
-  (chevron, `af_dock_v1` remembered, default tucked), its idle shape
-  drops `bdFlow` with the dead icons, and the 418 stacking stays: the
-  dock's measured height rides `:root --dockh` and the page bottom,
-  the AI bubble and the chevron offset by it (the FAB's × was eating
-  the chevron's taps at fixed bottom:34px — check every fixed-corner
-  element against every other, both states). `ovdock.js` (27) gates
-  strip idle/run, never-covers-a-card (rect check idle+running,
-  desktop+phone), lock/skip/publish/pause, dock opt-in + memory + no
-  bdFlow, route/phone. Control itself is UNTOUCHED in stage 1.
+  mid-class): `#ovPick` — CONTROL'S OWN athletes picker (421, Omar:
+  "I should also be able to set the number of athletes from here"; it
+  rides the `["tcPick","tcPick2","ovPick"]` forEach in
+  `syncTeamCount`, so options, Fit-the-gym and attendance memory are
+  one code path), hidden under `body.noroster` and while running —
+  plus Start (label mirrors `startBtn` on the tick, wears the
+  triangle). RUNNING (`.ovctl.run`, `flex:1 1 100%` — its own row
+  under the clock): lock ‹ ⏸ › + the Start mirror; every ov* control
+  is in `syncLockUi`/`pauseUi`/the interval's disabled lists and its
+  handlers publish (nextPart+sessPushNow — the audit applies). Hidden
+  on `body.bigscreen`/`body.tvroute`. THE STACKED PILLS WEAR ONE
+  WIDTH: Start's measured width rides `:root --ovbw` on the tick and
+  `#bEditBtn{min-width:var(--ovbw)}` (Omar: "the pills need to be
+  same size! I have OCD about formatting" — any stacked pill pair
+  must share a width, measured, not hoped). AND THE SHARELINES ALIGN:
+  `.shareline{margin-top:auto}` pins every part's footnote to its
+  card's bottom edge — the cards in a row stretch to one height, so
+  the footnotes sit on one line (Omar: "they must align to bottom
+  together"). `ovdock.js` (25) gates no-dock-in-DOM (even against
+  418's stored "open"), strip idle/run, the strip picker sizing the
+  class + Control agreeing, equal pills, never-covers-a-card,
+  lock/skip/publish/pause, route, shareline alignment, phone.
+  Control itself is UNTOUCHED in stage 1.
 - **THE WHO LABEL IS EDITABLE EVERYWHERE (build 420 — Omar found
   "P1 —" on Part C's card with no field anywhere: "how is that set? I
   can't find it in setup?!").** A solo board carries REAL splits too

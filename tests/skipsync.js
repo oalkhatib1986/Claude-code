@@ -41,9 +41,9 @@ await phone.evaluate(()=>document.getElementById('startBtn').click());
 await phone.waitForTimeout(4000);
 ok((await tv.evaluate(()=>window.__sessState())).run===true,'the TV runs the class');
 // unlock the transport, skip to the next part
-await phone.evaluate(()=>document.getElementById('bdLock')?document.getElementById('bdLock').click():document.getElementById('tkLockBtn').click());
+await phone.evaluate(()=>document.getElementById('ovLock')?document.getElementById('ovLock').click():document.getElementById('tkLockBtn').click());
 await phone.waitForTimeout(300);
-await phone.evaluate(()=>document.getElementById('bdNext').click());
+await phone.evaluate(()=>document.getElementById('ovNext').click());
 await phone.waitForTimeout(500);
 ok(!!sess&&!!sess.run,'the skip published at once');
 await tv.waitForTimeout(3200);

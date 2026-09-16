@@ -129,7 +129,7 @@ await p.waitForTimeout(900);
     await p.waitForTimeout(400);
   }
   await p.click('#tabBoard'); await p.waitForTimeout(400);
-  for(let i=0;i<6;i++){ await p.evaluate(()=>{ const b=document.getElementById('bdPause');
+  for(let i=0;i<6;i++){ await p.evaluate(()=>{ const b=document.getElementById('ovPause');
       if(b&&!b.disabled) b.click(); }); await p.waitForTimeout(180); }
   const errs=freshErr();
   const live=await p.evaluate(()=>!!document.querySelector('#blockCards .exg.pnow'));
