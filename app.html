@@ -5375,8 +5375,13 @@ window.addEventListener("error",function(ev){
         const fSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
         let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
+        // a bolted tablet shows ITS station's work, not the whole ladder (426)
+        let fRot=false;
+        if(fIt&&!fIt.rest&&itRot(fIt)){ const xs9=(fIt.exercises||[]).filter(Boolean);
+          const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
+          if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`]; fRot=true; } }
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
-        const fThen=fIts.slice(fI+1).map(fSum).join(" · ");
+        const fThen=fRot?"":fIts.slice(fI+1).map(fSum).join(" · ");
         scr.innerHTML=`
         <div class="tk">
           <div class="tk-card tk-id">
@@ -5582,6 +5587,20 @@ window.addEventListener("error",function(ev){
       let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:nowIt}))}</em>`);
       if(!nowLines.length) nowLines=[`<em>${esc(nowIt?itSum(nowIt):(wBlk.desc||wBlk.name||"Work"))}</em>`];
       let after=wIts.slice(nowI+1).map(itSum), thenLab="then";
+      // THE TABLET IS BOLTED TO THE ERG (build 426 — Omar: "it just tells
+      // the person on the erg where to go after his work on the erg is
+      // done"): on a rotating part this machine hosts ONE station — the
+      // card shows ITS work only, the ladder of windows stays on the big
+      // screen, and the next box points at the station the athlete walks
+      // to. The station wears its equipment's name where linked (425).
+      let rotNext=null;
+      if(nowIt&&!nowIt.rest&&itRot(nowIt)&&!(seg&&seg.self)){
+        const xs9=(nowIt.exercises||[]).filter(Boolean);
+        const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
+        if(xs9.length>1&&myIx>=0){
+          nowLines=[`<em>${esc(exTxt(xs9[myIx],{it:nowIt}))}</em>`];
+          rotNext=xs9[(myIx+1)%xs9.length];
+          after=[]; } }
       if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
       if(phase==="rest"||holding) after=[];
       if(phase==="done"){ thenLab="today"; after=[];
@@ -5606,6 +5625,11 @@ window.addEventListener("error",function(ev){
       // session isn't on its last lap, it just has nothing after it
       else if(lastRound&&totalRounds()>1){ nxSpan="Last round"; nxB="Finish strong"; nxEm=""; }
       else if(lastRound){ nxSpan="After this"; nxB="Session ends"; nxEm="Finish strong"; }
+      // a rotating part points at the station the athlete walks to next —
+      // that is the whole job of this card on a bolted tablet (426)
+      if(rotNext&&phase!=="done"&&team){ nxSpan="Next";
+        nxB=esc(gearFor(rotNext.name)||rotNext.name);
+        nxEm=esc(rotNext.max?("Max"+maxUnit(rotNext.unit)):(amtList(rotNext).join("/")+exUnit(rotNext.unit)).trim()); }
       // a circuit always points at the next station — that is the whole job of this card
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
         nxEm=esc((amtList(cir.next).join("/")+exUnit(cir.next.unit)).trim()); }
@@ -9094,7 +9118,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=425;
+  const BUILD=426;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

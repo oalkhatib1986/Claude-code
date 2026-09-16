@@ -159,6 +159,29 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   const labs=[...c.querySelectorAll('.teams .t .tnm')].map(x=>x.textContent.trim());
   return labs.filter(t=>/^Med Balls$/i.test(t)).length===6&&!labs.some(t=>/wall balls/i.test(t)); }),
   '425: a linked floor exercise wears its EQUIPMENT name (Med Balls 1-6)');
+// THE TABLET IS BOLTED TO THE ERG (build 426 — Omar: "it just tells the
+// person on the erg where to go after his work on the erg is done"): on a
+// rotating part the Ski tablet shows ITS work only, no window ladder, and
+// the next box names the station the athlete walks to.
+{ const p2=await br.newPage({viewport:{width:1280,height:900}});
+  p2.on('pageerror',e=>{fail++;console.log('FAIL pageerror(tk):',e.message);});
+  await p2.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p2.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p2.reload(); await p2.waitForTimeout(1400);
+  await p2.evaluate(()=>window.__loadLib&&window.__loadLib('Engine 15/09'));
+  await p2.waitForTimeout(1200);
+  await p2.click('#tabTablet'); await p2.waitForTimeout(800);
+  await p2.evaluate(()=>window.__tbOpen('Ski:1')); await p2.waitForTimeout(1000);
+  const d=await p2.evaluate(()=>{
+    const now=document.querySelector('.tk-now'), then=document.querySelector('.tk-then'),
+      nxt=document.querySelector('.tk-nxt');
+    return {now:now?now.innerText.replace(/\s+/g,' ').trim():'',
+      hasThen:!!then, nxt:nxt?nxt.innerText.replace(/\s+/g,' ').trim():''}; });
+  ok(/^max cal ski$/i.test(d.now),'426: the Ski tablet shows ITS work only ('+d.now+')');
+  ok(!d.hasThen,'426: the window ladder is gone from the tablet');
+  ok(/wall balls/i.test(d.nxt)&&/max reps/i.test(d.nxt),
+    '426: the next box names where to go — '+d.nxt);
+  await p2.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
