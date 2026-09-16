@@ -800,9 +800,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   that once", and it is what unlocks per-piece repetition inside a part
   whose other piece must not repeat. One-shot key bumped to
   `af_fixlbpb_v2`; the mend converts BOTH stale shapes (the original
-  12:00 rotate AND 414's superset). `lbsolo.js` (24) pins the round
-  shape, the finisher, the "3 rounds × 4:00 · then 9:00 finish" footer,
-  both arrival conversions and the republish.
+  12:00 rotate AND 414's superset). AND THE TRAINER STARTS THE FINISHER
+  (build 416 — Omar: "the trainer is the one that starts the 9 min
+  section, it doesn't start on its own"): `holdBounds` grew a fin-aware
+  rule — a hold on the LAST round item WITH a finisher parks the clock
+  ONCE, after the FINAL round only (`finStart = one*n + rrest*(n-1)` —
+  no rrest after the last round), never between rounds; without a
+  finisher the old between-rounds behavior is unchanged, mid-list holds
+  still stop every round, and a hold on a finisher gates the finisher
+  after it. The Part B mend adds `hold:true` on the superset piece (key
+  `af_fixlbpb_v3`). TEST GOTCHA: in together mode `__seek` drives the
+  CURRENT block's clock — a suite must walk out of Part A (seek past
+  its end, press start) before seeking inside Part B. `lbsolo.js` (28)
+  adds the hold shape, flow-between-rounds, the park at the finisher
+  and the trainer's release.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup

@@ -131,12 +131,12 @@ await ctx.close();
 // then the 9-minute core piece runs ONCE as the finisher
 libPuts=[]; sessPuts=[]; sess=null;
 ({ctx,p}=await boot(br,()=>{
-  localStorage.removeItem('af_fixlbpb_v2');
+  localStorage.removeItem('af_fixlbpb_v3');
   const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
   Object.assign(cfg,{name:'Lower Body',wkName:'Lower Body 16/09',titleSet:true,
     mode:'rotation',teamKind:'solo',together:true,noScore:true,gear:[],
     prog:{date:'2026-09-16',day:'Wednesday',stype:'Strength',block:'',week:''}});
-  cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:120,sameRest:true,blocks:[
+  cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
     {name:'Part A',rounds:1,items:[
       {name:'Set 1',dur:150,fmt:'share',shareN:2,scored:false,group:true,exercises:[
         {name:'Paused Back Squat',amounts:[8],unit:'reps',max:false}]}]},
@@ -156,6 +156,7 @@ libPuts=[]; sessPuts=[]; sess=null;
   ok(b.items[0].fmt==='rotate'&&b.items[0].rotBy==='done'&&b.items[0].dur===240,
     '415: each round is a 4:00 self-paced two-station window');
   ok(b.items[0].exercises.every(x=>!x.sets),'415: no sets on the lines — the rounds ARE the sets');
+  ok(b.items[0].hold===true,'416: the superset piece carries the trainer-starts-next hold');
   ok(b.items[1].fin===true&&b.items[1].dur===540,'415: the 9-minute core piece runs ONCE (finisher)');
   const card=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[1].innerText.replace(/\s+/g,' '));
   ok(/self-paced/i.test(card),'415: the card says self-paced');
@@ -188,6 +189,26 @@ libPuts=[]; sessPuts=[]; sess=null;
   ok(now.rotation.blocks[1].rounds===3&&now.rotation.blocks[1].items[0].rotBy==='done'
     &&now.rotation.blocks[1].items[0].exercises.every(x=>!x.sets),
     "415: 414's superset in-between shape converts too"); }
+// 6) THE CLOCK PARKS ONCE, BEFORE THE FINISHER ONLY (416): rounds flow into
+// each other; after round 3 the board says "press start" until the trainer
+// starts the 9-minute section
+await p.click('#tabTrainer'); await p.waitForTimeout(500);
+await p.evaluate(()=>document.getElementById('startBtn').click());
+await p.waitForTimeout(800);
+// walk out of Part A (150s) into Part B: block ends, trainer starts the next
+await p.evaluate(()=>window.__seek(148)); await p.waitForTimeout(1800);
+await p.evaluate(()=>document.getElementById('startBtn').click());
+await p.waitForTimeout(800);
+await p.evaluate(()=>window.__seek(235)); await p.waitForTimeout(1600);
+ok(await p.evaluate(()=>!/press start/i.test(document.getElementById('clockState').textContent)),
+  '416: round 1 flows into round 2 — no stop between rounds');
+await p.evaluate(()=>window.__seek(715)); await p.waitForTimeout(1600);
+ok(await p.evaluate(()=>/press start/i.test(document.getElementById('clockState').textContent)),
+  '416: after round 3 the clock parks — "Next part — press start"');
+await p.evaluate(()=>document.getElementById('startBtn').click());
+await p.waitForTimeout(1200);
+ok(await p.evaluate(()=>!/press start/i.test(document.getElementById('clockState').textContent)),
+  '416: the trainer\'s start releases the 9-minute section');
 await ctx.close();
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

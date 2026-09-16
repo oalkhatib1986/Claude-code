@@ -7862,11 +7862,14 @@ window.addEventListener("error",function(ev){
     // rounds:3 · item0 rotate/self-paced dur 240 (no sets — the rounds ARE
     // the sets) · the core item fin:true.
     const core=(b.items||[]).find(x=>x&&!x.rest&&x!==it);
+    // build 416: the trainer starts the 9-minute section — hold on the
+    // superset piece, which (with the finisher) parks the clock ONCE,
+    // after the final round, never between rounds
     const good=(parseInt(b.rounds,10)||1)===3&&it.fmt==="rotate"
-      &&it.rotBy==="done"&&it.dur===240&&(!core||core.fin===true);
+      &&it.rotBy==="done"&&it.dur===240&&it.hold===true&&(!core||core.fin===true);
     if(good) return false;
     b.rounds=3; b.rrest=0;
-    it.fmt="rotate"; it.rotBy="done";
+    it.fmt="rotate"; it.rotBy="done"; it.hold=true;
     delete it.alt; delete it.shareN; delete it.wavesN;
     it.dur=240;
     xs.forEach(x=>{ delete x.sets; });
@@ -7874,7 +7877,7 @@ window.addEventListener("error",function(ev){
     return true;
   }
   (function fixLBPartB(){
-    const K="af_fixlbpb_v2";   // v1 shipped the superset shape; v2 re-arms
+    const K="af_fixlbpb_v3";   // v1 superset, v2 rounds+finisher; v3 adds the hold
     try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
     let touched=false;
     presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&lbPartBMend(p.cfg)){
@@ -8801,10 +8804,29 @@ window.addEventListener("error",function(ev){
   }
   let holding=false, holdPend=[];
   // union of "wait for trainer" boundaries across all blocks (they share one class clock)
+  // A hold gates the NEXT LIST ITEM: mid-list, that is the next piece in the
+  // same round (every round); on the LAST round item with no finisher, the
+  // next thing is the next ROUND (boundaries between rounds — unchanged); on
+  // the last round item WITH a finisher (build 416 — Omar: "the trainer is
+  // the one that starts the 9 min section, it doesn't start on its own"),
+  // the next item only ever follows the FINAL round — ONE boundary, right
+  // before the finisher, never between the rounds themselves. A hold on a
+  // finisher gates the finisher after it.
   const holdBounds=()=>{ const s=new Set();
-    R().blocks.forEach(b=>{ const its=b.items||[]; const one=oneRound(b); const n=bRounds(b), per=one+bRRest(b);
-      for(let r=0;r<n;r++){ let acc=r*per; its.forEach((it,i)=>{ acc+=itLen(it);
-        if(it.hold&&!(r===n-1&&i===its.length-1)) s.add(acc); }); } });
+    R().blocks.forEach(b=>{ const its=roundItems(b), fins=finItems(b);
+      const one=oneRound(b); const n=bRounds(b), per=one+bRRest(b);
+      const finStart=one*n+bRRest(b)*(n-1);
+      for(let r=0;r<n;r++){ let acc=r*per;
+        its.forEach((it,i)=>{ acc+=itLen(it);
+          if(!it.hold) return;
+          if(i<its.length-1){ s.add(acc); return; }
+          if(fins.length){ if(r===n-1) s.add(acc); }
+          else if(r<n-1) s.add(acc);
+        }); }
+      let fa=finStart;
+      fins.forEach((it,i)=>{ fa+=itLen(it);
+        if(it.hold&&i<fins.length-1) s.add(fa); });
+    });
     return [...s].sort((a,b2)=>a-b2); };
   function enginePump(){
     if(cfg.mode==="rotation") raf=requestAnimationFrame(rot.phase==="rest"?frameRest:frameRotation);
@@ -8951,7 +8973,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=415;
+  const BUILD=416;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
