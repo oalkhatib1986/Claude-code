@@ -82,6 +82,15 @@ await p.waitForTimeout(900);
 ok(await p.evaluate(()=>document.getElementById('ovCtl').classList.contains('run')),
   'starting turns the strip into the transport row');
 ok(await seen('ovNext')&&await seen('ovPause')&&await seen('ovLock'),'lock + transport are drawn');
+// THE WHOLE transport (422 — Omar: "what happened to the rest of the
+// controls?!"): seeks and Reset ride the strip like they rode Control
+ok(await seen('ovB10')&&await seen('ovB5')&&await seen('ovF5')&&await seen('ovF10')&&await seen('ovReset'),
+  '±10/±5 seek and Reset are on the strip');
+// THE STATUS BOX IS GONE (422 — "do we even need this box?!")
+ok(await p.evaluate(()=>getComputedStyle(document.getElementById('phaseBanner')).display==='none'),
+  'the Block-1-of-3-working box no longer prints on the Workout page');
+ok(await p.evaluate(()=>parseFloat(getComputedStyle(document.querySelector('.beditrow')).marginTop)>=10),
+  'the Edit row keeps its breathing room above');
 ok(!await p.evaluate(()=>{ const x=document.getElementById('ovPick');
   return x&&x.offsetParent!==null; }),'the picker makes way while running');
 ok(await clearOfCards(),'running: the strip still clears the cards');
@@ -97,6 +106,13 @@ ok(await p.evaluate(()=>!document.getElementById('ovNext').disabled),
   const after=await p.evaluate(()=>document.querySelector('#blockCards .blk.live .bwhere').textContent);
   ok(before!==after,'next-part moves the class ('+before+' -> '+after+')');
   ok(sessPuts.length>n0,'and the skip is published to the room'); }
+// seeking from the strip moves the clock AND publishes
+{ const n0=sessPuts.length;
+  const t1=await p.evaluate(()=>document.getElementById('clock').textContent);
+  await p.click('#ovB10'); await p.waitForTimeout(600);
+  const t2=await p.evaluate(()=>document.getElementById('clock').textContent);
+  ok(t1!==t2,'seek -10 moves the clock ('+t1+' -> '+t2+')');
+  ok(sessPuts.length>n0,'and the seek is published'); }
 // 6) pause freezes the clock, resume releases it
 await p.click('#ovPause'); await p.waitForTimeout(400);
 { const t1=await p.evaluate(()=>document.getElementById('clock').textContent);
@@ -153,6 +169,22 @@ await p3.reload(); await p3.waitForTimeout(1600);
   ok(r.sl.length>=2,'both parts carry a shareline ('+r.sl.length+')');
   ok(r.sl.length>=2&&Math.max(...r.sl)-Math.min(...r.sl)<=2,
     'the footnotes sit on ONE line: bottoms '+r.sl.join(', ')); }
+// THE HEADCOUNT STAYS WHEN THE SPLIT DEPENDS ON IT (422 — Omar's unscored
+// Lower Body printed "2-3 per station" with nowhere to set the class size):
+// this board is unscored, ergless AND gear-split — the picker must show
+ok(await p3.evaluate(()=>!document.body.classList.contains('noroster')),
+  'an unscored gear-split board keeps the roster');
+ok(await p3.evaluate(()=>{ const x=document.getElementById('ovPick');
+  return !!x&&x.offsetParent!==null&&/athlete/i.test(x.textContent); }),
+  'the athletes picker shows on it — the split is settable');
+// …and the 369 law HOLDS where nothing depends on the count: a bare floor
+// board (no ergs, no leaderboard, no gear) still counts nobody
+await p3.evaluate(()=>{ const K='af_erg_cfg_v8'; const c=JSON.parse(localStorage.getItem(K));
+  c.gear=[]; c.exGear={}; localStorage.setItem(K,JSON.stringify(c)); });
+await p3.reload(); await p3.waitForTimeout(1400);
+ok(await p3.evaluate(()=>document.body.classList.contains('noroster')
+  &&document.getElementById('ovPick').offsetParent===null),
+  'a bare floor board still hides the headcount (369 law)');
 await ctx3.close();
 // 9) phone 390: the strip wraps to its own row, no h-scroll
 await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(700);

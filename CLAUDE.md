@@ -883,7 +883,26 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   418's stored "open"), strip idle/run, the strip picker sizing the
   class + Control agreeing, equal pills, never-covers-a-card,
   lock/skip/publish/pause, route, shareline alignment, phone.
-  Control itself is UNTOUCHED in stage 1.
+  Control itself is UNTOUCHED in stage 1. BUILD 422 (Omar's four-image
+  round; his standing order re-affirmed: WHEN A DISPLAY QUESTION IS
+  HIS, ASK — "don't guess, always ask me so we don't waste time"):
+  the strip carries the WHOLE transport — ‹10/‹5/5›/10› seeks and the
+  confirmed Reset ride beside prev/pause/next (Omar: "what happened to
+  the rest of the controls?!"; leaving controls out of a surface that
+  replaced another is a regression, list what the old one carried);
+  the `#phaseBanner` status box is GONE from the Workout page
+  (`body:not(.bigscreen) #phaseBanner{display:none}` — he was ASKED,
+  he picked remove: clock + status pill already say it; the Big Screen
+  keeps its banner); `.beditrow` carries `margin:12px 0` so the Edit
+  pill never touches the element above. AND THE HEADCOUNT STAYS WHEN
+  THE SPLIT DEPENDS ON IT: his unscored Lower Body printed "2-3 per
+  station" — a number DERIVED from the class size — while `noroster`
+  hid every place to set it; `syncErgless` now keeps the roster when
+  any working item's stations come from EQUIPMENT (`itGear(it)>0`),
+  and only a bare floor board (no ergs, no leaderboard, no gear) still
+  counts nobody — the 369 law narrowed, not repealed. `ovdock.js` (33)
+  adds full-transport, seek-publishes, no-banner, Edit-gap, the
+  gear-split roster and the bare-floor counter-case.
 - **THE WHO LABEL IS EDITABLE EVERYWHERE (build 420 — Omar found
   "P1 —" on Part C's card with no field anywhere: "how is that set? I
   can't find it in setup?!").** A solo board carries REAL splits too

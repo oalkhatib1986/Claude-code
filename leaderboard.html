@@ -1320,8 +1320,14 @@
   #ovPick .mfield{font-size:14px;padding:9px 30px 9px 13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ovctl.run #ovPick{display:none}
   body.noroster #ovPick{display:none}
+  .ovctl:not(.run) #ovReset{display:none}
   body.bigscreen .ovctl,body.tvroute .ovctl{display:none}
   @media (max-width:760px){ .ovctl{flex:1 1 100%;justify-content:flex-start} }
+  /* THE STATUS BOX IS GONE FROM THE WORKOUT PAGE (build 422 — Omar: "do we
+     even need this box?!" — the clock says BLOCK 1/3 and the button says
+     BLOCK 1 OF 3 RUNNING; three copies of one fact). The Big Screen keeps
+     its own banner. */
+  body:not(.bigscreen) #phaseBanner{display:none}
   .tb-namer{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.03)}
   .tb-namer label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
   .tb-namer div{display:flex;gap:8px}
@@ -1475,7 +1481,10 @@
      shift); the editor is the site's own inputs, never a browser window. */
   /* the button sits at the summary row's RIGHT (Omar, build 407) — the hint
      slides in beside it while editing */
-  .beditrow{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+  /* one vertical rhythm: the Edit row keeps the SAME gap to whatever sits
+     above it as the strip's own rows keep (build 422 — Omar: the Edit pill
+     was touching the box above it) */
+  .beditrow{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:12px 0}
   /* the Edit pill matches the Start pill above it exactly — one width for
      the stacked pair (--ovbw is Start's measured width; Omar's OCD rule) */
   #bEditBtn{min-width:var(--ovbw,0px)}
@@ -1833,8 +1842,13 @@
         <span class="ovpick" id="ovPick" title="Athletes today"></span>
         <button class="tico lock" id="ovLock" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
         <button class="tico" id="ovPrev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
+        <button class="tico" id="ovB10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+        <button class="tico" id="ovB5" type="button" disabled aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
         <button class="tico pp" id="ovPause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
+        <button class="tico" id="ovF5" type="button" disabled aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+        <button class="tico" id="ovF10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
         <button class="tico" id="ovNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+        <button class="btn small" id="ovReset" type="button" disabled title="Reset session">Reset</button>
         <button class="btn small primary" id="ovStart" type="button">Start</button>
       </div>
     </div>
@@ -2987,7 +3001,16 @@ window.addEventListener("error",function(ev){
   function syncErgless(){
     const off=!hasErgs();
     document.body.classList.toggle("noergs",off);
-    document.body.classList.toggle("noroster",off&&!showLeaderboard());
+    // THE HEADCOUNT STAYS WHEN THE SPLIT DEPENDS ON IT (build 422 — Omar's
+    // unscored Lower Body printed "2-3 per station", a number DERIVED from
+    // the class size, while noroster hid every place to set it): a board
+    // whose stations come from EQUIPMENT needs the roster whether or not
+    // anything is scored. Only a bare floor board — no ergs, no leaderboard,
+    // no gear-driven split — counts nobody.
+    let gearSplit=false;
+    try{ gearSplit=cfg.mode==="rotation"
+      &&R().blocks.some(b=>(b.items||[]).some(it=>it&&!it.rest&&itGear(it)>0)); }catch(e){}
+    document.body.classList.toggle("noroster",off&&!showLeaderboard()&&!gearSplit);
   }
   try{ window.__claim=claimSlots; window.__slots=machSlots; window.__teamsAt=bi=>teamsAt(bi); }catch(e){}
 
@@ -8935,6 +8958,14 @@ window.addEventListener("error",function(ev){
   $("ovPause").onclick=()=>{ setPaused(!paused); sessPushNow(); };
   $("ovNext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
   $("ovPrev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
+  $("ovB10").onclick=()=>{ seek(-10); sessPushNow(); };
+  $("ovB5").onclick=()=>{ seek(-5); sessPushNow(); };
+  $("ovF5").onclick=()=>{ seek(5); sessPushNow(); };
+  $("ovF10").onclick=()=>{ seek(10); sessPushNow(); };
+  // the same confirmed reset as Control — its handler asks in the app's own
+  // panel and publishes; the lock gates it like every destructive control
+  $("ovReset").onclick=()=>{ armRelock(); if(!tkLock){
+    const b=$("resetBtn"); if(b&&!b.disabled) b.click(); } };
   $("ovLock").onclick=()=>setTkLock(!tkLock);
   syncLockUi();
 
@@ -9018,8 +9049,10 @@ window.addEventListener("error",function(ev){
 
   setInterval(()=>{ const a=$("tClock"); if(!a) return;
     const noTk=cfg.mode==="waves";
-    ["tkpause","tkb10","tkb5","tkf5","tkf10","ovPause"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
+    ["tkpause","tkb10","tkb5","tkf5","tkf10","ovPause","ovB10","ovB5","ovF5","ovF10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
     ["tknext","tkprev","ovNext","ovPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
+    // Reset lights up only when there is a session to reset — never locked
+    { const orr=$("ovReset"); if(orr) orr.disabled=tkLock||resetBtn.disabled; }
     buildTrainerList();
     refreshCrewStations();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
@@ -9037,7 +9070,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=421;
+  const BUILD=422;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
