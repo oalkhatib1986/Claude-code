@@ -1136,6 +1136,12 @@
   .gtime .mfield{font-family:var(--mono);font-size:15px;padding:9px 28px 9px 11px;background-position:right 9px center}
   .exr1.slim{grid-template-columns:118px 1fr 32px;align-items:end}
   .exr1.slim.hasx2{grid-template-columns:118px 1fr 32px 32px;align-items:end}
+  /* SOLO HAS NO WHO COLUMN (build 419 — Omar: "why is the exercise box so
+     small although you have a lot of space"): with the Who field absent,
+     auto-placement dropped the Exercise picker into Who's 118px track and
+     the name truncated beside a page of void. No Who = no 118px track. */
+  .exr1.slim.nowho{grid-template-columns:1fr 32px}
+  .exr1.slim.nowho.hasx2{grid-template-columns:1fr 32px 32px}
   .exr1 .iconbtn{margin-bottom:3px}
   .psec-h{display:flex;align-items:baseline;gap:10px}
   .psec-h b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
@@ -1303,17 +1309,36 @@
   #bdock b.hot{color:var(--hot)}
   #bdock b:empty{display:none}
   body.bigscreen #bdock{display:none}
-  /* THE DOCK IS THE CONTROL STRIP (build 418): before the clock it offers the
-     two things Control does then — who's coming and Start — and the dead
-     transport icons stay out of sight; running brings them back. */
-  #bdock .bdwho{font-family:var(--disp);font-weight:600;font-size:12.5px;letter-spacing:.05em;
+  /* THE CONTROLS SIT IN THE PAGE, NOT ON IT (build 419 — Omar rejected the
+     floating bar: "I don't like how it covers the workout", circling the
+     empty space beside the title). #ovCtl rides the subhead's right side —
+     the void he circled — IN FLOW: on a phone it wraps to its own
+     full-width row under the summary and pushes the cards down instead of
+     covering them. Idle it offers what Control offers then (athletes +
+     Start); running brings the transport, lock-guarded like everywhere. */
+  .bdwho{font-family:var(--disp);font-weight:600;font-size:12.5px;letter-spacing:.05em;
     color:var(--ink-dim);background:none;border:1px solid var(--line);border-radius:999px;
     padding:8px 14px;cursor:pointer;max-width:58vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #bdock .bdwho:hover{color:var(--ink)}
+  .bdwho:hover{color:var(--ink)}
+  .ovctl{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;
+    flex:0 1 auto;margin-left:auto;padding-bottom:4px}
+  /* running, the clock owns the corner — the transport takes its own row
+     underneath, still right-aligned with it */
+  .ovctl.run{flex:1 1 100%;margin-left:0}
+  .ovctl .tico{width:36px;height:36px}
+  .ovctl .tico svg{width:21px;height:21px}
+  .ovctl:not(.run) .tico{display:none}
+  .ovctl.run #ovWho{display:none}
+  body.noroster #ovWho{display:none}
+  body.bigscreen .ovctl,body.tvroute .ovctl{display:none}
+  @media (max-width:760px){ .ovctl{flex:1 1 100%;justify-content:flex-start} }
+  /* the opt-in floating dock keeps the slim shapes: no dead icons and no
+     start-flow paragraph while idle (the paragraph ballooned it into the
+     slab Omar rejected) */
   #bdock #bdWho{display:none}
   #bdock.idle #bdWho{display:block}
   body.noroster #bdock #bdWho{display:none}
-  #bdock.idle .tico,#bdock.idle #bdReset,#bdock.idle #bdInfo{display:none}
+  #bdock.idle .tico,#bdock.idle #bdReset,#bdock.idle #bdInfo,#bdock.idle #bdFlow{display:none}
   /* the open dock floats over the page bottom — everything that lives down
      there stacks ABOVE it by its real height (--dockh, measured on the tick):
      the last card, the AI bubble, the chevron. Fixed offsets collide the
@@ -1785,6 +1810,8 @@
     .exr1.slim{grid-template-columns:1fr 32px}
     .exr1.slim.hasx2{grid-template-columns:1fr 32px 32px}
     .exr1.slim>.lfld:first-child{grid-column:1/-1}
+    /* no Who field = the exercise shares its row with the buttons */
+    .exr1.slim.nowho>.lfld:first-child{grid-column:auto}
     .exr2{gap:6px}
     .amtchips{gap:5px}
     .amtchip .amt{width:auto;min-width:40px}
@@ -1841,6 +1868,14 @@
     <div class="subhead">
       <div class="ttl"><b id="evName"></b><span id="evProg" class="progline" hidden></span><span id="evSummary"></span></div>
       <div class="clock"><i class="clab" id="clockLab">Work</i><b id="clock">0:00</b><span id="clockState">On the line</span><i class="cbar"><u id="clockBar"></u></i></div>
+      <div class="ovctl" id="ovCtl">
+        <button class="bdwho" id="ovWho" type="button" title="Athletes today &mdash; tap to change in Control"></button>
+        <button class="tico lock" id="ovLock" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
+        <button class="tico" id="ovPrev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
+        <button class="tico pp" id="ovPause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
+        <button class="tico" id="ovNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+        <button class="btn small primary" id="ovStart" type="button">Start</button>
+      </div>
     </div>
     <div class="phase" id="phaseBanner" hidden>
       <span class="plabel" id="phaseLabel"></span>
@@ -5827,6 +5862,7 @@ window.addEventListener("error",function(ev){
         const lwrap=(t,key,node)=>{ const w=document.createElement("div"); w.className="lfld";
           w.appendChild(mkHelpLab(t,key)); w.appendChild(node); return w; };
         if(cfg.teamKind!=="solo") r1.appendChild(lwrap("Who","who",menuField(()=>whoOpts(), ()=>x.who, v=>{x.who=v;save();}, {addable:true, addLabel:"Use", searchPh:"Who? Type anything…"})));
+        else r1.classList.add("nowho");   // no Who column — the exercise takes the row (build 419)
         // Picking the exercise loads the kit it needs: the link is remembered per
         // exercise NAME, so "Back Squat -> Squat Rack" is set once and set for good.
         r1.appendChild(lwrap("Exercise","exercise",menuField(()=>cfg.library, ()=>x.name,
@@ -6505,9 +6541,10 @@ window.addEventListener("error",function(ev){
       return `${athU(a)} \u00b7 ${t} ${tWord(t)}${(last>0&&last<tcSize)?` (last has ${last})`:""}`; };
     const attValid=!solo&&cfg.attend>0&&Math.ceil(cfg.attend/tcSize)===cfg.crews.length;
     const attNow=attValid?cfg.attend:cfg.crews.length*(solo?1:tcSize);
-    // the dock's athletes pill reads the same attendance the Control picker
-    // shows — one number, two places (build 418)
-    { const x=$("bdWho"); if(x) x.textContent=solo?unit(clamp(cfg.crews.length,1,60)):showT(clamp(attNow,1,120)); }
+    // the athletes pills (subhead strip + dock) read the same attendance the
+    // Control picker shows — one number, every place (builds 418-419)
+    { const t=solo?unit(clamp(cfg.crews.length,1,60)):showT(clamp(attNow,1,120));
+      ["bdWho","ovWho"].forEach(id=>{ const x=$(id); if(x) x.textContent=t; }); }
     const FITLAB=()=>{ const n=gymFit(); return n?`Fit the gym \u2014 ${solo?unit(n):showT(n*tcSize)}`:""; };
     ["tcPick","tcPick2"].forEach(id=>{ const wp=$(id); if(!wp) return;
       wp.innerHTML="";
@@ -8766,11 +8803,11 @@ window.addEventListener("error",function(ev){
   // which queued blocks the trainer has opened to look inside
   const rlOpen=new Set();
   let tkLock=true, tkLockTimer=0;
-  function syncLockUi(){ ["tkLockBtn","bdLock"].forEach(id=>{ const x=$(id); if(!x) return;
+  function syncLockUi(){ ["tkLockBtn","bdLock","ovLock"].forEach(id=>{ const x=$(id); if(!x) return;
     x.classList.toggle("armed",!tkLock);
     const lb=tkLock?"Unlock controls":"Lock controls"; x.title=lb; x.setAttribute("aria-label",lb); }); }
   function pauseUi(v){ document.body.classList.toggle("tkp",v);
-    ["tkpause","bdPause"].forEach(id=>{ const x=$(id); if(!x) return;
+    ["tkpause","bdPause","ovPause"].forEach(id=>{ const x=$(id); if(!x) return;
       const lb=v?"Resume":"Pause"; x.title=lb; x.setAttribute("aria-label",lb); }); }
   function setTkLock(v){ tkLock=v; clearTimeout(tkLockTimer);
     if(!v) tkLockTimer=setTimeout(()=>{ tkLock=true; syncLockUi(); },15000);
@@ -8945,13 +8982,18 @@ window.addEventListener("error",function(ev){
     try{ localStorage.setItem("af_dock_v1",open?"1":"0"); }catch(e){}
     $("bdockTab").setAttribute("aria-label",open?"Hide controls":"Show controls"); }
   $("bdockTab").onclick=()=>setDock($("bdock").classList.contains("tucked"));
-  // STAGE 1 OF THE CONTROL/OVERVIEW MERGE (build 418, Omar's go): the dock IS
-  // Control's promise on the Workout page, so it shows itself — open by
-  // default, and the chevron's tuck is remembered per device (a preference,
-  // not a one-shot; it may flip forever).
-  { let dp="1"; try{ dp=localStorage.getItem("af_dock_v1")||"1"; }catch(e){}
+  // BUILD 419: Omar rejected the always-open floating bar (it covered the
+  // workout) — the dock is OPT-IN again (chevron, choice remembered) and the
+  // in-flow subhead strip (#ovCtl) carries the merge instead.
+  { let dp="0"; try{ dp=localStorage.getItem("af_dock_v1")||"0"; }catch(e){}
     setDock(dp!=="0"); }
   $("bdWho").onclick=()=>{ $("tabTrainer").click(); };
+  $("ovWho").onclick=()=>{ $("tabTrainer").click(); };
+  $("ovStart").onclick=()=>startBtn.click();
+  $("ovPause").onclick=()=>{ setPaused(!paused); sessPushNow(); };
+  $("ovNext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
+  $("ovPrev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
+  $("ovLock").onclick=()=>setTkLock(!tkLock);
   $("bdPrev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
   syncLockUi();
 
@@ -9035,8 +9077,8 @@ window.addEventListener("error",function(ev){
 
   setInterval(()=>{ const a=$("tClock"); if(!a) return;
     const noTk=cfg.mode==="waves";
-    ["tkpause","tkb10","tkb5","tkf5","tkf10","bdPause","bdb10","bdb5","bdf5","bdf10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
-    ["tknext","bdNext","tkprev","bdPrev","bdReset"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
+    ["tkpause","tkb10","tkb5","tkf5","tkf10","bdPause","bdb10","bdb5","bdf5","bdf10","ovPause"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
+    ["tknext","bdNext","tkprev","bdPrev","bdReset","ovNext","ovPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
     buildTrainerList();
     refreshCrewStations();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
@@ -9044,10 +9086,14 @@ window.addEventListener("error",function(ev){
     $("tState").textContent=clockState.textContent;
     if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     const bs=$("bdStart"); if(bs){ bs.textContent=startBtn.textContent; bs.disabled=startBtn.disabled; }
-    // idle = before the clock: the dock offers Start + today's athletes and
-    // hides the transport it cannot use yet (build 418); its measured height
-    // rides :root as --dockh so the page bottom, the AI bubble and the
-    // chevron all stack above whatever it wraps to
+    // the in-flow subhead strip (build 419): Start mirrors the real button,
+    // the transport shows only while there is a class to drive
+    { const ov=$("ovCtl"); if(ov) ov.classList.toggle("run",!!running);
+      const ost=$("ovStart"); if(ost){ ost.textContent=startBtn.textContent; ost.disabled=startBtn.disabled; } }
+    // idle = before the clock: the opt-in dock offers Start + today's
+    // athletes and hides the transport it cannot use yet; its measured
+    // height rides :root as --dockh so the page bottom, the AI bubble and
+    // the chevron all stack above whatever it wraps to
     { const dk=$("bdock"); if(dk){ dk.classList.toggle("idle",!running);
         const h=dk.classList.contains("tucked")?0:dk.offsetHeight;
         if(h!==+(dockHPrev||0)){ dockHPrev=h;
@@ -9058,7 +9104,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=418;
+  const BUILD=419;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

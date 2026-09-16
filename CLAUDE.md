@@ -845,31 +845,52 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   by s, never sets it. `lbsolo.js` (30) pins the v4 shape, both stale
   conversions, "3 × 4:00" on the card, "Round 2 of 3" live, the flow
   between windows and the park after window 3.
-- **THE DOCK IS CONTROL'S HAND ON THE WORKOUT PAGE (build 418 — Omar:
-  "I'm thinking of combining the control and overview pages", stage 1 of
-  the merge; stage 2 — folding Control's deep panels in as collapsed
-  sections and possibly retiring the tab — WAITS ON HIS VERDICT after he
-  runs a real class with this).** `#bdock` was already the whole answer
-  (transport, lock, Reset, Start, publishing) but booted tucked behind
-  the edge chevron — merged-in-code, invisible-in-practice. Now: OPEN BY
-  DEFAULT, the chevron's tuck remembered per device (`af_dock_v1` — a
-  PREFERENCE that flips forever, not a one-shot); an IDLE shape
-  (`#bdock.idle`, toggled off `running` on the 400ms tick — a hold park
-  keeps `running` true so the transport never vanishes mid-class) that
-  shows only Start + the athletes pill (`#bdWho`, written in
-  `syncTeamCount` from the same attendance the Control picker shows,
-  hidden under `body.noroster`, tap = go to Control) and hides the dead
-  transport icons; and STACKING BY MEASUREMENT — the dock's real height
-  rides `:root --dockh` (measured on the tick, 0 when tucked) and the
-  page bottom padding, the AI bubble (`#aiFab`) and the chevron all
-  offset by it, because fixed offsets collide the moment the dock wraps
-  on a phone. The FAB's × was ALREADY eating the chevron's taps at
-  bottom:34px — any new fixed-corner element must be checked against
-  every other fixed-corner element, both states. The route
-  (`body.tvroute`) shows neither dock nor chevron; `body.bigscreen`
-  already hid both. `ovdock.js` (23) gates default-open, idle shape,
-  the pill's text and door, lock/skip/publish/pause from the dock, tuck
-  memory, route/phone. Control itself is UNTOUCHED in stage 1.
+- **THE CONTROLS SIT IN THE PAGE, NOT ON IT (builds 418-419 — Omar:
+  "I'm thinking of combining the control and overview pages", stage 1
+  of the merge; stage 2 — folding Control's deep panels in as collapsed
+  sections and possibly retiring the tab — WAITS ON HIS VERDICT after
+  he runs a real class with this).** Build 418 opened the floating dock
+  (`#bdock`) by default and OMAR REJECTED IT ON SIGHT ("I don't like
+  how it covers the workout") — the start-flow paragraph (`bdFlow`)
+  ballooned it into a slab over the cards. He circled the empty
+  subhead space beside the title: that is where the controls live now.
+  `#ovCtl` rides the subhead IN FLOW — on a phone it wraps to its own
+  full-width row and PUSHES the cards down; it can never cover one.
+  IDLE (`.ovctl:not(.run)`, toggled off `running` on the 400ms tick —
+  a hold park keeps `running` true so the transport never vanishes
+  mid-class): the athletes pill (`#ovWho`, written in `syncTeamCount`
+  beside `#bdWho` from the same attendance the Control picker shows,
+  hidden under `body.noroster`, tap = go to Control) + Start (label
+  mirrors `startBtn` on the tick). RUNNING (`.ovctl.run`,
+  `flex:1 1 100%` — its own row under the clock): lock ‹ ⏸ › + the
+  Start mirror; every ov* control is in `syncLockUi`/`pauseUi`/the
+  interval's disabled lists and its handlers are the SAME pattern as
+  bd* (nextPart+sessPushNow etc. — the publish audit applies). Hidden
+  on `body.bigscreen`/`body.tvroute`. The dock is OPT-IN again
+  (chevron, `af_dock_v1` remembered, default tucked), its idle shape
+  drops `bdFlow` with the dead icons, and the 418 stacking stays: the
+  dock's measured height rides `:root --dockh` and the page bottom,
+  the AI bubble and the chevron offset by it (the FAB's × was eating
+  the chevron's taps at fixed bottom:34px — check every fixed-corner
+  element against every other, both states). `ovdock.js` (27) gates
+  strip idle/run, never-covers-a-card (rect check idle+running,
+  desktop+phone), lock/skip/publish/pause, dock opt-in + memory + no
+  bdFlow, route/phone. Control itself is UNTOUCHED in stage 1.
+- **SOLO HAS NO WHO COLUMN (build 419 — Omar: "why is the exercise box
+  so small although you have a lot of space!").** Setup's `.exr1.slim`
+  grid opens with Who's fixed 118px track; a solo board renders no Who
+  field, so auto-placement dropped the Exercise picker into that track
+  ("Paused …" truncated beside a page of void — the column-shift family
+  again: a fixed grid whose first child is CONDITIONAL needs a class
+  flip, not hope). `exerciseRow` adds `.nowho` when solo and the grid
+  drops the track (`1fr 32px`); the phone media's span-all rule is
+  scoped back to `auto` for `.nowho` so the picker shares its row with
+  the buttons. `exwide.js` (8) gates solo-wide/teams-unchanged/phone.
+  ANSWERED, NOT CHANGED: Omar asked why the Sets menu has no "1 ×" —
+  "— none" IS one set (Sets is the multiplier written on the line;
+  one set is just "8 reps"), a 1 × option would be a second name for
+  the same state. If the label confuses him again, rename the option
+  ("— single set"), never add a duplicate state.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup

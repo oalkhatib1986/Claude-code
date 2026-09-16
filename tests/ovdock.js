@@ -1,12 +1,12 @@
-// STAGE 1 OF THE CONTROL/OVERVIEW MERGE (build 418 — Omar: "combining the
-// control and overview pages… do what you think is best"). The dock was
-// already Control's promise on the Workout page — fully wired, publishing,
-// lock included — but it booted hidden behind the edge chevron. Now it
-// shows itself: open by default (tuck remembered per device), an IDLE shape
-// offering the two things Control offers before the clock (athletes today +
-// Start) with the dead transport out of sight, and the page keeps its last
-// card clear of the floating bar. Running brings the transport back;
-// a hold park (running stays true) never flips it to idle.
+// THE CONTROLS SIT IN THE PAGE, NOT ON IT (build 419 — Omar rejected 418's
+// always-open floating bar: "I don't like how it covers the workout", and
+// circled the empty space beside the title). The subhead strip (#ovCtl)
+// rides that void IN FLOW: idle it offers athletes-today + Start; running
+// it becomes the transport row (lock-guarded, publishing) under the clock.
+// On a phone it wraps to its own full-width row and PUSHES the cards down —
+// it can never cover one. The floating dock is opt-in again (chevron,
+// remembered), and its idle shape drops the start-flow paragraph that
+// ballooned it into the slab.
 const {chromium}=require('playwright');
 let pass=0,fail=0;
 const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
@@ -37,84 +37,97 @@ await p.goto(F);
 await p.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1'),
   localStorage.setItem('af_ai_url','https://relay.test/ai')));
 await p.reload(); await p.waitForTimeout(1800);
-const disp=async id=>p.evaluate(i=>getComputedStyle(document.getElementById(i)).display,id);
 const seen=async id=>p.evaluate(i=>{ const x=document.getElementById(i);
   return !!x&&x.offsetParent!==null; },id);
-// 1) the dock shows itself on first boot — no chevron hunt
-ok(await p.evaluate(()=>!document.getElementById('bdock').classList.contains('tucked')),
-  'the dock is OPEN by default on the Workout page');
-// 2) idle shape: Start + athletes, no dead transport icons
-ok(await p.evaluate(()=>document.getElementById('bdock').classList.contains('idle')),
-  'before the clock the dock wears its idle shape');
-ok(await seen('bdStart'),'Start is on the dock');
-ok(await p.evaluate(()=>document.getElementById('bdStart').textContent===
-  document.getElementById('startBtn').textContent),'its label mirrors the real Start button');
-ok(!await seen('bdNext')&&!await seen('bdPause')&&!await seen('bdReset'),
-  'the transport icons stay out of sight while there is nothing to drive');
-{ const w=await p.evaluate(()=>document.getElementById('bdWho').textContent);
-  ok(await seen('bdWho')&&/athlete/i.test(w),'the athletes pill reads attendance: '+w); }
-// 3) the floating bar never covers the last card
-ok(await p.evaluate(()=>parseFloat(getComputedStyle(document.getElementById('viewBoard')).paddingBottom)>=80),
-  'the page keeps its bottom clear of the open dock');
-// 4) the athletes pill is a door to Control
-await p.click('#bdWho'); await p.waitForTimeout(500);
+// the strip never overlaps the first workout card — it lives in the flow
+const clearOfCards=async()=>p.evaluate(()=>{
+  const s=document.getElementById('ovCtl').getBoundingClientRect();
+  const c=document.querySelector('#blockCards .blk');
+  if(!c) return true;
+  const r=c.getBoundingClientRect();
+  return s.bottom<=r.top+1||s.right<=r.left||s.left>=r.right;
+});
+// 1) NOTHING FLOATS BY DEFAULT: the dock is opt-in again
+ok(await p.evaluate(()=>document.getElementById('bdock').classList.contains('tucked')),
+  'the floating dock boots TUCKED — nothing covers the workout');
+// 2) idle strip: athletes + Start in the subhead, no transport
+ok(await seen('ovCtl'),'the control strip sits in the subhead');
+ok(await p.evaluate(()=>!document.getElementById('ovCtl').classList.contains('run')),
+  'idle: no transport row');
+ok(!await seen('ovNext')&&!await seen('ovPause')&&!await seen('ovLock'),
+  'idle: the transport icons are not drawn');
+ok(await seen('ovStart')&&await p.evaluate(()=>document.getElementById('ovStart').textContent===
+  document.getElementById('startBtn').textContent),'Start is there, label mirroring the real button');
+{ const w=await p.evaluate(()=>document.getElementById('ovWho').textContent);
+  ok(await seen('ovWho')&&/athlete/i.test(w),'the athletes pill reads attendance: '+w); }
+ok(await clearOfCards(),'idle: the strip clears the first card');
+// 3) the athletes pill is a door to Control
+await p.click('#ovWho'); await p.waitForTimeout(500);
 ok(await seen('tcLabel'),'tapping the athletes pill lands on Control');
 await p.click('#tabBoard'); await p.waitForTimeout(500);
-// 5) start from the dock — the transport comes back
-await p.evaluate(()=>document.getElementById('bdStart').click());
+// 4) start from the strip — transport row appears, pill makes way
+await p.evaluate(()=>document.getElementById('ovStart').click());
 await p.waitForTimeout(900);
-ok(await p.evaluate(()=>!document.getElementById('bdock').classList.contains('idle')),
-  'starting drops the idle shape');
-ok(await seen('bdNext')&&await seen('bdPause'),'the transport is back for the running class');
-ok(!await seen('bdWho'),'the athletes pill makes way');
-// 6) the lock still guards the skip buttons, and the dock can unlock itself
-ok(await p.evaluate(()=>document.getElementById('bdNext').disabled),
+ok(await p.evaluate(()=>document.getElementById('ovCtl').classList.contains('run')),
+  'starting turns the strip into the transport row');
+ok(await seen('ovNext')&&await seen('ovPause')&&await seen('ovLock'),'lock + transport are drawn');
+ok(!await seen('ovWho'),'the athletes pill makes way');
+ok(await clearOfCards(),'running: the strip still clears the cards');
+// 5) lock guards the skips; the strip unlocks itself
+ok(await p.evaluate(()=>document.getElementById('ovNext').disabled),
   'skip is LOCKED until the trainer unlocks');
-await p.click('#bdLock'); await p.waitForTimeout(600);
-ok(await p.evaluate(()=>!document.getElementById('bdNext').disabled),
-  'the dock\'s own lock button arms the transport');
-// 7) skipping a part from the dock PUBLISHES (one unwired button = a phone
-// a part ahead of the wall)
+await p.click('#ovLock'); await p.waitForTimeout(600);
+ok(await p.evaluate(()=>!document.getElementById('ovNext').disabled),
+  'the strip\'s own lock button arms the transport');
+// 6) skipping a part PUBLISHES (one unwired button = a phone a part ahead)
 { const before=await p.evaluate(()=>document.querySelector('#blockCards .blk.live .bwhere').textContent);
   const n0=sessPuts.length;
-  await p.click('#bdNext'); await p.waitForTimeout(900);
+  await p.click('#ovNext'); await p.waitForTimeout(900);
   const after=await p.evaluate(()=>document.querySelector('#blockCards .blk.live .bwhere').textContent);
   ok(before!==after,'next-part moves the class ('+before+' -> '+after+')');
   ok(sessPuts.length>n0,'and the skip is published to the room'); }
-// 8) pause freezes the clock, resume releases it
-await p.click('#bdPause'); await p.waitForTimeout(400);
+// 7) pause freezes the clock, resume releases it
+await p.click('#ovPause'); await p.waitForTimeout(400);
 { const t1=await p.evaluate(()=>document.getElementById('clock').textContent);
   await p.waitForTimeout(1300);
   const t2=await p.evaluate(()=>document.getElementById('clock').textContent);
   ok(t1===t2,'pause holds the clock ('+t1+')');
-  await p.click('#bdPause'); await p.waitForTimeout(1300);
+  await p.click('#ovPause'); await p.waitForTimeout(1300);
   const t3=await p.evaluate(()=>document.getElementById('clock').textContent);
   ok(t3!==t2,'resume lets it run again ('+t2+' -> '+t3+')'); }
-// 9) the chevron's tuck is REMEMBERED per device
-await p.click('#bdockTab'); await p.waitForTimeout(300);
-ok(await p.evaluate(()=>document.getElementById('bdock').classList.contains('tucked')),
-  'the chevron still tucks the dock away');
-await p.reload(); await p.waitForTimeout(1600);
-ok(await p.evaluate(()=>document.getElementById('bdock').classList.contains('tucked')),
-  'a tucked dock STAYS tucked across reloads');
-await p.click('#bdockTab'); await p.waitForTimeout(300);
+// 8) the opt-in dock still works, remembers, and stays slim while idle
+await p.evaluate(()=>{ const b=document.querySelector('.dlg-back .dok'); if(b) b.click(); });
+await p.click('#bdockTab'); await p.waitForTimeout(400);
+ok(await p.evaluate(()=>!document.getElementById('bdock').classList.contains('tucked')),
+  'the chevron still opens the dock for whoever wants it');
 await p.reload(); await p.waitForTimeout(1600);
 ok(await p.evaluate(()=>!document.getElementById('bdock').classList.contains('tucked')),
-  'and an opened one stays open');
-// 10) the projection route carries NO trainer chrome
+  'an opened dock is remembered');
+ok(await p.evaluate(()=>{ const f=document.getElementById('bdFlow');
+  return !f||f.offsetParent===null; }),
+  'the idle dock carries NO start-flow paragraph (the 418 slab)');
+await p.click('#bdockTab'); await p.waitForTimeout(300);
+await p.reload(); await p.waitForTimeout(1600);
+ok(await p.evaluate(()=>document.getElementById('bdock').classList.contains('tucked')),
+  'and a tucked one stays tucked');
+// 9) the projection surfaces carry NO trainer chrome
 const p2=await ctx.newPage();
 p2.on('pageerror',e=>{fail++;console.log('FAIL pageerror(route):',e.message);});
 await p2.goto(F+'#workout'); await p2.waitForTimeout(1400);
-ok(await p2.evaluate(()=>getComputedStyle(document.getElementById('bdock')).display==='none'
-  &&getComputedStyle(document.getElementById('bdockTab')).display==='none'),
-  'the TV route shows neither dock nor chevron');
+ok(await p2.evaluate(()=>getComputedStyle(document.getElementById('ovCtl')).display==='none'
+  &&getComputedStyle(document.getElementById('bdock')).display==='none'),
+  'the TV route shows neither strip nor dock');
 await p2.close();
-// 11) phone width: the dock fits and nothing scrolls sideways
+// 10) phone 390: the strip wraps to its own row, pushes cards down, no h-scroll
 await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(700);
 ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
-  'phone 390: no sideways scroll with the dock open');
-ok(await p.evaluate(()=>{ const r=document.getElementById('bdock').getBoundingClientRect();
-  return r.left>=0&&r.right<=innerWidth+1; }),'phone 390: the dock stays inside the screen');
+  'phone 390 idle: no sideways scroll');
+ok(await clearOfCards(),'phone 390 idle: the strip clears the cards');
+await p.evaluate(()=>document.getElementById('ovStart').click());
+await p.waitForTimeout(900);
+ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
+  'phone 390 running: no sideways scroll');
+ok(await clearOfCards(),'phone 390 running: the transport row clears the cards');
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
