@@ -3674,8 +3674,12 @@ window.addEventListener("error",function(ev){
                 tpNum=curIt.alt?(Math.floor(Math.max(0,j)/n2)%Math.max(1,invOf(m2)||1))+1:mm[m2]; }
               else if(/^rest/i.test(String(x.name||""))) isRest=true;
               // floor work is NAMED by its exercise — "Wall Balls", never a
-              // blank "Floor" that hides the station (Omar, build 390)
-              else flab=String(x.name||"");
+              // blank "Floor" that hides the station (Omar, build 390) —
+              // unless the exercise is LINKED to equipment: then the station
+              // wears the KIT's name ("Boxes 3", build 425 — Omar: "why
+              // doesn't it show Boxes which is in gym equipment?!"). Display
+              // only; the allocator's own gear read is unchanged.
+              else flab=String(gearFor(x.name)||x.name||"");
             } else if(curIt){
               const ts2=itemTypes(curIt).filter(m2=>mm[m2]!=null);
               if(ts2.length){ tp=ts2[0]; tpNum=mm[ts2[0]]; }
@@ -3726,7 +3730,9 @@ window.addEventListener("error",function(ev){
                 for(let q=used+1;q<=cap;q++){ const k2=m3+":"+q;
                   if(!rows[k2]){ rows[k2]={label:mInfo(m3).short+" "+q,names:[],free:1}; order.push(k2); } } }
               else if(!/^rest/i.test(String(x.name||""))){
-                const lb=String(x.name||"Floor");
+                // the same gear-first label as the occupied rows, or the
+                // free rows would number themselves as a separate station
+                const lb=String(gearFor(x.name)||x.name||"Floor");
                 const used=floorRows.filter(r=>(r.lab||"Floor")===lb).length;
                 for(let q=used;q<capA;q++) floorRows.push({free:true,nm:"",lab:lb});
               } });
@@ -9088,7 +9094,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=424;
+  const BUILD=425;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

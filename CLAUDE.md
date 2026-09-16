@@ -1022,7 +1022,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `machSlots`' per-crew number, which printed odd-numbered gaps while the
   other half worked the floor), and the SAME machines change hands at the
   swap. Floor work is a NAMED station in its own column ("Wall Balls 3",
-  never a blank "Floor" — non-alt floor rows keep "Floor"). The card draws
+  never a blank "Floor" — non-alt floor rows keep "Floor"), and a floor
+  exercise LINKED to equipment wears the KIT's name instead ("Boxes 3",
+  build 425 — Omar: "why doesn't it show Boxes which is in gym
+  equipment?! where did it get Burpee Bo… from?!"): both label sites
+  (occupied `flab` and the synthetic free rows' `lb`) read
+  `gearFor(x.name)||x.name` — the SAME expression, or the free rows
+  number themselves as a separate station. DISPLAY ONLY — the
+  allocator's own gear read (`itGear`→`itStations`) is untouched, and
+  auto-LINKING an exercise on someone's board is never a display fix:
+  the link changes station counts (engine). Omar links his own
+  exercises in Setup's Equipment field. The card draws
   EVERY slot to the gym's own count: machine side to `invOf` (SKI 1..6),
   floor side matching it (WALL BALLS 1..6) — his three-part Engine shows
   all 36. `claimSlots` probing does not understand the halves, so alt

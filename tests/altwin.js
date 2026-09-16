@@ -145,6 +145,20 @@ ok(!!w3['Ski 1']&&w3['Ski 1']!=='free'&&w3['Ski 1']===w1['Ski 1']&&w3['Ski 2']==
 await p.evaluate(()=>window.__seek(700)); await p.waitForTimeout(1000);
 ok(await p.evaluate(()=>/^\d+:\d\d$/.test(document.getElementById('clock').textContent)),
   'past the part boundary the clock is still sane');
+// A LINKED FLOOR EXERCISE WEARS ITS EQUIPMENT'S NAME (build 425 — Omar:
+// "why doesn't it show Boxes which is in gym equipment?! where did it
+// get Burpee Bo… from?!"): link Wall Balls to the gym's Med Balls and the
+// floor column renames — display only, gear count = station count so the
+// allocator's numbers cannot move
+await p.evaluate(()=>{ const K='af_erg_cfg_v8'; const c=JSON.parse(localStorage.getItem(K));
+  c.gear=[{name:'Med Balls',n:6}]; c.exGear=Object.assign({},c.exGear,{'wall balls':'Med Balls'});
+  localStorage.setItem(K,JSON.stringify(c)); });
+await p.reload(); await p.waitForTimeout(1600);
+ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[0];
+  if(!c) return false;
+  const labs=[...c.querySelectorAll('.teams .t .tnm')].map(x=>x.textContent.trim());
+  return labs.filter(t=>/^Med Balls$/i.test(t)).length===6&&!labs.some(t=>/wall balls/i.test(t)); }),
+  '425: a linked floor exercise wears its EQUIPMENT name (Med Balls 1-6)');
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
