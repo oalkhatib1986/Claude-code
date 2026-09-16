@@ -125,12 +125,13 @@ libPuts=[]; sessPuts=[]; sess=null;
   ok(await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')).teamKind==='solo'),
     'an ALL-share pairs board mends regardless of its date'); }
 await ctx.close();
-// 5) PART B DECLUTTERS ITSELF (build 414): part-rounds 3 wanted only the
-// first piece repeated — the mend turns it into ONE 12:00 window with
-// sets:3 (heading "3 ROUNDS × 4 MINUTES") and drops the part to 1 round
+// 5) PART B BECOMES OMAR'S REAL FLOOR (build 415, superseding 414's
+// superset): three 4:00 self-paced two-station rounds — partners start on
+// different exercises and swap when they finish, the clock caps the round —
+// then the 9-minute core piece runs ONCE as the finisher
 libPuts=[]; sessPuts=[]; sess=null;
 ({ctx,p}=await boot(br,()=>{
-  localStorage.removeItem('af_fixlbpb_v1');
+  localStorage.removeItem('af_fixlbpb_v2');
   const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
   Object.assign(cfg,{name:'Lower Body',wkName:'Lower Body 16/09',titleSet:true,
     mode:'rotation',teamKind:'solo',together:true,noScore:true,gear:[],
@@ -151,27 +152,42 @@ libPuts=[]; sessPuts=[]; sess=null;
 }));
 { const c=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
   const b=c.rotation.blocks[1];
-  ok(b.rounds===1,'414: Part B drops to 1 round');
-  ok(!b.items[0].fmt&&b.items[0].dur===720,'414: the piece becomes ONE 12:00 group window');
-  ok(b.items[0].exercises.every(x=>x.sets===3),'414: both exercises carry Sets 3');
-  ok(b.items[1].fmt==='rotate'&&b.items[1].dur===540,'414: the 9-minute core piece is untouched');
+  ok(b.rounds===3,'415: Part B runs 3 rounds');
+  ok(b.items[0].fmt==='rotate'&&b.items[0].rotBy==='done'&&b.items[0].dur===240,
+    '415: each round is a 4:00 self-paced two-station window');
+  ok(b.items[0].exercises.every(x=>!x.sets),'415: no sets on the lines — the rounds ARE the sets');
+  ok(b.items[1].fin===true&&b.items[1].dur===540,'415: the 9-minute core piece runs ONCE (finisher)');
   const card=await p.evaluate(()=>document.querySelectorAll('#blockCards .blk')[1].innerText.replace(/\s+/g,' '));
-  ok(/3 rounds × 4 minutes/i.test(card),'414: the heading reads 3 ROUNDS × 4 MINUTES');
-  ok(!/63:00/.test(card)&&/21:00 total/i.test(card),'414: the part totals 21:00, not 63:00');
-  // 5b) the room pushing the OLD Part B back gets decluttered on arrival
+  ok(/self-paced/i.test(card),'415: the card says self-paced');
+  ok(/3 rounds × 4:00/i.test(card)&&/then 9:00 finish/i.test(card),
+    '415: the footer reads 3 rounds × 4:00 · then 9:00 finish');
+  ok(!/63:00/.test(card)&&/21:00 total/i.test(card),'415: the part totals 21:00, not 63:00');
+  // 5b) BOTH stale shapes arriving from the room get mended: the original
+  // 12:00 rotate, and 414's superset in-between
   const stale=JSON.parse(JSON.stringify(c));
-  stale.rotation.blocks[1].rounds=3;
+  stale.rotation.blocks[1].rounds=3; delete stale.rotation.blocks[1].items[1].fin;
   stale.rotation.blocks[1].items[0]={name:'For Quality',dur:720,fmt:'rotate',rotBy:'done',scored:false,
     exercises:[{name:'Barbell FFE Reverse Lunge',amounts:[8],unit:'reps',each:true,max:false},
       {name:'B-Stance Dumbbell Hip Thrust',amounts:[6],unit:'reps',each:true,max:false}]};
   sess={ts:Date.now()+70,src:'other-device',kind:'edit',cfg:stale,run:{mode:'rotation',act:false,run:false}};
   sessPuts=[];
   await p.waitForTimeout(4500);
-  const now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
-  ok(now.rotation.blocks[1].rounds===1&&now.rotation.blocks[1].items[0].exercises.every(x=>x.sets===3),
-    '414: an old Part B arriving from the room is decluttered on arrival');
-  ok(sessPuts.some(v=>v&&v.cfg&&v.cfg.rotation.blocks[1]&&v.cfg.rotation.blocks[1].rounds===1),
-    '414: and the truth is re-published'); }
+  let now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  ok(now.rotation.blocks[1].items[0].dur===240&&now.rotation.blocks[1].items[1].fin===true,
+    '415: the ORIGINAL shape arriving from the room is mended on arrival');
+  ok(sessPuts.some(v=>v&&v.cfg&&v.cfg.rotation.blocks[1].items[0].dur===240),
+    '415: and the truth is re-published');
+  const mid=JSON.parse(JSON.stringify(c));
+  mid.rotation.blocks[1].rounds=1; delete mid.rotation.blocks[1].items[1].fin;
+  mid.rotation.blocks[1].items[0]={name:'For Quality',dur:720,scored:false,group:true,
+    exercises:[{name:'Barbell FFE Reverse Lunge',amounts:[8],unit:'reps',each:true,max:false,sets:3},
+      {name:'B-Stance Dumbbell Hip Thrust',amounts:[6],unit:'reps',each:true,max:false,sets:3}]};
+  sess={ts:Date.now()+140,src:'other-device',kind:'edit',cfg:mid,run:{mode:'rotation',act:false,run:false}};
+  await p.waitForTimeout(4000);
+  now=await p.evaluate(()=>JSON.parse(localStorage.getItem('af_erg_cfg_v8')));
+  ok(now.rotation.blocks[1].rounds===3&&now.rotation.blocks[1].items[0].rotBy==='done'
+    &&now.rotation.blocks[1].items[0].exercises.every(x=>!x.sets),
+    "415: 414's superset in-between shape converts too"); }
 await ctx.close();
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

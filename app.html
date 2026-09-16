@@ -7854,15 +7854,27 @@ window.addEventListener("error",function(ev){
     if(xs.length<2) return false;
     const names=xs.map(x=>String(x.name||"").toLowerCase()).join(" | ");
     if(!/reverse lunge/.test(names)||!/hip thrust/.test(names)) return false;
-    if(!((parseInt(b.rounds,10)||1)>1||it.fmt)) return false;   // already the taught shape
-    b.rounds=1; b.rrest=0;
-    delete it.fmt; delete it.rotBy; delete it.alt; delete it.shareN; delete it.wavesN;
-    it.dur=720;
-    xs.forEach(x=>{ x.sets=3; });
+    // BUILD 415 SUPERSEDES 414's superset shape — Omar's floor truth, in his
+    // own two messages: partners START on different exercises and SWAP WHEN
+    // THEY FINISH, and a round can never exceed 4:00. That is a self-paced
+    // two-station round CAPPED by the clock, three of them, then the core
+    // piece ONCE — the finisher mechanic, built for exactly this. Target:
+    // rounds:3 · item0 rotate/self-paced dur 240 (no sets — the rounds ARE
+    // the sets) · the core item fin:true.
+    const core=(b.items||[]).find(x=>x&&!x.rest&&x!==it);
+    const good=(parseInt(b.rounds,10)||1)===3&&it.fmt==="rotate"
+      &&it.rotBy==="done"&&it.dur===240&&(!core||core.fin===true);
+    if(good) return false;
+    b.rounds=3; b.rrest=0;
+    it.fmt="rotate"; it.rotBy="done";
+    delete it.alt; delete it.shareN; delete it.wavesN;
+    it.dur=240;
+    xs.forEach(x=>{ delete x.sets; });
+    if(core) core.fin=true;
     return true;
   }
   (function fixLBPartB(){
-    const K="af_fixlbpb_v1";
+    const K="af_fixlbpb_v2";   // v1 shipped the superset shape; v2 re-arms
     try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
     let touched=false;
     presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&lbPartBMend(p.cfg)){
@@ -8939,7 +8951,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     ["startFlow","bdFlow"].forEach(id=>{ const x=$(id); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } }); },400);
-  const BUILD=414;
+  const BUILD=415;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

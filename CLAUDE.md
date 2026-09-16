@@ -790,8 +790,19 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `af_fixlbpb_v1` + the sessApply arm, same as every self-repair. The
   TEACHING POINT for Omar: part Rounds repeat EVERYTHING in the part;
   "one piece repeats" is SETS on its exercises with the item's time as
-  the whole window. `lbsolo.js` (22) adds the mend, the untouched core
-  piece, the heading, the 21:00 total and the arrival arm.
+  the whole window. THEN HIS FLOOR TRUTH ARRIVED (build 415, supersedes
+  414's superset — Omar: partners START on different exercises and SWAP
+  WHEN THEY FINISH, and "each round cannot exceed 4 minutes"): that is
+  rounds:3 · item0 `fmt:"rotate"+rotBy:"done"` dur 240 (a self-paced
+  two-station round CAPPED by the clock; NO sets on the lines — the
+  rounds are the sets) · the core item `fin:true` so it runs ONCE after
+  the rounds — the FINISHER mechanic is exactly "N rounds of this, then
+  that once", and it is what unlocks per-piece repetition inside a part
+  whose other piece must not repeat. One-shot key bumped to
+  `af_fixlbpb_v2`; the mend converts BOTH stale shapes (the original
+  12:00 rotate AND 414's superset). `lbsolo.js` (24) pins the round
+  shape, the finisher, the "3 rounds × 4:00 · then 9:00 finish" footer,
+  both arrival conversions and the republish.
 - **A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: "if I change
   tabs and I haven't saved it must ask me… and if I click no then it
   doesn't show the changes", mid-class included).** Entering Setup
