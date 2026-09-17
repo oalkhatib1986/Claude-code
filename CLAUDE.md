@@ -291,8 +291,10 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   them on an erg, and THAT is when they tap in. So an unclaimed slot offers itself for
   the whole session (`claiming = team && !finished && (preClock || !claimed)`), not just
   before the clock — mid-block it reads "You're up here now / Tap your name in" and the
-  work list stays on screen underneath. Confirming ("you're on this one", with a way to
-  give it back) is the pre-clock state only. `floorclaim.js` gates it.
+  work list stays on screen underneath. Confirming is the pre-clock state only, and it is the NAME
+  ITSELF (447 — Omar: "it's meaningless cause they see the team name under
+  it"): the claimed card drops the "You're on this one" tag; the
+  Free-this-erg button carries the give-it-back. `floorclaim.js` gates it.
 - **The overview card lists the FLOOR, not the roster.** `renderBlockCards()` draws one
   chip per crew slot AND one `.spare` chip per machine in `claimSlots()` the class size
   has not reached. Leaving them off made a gym with five runners look like it had three.
