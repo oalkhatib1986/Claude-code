@@ -4338,7 +4338,10 @@ window.addEventListener("error",function(ev){
   // their turn. Nothing else in the app knows or cares — the lanes are all still
   // there, sorted, they are simply not on screen.
   // a row this tall or the wall is unreadable; past that the board pages instead
-  const MINROW=84, PAGEAT=64;
+  // (446 — Omar: "i can't even see all the teams!": paging at 84px rows put
+  // THREE giant lanes on a wall with floor to spare; a page packs rows down
+  // to the readable 56px before it splits — roughly double the teams a page)
+  const MINROW=56, PAGEAT=64;
   let bdPer=0, bdPage=0, bdTimer=0;
   function showPage(){
     const lanes=$("lanes"); if(!lanes) return;
@@ -9450,7 +9453,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=445;
+  const BUILD=446;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
