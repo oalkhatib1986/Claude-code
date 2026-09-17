@@ -1685,7 +1685,11 @@ zero rework, which was the whole point of the parked design.
   from `manScores`, dash until reported, demo splits `demoScore` evenly),
   plus the same Score total. `buildBoardHead`/`laneCells`/`fitLaneCols`/
   `renderLanesRot` all branch on it; sec heads are `.hgrp.hsec` (never
-  under `no-mach` hiding), cells `.mv.msec[data-b]`. AUTO mode keeps the
+  under `no-mach` hiding), cells `.mv.msec[data-b]`. EVERY FIGURE COLUMN
+  THE SAME WIDTH (445 — Omar: "why do i need to keep saying this!"): the
+  Score track is one more equal `minmax(mv,1fr)` section track, never the
+  frame's fixed px — the fit budgets k+1 columns and the phone fallback
+  divides the room by k+1. AUTO mode keeps the
   per-machine board — there the ergs are the count. `altwin` pins the
   sec head, no-counter columns and an entry landing in its column.
 - `manscore.js` (34 checks) gates all of it: default, sim-counts-nothing,

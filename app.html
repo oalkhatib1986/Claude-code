@@ -4257,21 +4257,24 @@ window.addEventListener("error",function(ev){
     // section-mode (442): one track per scored block, wide enough for its
     // NAME in the head band; the figures share the slack like every board
     if(secBoard()){ const sB=secBlocks(), k=Math.max(1,sB.length);
+      // EVERY FIGURE COLUMN THE SAME WIDTH (445 — Omar: "the columns are
+      // still not the same width! why do i need to keep saying this!"):
+      // the Score track is one more equal section track, never a fixed px
       let pk=null;
       for(const [F,tiers] of fams){ for(const [mv,fs] of tiers){
         const cw2=Math.max(mv,tv?150:104);
         const rw=rankW(F,fs);
-        const need=rw+F.who+F.score+k*cw2+F.gap*(2+k);
+        const need=rw+F.who+(k+1)*cw2+F.gap*(2+k);
         if(need<=w){ pk={F,mv:cw2,fs,rw}; break; } } if(pk) break; }
       if(!pk){ // nothing fits whole: shrink the section tracks to the room
         // there IS — a phone must never scroll sideways (the fitall law)
         const [F]=fams[fams.length-1]; const fs0=tv?26:15;
         const rw=rankW(F,fs0);
-        const mv=Math.max(40,Math.floor((w-rw-F.who-F.score-F.gap*(2+k))/k));
+        const mv=Math.max(40,Math.floor((w-rw-F.who-F.gap*(2+k))/(k+1)));
         pk={F,mv,fs:mv>=54?fs0:11,rw}; }
       bd.style.setProperty("--lanecols",[pk.rw+"px",pk.F.who+"px"]
         .concat(sB.map(()=>`minmax(${pk.mv}px,1fr)`))
-        .concat([pk.F.score+"px"]).join(" "));
+        .concat([`minmax(${pk.mv}px,1fr)`]).join(" "));
       bd.style.setProperty("--lanegap",pk.F.gap+"px");
       bd.style.setProperty("--mvfs",pk.fs+"px");
       bd.style.setProperty("--mspan","1");
@@ -9447,7 +9450,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=444;
+  const BUILD=445;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

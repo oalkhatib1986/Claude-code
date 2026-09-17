@@ -466,6 +466,15 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(!/metres|\/500m|\/km|\/1000m/i.test(r.head),
       '442: no idle machine counters on a manual board');
     ok(r.secs>=2,'442: every lane carries the section cells'); }
+  // 445 (Omar: "the columns are still not the same width!"): every figure
+  // column — sections AND Score — is one equal track
+  { const r=await p4.evaluate(()=>{
+      const l=[...document.querySelectorAll('#board .lane')].find(x=>x.offsetHeight>0);
+      const cs=[...l.querySelectorAll('.msec')].map(x=>Math.round(x.getBoundingClientRect().width));
+      cs.push(Math.round(l.querySelector('.data').getBoundingClientRect().width));
+      return cs; });
+    ok(r.every(v=>Math.abs(v-r[0])<=2),
+      '445: sections and Score share ONE column width ('+r.join(', ')+')'); }
   await p4.evaluate(()=>document.getElementById('startBtn').click());
   await p4.waitForTimeout(1400);
   { await p4.evaluate(()=>window.__man.set(0,0,0,57)); await p4.waitForTimeout(900);
