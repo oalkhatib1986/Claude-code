@@ -4263,8 +4263,12 @@ window.addEventListener("error",function(ev){
         const rw=rankW(F,fs);
         const need=rw+F.who+F.score+k*cw2+F.gap*(2+k);
         if(need<=w){ pk={F,mv:cw2,fs,rw}; break; } } if(pk) break; }
-      if(!pk){ const [F]=fams[fams.length-1]; const fs0=tv?26:15;
-        pk={F,mv:tv?120:84,fs:fs0,rw:rankW(F,fs0)}; }
+      if(!pk){ // nothing fits whole: shrink the section tracks to the room
+        // there IS — a phone must never scroll sideways (the fitall law)
+        const [F]=fams[fams.length-1]; const fs0=tv?26:15;
+        const rw=rankW(F,fs0);
+        const mv=Math.max(40,Math.floor((w-rw-F.who-F.score-F.gap*(2+k))/k));
+        pk={F,mv,fs:mv>=54?fs0:11,rw}; }
       bd.style.setProperty("--lanecols",[pk.rw+"px",pk.F.who+"px"]
         .concat(sB.map(()=>`minmax(${pk.mv}px,1fr)`))
         .concat([pk.F.score+"px"]).join(" "));
@@ -9443,7 +9447,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=443;
+  const BUILD=444;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
