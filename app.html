@@ -362,7 +362,7 @@
   body:not(.kioskon) .tk-pills .tswp{border-top:0;border-left:2px solid rgba(255,255,255,.2);padding:8px 6px}
   body:not(.kioskon) .tk-pills .tswp:first-child{border-left:0}
   .tk-vit{border-top:2px solid rgba(255,255,255,.14)}
-  .tk-id{display:flex;align-items:center;gap:13px;padding:14px 18px;min-width:0;flex:none}
+  .tk-id{display:flex;align-items:center;gap:13px;padding:18px;min-width:0;flex:none}
   /* the wordmark is ~5:1 — unbounded it owns the whole id row on a narrow
      canvas. Cap it by the row and scale the art down inside (no cropping). */
   .tk-logo{height:clamp(25px,6.2vw,40px);flex:0 1 auto;min-width:0;max-width:42%;display:flex;
@@ -735,7 +735,7 @@
   body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   body.kioskon .tk-vit .opt{display:block}
-  body.kioskon .tk-id{padding:11px 22px;gap:16px}   /* 22 = the cards' own inset — the logo shares their line (427) */
+  body.kioskon .tk-id{padding:18px 22px;gap:16px}   /* 22 = the cards' own inset — the logo shares their line (427); taller row per Omar (428) */
   body.kioskon .tk-logo{height:40px}
   body.kioskon .tk-mach{font-size:46px}
   body.kioskon .tk-who{font-size:32px}
@@ -9132,7 +9132,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=427;
+  const BUILD=428;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
