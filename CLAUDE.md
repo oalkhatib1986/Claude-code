@@ -61,6 +61,18 @@ copy for cache-free serving; `version.txt` holds the build number.
   the sub-tabs, the title and the cards. `align.js` gates it.
 - **Consistency tiers:** pills 12px/34px · primary .btn 13px/38px · secondary
   .btn.small 12px/30px · nav tabs/subtabs 11px/29px. All left edges align.
+- **ONE LEFT EDGE ON THE TABLET, MACHINE-CHECKED (build 427 — Omar: "the
+  pills, the box, the logo all need to be aligned!! never do these
+  mistakes again").** The logo, the part pill, the tag, the head band and
+  the white work card all start on one vertical line: the header's
+  padding-left EQUALS the cards' (kiosk 22px), and NO tablet element
+  carries a negative left margin to "bleed" (the old `-15px` on
+  `.tk-tag`/`.tk-head` staggered every band against the pill above it).
+  Any new tablet element joins that line, and `altwin.js` measures the
+  five lefts within 1.5px — add new elements to that check, never exempt
+  them. Stacked pills share a width (the 421 `--ovbw` law); stacked boxes
+  share a left edge. Formatting misalignments are REPEAT OFFENSES to
+  Omar — measure, don't eyeball.
 - **THE BROWSER'S OWN WIDGETS FOLLOW THE SITE.** `body{color-scheme:dark;
   accent-color:var(--accent)}` (`.tk` is `light` — white card): the native date
   calendar, select dropdowns, checkboxes and scrollbars must render dark with the
@@ -343,8 +355,16 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `(myIx+1)%n` in the cycle, wearing its equipment name where linked
   (`gearFor||name`, the 425 rule). Applies to BOTH tablet screens
   (screen 1 gains `fRot`, screen 2 `rotNext`; the rotNext override
-  sits BEFORE `cir`'s so circuits win). `altwin.js` gates the
-  single-line card, the dropped ladder and the next box.
+  sits BEFORE `cir`'s so circuits win). AND SAY IT ONCE (build 427 —
+  Omar: "Ski · Now: Ski · Max Cal Ski — they all say the same
+  thing"): a head or sub the work card ALREADY CONTAINS (flat
+  containment, jSub compared with its "Now:" prefix stripped) is an
+  echo and drops — the tk-head div only renders when jHead survives;
+  states and positions ("Rest — recover", "Scoring now", cir's
+  "Station 2 of 4", which re-writes jHead AFTER the dedupe) are not
+  contained and stay. `altwin.js` gates the single-line card, the
+  dropped ladder, the next box, the running dedupe and the one-left-
+  edge measure.
 - **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a

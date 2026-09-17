@@ -177,10 +177,32 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       nxt=document.querySelector('.tk-nxt');
     return {now:now?now.innerText.replace(/\s+/g,' ').trim():'',
       hasThen:!!then, nxt:nxt?nxt.innerText.replace(/\s+/g,' ').trim():''}; });
+  // ONE LEFT EDGE (427 — Omar: "the pills, the box, the logo all need to
+  // be aligned!"): logo, part pill, tag, head band and the white card all
+  // start on the same vertical line
+  { const L=await p2.evaluate(()=>['.tk-logo img','.tk-part','.tk-tag','.tk-head','.tk-now']
+      .map(s=>{ const x=document.querySelector(s);
+        return x?+x.getBoundingClientRect().left.toFixed(1):null; }).filter(v=>v!=null));
+    ok(L.length>=4&&Math.max(...L)-Math.min(...L)<=1.5,
+      '427: logo · pill · tag · band · card share ONE left edge ('+L.join(', ')+')'); }
   ok(/^max cal ski$/i.test(d.now),'426: the Ski tablet shows ITS work only ('+d.now+')');
   ok(!d.hasThen,'426: the window ladder is gone from the tablet');
   ok(/wall balls/i.test(d.nxt)&&/max reps/i.test(d.nxt),
     '426: the next box names where to go — '+d.nxt);
+  // SAY IT ONCE (427 — Omar: "Ski · Now: Ski · Max Cal Ski — repetitive"):
+  // running, the headline and the Now: line are echoes of the work card
+  // and drop; the WORKING state tag stays
+  await p2.evaluate(()=>document.getElementById('startBtn').click());
+  await p2.waitForTimeout(1600);
+  { const r=await p2.evaluate(()=>{
+      const t=document.getElementById('tbScreen').innerText.replace(/\s+/g,' ');
+      const head=document.querySelector('.tk-inst .tk-head');
+      const tag=document.querySelector('.tk-inst .tk-tag');
+      return {txt:t, head:head?head.textContent.trim():null,
+        tag:tag?tag.textContent.trim():''}; });
+    ok(!/now:\s*ski/i.test(r.txt),'427: no "Now: Ski" echo while running');
+    ok(!r.head||!/^ski$/i.test(r.head),'427: no bare "Ski" headline over the Max Cal Ski card');
+    ok(/working/i.test(r.tag),'427: the WORKING state tag stays'); }
   await p2.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

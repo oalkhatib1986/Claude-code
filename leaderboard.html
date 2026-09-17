@@ -550,14 +550,18 @@
   .tk-rail{flex:0 0 clamp(112px,23%,240px);min-width:0;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
   .tk-rail>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,3vw,18px);letter-spacing:.2em;
     text-transform:uppercase;color:rgba(255,255,255,.55)}
+  /* ONE LEFT EDGE (build 427 — Omar: "the pills, the box, the logo all
+     need to be aligned!"): the tag and head boxes start at the card's own
+     content line, exactly like the part pill and the white work card — the
+     old -15px bleeds staggered every band against the pill above it. */
   .tk-tag{align-self:flex-start;font-family:var(--disp);font-weight:700;font-size:clamp(13px,3.1vw,18px);
     letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(255,255,255,.09);
-    border-radius:999px;padding:7px 15px;margin-left:-15px}
+    border-radius:999px;padding:7px 15px}
   .tk.live .tk-tag{background:rgba(58,222,107,.16);color:#5fe28e}
   .tk.hot .tk-tag{background:rgba(255,70,64,.16);color:#ff5f57}
   .tk-head{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase;background:rgba(255,255,255,.09);border-radius:13px;padding:11px 15px;
-    margin:0 -15px;align-self:stretch}
+    margin:0;align-self:stretch}
   .tk.live .tk-head{background:rgba(58,222,107,.16)}
   .tk.hot .tk-head{background:rgba(255,70,64,.14);color:#ff5f57}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
@@ -731,7 +735,7 @@
   body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
   body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   body.kioskon .tk-vit .opt{display:block}
-  body.kioskon .tk-id{padding:11px 24px;gap:16px}
+  body.kioskon .tk-id{padding:11px 22px;gap:16px}   /* 22 = the cards' own inset — the logo shares their line (427) */
   body.kioskon .tk-logo{height:40px}
   body.kioskon .tk-mach{font-size:46px}
   body.kioskon .tk-who{font-size:32px}
@@ -5606,6 +5610,16 @@ window.addEventListener("error",function(ev){
       if(phase==="done"){ thenLab="today"; after=[];
         nowLines=R().blocks.map(x=>`<em>${esc(x.name)} \u00b7 ${esc(bmLabel(x))}</em>`); }
       const thenTxt=after.join(" \u00b7 ");
+      // SAY IT ONCE (build 427 \u2014 Omar: "Ski \u00b7 Now: Ski \u00b7 Max Cal Ski \u2014 they
+      // all say the same thing"). 426's filter left the headline and the
+      // Now: line restating the single work line below them. A head or sub
+      // the work card ALREADY CONTAINS is an echo and drops; states and
+      // positions ("Rest \u2014 recover", "Scoring now", "Station 2 of 4")
+      // survive \u2014 the card does not contain those. cir re-writes jHead
+      // after this, so circuits keep their own line.
+      { const cardTxt=flat(nowLines.join(" "));
+        const h2=flat(jHead); if(h2&&cardTxt.includes(h2)) jHead="";
+        const s2=flat(jSub).replace(/^now:\s*/,""); if(s2&&cardTxt.includes(s2)) jSub=""; }
       const workList=cir?`<div class="tk-card tk-work">
                 <div class="tk-now"><em>${esc(exTxt(cir.cur))}</em></div>
                 <button type="button" class="tk-done" id="tbDone"
@@ -5661,7 +5675,7 @@ window.addEventListener("error",function(ev){
               </div>`:`<div class="tk-card tk-inst">
                 <div class="tk-blk tk-part">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
                 <div class="tk-tag">${(mts&&mtag&&!running)?mtag:jTag}</div>
-                <div class="tk-head">${jHead}</div>
+                ${jHead?`<div class="tk-head">${jHead}</div>`:""}
                 ${jSub?`<div class="tk-sub">${jSub}</div>`:""}
                 ${jBig?`<div class="tk-big">${jBig}</div>`:""}
               </div>`}
@@ -9118,7 +9132,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=426;
+  const BUILD=427;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
