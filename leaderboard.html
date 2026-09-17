@@ -5708,6 +5708,13 @@ window.addEventListener("error",function(ev){
       const manOn=!scoreAuto()&&showLeaderboard();
       if(manOn&&team){
         const curSec=(running&&seg&&seg.it.scored&&!seg.it.rest)?(bi+":"+seg.i):null;
+        // RE-ENTERING THE SECTION VOIDS ITS PENDING ASK (448 — Omar seeked
+        // back into Block 1 and the strip demanded calories 4 seconds in):
+        // the ask is a debt for a FINISHED section; running it again means
+        // it will end again and ask fresh at the right moment
+        { const q0=manAskQ[sv];
+          if(q0&&curSec===q0.bi+":"+q0.ii){ delete manAskQ[sv];
+            if(manPad.key===sv) manPad={key:null,val:"",who:false,open:false}; } }
         const prevSec=tkSecPrev[sv]||null;
         if(prevSec&&prevSec!==curSec&&!unnamed(team.name)){
           const q=prevSec.split(":");
@@ -9453,7 +9460,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=447;
+  const BUILD=448;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -442,7 +442,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     const mk=(nm,exs)=>Object.assign(JSON.parse(JSON.stringify(t)),{name:nm,dur:300,fmt:'',rest:false,alt:false,scored:true,metric:'calories',exercises:exs});
     const ex=(name,max)=>({name,unit:max?'cal':'reps',max:!!max,amounts:[]});
     c.rotation.blocks=[
-      {name:'Run / Bike',rounds:1,items:[mk('Block 1',[ex('Run',true),ex('Burpees'),ex('Bike',true)])]},
+      {name:'Run / Bike',rounds:1,items:[mk('Block 1',[ex('Run',true),ex('Burpees'),ex('Bike',true)]),{rest:true,dur:120,name:''},mk('Block 2',[ex('Run',true),ex('Bike',true)])]},
       {name:'Row / Ski',rounds:1,items:[mk('Block 1',[ex('Row',true),ex('Ski',true)])]}];
     c.together=false; c.noScore=false; c.scoreSrc='manual';
     localStorage.setItem(K,JSON.stringify(c)); });
@@ -501,6 +501,22 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
         tight:Math.abs(step-hs[0])<=3, step, h:hs[0]}; });
     ok(r.inside,'443: every page’s rows sit INSIDE the card');
     ok(r.tight,'443: rows step at their own height ('+r.step+' vs '+r.h+') — no gaps'); }
+  // 448 (Omar: "it should only ask once Max Cal Bike is over!"): the ask
+  // fires at the END of the scored piece; seeking BACK into the piece
+  // voids the pending ask, and running it out again asks fresh
+  await p4.click('#tabTablet'); await p4.waitForTimeout(600);
+  await p4.evaluate(()=>window.__tbOpen('Bike:1')); await p4.waitForTimeout(700);
+  { const pre=await p4.evaluate(()=>!!document.querySelector('.tk-score,.tks-strip'));
+    ok(!pre,'448: no ask while the scored piece runs');
+    await p4.evaluate(()=>window.__seek(290)); await p4.waitForTimeout(1100);
+    const atRest=await p4.evaluate(()=>!!document.querySelector('.tk-score'));
+    ok(atRest,'448: the ask arrives when the piece ENDS (at the rest)');
+    await p4.evaluate(()=>window.__seek(-160)); await p4.waitForTimeout(1100);
+    const back=await p4.evaluate(()=>!!document.querySelector('.tk-score,.tks-strip'));
+    ok(!back,'448: seeking back into the piece voids the pending ask');
+    await p4.evaluate(()=>window.__seek(170)); await p4.waitForTimeout(1200);
+    const again=await p4.evaluate(()=>!!document.querySelector('.tk-score'));
+    ok(again,'448: and it asks fresh when the piece ends again'); }
   await p4.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

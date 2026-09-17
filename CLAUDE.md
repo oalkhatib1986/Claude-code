@@ -1660,7 +1660,11 @@ zero rework, which was the whole point of the parked design.
   (JS state — the screen repaints on a timer), all controls are in the
   delegated `.closest()` list like every tablet control. An UNSCORED class
   and an UNCLAIMED slot still ask for NOTHING (build 369 holds), and auto
-  mode never asks.
+  mode never asks. RE-ENTERING THE SECTION VOIDS ITS PENDING ASK (448 —
+  Omar seeked back into Block 1 and the strip demanded calories 4 seconds
+  in): the ask is a debt for a FINISHED section; when curSec equals the
+  pending ask's own section it is deleted and re-fires fresh at the next
+  end. `altwin` pins end-fire, void-on-seek-back and the re-ask.
 - **"Not Team X?" is a SWAP, not a relabel**: `manSwapCrews(a,b)` trades the
   two crews' names in `cfg.crews` AND in the live ergs, and their manScores
   entries travel with the names — moved entries take a FRESH ts or a
