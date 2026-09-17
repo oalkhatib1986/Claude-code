@@ -154,7 +154,10 @@ await p.setViewportSize({width:1280,height:900});
 await p.goto(APP); await p.reload(); await p.waitForTimeout(1500);
 await loadCase('Send It Saturday',8,'teams',false);   // SCORED — unscored boards rightly never ask (build 369)
 await p.click('#tabTablet'); await p.waitForTimeout(900);
-const twc=await p.evaluate(()=>{const t=document.querySelector('#tbStage .twc, .twc');
+// a wide viewport lands on ONE machine (TBKQ); the wall — and its tiles,
+// which exist only while it is up (433) — is one tap away
+await p.evaluate(()=>window.__tbWall&&window.__tbWall()); await p.waitForTimeout(1200);
+const twc=await p.evaluate(()=>{const t=document.querySelector('#tbWall .twt');
   if(t){t.click();return true;} return false;});
 await p.waitForTimeout(900);
 ok(twc,'tablet: the wall lists machines and one opens');

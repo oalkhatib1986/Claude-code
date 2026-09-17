@@ -350,17 +350,17 @@
   .tk-duo>.tk-cell+.tk-cell{border-left:2px solid rgba(255,255,255,.14)}
   .tk-side{border-left:2px solid rgba(255,255,255,.14)}
   /* off a tablet the screen flows down the page — stack the panels, don't squeeze them */
-  body:not(.kioskon) .tk-main{flex-direction:column}
-  body:not(.kioskon) .tk-side{border-left:none;border-top:2px solid rgba(255,255,255,.14)}
-  body:not(.kioskon) .tk-info{flex:none}
-  body:not(.kioskon) .tk-info>.tk-cell{flex:none}
-  body:not(.kioskon) .tk-now{flex:none}
-  body:not(.kioskon) .tk-vit{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
-  body:not(.kioskon) .tk-vit>div{border-left:none;border-top:1px solid rgba(255,255,255,.14)}
-  body:not(.kioskon) .tk-rail{flex:none}
-  body:not(.kioskon) .tk-pills{flex-direction:row;flex:none}
-  body:not(.kioskon) .tk-pills .tswp{border-top:0;border-left:2px solid rgba(255,255,255,.2);padding:8px 6px}
-  body:not(.kioskon) .tk-pills .tswp:first-child{border-left:0}
+  body:not(.kioskon) #tbScreen .tk-main{flex-direction:column}
+  body:not(.kioskon) #tbScreen .tk-side{border-left:none;border-top:2px solid rgba(255,255,255,.14)}
+  body:not(.kioskon) #tbScreen .tk-info{flex:none}
+  body:not(.kioskon) #tbScreen .tk-info>.tk-cell{flex:none}
+  body:not(.kioskon) #tbScreen .tk-now{flex:none}
+  body:not(.kioskon) #tbScreen .tk-vit{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
+  body:not(.kioskon) #tbScreen .tk-vit>div{border-left:none;border-top:1px solid rgba(255,255,255,.14)}
+  body:not(.kioskon) #tbScreen .tk-rail{flex:none}
+  body:not(.kioskon) #tbScreen .tk-pills{flex-direction:row;flex:none}
+  body:not(.kioskon) #tbScreen .tk-pills .tswp{border-top:0;border-left:2px solid rgba(255,255,255,.2);padding:8px 6px}
+  body:not(.kioskon) #tbScreen .tk-pills .tswp:first-child{border-left:0}
   .tk-vit{border-top:2px solid rgba(255,255,255,.14)}
   .tk-id{display:flex;align-items:center;gap:13px;padding:18px;min-width:0;flex:none}
   /* the wordmark is ~5:1 — unbounded it owns the whole id row on a narrow
@@ -380,9 +380,9 @@
      so the occupant was ellipsised down to a single letter. Give it its own line
      rather than crushing it — a name is the one thing this strip exists to say. */
   @media (max-width:640px){
-    body:not(.kioskon) .tk-id{flex-wrap:wrap;gap:8px 12px}
-    body:not(.kioskon) .tk-blk{margin-left:auto}
-    body:not(.kioskon) .tk-who{order:3;flex:1 1 100%;margin-left:0}
+    body:not(.kioskon) #tbScreen .tk-id{flex-wrap:wrap;gap:8px 12px}
+    body:not(.kioskon) #tbScreen .tk-blk{margin-left:auto}
+    body:not(.kioskon) #tbScreen .tk-who{order:3;flex:1 1 100%;margin-left:0}
   }
   .tk-ble{cursor:pointer;border:2px solid rgba(255,255,255,.4)}
   .tk-ble.off,.tk-ble.lost{background:transparent;color:var(--ink,#fff)}
@@ -451,9 +451,9 @@
   /* the collapsed form: the next section is running, the ask waits as a band */
   .tks-strip{cursor:pointer}
   .tks-strip u{font-size:14px;color:#5fe28e;text-decoration:none;font-weight:600}
-  body.kioskon .tks-pad button{height:38px;font-size:19px}
-  body.kioskon .tks-row .btn{height:41px}
-  body.kioskon .tks-teams button{height:38px}
+  :is(body.kioskon,.twt) .tks-pad button{height:38px;font-size:19px}
+  :is(body.kioskon,.twt) .tks-row .btn{height:41px}
+  :is(body.kioskon,.twt) .tks-teams button{height:38px}
   /* No ergs, nothing to assign: no tablets, no claiming, no stations on the card.
      What is left is the workout and the clock, which is all a floor class needs. */
   .ergless{display:none}
@@ -679,28 +679,24 @@
   /* THE WALL: every erg in the gym at a glance, because the trainer thinks in
      machines, not in a dropdown. Tap one and it opens full size; the back bar
      and a left/right swipe walk the row. */
-  .tbwall{display:grid;gap:10px;margin-bottom:6px;
-    grid-template-columns:repeat(auto-fill,minmax(min(100%,164px),1fr))}
-  .twc{display:flex;flex-direction:column;gap:5px;min-width:0;text-align:left;cursor:pointer;
-    border:1px solid var(--line);border-radius:14px;padding:11px 12px 12px;
-    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
-    font-family:var(--ui);color:var(--ink)}
-  .twc:active{transform:translateY(1px)}
-  .twc-m{display:flex;align-items:center;gap:7px;min-width:0;
-    font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.16em;
-    text-transform:uppercase;color:var(--ink-mute)}
-  .twc-m i{flex:none;width:7px;height:7px;border-radius:50%;background:currentColor}
-  .twc-m b{min-width:0;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .twc-n{min-width:0;font-family:var(--disp);font-weight:700;font-size:15px;line-height:1.2;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .twc-w{min-width:0;font-size:11.5px;line-height:1.35;color:var(--ink-mute);
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .twc-v{margin-top:1px;font-family:var(--mono);font-size:12px;color:var(--ink-dim);
-    font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .twc.free .twc-n{color:var(--ink-mute);font-weight:600}
-  .twc.spare{border-style:dashed;opacity:.72}
-  .twc.live{border-color:rgba(58,222,107,.5)}
-  .twc.live .twc-m{color:#3ade6b}
+  /* THE WALL IS THE TABLETS THEMSELVES (build 433 — Omar: "i see all the
+     screens at once! like tiles, and i can select any if i want"): one live
+     tile per machine — the REAL 1005x600 screen, scaled down, refreshed on
+     the wall tick. A tap opens that machine full size. The tile shares the
+     kiosk's own metric rules via :is(body.kioskon,.twt), so the miniature
+     IS the tablet, never a re-styling of it. */
+  .tbwall{display:grid;gap:14px;margin-bottom:6px;
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+  /* the wall of screens uses the whole page, left edge shared with every
+     other page's cards — the 600px centre column is the ONE-machine flow */
+  body.tabwall .tb-wrap{max-width:none;margin:8px 0 0}
+  .twt{display:block;min-width:0;padding:0;margin:0;text-align:left;cursor:pointer;
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:var(--card);color:var(--ink);font-family:var(--ui)}
+  .twt:active{transform:translateY(1px)}
+  .twt-scr{pointer-events:none;overflow:hidden;position:relative}
+  .twt .tk{border-radius:0}
+  .twt .tb-note{display:block;padding:20px 14px;font-size:12.5px;color:var(--ink-mute)}
   /* FULL SCREEN FOR THE TABLET, LIKE THE BIG SCREEN (build 429 — Omar:
      "why can I not see the tablet as full page view?"): body.tbfull drops
      the chrome and scales the 1005x600 frame edge-to-edge; a corner pill
@@ -756,49 +752,49 @@
   body.kioskon.tabone .tb-back{display:flex;padding:0 0 8px}
   body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none;background:#fff;overflow:hidden}
   body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
-  body.kioskon .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
-  body.kioskon .tk-vit .opt{display:block}
-  body.kioskon .tk-id{padding:18px 22px;gap:16px}   /* 22 = the cards' own inset — the logo shares their line (427); taller row per Omar (428) */
-  body.kioskon .tk-logo{height:52px}
-  body.kioskon .tk-mach{font-size:46px}
-  body.kioskon .tk-who{font-size:32px}
-  body.kioskon .tk-blk{font-size:23px;padding:12px 20px}
-  body.kioskon .tk-name{flex-direction:row;align-items:center;gap:18px;padding:9px 22px}
-  body.kioskon .tk-name label{flex:none;font-size:14px}
-  body.kioskon .tk-name>div{flex:1 1 auto;min-width:0}
-  body.kioskon .tk-name input{height:46px;font-size:19px}
-  body.kioskon .tk-name .btn{height:46px;font-size:16px}
-  body.kioskon .tk-inst{padding:11px 22px 12px;gap:7px}
-  body.kioskon .tk-cell{padding:12px 22px}
-  body.kioskon .tk-tag{font-size:18px}
-  body.kioskon .tk-head{font-size:34px;padding:12px 15px}
-  body.kioskon .tk-sub{font-size:34px}
-  body.kioskon .tk-big{font-size:44px}
-  body.kioskon .tk-cell b{font-size:74px}
-  body.kioskon .tk-cell i{font-size:21px}
-  body.kioskon .tk-bar{height:16px}
-  body.kioskon .tk-cell u{font-size:22px}
-  body.kioskon .tk-info{flex:0 0 322px}
-  body.kioskon .tk-work{padding:13px 22px 14px;gap:11px}
-  body.kioskon .tk-now{padding-left:15px;gap:6px}
-  body.kioskon .tk-now em{font-size:32px}
-  body.kioskon .tk-done{padding:15px 22px}
-  body.kioskon .tk-done b{font-size:32px}
-  body.kioskon .tk-done i{font-size:20px}
-  body.kioskon .tk-then>span{font-size:17px}
-  body.kioskon .tk-then>i{font-size:20px}
-  body.kioskon .tk-nxt{padding:15px 22px 16px}
-  body.kioskon .tk-nxt>span{font-size:18px}
-  body.kioskon .tk-nxt>b{font-size:32px}
-  body.kioskon .tk-nxt>em{font-size:22px}
-  body.kioskon .tk-rail{flex:0 0 210px;padding:16px 18px;gap:10px}
-  body.kioskon .tk-rail>span{font-size:18px}
-  body.kioskon .tk-pills .tswp b{font-size:34px}
-  body.kioskon .tk-pills .tswp em{font-size:14px}
-  body.kioskon .tk-flash{font-size:22px}
-  body.kioskon .tk-vit>div{padding:14px 8px 16px}
-  body.kioskon .tk-vit b{font-size:38px}
-  body.kioskon .tk-vit span{font-size:20px}
+  :is(body.kioskon,.twt) .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
+  :is(body.kioskon,.twt) .tk-vit .opt{display:block}
+  :is(body.kioskon,.twt) .tk-id{padding:18px 22px;gap:16px}   /* 22 = the cards' own inset — the logo shares their line (427); taller row per Omar (428) */
+  :is(body.kioskon,.twt) .tk-logo{height:52px}
+  :is(body.kioskon,.twt) .tk-mach{font-size:46px}
+  :is(body.kioskon,.twt) .tk-who{font-size:32px}
+  :is(body.kioskon,.twt) .tk-blk{font-size:23px;padding:12px 20px}
+  :is(body.kioskon,.twt) .tk-name{flex-direction:row;align-items:center;gap:18px;padding:9px 22px}
+  :is(body.kioskon,.twt) .tk-name label{flex:none;font-size:14px}
+  :is(body.kioskon,.twt) .tk-name>div{flex:1 1 auto;min-width:0}
+  :is(body.kioskon,.twt) .tk-name input{height:46px;font-size:19px}
+  :is(body.kioskon,.twt) .tk-name .btn{height:46px;font-size:16px}
+  :is(body.kioskon,.twt) .tk-inst{padding:11px 22px 12px;gap:7px}
+  :is(body.kioskon,.twt) .tk-cell{padding:12px 22px}
+  :is(body.kioskon,.twt) .tk-tag{font-size:18px}
+  :is(body.kioskon,.twt) .tk-head{font-size:34px;padding:12px 15px}
+  :is(body.kioskon,.twt) .tk-sub{font-size:34px}
+  :is(body.kioskon,.twt) .tk-big{font-size:44px}
+  :is(body.kioskon,.twt) .tk-cell b{font-size:74px}
+  :is(body.kioskon,.twt) .tk-cell i{font-size:21px}
+  :is(body.kioskon,.twt) .tk-bar{height:16px}
+  :is(body.kioskon,.twt) .tk-cell u{font-size:22px}
+  :is(body.kioskon,.twt) .tk-info{flex:0 0 322px}
+  :is(body.kioskon,.twt) .tk-work{padding:13px 22px 14px;gap:11px}
+  :is(body.kioskon,.twt) .tk-now{padding-left:15px;gap:6px}
+  :is(body.kioskon,.twt) .tk-now em{font-size:32px}
+  :is(body.kioskon,.twt) .tk-done{padding:15px 22px}
+  :is(body.kioskon,.twt) .tk-done b{font-size:32px}
+  :is(body.kioskon,.twt) .tk-done i{font-size:20px}
+  :is(body.kioskon,.twt) .tk-then>span{font-size:17px}
+  :is(body.kioskon,.twt) .tk-then>i{font-size:20px}
+  :is(body.kioskon,.twt) .tk-nxt{padding:15px 22px 16px}
+  :is(body.kioskon,.twt) .tk-nxt>span{font-size:18px}
+  :is(body.kioskon,.twt) .tk-nxt>b{font-size:32px}
+  :is(body.kioskon,.twt) .tk-nxt>em{font-size:22px}
+  :is(body.kioskon,.twt) .tk-rail{flex:0 0 210px;padding:16px 18px;gap:10px}
+  :is(body.kioskon,.twt) .tk-rail>span{font-size:18px}
+  :is(body.kioskon,.twt) .tk-pills .tswp b{font-size:34px}
+  :is(body.kioskon,.twt) .tk-pills .tswp em{font-size:14px}
+  :is(body.kioskon,.twt) .tk-flash{font-size:22px}
+  :is(body.kioskon,.twt) .tk-vit>div{padding:14px 8px 16px}
+  :is(body.kioskon,.twt) .tk-vit b{font-size:38px}
+  :is(body.kioskon,.twt) .tk-vit span{font-size:20px}
 
   .tb-top{display:flex;align-items:center;gap:12px}
   .tb-top .bname{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
@@ -4833,6 +4829,9 @@ window.addEventListener("error",function(ev){
     const w=wallOn();
     document.body.classList.toggle("tabwall",w);
     document.body.classList.toggle("tabone",!w);
+    // tiles exist only while the wall is up: a hidden tile still answers
+    // document.querySelector('.tk-…') and shadows the real screen (433)
+    if(!w){ const wl=$("tbWall"); if(wl&&wl.__k){ wl.__k=""; wl.__s=""; wl.innerHTML=""; } }
     const wh=$("tbWhich");
     if(wh){ const sl=claimSlotFor(String(tabletSel)); wh.textContent=sl?sl.label:String(tabletSel); }
     fitTablet();
@@ -4857,29 +4856,30 @@ window.addEventListener("error",function(ev){
     window.__tbWall=()=>{ tbView="wall"; syncTbView(); renderWall(); }; }catch(e){}
   function renderWall(){
     const el=$("tbWall"); if(!el) return;
+    if(!wallOn()) return;
     if(cfg.mode!=="rotation"||!nBlocks()||!hasErgs()){
       const t=`<div class="tb-note" style="grid-column:1/-1">Today\u2019s workout has <b>no ergs</b> \u2014 these tablets aren\u2019t needed for it. Put the workout on the big screen and the class follows it.</div>`;
       if(el.__s!==t){ el.__s=t; el.innerHTML=t; } return; }
-    const ms=machSlots().byKey;
-    const h=wallOrder().map(sl=>{
-      const hit=ms[sl.key], b=R().blocks[sl.bi]||{name:"",items:[]};
-      const team=hit?teamsAt(hit.bi)[hit.j]:null;
-      const free=!team||unnamed(team.name);
-      const live=!!(running&&(!cfg.together||sl.bi===blockIdxOf(rot.round)));
-      const seg=live?segAt(b,rot.elapsed):null;
-      const who=free?"Free":esc(team.name);
-      const where=seg?esc(seg.it.rest?"Rest":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working"))
-        :esc(b.name||"");
-      // one short line, never a sentence that has to be cut off mid-word
-      const val=(team&&running&&team.split>0)?`${fmtSplit(team.split)}<span> /500</span>`
-        :!hit?"Spare":free?"Nobody yet":"Tapped in";
-      return `<button type="button" class="twc${free?" free":""}${hit?"":" spare"}${live?" live":""}" data-k="${esc(sl.key)}">
-        <span class="twc-m"><i></i><b>${esc(sl.label)}</b></span>
-        <span class="twc-n">${who}</span>
-        <span class="twc-w">${where}</span>
-        <span class="twc-v">${val}</span></button>`;
-    }).join("");
-    if(el.__s!==h){ el.__s=h; el.innerHTML=h; }
+    // ONE LIVE TILE PER MACHINE (build 433 — Omar: "i see all the screens
+    // at once! like tiles, and i can select any if i want"): each tile is
+    // the machine's REAL screen — the same renderer, aimed at the tile —
+    // authored at 1005x600 and scaled to the tile's width. ids are stripped
+    // (eighteen copies of #tbClaimGo is seventeen too many) and the tile is
+    // pointer-events:none, so the only tap target is the tile itself.
+    const ks=wallOrder();
+    const want=ks.map(s=>s.key).join("|");
+    if(el.__k!==want){ el.__k=want; el.__s="";
+      el.innerHTML=ks.map(sl=>`<button type="button" class="twt" data-k="${esc(sl.key)}"><div class="twt-scr"></div></button>`).join(""); }
+    el.querySelectorAll(".twt").forEach(tile=>{
+      const scr=tile.firstElementChild;
+      try{ renderTablet(true,tile.dataset.k,scr); }catch(e){}
+      scr.querySelectorAll("[id]").forEach(n=>n.removeAttribute("id"));
+      const tk=scr.querySelector(".tk");
+      if(tk){ const k=(tile.clientWidth||1)/1005;
+        tk.style.transform="scale("+k.toFixed(4)+")";
+        scr.style.height=Math.round(600*k)+"px"; }
+      else scr.style.height="";
+    });
   }
   function buildTabletSel(){
     const sel=$("tabletSel");
@@ -4897,7 +4897,7 @@ window.addEventListener("error",function(ev){
     const w=sel.closest(".dsel"); if(w){ const o=sel.options[sel.selectedIndex]; w.querySelector(".dsel-btn").textContent=o?o.textContent:"—"; }
   }
   { const w=$("tbWall");
-    if(w) w.addEventListener("click",ev=>{ const c=ev.target.closest&&ev.target.closest(".twc");
+    if(w) w.addEventListener("click",ev=>{ const c=ev.target.closest&&ev.target.closest(".twt");
       if(c) openTablet(c.dataset.k); }); }
   // The way OFF a machine must never depend on anything else succeeding. Delegated
   // to the bar (so no redraw can take the handler with the button), the view state
@@ -5341,14 +5341,17 @@ window.addEventListener("error",function(ev){
   }
   window.addEventListener("resize",fitTablet);
   window.addEventListener("orientationchange",()=>setTimeout(fitTablet,120));
-  function renderTablet(force){
-    const scr=$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
-    if(wallOn()) return;
+  function renderTablet(force,tileKey,tileEl){
+    // aimed at a wall tile, the SAME renderer draws that machine's screen
+    // into the tile instead of #tbScreen — one code path, two canvases (433)
+    const tile=!!(tileKey&&tileEl);
+    const scr=tile?tileEl:$("tbScreen"); if(!$("viewTablet").classList.contains("active")) return;
+    if(!tile&&wallOn()) return;
     if(cfg.mode==="rotation"&&nBlocks()&&!hasErgs()){
       const t=`<div class="tb-note" style="padding:38px 12px;text-align:center">Today\u2019s workout has <b>no ergs</b> \u2014 these tablets aren\u2019t needed for it. Put the workout on the big screen and the class follows it, splitting itself across the floor.</div>`;
       if(scr.innerHTML!==t) scr.innerHTML=t;
       return; }
-    if(!scr.__doneWired){ scr.__doneWired=1;
+    if(!tile&&!scr.__doneWired){ scr.__doneWired=1;
       // the screen redraws on a timer, so bind the tap to the container, never to
       // the button itself — otherwise a tap landing mid-redraw is lost
       // EVERY control on this screen is delegated to the container. The picture
@@ -5410,7 +5413,7 @@ window.addEventListener("error",function(ev){
           .some(i=>i===document.activeElement||i.value);
         if(typing) return; }
       if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in Setup.</div>`; return; }
-      const sv=String(tabletSel), mtype=sv.includes(":")?sv.split(":")[0]:null, mnum=sv.includes(":")?+sv.split(":")[1]:0;
+      const sv=tile?String(tileKey):String(tabletSel), mtype=sv.includes(":")?sv.split(":")[0]:null, mnum=sv.includes(":")?+sv.split(":")[1]:0;
       const mLabel=mtype?`${mInfo(mtype).label} ${mnum}`:"\u2014";
       const hit=mtype?machSlots().byKey[mtype+":"+mnum]:null;
       // The class size has not reached this machine yet \u2014 but the machine is
@@ -5467,8 +5470,7 @@ window.addEventListener("error",function(ev){
             </div>
           </div>
         </div>`;
-        fitTablet();
-        bindTbEnter(scr);
+        if(!tile){ fitTablet(); bindTbEnter(scr); }
         fitTbText(scr);
         return;
       }
@@ -5481,6 +5483,15 @@ window.addEventListener("error",function(ev){
       const segLabel=seg?(seg.it.rest?"Rest — recover":(seg.it.name||((seg.it.exercises||[])[0]||{}).name||"Working")):"";
       const nxBlock=R().blocks[(bi+1)%nBlocks()];
       const lastRound=rot.round>=totalRounds()-1;
+      // THE ERG'S CARD IS THE ERG'S WORK, EVEN BETWEEN BLOCKS (build 433 —
+      // Omar: "each erg should show the erg's exercise and just show next in
+      // the box below on the right!"): in split flow the machine keeps its
+      // station across the block change — the card stays on ITS work (the
+      // arriving athlete's job) and the destination rides ONLY the Go-now
+      // box. In together flow the machine is done with its block, so the
+      // next-block preview stands.
+      const machHosts=cfg.together===false&&(b.items||[]).some(it=>it&&!it.rest
+        &&(it.exercises||[]).some(x=>x&&machineOf(x.name)===mtype));
       // A NAME IS TAKEN WHERE THE PERSON IS, WHENEVER THEY GET THERE.
       // Someone who started on the floor has no tablet in front of them; they get
       // one the moment the rotation puts them on an erg, and that is when they tap
@@ -5592,7 +5603,7 @@ window.addEventListener("error",function(ev){
       const goNext=`${esc(nxBlock.name)} · ${bmLabel(nxBlock)}`;
       let jTag="",jHead="",jSub="",jBig="";
       if(phase==="done"){ jTag="Finished"; jHead="Session complete"; jSub="Great work — check the board"; }
-      else if(phase==="rest"||holding){ jTag="Rest"; jHead="Move to your next station"; jBig=goNext; }
+      else if(phase==="rest"||holding){ jTag="Rest"; jHead="Move to your next station"; jBig=machHosts?"":goNext; }
       else if(!running){
         jTag=tsw?"Starts on this machine":"Get ready";
         jHead=tsw?`${esc(tsw.onWho)} starts here`:"Waiting for the trainer";
@@ -5636,9 +5647,10 @@ window.addEventListener("error",function(ev){
       }
       // ---- what this block actually is, with the live segment marked ----
       // during a rest the guide looks forward: show the block you're walking to
-      const wBlk=(phase==="rest"||holding)?nxBlock:b;
+      const wBlk=((phase==="rest"||holding)&&!machHosts)?nxBlock:b;
       const wIts=(wBlk.items||[]);
-      const nowI=(seg&&wBlk===b)?seg.i:wIts.findIndex(x=>!x.rest);
+      const nowI=((phase==="rest"||holding)&&machHosts)?wIts.findIndex(x=>!x.rest)
+        :(seg&&wBlk===b)?seg.i:wIts.findIndex(x=>!x.rest);
       const nowIt=nowI>=0?wIts[nowI]:null;
       const itSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
         :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
@@ -5657,7 +5669,9 @@ window.addEventListener("error",function(ev){
         const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&myIx>=0){
           nowLines=[`<em>${esc(exTxt(xs9[myIx],{it:nowIt}))}</em>`];
-          rotNext=xs9[(myIx+1)%xs9.length];
+          // between blocks the box says Go now → the next block (433) —
+          // the in-part walk target only applies while the part runs
+          if(phase!=="rest"&&!holding) rotNext=xs9[(myIx+1)%xs9.length];
           after=[];
           // the tablet speaks for the MACHINE (431 — Omar: "how are two
           // rowers showing different?!"): the crew-centric "Now:" line
@@ -5669,7 +5683,7 @@ window.addEventListener("error",function(ev){
       // dropped NEXT to the next block. The machine's story holds — rest
       // slab, no ladder, NEXT is this machine's own next window's work.
       let restRot=null;
-      if(nowIt&&nowIt.rest&&wBlk===b&&!(seg&&seg.self)){
+      if(nowIt&&nowIt.rest&&wBlk===b&&phase!=="rest"&&!holding&&!(seg&&seg.self)){
         const nIt=wIts.slice(nowI+1).find(x=>x&&!x.rest)||wIts.find(x=>x&&!x.rest);
         if(nIt&&itRot(nIt)&&itRotBy(nIt)!=="done"){
           const xs9=(nIt.exercises||[]).filter(Boolean);
@@ -5779,9 +5793,7 @@ window.addEventListener("error",function(ev){
           ${PM5DBG?`<div class="tk-dbg" id="tbDbg">${pm5DbgTxt()}</div>`:""}
         </div>`;
       scr.classList.toggle("has-swap",!!tsw);
-      fitTablet();
-
-      bindTbEnter(scr);
+      if(!tile){ fitTablet(); bindTbEnter(scr); }
     } else if(cfg.mode==="waves"){
       const si=clamp(+tabletSel||0,0,cfg.segments.length-1), s=cfg.segments[si];
       const here=ergs.filter(e=>e.released&&e.finT==null&&e.stage===si);
@@ -5898,7 +5910,7 @@ window.addEventListener("error",function(ev){
         // a two-line block reads huge, an eight-line block still shows every line
         // growing only makes sense on the fixed tablet canvas; in the phone's
         // flow layout the column just gets taller and nothing ever overflows
-        if(document.body.classList.contains("kioskon")){
+        if(document.body.classList.contains("kioskon")||(scr.closest&&scr.closest(".twt"))){
           let g=0; while(!over()&&size()<46&&g++<44) set(size()+1); }
         let s=0; while(over()&&size()>15&&s++<44){ set(size()-1);
           const gp=parseFloat(getComputedStyle(nw).gap)||0;
@@ -9224,7 +9236,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=432;
+  const BUILD=433;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -376,6 +376,22 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   contained and stay. `altwin.js` gates the single-line card, the
   dropped ladder, the next box, the running dedupe and the one-left-
   edge measure.
+- **THE REST SCREENS TELL ONE STORY, AND THE CARD IS ALWAYS THE ERG'S OWN
+  WORK (432-433 — the audit Omar ordered, then his rest screenshot: "each
+  erg should show the ergs exercise and just show next in the box below on
+  the right!").** WITHIN-PART rest windows (432): the tag says Rest (never
+  WORKING over a "Rest — recover" head), the then-ladder stays off,
+  `.tk-nxt` reads "Next here · <this machine's own next window>" (`restRot`
+  — running only, never phase rest/holding), and the clock label says
+  "Rest ends in" instead of calling a 0:45 the whole block. BETWEEN BLOCKS
+  in SPLIT flow (433 — `machHosts`: `cfg.together===false` and the
+  machine's own block works this mtype): the card KEEPS the machine's work
+  (`wBlk` stays `b`, first working item — the arriving athlete's job), the
+  `.tk-big` destination line drops, and the walk target lives ONLY in the
+  Go-now box ("Go now → Part C · Assault Runner"); `rotNext` never fires
+  during rest/holding, so the box is never hijacked mid-change. TOGETHER
+  flow keeps the next-block preview — there the machine really is done
+  with its block. `altwin` pins both rest states end to end.
 - **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a
@@ -1460,9 +1476,24 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **The Erg Tablet tab opens on the WALL, not on one machine.** "Which erg?" is the
   first question, and the dropdown that used to answer it is hidden by the preview
   (`body.kioskon .tb-selrow{display:none}`) — so there was no way off a machine at all.
-  `renderWall()` draws one `.twc` per `claimSlots()` entry in `wallOrder()` (block by
-  block, the way the floor is walked): machine, who is on it, where, one short value
-  line — never a sentence that gets cut off. Tapping opens that screen (`tbView="one"`,
+  **THE WALL IS THE TABLETS THEMSELVES (build 433 — Omar: "i see all the screens at
+  once! like tiles, and i can select any if i want").** `renderWall()` draws one `.twt`
+  LIVE tile per `claimSlots()` entry in `wallOrder()` (block by block, the way the
+  floor is walked): the machine's REAL screen — `renderTablet(true,key,tileEl)` is the
+  SAME renderer aimed at the tile (sv:=key; skips wiring/fitTablet/bindTbEnter;
+  fitTbText runs, its grow branch includes `.twt`) — authored 1005x600 and scaled to
+  the tile's width on the 900ms wall tick. The kiosk metric rules are shared via
+  `:is(body.kioskon,.twt)` (same specificity as `body.kioskon` — the miniature IS the
+  tablet, never a re-styling) and the phone-flow overrides are scoped
+  `body:not(.kioskon) #tbScreen` so they cannot reach a tile. ids are STRIPPED from
+  tiles (24 copies of `#tbClaimGo` otherwise) and `.twt-scr` is pointer-events:none —
+  the only tap is the tile itself. TILES EXIST ONLY WHILE THE WALL IS UP: a hidden
+  tile still answers `document.querySelector('.tk-…')` and shadows the real screen
+  for every suite and any global read, so `syncTbView` empties `#tbWall` on leaving
+  and `renderWall` bails when `!wallOn()`. The wall spans the page
+  (`body.tabwall .tb-wrap{max-width:none}`, left edge shared); the old `.twc`
+  summary cards are GONE (stress/stress2 click `.twt`). `altwin` pins tiles, no-ids,
+  no-shadow, click-through. Tapping opens that screen (`tbView="one"`,
   `body.tabone`); the back bar carries All screens · the view toggle · ‹ machine ›, and
   a horizontal swipe on `#tbStage` steps the same order (read in SCREEN space — the
   frame is drawn on its side on a phone). A real tablet in landscape (`TBKQ`) skips the

@@ -264,6 +264,50 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   { const nx=await p2.evaluate(()=>(document.querySelector('.tk-nxt')||{}).innerText||'');
     ok(/wall balls/i.test(nx)&&!/med balls/i.test(nx),
       '431: NEXT says the exercise, not the equipment — '+nx.replace(/\s+/g,' ')); }
+  // THE CARD IS ALWAYS THE ERG'S OWN WORK (433 — Omar: "each erg should
+  // show the erg's exercise and just show next in the box below on the
+  // right!"): during the block-change rest the Rower card stays MAX CAL ROW
+  // (never the next block's pair), the big destination line is gone, and
+  // the walk target lives only in the Go-now box
+  await p2.evaluate(()=>window.__tbOpen('Row:1')); await p2.waitForTimeout(600);
+  await p2.evaluate(()=>document.getElementById('startBtn').click());
+  await p2.waitForTimeout(1200);
+  { let r={};
+    for(let i=0;i<70;i++){
+      await p2.evaluate(()=>window.__seek(15)); await p2.waitForTimeout(280);
+      r=await p2.evaluate(()=>{
+        const q=s=>{const x=document.querySelector(s);return x?x.innerText.replace(/\s+/g,' ').trim():'';};
+        return {tag:q('.tk-inst .tk-tag'),head:q('.tk-inst .tk-head'),big:q('.tk-big'),
+          now:q('.tk-now'),nxt:q('.tk-nxt')}; });
+      if(/move to your next station/i.test(r.head)) break; }
+    ok(/move to your next station/i.test(r.head),'433: reached the block-change rest ('+r.head+')');
+    ok(/rest/i.test(r.tag),'433: rest tag at the block change');
+    ok(/^max cal row$/i.test(r.now),'433: the Rower card keeps ITS work at the block change ('+r.now+')');
+    ok(!r.big,'433: no big destination line over the card (it lives in the Go-now box)');
+    ok(/go now/i.test(r.nxt)&&/part c/i.test(r.nxt),
+      '433: the box says Go now → the next part — '+r.nxt); }
+  // THE WALL IS THE TABLETS THEMSELVES (433 — Omar: "i see all the screens
+  // at once! like tiles, and i can select any if i want")
+  await p2.evaluate(()=>window.__tbWall()); await p2.waitForTimeout(1400);
+  { const w=await p2.evaluate(()=>{
+      const tiles=[...document.querySelectorAll('#tbWall .twt')];
+      const ski=tiles.find(t=>t.dataset.k==='Ski:1');
+      return {n:tiles.length,withTk:tiles.filter(t=>t.querySelector('.tk')).length,
+        ids:document.querySelectorAll('#tbWall [id]').length,
+        h:tiles[0]?tiles[0].getBoundingClientRect().height:0,
+        ski:ski?ski.innerText.replace(/\s+/g,' '):'',
+        overX:document.documentElement.scrollWidth>document.documentElement.clientWidth+1}; });
+    ok(w.n>=18&&w.withTk===w.n,'433: one LIVE screen tile per machine ('+w.n+')');
+    ok(w.ids===0,'433: tile screens carry no duplicate ids');
+    ok(w.h>100,'433: tiles have real height ('+Math.round(w.h)+')');
+    ok(/max cal ski/i.test(w.ski),'433: the Ski tile shows the Ski screen');
+    ok(!w.overX,'433: the wall never scrolls sideways'); }
+  await p2.click('#tbWall .twt'); await p2.waitForTimeout(900);
+  { const r=await p2.evaluate(()=>({one:document.body.classList.contains('tabone'),
+      scr:!!document.querySelector('#tbScreen .tk'),
+      left:document.querySelectorAll('#tbWall .twt').length}));
+    ok(r.one&&r.scr,'433: tapping a tile opens that machine full size');
+    ok(r.left===0,'433: tiles leave the DOM with the wall — hidden tiles shadow every query'); }
   await p2.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
