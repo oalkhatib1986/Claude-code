@@ -448,7 +448,26 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   during rest/holding, so the box is never hijacked mid-change. TOGETHER
   flow keeps the next-block preview — there the machine really is done
   with its block. `altwin` pins both rest states end to end.
-- **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
+- **A COACH'S CUE RIDES THE WORK IT CUES (build 449 — Omar: "why do these
+  comments like split as a team not show on the erg tablets?").**
+  `tkExLine(x,it)` is the ONE builder for a tablet work line — `<em>` +
+  the exercise's `note` as an `<i class="tknote">` under it, with the
+  overview's own `noteRedundant` echo filter — used at all six exercise-map
+  sites on both screens, so the filtered running card carries only ITS OWN
+  exercise's note; the item-level note prints once after the lines (skipped
+  on rest slabs, which replace the lines wholesale). `.tknote` is quiet
+  dark type on the white slab (dim white on `.rest`), block display so it
+  wraps, and counts toward `fitTbText`'s height check like every line.
+  AND EVERY NAME PILL IS ONE WIDTH (same build — Omar: "the team name
+  pills must be the same size so always take the widest one"): after each
+  `renderBlockCards` paint the widest NAMED `.mtag` is measured
+  (offsetWidth — never a screen rect, the scaled wall shrinks those; var
+  reset first or the width can never shrink) and rides `#blockCards`'
+  `--mtw`; the pill takes `width:var(--mtw)` centred, NOT min-width, so a
+  squeezed chip still shrinks and ellipsises instead of spilling, and
+  FREE/spare tags keep `width:auto` (a tag that says "free" at name width
+  reads as a ghost). `altwin` part 5 pins notes on tile/idle/running-own-
+  only and the one-width, no-spill pills. The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a
   name alone shows none, pre-clock or mid-session; paired pre-clock reads
