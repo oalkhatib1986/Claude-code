@@ -5598,7 +5598,9 @@ window.addEventListener("error",function(ev){
         jHead=tsw?`${esc(tsw.onWho)} starts here`:"Waiting for the trainer";
         jSub=tsw?`then ${esc((tsw.floorX[0]||{}).name||"swap")}`:"";
       } else {
-        jTag=hot?"Scoring now":"Working";
+        // a written rest window is a rest, not work — the head already
+        // says "Rest — recover", so a WORKING tag over it is a lie (432)
+        jTag=(seg&&seg.it&&seg.it.rest)?"Rest":(hot?"Scoring now":"Working");
         jHead=tsw?`${esc(tsw.onWho)} on the ${esc(machShort)}`:esc(segLabel);
         jSub=tsw?tsw.floorX.map(x=>`${esc(tsw.whoFor(x)||"")} on ${esc(x.name)}`).join(" · ")
                 :(seg?esc(tbSegLine(seg,segLabel,hit.j,bi)):"");
@@ -5616,7 +5618,8 @@ window.addEventListener("error",function(ev){
       const capMode=isAmrap(b)||!!(seg&&seg.self);
       const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Next part in a moment"
         :running?(isAmrap(b)?"Left in this AMRAP"
-          :(seg&&seg.setN>1?`Set ${seg.set+1} of ${seg.setN} — left`:"Time left in this block"))
+          :(seg&&seg.it&&seg.it.rest&&!capMode?"Rest ends in"
+          :(seg&&seg.setN>1?`Set ${seg.set+1} of ${seg.setN} — left`:"Time left in this block")))
         :(isAmrap(b)?"AMRAP time cap":"This block lasts");
       const clkVal=running?(capMode?fmtMS(Math.max(0,blockLen(b)-rot.elapsed))
           :(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)))
@@ -5661,6 +5664,17 @@ window.addEventListener("error",function(ev){
           // tracked the PERSON's half and printed Burpee Box Jumps over a
           // Max Cal Row card on half the rowers — no crew line here
           jSub=""; } }
+      // A REST WINDOW IS STILL THE MACHINE'S SCREEN (432 — the audit): a
+      // written rest between rotate windows let the ladder creep back and
+      // dropped NEXT to the next block. The machine's story holds — rest
+      // slab, no ladder, NEXT is this machine's own next window's work.
+      let restRot=null;
+      if(nowIt&&nowIt.rest&&wBlk===b&&!(seg&&seg.self)){
+        const nIt=wIts.slice(nowI+1).find(x=>x&&!x.rest)||wIts.find(x=>x&&!x.rest);
+        if(nIt&&itRot(nIt)&&itRotBy(nIt)!=="done"){
+          const xs9=(nIt.exercises||[]).filter(Boolean);
+          const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
+          if(xs9.length>1&&myIx>=0){ restRot=xs9[myIx]; after=[]; jSub=""; } } }
       if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
       if(phase==="rest"||holding) after=[];
       if(phase==="done"){ thenLab="today"; after=[];
@@ -5702,6 +5716,11 @@ window.addEventListener("error",function(ev){
       if(rotNext&&phase!=="done"&&team){ nxSpan="Next";
         nxB=esc(rotNext.name);
         nxEm=esc(rotNext.max?("Max"+maxUnit(rotNext.unit)):(amtList(rotNext).join("/")+exUnit(rotNext.unit)).trim()); }
+      // during the written rest whoever faces this tablet is arriving at
+      // it — NEXT names the machine's own next window, never the next block
+      if(restRot&&phase!=="done"&&team){ nxSpan="Next here";
+        nxB=esc(restRot.name);
+        nxEm=esc(restRot.max?("Max"+maxUnit(restRot.unit)):(amtList(restRot).join("/")+exUnit(restRot.unit)).trim()); }
       // a circuit always points at the next station — that is the whole job of this card
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
         nxEm=esc((amtList(cir.next).join("/")+exUnit(cir.next.unit)).trim()); }
@@ -9205,7 +9224,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=431;
+  const BUILD=432;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

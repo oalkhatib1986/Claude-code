@@ -203,6 +203,28 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(!/now:\s*ski/i.test(r.txt),'427: no "Now: Ski" echo while running');
     ok(!r.head||!/^ski$/i.test(r.head),'427: no bare "Ski" headline over the Max Cal Ski card');
     ok(/working/i.test(r.tag),'427: the WORKING state tag stays'); }
+  // A REST WINDOW IS STILL THE MACHINE'S SCREEN (432 — the audit): during
+  // the written 0:45 the tag must not say WORKING over a "Rest — recover"
+  // head, the window ladder must not creep back, NEXT names this machine's
+  // own next window (never the next block), and the clock says what it
+  // counts
+  await p2.evaluate(()=>window.__seek(180)); await p2.waitForTimeout(1000);
+  { const r=await p2.evaluate(()=>{
+      const q=s=>{const x=document.querySelector(s);return x?x.innerText.replace(/\s+/g,' ').trim():'';};
+      return {tag:q('.tk-inst .tk-tag'),now:q('.tk-now'),
+        hasThen:!!document.querySelector('.tk-then'),nxt:q('.tk-nxt'),clk:q('.tk-clk')}; });
+    ok(/rest/i.test(r.tag)&&!/working/i.test(r.tag),'432: rest window wears a REST tag, not WORKING ('+r.tag+')');
+    ok(/^rest 0:45$/i.test(r.now),'432: the rest slab holds ('+r.now+')');
+    ok(!r.hasThen,'432: no window ladder creeps back during the rest');
+    ok(/ski/i.test(r.nxt)&&!/part b|rower/i.test(r.nxt),
+      '432: NEXT names this machine\'s own next window, not the next block — '+r.nxt);
+    ok(/rest ends in/i.test(r.clk),'432: the clock says what it counts ('+r.clk+')'); }
+  await p2.evaluate(()=>window.__seek(48)); await p2.waitForTimeout(1000);
+  { const r=await p2.evaluate(()=>({
+      tag:(document.querySelector('.tk-inst .tk-tag')||{innerText:''}).innerText.trim(),
+      now:(document.querySelector('.tk-now')||{innerText:''}).innerText.replace(/\s+/g,' ').trim()}));
+    ok(/working/i.test(r.tag)&&/max cal ski/i.test(r.now),
+      '432: window 2 back to WORKING · Max Cal Ski'); }
   // FULL SCREEN FOR THE TABLET (429 — Omar: "why can I not see the tablet
   // as full page view?"): the frame scales edge-to-edge, chrome gone, the
   // corner pill exits
