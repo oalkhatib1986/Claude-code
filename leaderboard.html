@@ -5446,21 +5446,32 @@ window.addEventListener("error",function(ev){
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
         let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
         // a bolted tablet shows ITS station's work, not the whole ladder (426)
-        let fRot=false,fNx=null;
+        let fRot=false,fNx=null,fOwn=null;
         if(fIt&&!fIt.rest&&itRot(fIt)){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
           if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`];
-            fRot=true; fNx=xs9[(myIx+1)%xs9.length]; } }
+            fRot=true; fOwn=xs9[myIx]; fNx=xs9[(myIx+1)%xs9.length]; } }
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
         const fThen=fRot?"":fIts.slice(fI+1).map(fSum).join(" · ");
-        // the clock keeps the room's beat — a spare frozen on "15:00" next
-        // to running screens reads as broken (435)
+        // THE SPARE FOLLOWS THE ROOM, STATE FOR STATE (436 — Omar:
+        // "everyone is on rest but some machines are not?!"): a written
+        // rest window puts the rest slab and "Next here" on the spare too,
+        // the block-change rest its countdown and Go-now, exactly like the
+        // crewed screens — never a static preview beside live ones
+        const fPh=rot.phase;
         const fSeg=running?segAt(fb,rot.elapsed):null;
-        const fClk=fSeg?fmtMS(Math.max(0,fSeg.remain)):fmtMS(blockLen(fb));
-        const fClkLab=fSeg?(fSeg.it&&fSeg.it.rest?"Rest ends in":"Time left in this block"):"This block lasts";
-        const fTag=running?(fSeg&&fSeg.it&&fSeg.it.rest?"Rest":"Working"):"Get ready";
+        const fRest=!!(fSeg&&fSeg.it&&fSeg.it.rest&&fPh!=="rest");
+        if(fRest) fLines=[`<em>${esc("Rest "+fmtMS(fSeg.it.dur))}</em>`];
+        const fClk=fPh==="rest"?fmtMS(rot.remain):fSeg?fmtMS(Math.max(0,fSeg.remain)):fmtMS(blockLen(fb));
+        const fClkLab=(fPh==="rest"||fRest)?"Rest ends in":fSeg?"Time left in this block":"This block lasts";
+        const fTag=running?((fPh==="rest"||fRest)?"Rest":"Working"):"Get ready";
+        const fHead=fPh==="rest"?"Move to your next station":fRest?"Rest — recover":"";
+        const fPr=x=>esc(x.max?("Max"+maxUnit(x.unit)):(amtList(x).join("/")+exUnit(x.unit)).trim());
+        const fNb=R().blocks[(openSlot.bi+1)%nBlocks()]||fb;
         const fNxt=fAsk?`<span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`
-          :fNx?`<span>Next</span><b>${esc(fNx.name)}</b><em>${esc(fNx.max?("Max"+maxUnit(fNx.unit)):(amtList(fNx).join("/")+exUnit(fNx.unit)).trim())}</em>`
+          :fPh==="rest"?`<span>Go now &rarr;</span><b>${esc(fNb.name)}</b><em>${esc(bmLabel(fNb))}</em>`
+          :(fRest&&fOwn)?`<span>Next here</span><b>${esc(fOwn.name)}</b><em>${fPr(fOwn)}</em>`
+          :fNx?`<span>Next</span><b>${esc(fNx.name)}</b><em>${fPr(fNx)}</em>`
           :`<span>This machine</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`;
         scr.innerHTML=`
         <div class="tk">
@@ -5483,9 +5494,10 @@ window.addEventListener("error",function(ev){
               </div>`:`<div class="tk-card tk-inst">
                 <div class="tk-blk tk-part">${esc(fb.name||"")}</div>
                 <div class="tk-tag">${fTag}</div>
+                ${fHead?`<div class="tk-head">${fHead}</div>`:""}
               </div>`}
               <div class="tk-card tk-work">
-                <div class="tk-now">${fLines.join("")}</div>
+                <div class="tk-now${fRest?" rest":""}">${fLines.join("")}</div>
                 ${fThen?`<div class="tk-then"><span>then</span><i>${esc(fThen)}</i></div>`:""}
               </div>
             </div>
@@ -5499,7 +5511,9 @@ window.addEventListener("error",function(ev){
         fitTbText(scr);
         return;
       }
-      if(!hit){ scr.innerHTML=`<div class="tb-top"><span class="bname">${mLabel}</span><span class="bmach">idle</span></div><div class="tb-note" style="padding:38px 12px;text-align:center">This machine isn&rsquo;t used in today&rsquo;s workout &mdash; nothing to do here.</div>`; return; }
+      if(!hit){ scr.innerHTML=finished
+        ?`<div class="tb-top"><span class="bname">${mLabel}</span><span class="bmach">done</span></div><div class="tb-note" style="padding:38px 12px;text-align:center">Session complete &mdash; great work. Check the board.</div>`
+        :`<div class="tb-top"><span class="bname">${mLabel}</span><span class="bmach">idle</span></div><div class="tb-note" style="padding:38px 12px;text-align:center">This machine isn&rsquo;t used in today&rsquo;s workout &mdash; nothing to do here.</div>`; return; }
       const bi=hit.bi, b=R().blocks[bi];
       const team=teamsAt(bi)[hit.j]||null;
       const phase=rot.phase;
@@ -9267,7 +9281,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=435;
+  const BUILD=436;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

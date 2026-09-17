@@ -321,7 +321,29 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       txt:document.getElementById('tbScreen').innerText.replace(/\s+/g,' ')}));
     ok(!r.claim&&!/claim it|nobody yet|you start on/i.test(r.txt),
       '435: an unscored board’s empty machine asks for NOTHING');
-    ok(/max cal bike/i.test(r.txt),'435: the spare shows ITS work like every other screen'); }
+    ok(/max cal bike/i.test(r.txt),'435: the spare shows ITS work like every other screen');
+    // 436 (Omar: "everyone is on rest but some machines are not?!"): at the
+    // block-change rest the spare says exactly what the crewed screens say
+    ok(/move to your next station/i.test(r.txt)&&/go now/i.test(r.txt),
+      '436: the spare follows the room at the block change (Move + Go now)'); }
+  // ...and inside a written rest window the spare rests too — fresh
+  // session, seek straight into rest 1 (the long walk above ran the
+  // earlier session out)
+  await p2.reload(); await p2.waitForTimeout(1500);
+  await p2.click('#tabTablet'); await p2.waitForTimeout(600);
+  await p2.evaluate(()=>window.__tbOpen('Bike:6')); await p2.waitForTimeout(600);
+  await p2.evaluate(()=>document.getElementById('startBtn').click());
+  await p2.waitForTimeout(1100);
+  await p2.evaluate(()=>window.__seek(184)); await p2.waitForTimeout(900);
+  { const r=await p2.evaluate(()=>({now:(document.querySelector('.tk-now')||{innerText:''}).innerText.replace(/\s+/g,' ').trim(),
+      tag:(document.querySelector('.tk-inst .tk-tag')||{innerText:''}).innerText.trim(),
+      nxt:(document.querySelector('.tk-nxt')||{innerText:''}).innerText.replace(/\s+/g,' '),
+      slab:!!document.querySelector('.tk-now.rest')}));
+    ok(/rest 0:45/i.test(r.now)&&/rest/i.test(r.tag)&&r.slab,
+      '436: the spare rests when the room rests (dashed Rest 0:45 slab) — '+r.tag+' / '+r.now);
+    ok(/next here/i.test(r.nxt)&&/bike/i.test(r.nxt),
+      '436: and Next here names its own station — '+r.nxt); }
+  await p2.evaluate(()=>window.__seek(48)); await p2.waitForTimeout(400); // into window 2
   await p2.click('#tabTrainer'); await p2.waitForTimeout(600);
   await p2.click('#tcPick .mfield'); await p2.waitForTimeout(250);
   await p2.fill('#tcPick .msearch','24');

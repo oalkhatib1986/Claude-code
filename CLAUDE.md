@@ -254,7 +254,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   pill, state tag, its work, `fSeg` live clock, Next station), so the wall
   tiles read uniform. The spare's clock follows the room on BOTH scored and
   unscored (a "15:00" frozen beside running screens reads as broken).
-  `altwin` pins the quiet spare; `stress` keeps the scored claim flow.
+  AND STATE FOR STATE (436 — Omar: "everyone is on rest but some machines
+  are not?!"): a written rest window puts the dashed "Rest 0:45" slab,
+  the "Rest — recover" head and "Next here · <own station>" on the spare
+  too (`fRest`/`fOwn`); the block-change rest its "Move to your next
+  station" + Go-now box and the round-gap countdown (`fPh==="rest"` →
+  `rot.remain`); a finished session says "Session complete" on unmapped
+  machines instead of "isn't used". A spare is never a static preview
+  beside live screens. `altwin` pins the quiet spare, its rest window and
+  its block change; `stress` keeps the scored claim flow.
 - **The machine is not the question — the person is.** The tablet is bolted to the
   erg, so before the clock starts each screen offers itself: `.tk-claim` replaces the
   instruction card while `phase==="pre" && !sessionActive`, and tapping a name in
