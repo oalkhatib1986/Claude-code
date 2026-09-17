@@ -296,7 +296,11 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
         ids:document.querySelectorAll('#tbWall [id]').length,
         h:tiles[0]?tiles[0].getBoundingClientRect().height:0,
         ski:ski?ski.innerText.replace(/\s+/g,' '):'',
+        keys:tiles.map(t=>t.dataset.k),
         overX:document.documentElement.scrollWidth>document.documentElement.clientWidth+1}; });
+    ok(w.keys.indexOf('Row:1')===w.keys.indexOf('Ski:6')+1
+      &&w.keys.indexOf('Run:1')>w.keys.indexOf('Bike:6'),
+      '434: tiles group by erg type, never interleaved by number');
     ok(w.n>=18&&w.withTk===w.n,'433: one LIVE screen tile per machine ('+w.n+')');
     ok(w.ids===0,'433: tile screens carry no duplicate ids');
     ok(w.h>100,'433: tiles have real height ('+Math.round(w.h)+')');
@@ -308,6 +312,31 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       left:document.querySelectorAll('#tbWall .twt').length}));
     ok(r.one&&r.scr,'433: tapping a tile opens that machine full size');
     ok(r.left===0,'433: tiles leave the DOM with the wall — hidden tiles shadow every query'); }
+  // 434 (Omar: "why some screens are different?!"): a claim screen names
+  // ITS machine, and with the class grown to capacity the Bike and Runner
+  // screens read the same shape — own work, never the window's lead
+  // station as a head band over the other machine's card
+  await p2.evaluate(()=>window.__tbOpen('Bike:2')); await p2.waitForTimeout(700);
+  { const r=await p2.evaluate(()=>({claim:!!document.getElementById('tbClaim'),
+      nx:(document.querySelector('.tk-nxt')||{innerText:''}).innerText.replace(/\s+/g,' ')}));
+    if(r.claim) ok(/bike 2/i.test(r.nx)&&!/assault runner/i.test(r.nx),
+      '434: the claim screen names ITS machine — '+r.nx);
+    else ok(true,'434: Bike:2 crewed this round — claim label covered elsewhere'); }
+  await p2.click('#tabTrainer'); await p2.waitForTimeout(600);
+  await p2.click('#tcPick .mfield'); await p2.waitForTimeout(250);
+  await p2.fill('#tcPick .msearch','24');
+  await p2.press('#tcPick .msearch','Enter'); await p2.waitForTimeout(800);
+  await p2.click('#tabTablet'); await p2.waitForTimeout(600);
+  { const read=async k=>{ await p2.evaluate(k2=>window.__tbOpen(k2),k);
+      await p2.waitForTimeout(700);
+      return p2.evaluate(()=>{const q=s=>{const x=document.querySelector(s);
+        return x?x.innerText.replace(/\s+/g,' ').trim():'';};
+        return {head:q('.tk-inst .tk-head'),now:q('.tk-now')};}); };
+    const bk=await read('Bike:1'), rn=await read('Run:1');
+    ok(/max cal bike/i.test(bk.now)&&!/^run$/i.test(bk.head),
+      '434: the Bike card is its own work, no RUN band ('+(bk.head||'—')+' / '+bk.now+')');
+    ok(/max cal run/i.test(rn.now)&&!/^bike$/i.test(rn.head),
+      '434: the Runner mirrors it ('+(rn.head||'—')+' / '+rn.now+')'); }
   await p2.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

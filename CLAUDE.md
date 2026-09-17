@@ -364,7 +364,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   the rotNext branch clears `jSub` — the crew-centric "Now:" line
   tracked the PERSON's half and printed Burpee Box Jumps over a Max
   Cal Row card on the rowers whose crews were on the floor; the
-  machine's card is the whole story. Applies to BOTH tablet screens
+  machine's card is the whole story. The same branch drops a jHead
+  that names ANY of the item's stations (434 — the window's LEAD
+  station survived the containment dedupe on the OTHER machine and
+  printed a RUN band over the Max Cal Bike card), and the openSlot
+  claim screen's "You start on" names ITS machine
+  (`mInfo(mtype).label+num`), never `bmLabel`'s block-wide kit. Applies to BOTH tablet screens
   (screen 1 gains `fRot`, screen 2 `rotNext`; the rotNext override
   sits BEFORE `cir`'s so circuits win). AND SAY IT ONCE (build 427 —
   Omar: "Ski · Now: Ski · Max Cal Ski — they all say the same
@@ -1478,8 +1483,9 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (`body.kioskon .tb-selrow{display:none}`) — so there was no way off a machine at all.
   **THE WALL IS THE TABLETS THEMSELVES (build 433 — Omar: "i see all the screens at
   once! like tiles, and i can select any if i want").** `renderWall()` draws one `.twt`
-  LIVE tile per `claimSlots()` entry in `wallOrder()` (block by block, the way the
-  floor is walked): the machine's REAL screen — `renderTablet(true,key,tileEl)` is the
+  LIVE tile per `claimSlots()` entry in `wallOrder()` (block, then ERG TYPE, then
+  number — 434, Omar: "in order by ergs not mixed like that!"; a two-machine part
+  walks Bike 1..6 then Runner 1..6): the machine's REAL screen — `renderTablet(true,key,tileEl)` is the
   SAME renderer aimed at the tile (sv:=key; skips wiring/fitTablet/bindTbEnter;
   fitTbText runs, its grow branch includes `.twt`) — authored 1005x600 and scaled to
   the tile's width on the 900ms wall tick. The kiosk metric rules are shared via

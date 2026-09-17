@@ -4844,8 +4844,11 @@ window.addEventListener("error",function(ev){
   }
   // the order the trainer walks the floor in: block by block, machine by machine.
   // The wall, the stepper and a swipe all use it, so they can never disagree.
-  const wallOrder=()=>claimSlots().slice().sort((a,b)=>a.bi-b.bi||a.num-b.num
-    ||a.type.localeCompare(b.type));
+  // by block, then BY ERG TYPE, then number (434 — Omar: "it needs to be
+  // in order by ergs not mixed like that!"): a two-machine part walks
+  // Bike 1..6 then Runner 1..6, never interleaved by number
+  const wallOrder=()=>claimSlots().slice().sort((a,b)=>a.bi-b.bi
+    ||a.type.localeCompare(b.type)||a.num-b.num);
   function stepTablet(d){
     const all=wallOrder(); if(!all.length) return;
     let i=all.findIndex(x=>x.key===String(tabletSel));
@@ -5466,7 +5469,7 @@ window.addEventListener("error",function(ev){
             </div>
             <div class="tk-side tk-info">
               <div class="tk-card tk-cell tk-clk"><b>${fmtMS(blockLen(fb))}</b><i>This block lasts</i></div>
-              <div class="tk-card tk-nxt"><span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(bmLabel(fb))}</em></div>
+              <div class="tk-card tk-nxt"><span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em></div>
             </div>
           </div>
         </div>`;
@@ -5669,6 +5672,12 @@ window.addEventListener("error",function(ev){
         const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&myIx>=0){
           nowLines=[`<em>${esc(exTxt(xs9[myIx],{it:nowIt}))}</em>`];
+          // the head named the WINDOW's lead station — on the other
+          // machine it survived the dedupe and printed RUN over a Max Cal
+          // Bike card (434, Omar: "why some screens are different?!");
+          // any head that is just one of this item's stations goes
+          { const jh=flat(jHead);
+            if(jh&&xs9.some(x=>x&&flat(x.name)===jh)) jHead=""; }
           // between blocks the box says Go now → the next block (433) —
           // the in-part walk target only applies while the part runs
           if(phase!=="rest"&&!holding) rotNext=xs9[(myIx+1)%xs9.length];
@@ -9236,7 +9245,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=433;
+  const BUILD=434;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
