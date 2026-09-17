@@ -717,6 +717,13 @@
   body.tbfull .tb-back,body.tbfull #tbCap,body.tbfull #aiFab{display:none!important}
   body.tbfull #tbStage{position:fixed;inset:0;z-index:90;background:#000;
     display:flex;align-items:center;justify-content:center;overflow:hidden}
+  /* TEMPORARY (build 430, Omar: "so I can test how it acts, just till we
+     go live"): the Workout page's transport on the Erg Tablet tab too —
+     REMOVE AT GO-LIVE (see the go-live gate). */
+  .ovctl.tbctl{justify-content:flex-start;margin:0 0 12px;flex:none}
+  .ovctl.tbctl.run{flex:none}
+  body.tbfull #tbCtl{display:none!important}
+  .ovctl:not(.run) #tbcReset{display:none}
   .tb-back{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
     position:relative;z-index:6}
   .tb-back .btn{min-height:38px}
@@ -2022,6 +2029,18 @@
         <button id="tbFit" type="button" class="btn small">Phone view</button>
         <button id="tbFull" type="button" class="btn small">Full screen</button>
         <span class="tb-stepper"><button class="btn small" id="tbPrev" type="button" aria-label="Previous machine">&lsaquo;</button><b id="tbWhich">&mdash;</b><button class="btn small" id="tbNext" type="button" aria-label="Next machine">&rsaquo;</button></span>
+      </div>
+      <div class="ovctl tbctl" id="tbCtl">
+        <button class="tico lock" id="tbcLock" type="button" aria-label="Unlock controls" title="Unlock controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-closed"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic-open"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></button>
+        <button class="tico" id="tbcPrev" type="button" disabled aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
+        <button class="tico" id="tbcB10" type="button" disabled aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+        <button class="tico" id="tbcB5" type="button" disabled aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+        <button class="tico pp" id="tbcPause" type="button" disabled aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
+        <button class="tico" id="tbcF5" type="button" disabled aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+        <button class="tico" id="tbcF10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+        <button class="tico" id="tbcNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+        <button class="btn small" id="tbcReset" type="button" disabled title="Reset session">Reset</button>
+        <button class="btn small primary" id="tbcStart" type="button">Start</button>
       </div>
       <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
       <div class="tbprev-stage" id="tbStage"><div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div></div>
@@ -8882,11 +8901,11 @@ window.addEventListener("error",function(ev){
   // which queued blocks the trainer has opened to look inside
   const rlOpen=new Set();
   let tkLock=true, tkLockTimer=0;
-  function syncLockUi(){ ["tkLockBtn","ovLock"].forEach(id=>{ const x=$(id); if(!x) return;
+  function syncLockUi(){ ["tkLockBtn","ovLock","tbcLock"].forEach(id=>{ const x=$(id); if(!x) return;
     x.classList.toggle("armed",!tkLock);
     const lb=tkLock?"Unlock controls":"Lock controls"; x.title=lb; x.setAttribute("aria-label",lb); }); }
   function pauseUi(v){ document.body.classList.toggle("tkp",v);
-    ["tkpause","ovPause"].forEach(id=>{ const x=$(id); if(!x) return;
+    ["tkpause","ovPause","tbcPause"].forEach(id=>{ const x=$(id); if(!x) return;
       const lb=v?"Resume":"Pause"; x.title=lb; x.setAttribute("aria-label",lb); }); }
   function setTkLock(v){ tkLock=v; clearTimeout(tkLockTimer);
     if(!v) tkLockTimer=setTimeout(()=>{ tkLock=true; syncLockUi(); },15000);
@@ -9061,6 +9080,18 @@ window.addEventListener("error",function(ev){
   $("ovReset").onclick=()=>{ armRelock(); if(!tkLock){
     const b=$("resetBtn"); if(b&&!b.disabled) b.click(); } };
   $("ovLock").onclick=()=>setTkLock(!tkLock);
+  // TEMPORARY tablet-tab transport (430) — same patterns, remove at go-live
+  $("tbcStart").onclick=()=>startBtn.click();
+  $("tbcPause").onclick=()=>{ setPaused(!paused); sessPushNow(); };
+  $("tbcNext").onclick=()=>{ armRelock(); if(!tkLock){ nextPart(); sessPushNow(); } };
+  $("tbcPrev").onclick=()=>{ armRelock(); if(!tkLock){ prevPart(); sessPushNow(); } };
+  $("tbcB10").onclick=()=>{ seek(-10); sessPushNow(); };
+  $("tbcB5").onclick=()=>{ seek(-5); sessPushNow(); };
+  $("tbcF5").onclick=()=>{ seek(5); sessPushNow(); };
+  $("tbcF10").onclick=()=>{ seek(10); sessPushNow(); };
+  $("tbcReset").onclick=()=>{ armRelock(); if(!tkLock){
+    const b=$("resetBtn"); if(b&&!b.disabled) b.click(); } };
+  $("tbcLock").onclick=()=>setTkLock(!tkLock);
   syncLockUi();
 
   function buildTrainerList(){
@@ -9143,10 +9174,11 @@ window.addEventListener("error",function(ev){
 
   setInterval(()=>{ const a=$("tClock"); if(!a) return;
     const noTk=cfg.mode==="waves";
-    ["tkpause","tkb10","tkb5","tkf5","tkf10","ovPause","ovB10","ovB5","ovF5","ovF10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
-    ["tknext","tkprev","ovNext","ovPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
+    ["tkpause","tkb10","tkb5","tkf5","tkf10","ovPause","ovB10","ovB5","ovF5","ovF10","tbcPause","tbcB10","tbcB5","tbcF5","tbcF10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk||tkLock; });
+    ["tknext","tkprev","ovNext","ovPrev","tbcNext","tbcPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=tkLock||cfg.mode!=="rotation"; });
     // Reset lights up only when there is a session to reset — never locked
-    { const orr=$("ovReset"); if(orr) orr.disabled=tkLock||resetBtn.disabled; }
+    { const orr=$("ovReset"); if(orr) orr.disabled=tkLock||resetBtn.disabled;
+      const trr=$("tbcReset"); if(trr) trr.disabled=tkLock||resetBtn.disabled; }
     buildTrainerList();
     refreshCrewStations();
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
@@ -9158,13 +9190,15 @@ window.addEventListener("error",function(ev){
     // The Start pill's rendered width rides --ovbw so the Edit pill below
     // matches it exactly (Omar: "the pills need to be same size!")
     { const ov=$("ovCtl"); if(ov) ov.classList.toggle("run",!!running);
+      const tc=$("tbCtl"); if(tc) tc.classList.toggle("run",!!running);
+      const tcs=$("tbcStart"); if(tcs){ tcs.textContent=startBtn.textContent; tcs.disabled=startBtn.disabled; }
       const ost=$("ovStart"); if(ost){ ost.textContent=startBtn.textContent; ost.disabled=startBtn.disabled;
         const ew=ost.offsetWidth;
         if(ew&&ew!==ovBW){ ovBW=ew; document.documentElement.style.setProperty("--ovbw",ew+"px"); } } }
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=429;
+  const BUILD=430;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
