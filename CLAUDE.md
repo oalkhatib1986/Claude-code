@@ -1459,7 +1459,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   row and type nobody can read from the floor. `fitRowH()` keeps the rows above
   `PAGEAT` and, when the class is bigger than that allows, shows a page at a time —
   `showPage()` hides the rest and turns the page every 7s, with `1–7 of 20` in the
-  head. The lane's place comes from `data-pos` (the rank it was given), never its DOM
+  head. THE PAGE RIDES WALL TIME, NEVER A TIMER A REPAINT CAN RESET (442 — Omar:
+  "why are not all the teams showing?!"): a LIVE board repaints every second and
+  each repaint re-entered showPage and cleared the 7s timeout, so the pager froze
+  on 1–3 all class. `bdPage = floor(Date.now()/7000) % pages` — every repaint
+  agrees within a window and the boundary advances on its own (a timeout at the
+  next boundary keeps an IDLE board turning). `altwin` pins the live turn. The lane's place comes from `data-pos` (the rank it was given), never its DOM
   order, so the pager and the sort cannot disagree. Never fewer than three on screen:
   a phone in full screen has room for one row at the wall's row height, and one row
   blown up to fill the screen is a poster of whoever is winning, not a leaderboard.
@@ -1664,6 +1669,20 @@ zero rework, which was the whole point of the parked design.
 - ASSISTED (PM5 pre-fills, athlete confirms) needs no new mode: it is manual
   mode with a paired PM5 — the pre-fill comes from `_pref`. "auto" flips the
   old engine back on wholesale when the ergs are trusted.
+- **THE BOARD SHOWS WHAT IS COUNTED (build 442 — Omar: "the leaderboard
+  should know how the workout is scored and adjust automatically! this is
+  common sense!").** On a MANUAL-scored board the machine counters hold
+  nothing (the sim invents nothing), so metres/pace columns were dead
+  dashes. `secBoard()` (rotation + manual + showLeaderboard + scored
+  sections) flips the board to SECTION columns: one per block that carries
+  a scored section (`secBlocks()` — label = the block's name, unit cal/
+  metres/score, value = the team's entered scores for that block summed
+  from `manScores`, dash until reported, demo splits `demoScore` evenly),
+  plus the same Score total. `buildBoardHead`/`laneCells`/`fitLaneCols`/
+  `renderLanesRot` all branch on it; sec heads are `.hgrp.hsec` (never
+  under `no-mach` hiding), cells `.mv.msec[data-b]`. AUTO mode keeps the
+  per-machine board — there the ergs are the count. `altwin` pins the
+  sec head, no-counter columns and an entry landing in its column.
 - `manscore.js` (34 checks) gates all of it: default, sim-counts-nothing,
   ask/strip/numpad/save, swap, trainer sheet, reset, merge semantics, auto,
   unscored, kiosk + phone formatting. `window.__man` is the suite hook.

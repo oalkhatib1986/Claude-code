@@ -2002,12 +2002,15 @@
       <div class="card wide">
         <h3 id="teamsH3">Teams</h3>
         <div class="body">
-          <div id="crewList"></div>
-          <div class="addbtns">
+          <!-- the actions ride ABOVE the list (build 442 — Omar: "this
+               should be on top of the page so no need to scroll all the
+               way down!") — a long roster buried them under 20 rows -->
+          <div class="addbtns" style="margin-bottom:12px">
             <button class="btn" id="addCrew">+ Add team</button>
             <button class="btn" id="clearNames2" type="button">Clear all names</button>
             <button class="btn" id="resetAll" style="margin-left:auto">Reset all to defaults</button>
           </div>
+          <div id="crewList"></div>
           <div class="note" id="crewNote"></div>
         </div>
       </div>
@@ -2793,6 +2796,23 @@ window.addEventListener("error",function(ev){
       if(it.scored&&!it.rest) out.push({bi,ii,it,b}); }));
     return out; }
   const secMetric=s=>((s.it.metric||"calories")==="metres")?"metres":"calories";
+  // THE BOARD SHOWS WHAT IS COUNTED (build 442 — Omar: "the leaderboard
+  // should know how the workout is scored and adjust automatically!"). On
+  // a MANUAL-scored board the machine counters hold nothing — the sim
+  // invents nothing — so metres and pace columns were dead dashes. The
+  // board's columns become the SCORED sections, one per block that
+  // carries one ("Run / Bike" = its entries summed), plus the total.
+  // Auto mode keeps the machine counters — there the ergs ARE the count.
+  const secBoard=()=>cfg.mode==="rotation"&&!scoreAuto()&&showLeaderboard()
+    &&scoredSecs().length>0;
+  function secBlocks(){ const out=[], by={};
+    scoredSecs().forEach(s=>{ let g=by[s.bi];
+      if(!g){ g=by[s.bi]={bi:s.bi,label:(s.b&&s.b.name)||("Part "+(s.bi+1)),
+        units:{},secs:[]}; out.push(g); }
+      g.secs.push({bi:s.bi,ii:s.ii}); g.units[secMetric(s)]=1; });
+    out.forEach(g=>{ const u=Object.keys(g.units);
+      g.unit=u.length>1?"score":(u[0]==="metres"?"metres":"cal"); });
+    return out; }
   const secLabel=s=>{ const nm=s.it.name
       ||((s.it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + "))||"Scored";
     return (R().blocks.length>1?(s.b.name+" · "):"")+nm; };
@@ -4141,11 +4161,26 @@ window.addEventListener("error",function(ev){
   const MK=()=>{ const d=cfg.display||{};
     const on=MKALL.filter(([k,f])=>d[f]!==false).map(([k])=>k);
     return on.length?on:["d"]; };
-  const laneCells=ts=>{ const mk=MK();
+  const laneCells=ts=>{
+    if(secBoard()){ return secBlocks().map(s=>
+      `<div class="mv msec" data-b="${s.bi}"></div>`).join(""); }
+    const mk=MK();
     return ts.map(t=>mk.map(k=>
       `<div class="mv m${k}" data-t="${esc(t)}"></div>`).join("")).join(""); };
   function buildBoardHead(){
     const h=$("boardHead"); if(!h) return;
+    // the board shows what is counted (442): manual-scored boards head
+    // their columns with the SCORED sections, never idle machine counters
+    if(secBoard()){ headTypes=[];
+      const sB=secBlocks();
+      h.innerHTML=
+        `<span class="grank">Rank</span>`
+        +`<span class="gwho"><span id="rankHead">${esc(Kw())} name</span><i id="boardPage"></i></span>`
+        +sB.map(s=>`<span class="hgrp hsec">${esc(s.label)}</span>`).join("")
+        +`<span class="gscore">Score</span>`
+        +sB.map(s=>`<span class="hsub">${esc(s.unit)}</span>`).join("")
+        +`<span class="hsub hscore" id="scoreLabel">Score</span>`;
+      fitLaneCols(); return; }
     headTypes=cfg.mode==="rotation"?wkTypes().slice(0,5):[];
     const paceLab=t=>(PACE[t]||[500,"/500m"])[1];
     const grp=headTypes.map(t=>
@@ -4215,6 +4250,25 @@ window.addEventListener("error",function(ev){
     const rankNeed=fs=>{ rprobe.style.fontSize=fs+"px";
       return Math.ceil(rprobe.offsetWidth)+16; };
     const rankW=(F,fs)=>tv?Math.max(F.rank,rankNeed(fs)):F.rank;
+    // section-mode (442): one track per scored block, wide enough for its
+    // NAME in the head band; the figures share the slack like every board
+    if(secBoard()){ const sB=secBlocks(), k=Math.max(1,sB.length);
+      let pk=null;
+      for(const [F,tiers] of fams){ for(const [mv,fs] of tiers){
+        const cw2=Math.max(mv,tv?150:104);
+        const rw=rankW(F,fs);
+        const need=rw+F.who+F.score+k*cw2+F.gap*(2+k);
+        if(need<=w){ pk={F,mv:cw2,fs,rw}; break; } } if(pk) break; }
+      if(!pk){ const [F]=fams[fams.length-1]; const fs0=tv?26:15;
+        pk={F,mv:tv?120:84,fs:fs0,rw:rankW(F,fs0)}; }
+      bd.style.setProperty("--lanecols",[pk.rw+"px",pk.F.who+"px"]
+        .concat(sB.map(()=>`minmax(${pk.mv}px,1fr)`))
+        .concat([pk.F.score+"px"]).join(" "));
+      bd.style.setProperty("--lanegap",pk.F.gap+"px");
+      bd.style.setProperty("--mvfs",pk.fs+"px");
+      bd.style.setProperty("--mspan","1");
+      bd.classList.remove("no-mach","no-d","no-p","no-c");
+      return; }
     let pick=null;
     for(let cnt=keys.length;cnt>=1;cnt--){
       for(const [F,tiers] of fams){
@@ -4280,7 +4334,13 @@ window.addEventListener("error",function(ev){
     const kids=[...lanes.children]; const n=kids.length; if(!n) return;
     const per=bdPer&&bdPer<n?bdPer:n;
     const pages=Math.max(1,Math.ceil(n/per));
-    if(bdPage>=pages) bdPage=0;
+    // THE PAGE RIDES WALL TIME, NEVER A TIMER A REPAINT CAN RESET (442 —
+    // Omar: "why are not all the teams showing?!"): a LIVE board repaints
+    // every second, each repaint re-entered here and cleared the 7s
+    // timeout, so the page never turned and half the class never printed.
+    // floor(now/7s) % pages is the same answer on every repaint inside a
+    // window and advances on its own at the boundary.
+    bdPage=pages>1?Math.floor(Date.now()/7000)%pages:0;
     const start=bdPage*per;
     // the lane knows its own place from the rank it was given, not its DOM order
     const seq=kids.slice().sort((a,b)=>(+a.dataset.pos||0)-(+b.dataset.pos||0));
@@ -4291,16 +4351,30 @@ window.addEventListener("error",function(ev){
     const tag=$("boardPage");
     if(tag) tag.textContent=pages>1?`${start+1}\u2013${Math.min(n,start+per)} of ${n}`:"";
     clearTimeout(bdTimer);
-    if(pages>1) bdTimer=setTimeout(()=>{ bdPage=(bdPage+1)%pages; showPage(); },7000);
+    // wake at the next 7s boundary so an IDLE board still turns its pages
+    if(pages>1) bdTimer=setTimeout(showPage,7030-(Date.now()%7000));
   }
 
   function renderLanesRot(){
     if(cfg.mode!=="rotation") return;
     const d=cfg.display;
     const demo=demoOn();
+    const sB=secBoard()?secBlocks():null;
     const orderArr=[...ergs].sort((a,b)=>demo?(a.id-b.id)
       :(b.score+b.blockCals)-(a.score+a.blockCals));
     orderArr.forEach((e,idx)=>{
+      // section-mode figures (442): each column is that block's ENTERED
+      // score for this team — a dash until the team reports it
+      if(sB) sB.forEach(s=>{ const c=e.el.querySelector(`.msec[data-b="${s.bi}"]`);
+        if(!c) return;
+        let v=null;
+        if(demo) v=Math.round(demoScore(e)/sB.length);
+        else{ let sum=0,got=false;
+          s.secs.forEach(q=>{ const r=manScores[manKey(e.id,q.bi,q.ii)];
+            if(r){ sum+=(+r.v||0); got=true; } });
+          if(got) v=sum; }
+        const txt=v==null?"–":fmtN(v);
+        if(c.textContent!==txt) c.textContent=txt; });
       e.el.dataset.pos=idx;
       e.el.classList.toggle("leader", idx===0&&(sessionActive||demo));
       e.el.classList.toggle("scoring", running&&!!e.hot);
@@ -9365,7 +9439,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=441;
+  const BUILD=442;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -428,6 +428,56 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   { const b=await rd3('Bike:1');
     ok(/max cal bike/i.test(b.now),'438: Block 2’s card follows the segment'); }
   await p3.close(); }
+// THE PAGE RIDES WALL TIME (442 — Omar: "why are not all the teams
+// showing?!"): a LIVE board repaints every second and each repaint used
+// to reset the 7s page timer — the pager froze on 1–3 and half the class
+// never printed. Now the page turns while running.
+{ const p4=await br.newPage({viewport:{width:1600,height:900}});
+  p4.on('pageerror',e=>{fail++;console.log('FAIL pageerror(pager):',e.message);});
+  await p4.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p4.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p4.reload(); await p4.waitForTimeout(1400);
+  await p4.evaluate(()=>{const K='af_erg_cfg_v8'; const c=JSON.parse(localStorage.getItem(K));
+    const t=c.rotation.blocks.flatMap(b=>b.items||[]).find(i=>!i.rest);
+    const mk=(nm,exs)=>Object.assign(JSON.parse(JSON.stringify(t)),{name:nm,dur:300,fmt:'',rest:false,alt:false,scored:true,metric:'calories',exercises:exs});
+    const ex=(name,max)=>({name,unit:max?'cal':'reps',max:!!max,amounts:[]});
+    c.rotation.blocks=[
+      {name:'Run / Bike',rounds:1,items:[mk('Block 1',[ex('Run',true),ex('Burpees'),ex('Bike',true)])]},
+      {name:'Row / Ski',rounds:1,items:[mk('Block 1',[ex('Row',true),ex('Ski',true)])]}];
+    c.together=false; c.noScore=false; c.scoreSrc='manual';
+    localStorage.setItem(K,JSON.stringify(c)); });
+  await p4.reload(); await p4.waitForTimeout(1500);
+  await p4.click('#tabTablet'); await p4.waitForTimeout(500);
+  for(let i=1;i<=6;i++){ await p4.evaluate(k=>window.__tbOpen(k),'Bike:'+i);
+    await p4.waitForTimeout(320);
+    await p4.evaluate(nm=>{const b=document.getElementById('tbClaim');
+      if(b){b.value=nm; document.getElementById('tbClaimGo').click();}},'Team'+i);
+    await p4.waitForTimeout(320); }
+  await p4.click('#tabScreen'); await p4.waitForTimeout(1000);
+  // THE BOARD SHOWS WHAT IS COUNTED (442 — Omar: "the leaderboard should
+  // know how the workout is scored and adjust automatically!"): a
+  // manual-scored board heads its columns with the SCORED sections, not
+  // idle machine counters
+  { const r=await p4.evaluate(()=>({
+      head:document.getElementById('boardHead').innerText.replace(/\s+/g,' '),
+      secs:document.querySelectorAll('#board .lane .msec').length}));
+    ok(/run \/ bike/i.test(r.head)&&/row \/ ski/i.test(r.head),
+      '442: the head names the scored sections — '+r.head);
+    ok(!/metres|\/500m|\/km|\/1000m/i.test(r.head),
+      '442: no idle machine counters on a manual board');
+    ok(r.secs>=2,'442: every lane carries the section cells'); }
+  await p4.evaluate(()=>document.getElementById('startBtn').click());
+  await p4.waitForTimeout(1400);
+  { await p4.evaluate(()=>window.__man.set(0,0,0,57)); await p4.waitForTimeout(900);
+    const lane=await p4.evaluate(()=>[...document.querySelectorAll('#board .lane')]
+      .find(l=>/team1/i.test(l.innerText)).innerText.replace(/\s+/g,' '));
+    ok(/57/.test(lane),'442: an entered section score lands in its column — '+lane); }
+  const seen=new Set();
+  for(let i=0;i<3;i++){ seen.add(await p4.evaluate(()=>
+      (document.querySelector('#boardPage')||{innerText:''}).innerText));
+    await p4.waitForTimeout(7200); }
+  ok(seen.size>=2,'442: the LIVE board turns its pages ('+[...seen].join(' | ')+')');
+  await p4.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
