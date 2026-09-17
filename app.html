@@ -5970,7 +5970,7 @@ window.addEventListener("error",function(ev){
             <div class="tk-col">
               ${(ask&&askFull)?askCard:claiming?`<div class="tk-card tk-inst tk-claim${claimed?" got":""}">
                 <div class="tk-blk tk-part">${esc(b.name)}${laps()>1?` \u00b7 R${lapOf(rot.round)+1}`:""}</div>
-                <div class="tk-tag">${claimed?"You\u2019re on this one":preClock?"Free \u2014 take it":"You\u2019re up here now"}</div>
+                ${claimed?"":`<div class="tk-tag">${preClock?"Free \u2014 take it":"You\u2019re up here now"}</div>`}
                 <div class="tk-head">${claimed?esc(team.name):preClock?"Tap in to claim it":"Tap your name in"}</div>
                 ${claimed
                   ? `<div class="tk-sub">Waiting for the trainer</div>
@@ -9453,7 +9453,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=446;
+  const BUILD=447;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
