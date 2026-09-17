@@ -1532,9 +1532,10 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (`body.kioskon .tb-selrow{display:none}`) — so there was no way off a machine at all.
   **THE WALL IS THE TABLETS THEMSELVES (build 433 — Omar: "i see all the screens at
   once! like tiles, and i can select any if i want").** `renderWall()` draws one `.twt`
-  LIVE tile per `claimSlots()` entry in `wallOrder()` (block, then ERG TYPE, then
-  number — 434, Omar: "in order by ergs not mixed like that!"; a two-machine part
-  walks Bike 1..6 then Runner 1..6): the machine's REAL screen — `renderTablet(true,key,tileEl)` is the
+  LIVE tile per `claimSlots()` entry in `wallOrder()` (block, then ERG TYPE IN THE
+  WORKOUT'S OWN ORDER via `blockUsesTypes`, then number — 434, Omar: "in order by
+  ergs not mixed like that!"; 441: "the same order as the workout, so Run 1-6,
+  Bike 1-6" — the sheet's order, never the alphabet): the machine's REAL screen — `renderTablet(true,key,tileEl)` is the
   SAME renderer aimed at the tile (sv:=key; skips wiring/fitTablet/bindTbEnter;
   fitTbText runs, its grow branch includes `.twt`) — authored 1005x600 and scaled to
   the tile's width on the 900ms wall tick. The kiosk metric rules are shared via

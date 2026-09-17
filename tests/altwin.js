@@ -299,8 +299,8 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
         keys:tiles.map(t=>t.dataset.k),
         overX:document.documentElement.scrollWidth>document.documentElement.clientWidth+1}; });
     ok(w.keys.indexOf('Row:1')===w.keys.indexOf('Ski:6')+1
-      &&w.keys.indexOf('Run:1')>w.keys.indexOf('Bike:6'),
-      '434: tiles group by erg type, never interleaved by number');
+      &&w.keys.indexOf('Bike:1')>w.keys.indexOf('Run:6'),
+      '441: tiles group by erg type IN THE WORKOUT’S ORDER (Ski, Row, Run, Bike)');
     ok(w.n>=18&&w.withTk===w.n,'433: one LIVE screen tile per machine ('+w.n+')');
     ok(w.ids===0,'433: tile screens carry no duplicate ids');
     ok(w.h>100,'433: tiles have real height ('+Math.round(w.h)+')');

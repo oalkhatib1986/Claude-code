@@ -4853,11 +4853,16 @@ window.addEventListener("error",function(ev){
   }
   // the order the trainer walks the floor in: block by block, machine by machine.
   // The wall, the stepper and a swipe all use it, so they can never disagree.
-  // by block, then BY ERG TYPE, then number (434 — Omar: "it needs to be
-  // in order by ergs not mixed like that!"): a two-machine part walks
-  // Bike 1..6 then Runner 1..6, never interleaved by number
-  const wallOrder=()=>claimSlots().slice().sort((a,b)=>a.bi-b.bi
-    ||a.type.localeCompare(b.type)||a.num-b.num);
+  // by block, then BY ERG TYPE IN THE WORKOUT'S OWN ORDER, then number
+  // (434 — Omar: "in order by ergs not mixed"; 441 — "the same order as
+  // the workout, so Run 1-6, Bike 1-6"): the type order is the sheet's
+  // (blockUsesTypes walks the exercises as written), never the alphabet
+  const wallOrder=()=>{ const ord={};
+    R().blocks.forEach((b,bi)=>{ ord[bi]=[...blockUsesTypes(b)]; });
+    const ix=(t,bi)=>{ const i=(ord[bi]||[]).indexOf(t); return i<0?99:i; };
+    return claimSlots().slice().sort((a,b)=>a.bi-b.bi
+      ||(ix(a.type,a.bi)-ix(b.type,b.bi))
+      ||a.type.localeCompare(b.type)||a.num-b.num); };
   function stepTablet(d){
     const all=wallOrder(); if(!all.length) return;
     let i=all.findIndex(x=>x.key===String(tabletSel));
@@ -9360,7 +9365,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=440;
+  const BUILD=441;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
