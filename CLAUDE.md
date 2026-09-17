@@ -246,6 +246,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   gate on `showLeaderboard()`, the tablet just shows the workout (no claim
   card, no "tap your name in" band, no "Nobody yet"), and the overview's free
   rows stay quiet. Claiming exists only where a score needs a name.
+  INCLUDING THE OPEN-SLOT SCREEN (435 — Omar: "this class isn't meant to be
+  claim your machine format!"): the screen-1 `openSlot` branch never checked
+  and a spare erg begged for a name on his unscored Engine. `fAsk =
+  showLeaderboard()` gates the claim card, "Nobody yet" and "You start on";
+  unscored, a spare renders the SAME screen as every crewed machine (part
+  pill, state tag, its work, `fSeg` live clock, Next station), so the wall
+  tiles read uniform. The spare's clock follows the room on BOTH scored and
+  unscored (a "15:00" frozen beside running screens reads as broken).
+  `altwin` pins the quiet spare; `stress` keeps the scored claim flow.
 - **The machine is not the question — the person is.** The tablet is bolted to the
   erg, so before the clock starts each screen offers itself: `.tk-claim` replaces the
   instruction card while `phase==="pre" && !sessionActive`, and tapping a name in

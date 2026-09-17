@@ -5430,6 +5430,15 @@ window.addEventListener("error",function(ev){
       const hitTeam=hit?(teamsAt(hit.bi)[hit.j]||null):null;
       const openSlot=((!hit||!hitTeam)&&!finished)?claimSlotFor(mtype+":"+mnum):null;
       if(openSlot){
+        // AN UNSCORED CLASS ASKS FOR NOTHING — INCLUDING ITS EMPTY MACHINES
+        // (build 435, Omar: "this class isn't meant to be claim your
+        // machine format!"). The 369 law gated the claimed-team screens but
+        // this open-slot branch never checked, so a spare erg begged for a
+        // name on a board with no leaderboard. Unscored, a spare shows the
+        // SAME screen as every other machine — part pill, state tag, ITS
+        // work, the live clock, the walk target; the claim row, "Nobody
+        // yet" and "You start on" exist only where a score needs a name.
+        const fAsk=showLeaderboard();
         const fb=R().blocks[openSlot.bi]||{name:"",items:[]};
         // what they are signing up for — the same work list the claimed screen shows
         const fIts=(fb.items||[]), fI=fIts.findIndex(x=>!x.rest), fIt=fI>=0?fIts[fI]:null;
@@ -5437,22 +5446,32 @@ window.addEventListener("error",function(ev){
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
         let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
         // a bolted tablet shows ITS station's work, not the whole ladder (426)
-        let fRot=false;
+        let fRot=false,fNx=null;
         if(fIt&&!fIt.rest&&itRot(fIt)){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
-          if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`]; fRot=true; } }
+          if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`];
+            fRot=true; fNx=xs9[(myIx+1)%xs9.length]; } }
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
         const fThen=fRot?"":fIts.slice(fI+1).map(fSum).join(" · ");
+        // the clock keeps the room's beat — a spare frozen on "15:00" next
+        // to running screens reads as broken (435)
+        const fSeg=running?segAt(fb,rot.elapsed):null;
+        const fClk=fSeg?fmtMS(Math.max(0,fSeg.remain)):fmtMS(blockLen(fb));
+        const fClkLab=fSeg?(fSeg.it&&fSeg.it.rest?"Rest ends in":"Time left in this block"):"This block lasts";
+        const fTag=running?(fSeg&&fSeg.it&&fSeg.it.rest?"Rest":"Working"):"Get ready";
+        const fNxt=fAsk?`<span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`
+          :fNx?`<span>Next</span><b>${esc(fNx.name)}</b><em>${esc(fNx.max?("Max"+maxUnit(fNx.unit)):(amtList(fNx).join("/")+exUnit(fNx.unit)).trim())}</em>`
+          :`<span>This machine</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`;
         scr.innerHTML=`
         <div class="tk">
           <div class="tk-card tk-id">
             ${(function(){const bd=document.querySelector("img.badge");return bd?`<span class="tk-logo"><img src="${bd.src}" alt="ATHL3TE"></span>`:"";})()}
-            <div class="tk-who unnamed">Nobody yet</div>
+            <div class="tk-who unnamed">${fAsk?"Nobody yet":""}</div>
             <div class="tk-blk">${mLabel}</div>${pm5BtnHtml()}
           </div>
           <div class="tk-main">
             <div class="tk-col">
-              <div class="tk-card tk-inst tk-claim">
+              ${fAsk?`<div class="tk-card tk-inst tk-claim">
                 <div class="tk-blk tk-part">${esc(fb.name||"")}</div>
                 <div class="tk-tag">Free \u2014 take it</div>
                 <div class="tk-head">Tap in to claim it</div>
@@ -5461,15 +5480,18 @@ window.addEventListener("error",function(ev){
                     placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
                   <button type="button" class="btn" id="tbClaimGo" data-slot="${esc(openSlot.key)}">I\u2019m on</button>
                 </div>
-              </div>
+              </div>`:`<div class="tk-card tk-inst">
+                <div class="tk-blk tk-part">${esc(fb.name||"")}</div>
+                <div class="tk-tag">${fTag}</div>
+              </div>`}
               <div class="tk-card tk-work">
                 <div class="tk-now">${fLines.join("")}</div>
                 ${fThen?`<div class="tk-then"><span>then</span><i>${esc(fThen)}</i></div>`:""}
               </div>
             </div>
             <div class="tk-side tk-info">
-              <div class="tk-card tk-cell tk-clk"><b>${fmtMS(blockLen(fb))}</b><i>This block lasts</i></div>
-              <div class="tk-card tk-nxt"><span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em></div>
+              <div class="tk-card tk-cell tk-clk"><b>${fClk}</b><i>${fClkLab}</i></div>
+              <div class="tk-card tk-nxt">${fNxt}</div>
             </div>
           </div>
         </div>`;
@@ -9245,7 +9267,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=434;
+  const BUILD=435;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

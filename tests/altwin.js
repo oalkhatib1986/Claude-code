@@ -312,16 +312,16 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       left:document.querySelectorAll('#tbWall .twt').length}));
     ok(r.one&&r.scr,'433: tapping a tile opens that machine full size');
     ok(r.left===0,'433: tiles leave the DOM with the wall — hidden tiles shadow every query'); }
-  // 434 (Omar: "why some screens are different?!"): a claim screen names
-  // ITS machine, and with the class grown to capacity the Bike and Runner
-  // screens read the same shape — own work, never the window's lead
-  // station as a head band over the other machine's card
-  await p2.evaluate(()=>window.__tbOpen('Bike:2')); await p2.waitForTimeout(700);
+  // 435 (Omar: "this class isn't meant to be claim your machine
+  // format!"): the unscored Engine's EMPTY machines ask for nothing —
+  // no claim box, no "Nobody yet", the same screen as every other erg,
+  // on the live clock
+  await p2.evaluate(()=>window.__tbOpen('Bike:6')); await p2.waitForTimeout(700);
   { const r=await p2.evaluate(()=>({claim:!!document.getElementById('tbClaim'),
-      nx:(document.querySelector('.tk-nxt')||{innerText:''}).innerText.replace(/\s+/g,' ')}));
-    if(r.claim) ok(/bike 2/i.test(r.nx)&&!/assault runner/i.test(r.nx),
-      '434: the claim screen names ITS machine — '+r.nx);
-    else ok(true,'434: Bike:2 crewed this round — claim label covered elsewhere'); }
+      txt:document.getElementById('tbScreen').innerText.replace(/\s+/g,' ')}));
+    ok(!r.claim&&!/claim it|nobody yet|you start on/i.test(r.txt),
+      '435: an unscored board’s empty machine asks for NOTHING');
+    ok(/max cal bike/i.test(r.txt),'435: the spare shows ITS work like every other screen'); }
   await p2.click('#tabTrainer'); await p2.waitForTimeout(600);
   await p2.click('#tcPick .mfield'); await p2.waitForTimeout(250);
   await p2.fill('#tcPick .msearch','24');
