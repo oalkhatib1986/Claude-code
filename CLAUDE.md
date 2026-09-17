@@ -403,9 +403,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   working item (not waves, not a self-paced circuit) now filters to
   THIS machine's exercises on BOTH tablet screens, and because the
   list is a SEQUENCE ("they do the run, then burpees, then bike"),
-  NEXT is what follows this machine's piece in the list — the LAST
-  piece keeps the next-station box. The room's full list stays on the
-  big screen. `altwin` pins the filtered SIS runner + sequence NEXT. `altwin.js` gates the single-line card, the
+  NEXT is what follows this machine's piece in the list — and NEXT
+  RESOLVES NEAREST-FIRST (438, Omar: "that's not what's next! how can
+  next be two different machines?!" when the bike's box skipped to the
+  next STATION with Block 2 still to run here): after the list, the
+  next PIECE at this station ("Block 2 · after 3:00 rest" — `nxtIt` /
+  screen 1's `fNi`), then a remaining round, and only when the station
+  is truly finished the next-station box. The rest BETWEEN pieces says
+  "Next here · <this machine's piece of the next item>" (the restRot
+  arm grew a plain-item branch), and screen 1's card now TRACKS THE
+  SEGMENT (`fI` follows fSeg; while resting it aims at the item after
+  the rest) instead of freezing on the block's first piece. The room's
+  full list stays on the big screen. `altwin` pins the filtered SIS
+  runner, sequence NEXT, the last-piece next-piece box and the
+  between-pieces rest. `altwin.js` gates the single-line card, the
   dropped ladder, the next box, the running dedupe and the one-left-
   edge measure.
 - **THE REST SCREENS TELL ONE STORY, AND THE CARD IS ALWAYS THE ERG'S OWN

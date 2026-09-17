@@ -382,6 +382,40 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   await p3.waitForTimeout(1400);
   { const r=await p3.evaluate(()=>({now:(document.querySelector('.tk-now')||{innerText:''}).innerText.replace(/\s+/g,' ').trim()}));
     ok(/run/i.test(r.now)&&!/squat/i.test(r.now),'437: still the erg’s piece while running'); }
+  // NEXT RESOLVES NEAREST-FIRST (438 — Omar: "that's not what's next! how
+  // can next be two different machines?!"): on his SIS shape — piece →
+  // rest → piece at ONE station — the last exercise's NEXT is the next
+  // PIECE here ("Block 2 · after 3:00 rest"), never the next station; the
+  // rest between says "Next here · <own piece>"
+  await p3.evaluate(()=>{const K='af_erg_cfg_v8'; const c=JSON.parse(localStorage.getItem(K));
+    const t=c.rotation.blocks.flatMap(b=>b.items||[]).find(i=>!i.rest);
+    const mk=(nm,exs)=>Object.assign(JSON.parse(JSON.stringify(t)),{name:nm,dur:600,fmt:'',rest:false,alt:false,exercises:exs});
+    const ex=(name,max)=>({name,unit:max?'cal':'reps',max:!!max,amounts:[]});
+    c.rotation.blocks=[{name:'Run / Bike',rounds:1,items:[
+      mk('Block 1',[ex('Run'),ex('Burpees'),ex('Bike',true)]),
+      {rest:true,dur:180,name:''},
+      mk('Block 2',[ex('Run'),ex('Down Ups'),ex('Bike',true)])]}];
+    c.together=false; localStorage.setItem(K,JSON.stringify(c)); });
+  await p3.reload(); await p3.waitForTimeout(1500);
+  await p3.click('#tabTablet'); await p3.waitForTimeout(700);
+  const rd3=async k=>{ await p3.evaluate(k2=>window.__tbOpen(k2),k); await p3.waitForTimeout(700);
+    return p3.evaluate(()=>{const q=s=>{const x=document.querySelector(s);return x?x.innerText.replace(/\s+/g,' ').trim():'';};
+      return {now:q('.tk-now'),nxt:q('.tk-nxt')};}); };
+  { const b=await rd3('Bike:1');
+    ok(/max cal bike/i.test(b.now),'438: the Bike card is its piece alone');
+    ok(/block 2/i.test(b.nxt)&&/after 3:00 rest/i.test(b.nxt)&&!/row|ski/i.test(b.nxt),
+      '438: the LAST piece’s NEXT is the next piece HERE — '+b.nxt); }
+  { const r=await rd3('Run:1');
+    ok(/burpees/i.test(r.nxt),'438: mid-sequence NEXT is the next exercise — '+r.nxt); }
+  await p3.evaluate(()=>document.getElementById('startBtn').click());
+  await p3.waitForTimeout(1200);
+  await p3.evaluate(()=>window.__seek(605)); await p3.waitForTimeout(900);
+  { const b=await rd3('Bike:1');
+    ok(/rest 3:00/i.test(b.now)&&/next here/i.test(b.nxt)&&/bike/i.test(b.nxt),
+      '438: the rest between pieces says Next here · own piece — '+b.nxt); }
+  await p3.evaluate(()=>window.__seek(180)); await p3.waitForTimeout(900);
+  { const b=await rd3('Bike:1');
+    ok(/max cal bike/i.test(b.now),'438: Block 2’s card follows the segment'); }
   await p3.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

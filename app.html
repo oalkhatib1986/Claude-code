@@ -5440,13 +5440,23 @@ window.addEventListener("error",function(ev){
         // yet" and "You start on" exist only where a score needs a name.
         const fAsk=showLeaderboard();
         const fb=R().blocks[openSlot.bi]||{name:"",items:[]};
-        // what they are signing up for — the same work list the claimed screen shows
-        const fIts=(fb.items||[]), fI=fIts.findIndex(x=>!x.rest), fIt=fI>=0?fIts[fI]:null;
+        // the card tracks the SEGMENT like every crewed screen (438): the
+        // current working item while one runs, the one AFTER a written
+        // rest while resting — never frozen on the block's first piece
+        const fPh=rot.phase;
+        const fSeg=running?segAt(fb,rot.elapsed):null;
+        const fIts=(fb.items||[]);
+        let fI=fIts.findIndex(x=>!x.rest);
+        if(fSeg&&fSeg.it&&!fSeg.it.rest&&fPh!=="rest") fI=fSeg.i;
+        else if(fSeg&&fSeg.it&&fSeg.it.rest&&fPh!=="rest"){
+          const k=fIts.slice(fSeg.i+1).findIndex(x=>x&&!x.rest);
+          if(k>=0) fI=fSeg.i+1+k; }
+        const fIt=fI>=0?fIts[fI]:null;
         const fSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
         let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
         // a bolted tablet shows ITS station's work, not the whole ladder (426)
-        let fRot=false,fNx=null,fOwn=null;
+        let fRot=false,fNx=null,fOwn=null,fNi=null;
         if(fIt&&!fIt.rest&&itRot(fIt)){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
           if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`];
@@ -5459,7 +5469,14 @@ window.addEventListener("error",function(ev){
             fLines=mine.map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
             fRot=true; fOwn=mine[0];
             const li=xs9.lastIndexOf(mine[mine.length-1]);
-            if(li>=0&&li<xs9.length-1) fNx=xs9[li+1]; } }
+            if(li>=0&&li<xs9.length-1) fNx=xs9[li+1];
+            else{ // nearest-first (438): the next PIECE at this station
+              const nRest=(fIts[fI+1]&&fIts[fI+1].rest)?fIts[fI+1]:null;
+              const nWork=fIts.slice(fI+1).find(x=>x&&!x.rest);
+              if(nWork) fNi={b:nWork.name||(((nWork.exercises||[])[0]||{}).name)||"Next part",
+                em:nRest?("after "+fmtMS(nRest.dur)+" rest"):"this station"};
+              else if(fSeg&&bRounds(fb)>1&&fSeg.round<fSeg.rounds-1)
+                fNi={b:"Round "+((fSeg.round||0)+2)+" of "+fSeg.rounds,em:"this station"}; } } }
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
         const fThen=fRot?"":fIts.slice(fI+1).map(fSum).join(" · ");
         // THE SPARE FOLLOWS THE ROOM, STATE FOR STATE (436 — Omar:
@@ -5467,8 +5484,6 @@ window.addEventListener("error",function(ev){
         // rest window puts the rest slab and "Next here" on the spare too,
         // the block-change rest its countdown and Go-now, exactly like the
         // crewed screens — never a static preview beside live ones
-        const fPh=rot.phase;
-        const fSeg=running?segAt(fb,rot.elapsed):null;
         const fRest=!!(fSeg&&fSeg.it&&fSeg.it.rest&&fPh!=="rest");
         if(fRest) fLines=[`<em>${esc("Rest "+fmtMS(fSeg.it.dur))}</em>`];
         const fClk=fPh==="rest"?fmtMS(rot.remain):fSeg?fmtMS(Math.max(0,fSeg.remain)):fmtMS(blockLen(fb));
@@ -5481,6 +5496,8 @@ window.addEventListener("error",function(ev){
           :fPh==="rest"?`<span>Go now &rarr;</span><b>${esc(fNb.name)}</b><em>${esc(bmLabel(fNb))}</em>`
           :(fRest&&fOwn)?`<span>Next here</span><b>${esc(fOwn.name)}</b><em>${fPr(fOwn)}</em>`
           :fNx?`<span>Next</span><b>${esc(fNx.name)}</b><em>${fPr(fNx)}</em>`
+          :fNi?`<span>Next</span><b>${esc(fNi.b)}</b><em>${esc(fNi.em)}</em>`
+          :(running&&nBlocks()>1)?`<span>Next station</span><b>${esc(fNb.name)}</b><em>${esc(bmLabel(fNb))}</em>`
           :`<span>This machine</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`;
         scr.innerHTML=`
         <div class="tk">
@@ -5740,17 +5757,29 @@ window.addEventListener("error",function(ev){
       // erg. Any multi-exercise working item now filters to THIS
       // machine's exercises; the room's full list stays on the big
       // screen. Waves and self-paced circuits keep their own guides.
+      let nxtIt=null;
       if(nowIt&&!nowIt.rest&&!itRot(nowIt)&&nowIt.fmt!=="waves"&&!(seg&&seg.self)){
         const xs9=(nowIt.exercises||[]).filter(Boolean);
         const mine=xs9.filter(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&mine.length&&mine.length<xs9.length){
           nowLines=mine.map(x=>`<em>${esc(exTxt(x,{it:nowIt}))}</em>`);
           after=[];
-          // the list is a SEQUENCE (Omar: "they do the run, then burpees,
-          // then bike") — NEXT is what follows this machine's piece; the
-          // last piece keeps the next-station box
+          // NEXT RESOLVES NEAREST-FIRST (438 — Omar: "that's not what's
+          // next! how can next be two different machines?!"): the next
+          // exercise in this piece, then the next PIECE at this station
+          // ("Block 2 · after 3:00 rest"), then a remaining round — the
+          // next-station box only when this station is truly finished
           const li=xs9.lastIndexOf(mine[mine.length-1]);
-          if(phase!=="rest"&&!holding&&li>=0&&li<xs9.length-1) rotNext=xs9[li+1]; } }
+          if(phase!=="rest"&&!holding){
+            if(li>=0&&li<xs9.length-1) rotNext=xs9[li+1];
+            else{
+              const nRest=(wIts[nowI+1]&&wIts[nowI+1].rest)?wIts[nowI+1]:null;
+              const nWork=wIts.slice(nowI+1).find(x=>x&&!x.rest);
+              if(nWork) nxtIt={b:nWork.name||(((nWork.exercises||[])[0]||{}).name)||"Next part",
+                em:nRest?("after "+fmtMS(nRest.dur)+" rest"):"this station"};
+              else if(seg&&wBlk===b&&bRounds(wBlk)>1&&seg.round<seg.rounds-1)
+                nxtIt={b:"Round "+((seg.round||0)+2)+" of "+seg.rounds,em:"this station"};
+            } } } }
       // A REST WINDOW IS STILL THE MACHINE'S SCREEN (432 — the audit): a
       // written rest between rotate windows let the ladder creep back and
       // dropped NEXT to the next block. The machine's story holds — rest
@@ -5761,7 +5790,13 @@ window.addEventListener("error",function(ev){
         if(nIt&&itRot(nIt)&&itRotBy(nIt)!=="done"){
           const xs9=(nIt.exercises||[]).filter(Boolean);
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
-          if(xs9.length>1&&myIx>=0){ restRot=xs9[myIx]; after=[]; jSub=""; } } }
+          if(xs9.length>1&&myIx>=0){ restRot=xs9[myIx]; after=[]; jSub=""; } }
+        // a plain next piece rests the same way (438): after this rest the
+        // machine hosts ITS piece of the next item — never the next block
+        else if(nIt&&!nIt.rest&&nIt.fmt!=="waves"){
+          const xs9=(nIt.exercises||[]).filter(Boolean);
+          const mine=xs9.filter(x=>machineOf(x.name)===mtype);
+          if(mine.length){ restRot=mine[0]; after=[]; jSub=""; } } }
       if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
       if(phase==="rest"||holding) after=[];
       if(phase==="done"){ thenLab="today"; after=[];
@@ -5803,6 +5838,9 @@ window.addEventListener("error",function(ev){
       if(rotNext&&phase!=="done"&&team){ nxSpan="Next";
         nxB=esc(rotNext.name);
         nxEm=esc(rotNext.max?("Max"+maxUnit(rotNext.unit)):(amtList(rotNext).join("/")+exUnit(rotNext.unit)).trim()); }
+      // the next PIECE at this station (438) — nearest before the next block
+      if(nxtIt&&phase!=="done"&&team){ nxSpan="Next";
+        nxB=esc(nxtIt.b); nxEm=esc(nxtIt.em); }
       // during the written rest whoever faces this tablet is arriving at
       // it — NEXT names the machine's own next window, never the next block
       if(restRot&&phase!=="done"&&team){ nxSpan="Next here";
@@ -9309,7 +9347,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=437;
+  const BUILD=438;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
