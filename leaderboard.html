@@ -2574,7 +2574,11 @@ window.addEventListener("error",function(ev){
   // and the container is sized by hand, so both have to use the SAME number the lane
   // is actually drawn at — a hard-coded 92 against a 104px lane overlapped every row
   // on the TV by twelve pixels.
-  const rowH=()=>{ const l=lanesEl&&lanesEl.firstElementChild;
+  // measure the first VISIBLE lane (442 — on page 2+ the first child is
+  // display:none, offsetHeight 0, and the fallback stepped the rows at 92px
+  // while they drew at 40: rows spilled out of the card with gaps)
+  const rowH=()=>{ let l=lanesEl&&lanesEl.firstElementChild;
+    if(l&&!l.offsetHeight){ l=[...lanesEl.children].find(x=>x.offsetHeight>0)||l; }
     return (l&&l.offsetHeight)||ROW; };
   let running=false, sessionActive=false, finished=false, t0=0, raf=0, ticker=0, ergs=[];
   const lanesEl=$("lanes"), clockEl=$("clock"), clockState=$("clockState"),
@@ -9439,7 +9443,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=442;
+  const BUILD=443;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

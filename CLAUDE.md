@@ -1464,7 +1464,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   each repaint re-entered showPage and cleared the 7s timeout, so the pager froze
   on 1–3 all class. `bdPage = floor(Date.now()/7000) % pages` — every repaint
   agrees within a window and the boundary advances on its own (a timeout at the
-  next boundary keeps an IDLE board turning). `altwin` pins the live turn. The lane's place comes from `data-pos` (the rank it was given), never its DOM
+  next boundary keeps an IDLE board turning). AND `rowH()` MEASURES A VISIBLE
+  LANE (443 — Omar's page-2 screenshot, rows hanging out of the card with black
+  gaps): on page 2+ the FIRST child is display:none, offsetHeight 0, and the
+  92px `ROW` fallback stepped 40px rows apart and past the card's bottom; it
+  now falls through to the first lane with a height. `altwin` pins the live
+  turn, page containment and gap-free steps. The lane's place comes from `data-pos` (the rank it was given), never its DOM
   order, so the pager and the sort cannot disagree. Never fewer than three on screen:
   a phone in full screen has room for one row at the wall's row height, and one row
   blown up to fill the screen is a poster of whoever is winning, not a leaderboard.

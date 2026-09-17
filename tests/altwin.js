@@ -477,6 +477,21 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       (document.querySelector('#boardPage')||{innerText:''}).innerText));
     await p4.waitForTimeout(7200); }
   ok(seen.size>=2,'442: the LIVE board turns its pages ('+[...seen].join(' | ')+')');
+  // 443 (Omar's page-2 screenshot: rows hanging out of the card with
+  // gaps): rowH() must measure a VISIBLE lane — on page 2+ the first
+  // child is display:none and the 92px fallback stepped 40px rows apart
+  { const r=await p4.evaluate(()=>{
+      const bd=document.getElementById('board');
+      const vis=[...document.getElementById('lanes').children]
+        .filter(l=>getComputedStyle(l).display!=='none');
+      const hs=vis.map(l=>Math.round(l.getBoundingClientRect().height));
+      const tops=vis.map(l=>Math.round(l.getBoundingClientRect().top)).sort((a,b)=>a-b);
+      const step=tops.length>1?tops[1]-tops[0]:hs[0];
+      return {inside:vis.every(l=>l.getBoundingClientRect().bottom
+          <=bd.getBoundingClientRect().bottom+2),
+        tight:Math.abs(step-hs[0])<=3, step, h:hs[0]}; });
+    ok(r.inside,'443: every page’s rows sit INSIDE the card');
+    ok(r.tight,'443: rows step at their own height ('+r.step+' vs '+r.h+') — no gaps'); }
   await p4.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
