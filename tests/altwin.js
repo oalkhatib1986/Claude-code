@@ -530,24 +530,37 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   await p5.reload(); await p5.waitForTimeout(1500);
   await p5.evaluate(()=>{
     const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
-    const it=(name,dur,xs)=>({name,dur,rest:false,fmt:'',
+    const it=(name,dur,xs,sc)=>({name,dur,rest:false,fmt:'',scored:!!sc,
+      metric:sc?'calories':undefined,scorers:sc?4:undefined,
       exercises:xs.map(([n,note])=>({name:n,unit:'cal',max:true,amounts:[],note:note||''}))});
     Object.assign(c,{name:'Probe 449',wkName:'Probe 449',mode:'rotation',teamKind:'teams',
       teamSize:2,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
+    // Omar's real asymmetry (build 450): Run/Bike Block 1 scored, its
+    // Row/Ski twin NOT — the mend must make them symmetric at boot
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:120,sameRest:true,blocks:[
       {name:'Run / Bike',rounds:1,items:[
         it('Block 1',600,[['110/135/160m Run','Split as a team'],
           ['60 Burpees','2 people working in sync'],
-          ['Max Cal Bike','Remaining time — remember your number for Block 2']]),
+          ['Max Cal Bike','Remaining time — remember your number for Block 2']],true),
         {rest:true,dur:180,exercises:[]},
-        it('Block 2',300,[['Max Cal Bike','']]) ]},
+        it('Block 2',300,[['Max Cal Bike','']],true) ]},
       {name:'Row / Ski',rounds:1,items:[
         it('Block 1',600,[['Max Cal Row',''],['60 Burpees',''],['Max Cal Ski','']]) ]} ]});
     c.crews=[{name:'LEVANT'},{name:'YOMNA'},{name:'LUNA'},{name:'SIMBA'},{name:'AUS'},{name:'DIS'}];
     c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
     localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+    localStorage.removeItem('af_fixsissc_v1'); // re-arm the one-shot for this board
   });
   await p5.reload(); await p5.waitForTimeout(1600);
+  // 450: the twin block's first piece is scored after the mend
+  { const r=await p5.evaluate(()=>{
+      const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+      const rs=c.rotation.blocks.find(b=>/row \/ ski/i.test(b.name));
+      const s1=(rs.items||[]).find(x=>!x.rest);
+      const tags=[...document.querySelectorAll('#blockCards .exg-h i')].length;
+      return {scored:!!s1.scored,metric:s1.metric,tags}; });
+    ok(r.scored&&r.metric==='calories','450: the mend marks Row/Ski Block 1 scored like its twin '+JSON.stringify(r));
+    ok(r.tags>=3,'450: the card wears the scored tag on both Block 1s ('+r.tags+' tags)'); }
   // one width for every named pill, on the widest name
   { const r=await p5.evaluate(()=>{
       const tags=[...document.querySelectorAll('#blockCards .teams .t:not(.unnamed):not(.spare) .mtag')];
@@ -574,6 +587,11 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(r.fits,'449: and the slab still contains its lines'); }
   await p5.click('#tabTrainer'); await p5.waitForTimeout(400);
   await p5.evaluate(()=>document.getElementById('startBtn').click()); await p5.waitForTimeout(1300);
+  // 450: with both Block 1s scored, BOTH live slabs run hot (red) together
+  await p5.click('#tabBoard'); await p5.waitForTimeout(700);
+  { const r=await p5.evaluate(()=>({blks:document.querySelectorAll('#blockCards .blk[data-bi]').length,
+      hot:document.querySelectorAll('#blockCards .blk.scoring').length}));
+    ok(r.hot===2,'450: both blocks scoring red together ('+r.hot+' of '+r.blks+')'); }
   await p5.click('#tabTablet'); await p5.waitForTimeout(600);
   await p5.evaluate(()=>window.__tbOpen&&window.__tbOpen('Bike:1')); await p5.waitForTimeout(900);
   { const r=await p5.evaluate(()=>{

@@ -8045,7 +8045,8 @@ window.addEventListener("error",function(ev){
           if(f) migrateLoaded();
           const lb=lbSoloMend(cfg); if(lb){ try{ normCrewNames(); }catch(e){} }
           const pb=lbPartBMend(cfg);
-          if(eng1509InvMend(cfg)||f||lb||pb)
+          const ss=sisScoreMend(cfg);
+          if(eng1509InvMend(cfg)||f||lb||pb||ss)
             setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
         save(); applyAccent(); buildControlRoom();
       }
@@ -8371,6 +8372,43 @@ window.addEventListener("error",function(ev){
       p.ts=Date.now(); touched=true; libPush(p); } });
     if(touched) savePresets();
     if(lbPartBMend(cfg)){ migrateLoaded(); save();
+      setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
+      if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
+    }
+  })();
+  // BOTH FIRST BLOCKS ARE SCORED, OR THE TOTAL LIES (build 450 — Omar's
+  // Send It Saturday: "why is 1 block red and the other not?!"). His spec
+  // is explicit — the score is Run + Bike + Row + Ski maxes — but the
+  // board's Row/Ski Block 1 never carried the Scored mark its Run/Bike
+  // twin has: no red slab (correct display of wrong data) and, worse, no
+  // calorie ask at its end, so the rowers' Block 1 never counted.
+  // Fingerprinted to the twin shape itself: a Run/Bike block whose first
+  // working piece IS scored beside a Row/Ski block whose first working
+  // piece is NOT, ending on a max-cal Row/Ski line. A board where the
+  // asymmetry is deliberate has no such twin and is never touched.
+  function sisScoreMend(c){
+    if(!c||c.noScore) return false;
+    const bs=(((c.rotation||{}).blocks)||[]);
+    const rb=bs.find(x=>x&&/run\s*\/\s*bike/i.test(String(x.name||"")));
+    const rs=bs.find(x=>x&&/row\s*\/\s*ski/i.test(String(x.name||"")));
+    if(!rb||!rs) return false;
+    const w1=(rb.items||[]).find(x=>x&&!x.rest);
+    const s1=(rs.items||[]).find(x=>x&&!x.rest);
+    if(!w1||!s1||!w1.scored||s1.scored) return false;
+    const last=(s1.exercises||[]).filter(Boolean).slice(-1)[0];
+    if(!last||!last.max||!/(ski|row)/i.test(String(last.name||""))) return false;
+    s1.scored=true; s1.metric=w1.metric==="metres"?"metres":"calories";
+    s1.scorers=w1.scorers||4;
+    return true;
+  }
+  (function fixSISScore(){
+    const K="af_fixsissc_v1";
+    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
+    let touched=false;
+    presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&sisScoreMend(p.cfg)){
+      p.ts=Date.now(); touched=true; libPush(p); } });
+    if(touched) savePresets();
+    if(sisScoreMend(cfg)){ migrateLoaded(); save();
       setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
       if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
     }
@@ -9485,7 +9523,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=449;
+  const BUILD=450;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
