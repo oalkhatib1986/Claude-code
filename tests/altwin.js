@@ -360,6 +360,29 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(/max cal run/i.test(rn.now)&&!/^bike$/i.test(rn.head),
       '434: the Runner mirrors it ('+(rn.head||'—')+' / '+rn.now+')'); }
   await p2.close(); }
+// THE RULE IS FORMAT-INDEPENDENT (437 — Omar, on Send It Saturday: "the
+// erg screen shows only the exercise related to that erg... why do the
+// rules change from one workout to the other?!"): on a PLAIN group item
+// the bolted screen filters to its machine's piece and NEXT follows the
+// sequence — run, then what the list says comes after
+{ const p3=await br.newPage({viewport:{width:1280,height:900}});
+  p3.on('pageerror',e=>{fail++;console.log('FAIL pageerror(sis):',e.message);});
+  await p3.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p3.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p3.reload(); await p3.waitForTimeout(1400);
+  await p3.click('#tabTablet'); await p3.waitForTimeout(700);
+  await p3.evaluate(()=>window.__tbOpen('Run:1')); await p3.waitForTimeout(800);
+  { const r=await p3.evaluate(()=>({now:(document.querySelector('.tk-now')||{innerText:''}).innerText.replace(/\s+/g,' ').trim(),
+      nxt:(document.querySelector('.tk-nxt')||{innerText:''}).innerText.replace(/\s+/g,' ')}));
+    ok(/run/i.test(r.now)&&!/squat|step over|d-?ball/i.test(r.now),
+      '437: a plain group item filters to THIS erg’s piece — '+r.now);
+    ok(/next/i.test(r.nxt)&&/air squats/i.test(r.nxt),
+      '437: NEXT follows the sequence after the erg’s piece — '+r.nxt); }
+  await p3.evaluate(()=>document.getElementById('startBtn').click());
+  await p3.waitForTimeout(1400);
+  { const r=await p3.evaluate(()=>({now:(document.querySelector('.tk-now')||{innerText:''}).innerText.replace(/\s+/g,' ').trim()}));
+    ok(/run/i.test(r.now)&&!/squat/i.test(r.now),'437: still the erg’s piece while running'); }
+  await p3.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

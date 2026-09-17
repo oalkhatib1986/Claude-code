@@ -395,7 +395,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   echo and drops — the tk-head div only renders when jHead survives;
   states and positions ("Rest — recover", "Scoring now", cir's
   "Station 2 of 4", which re-writes jHead AFTER the dedupe) are not
-  contained and stay. `altwin.js` gates the single-line card, the
+  contained and stay. AND THE RULE IS FORMAT-INDEPENDENT (build 437 —
+  Omar, on Send It Saturday: "the erg screen shows only the exercise
+  related to that erg... why do the rules change from one workout to
+  the other?!"): 426 filtered ROTATING parts only, so a plain group
+  item printed the team's whole list on the erg. ANY multi-exercise
+  working item (not waves, not a self-paced circuit) now filters to
+  THIS machine's exercises on BOTH tablet screens, and because the
+  list is a SEQUENCE ("they do the run, then burpees, then bike"),
+  NEXT is what follows this machine's piece in the list — the LAST
+  piece keeps the next-station box. The room's full list stays on the
+  big screen. `altwin` pins the filtered SIS runner + sequence NEXT. `altwin.js` gates the single-line card, the
   dropped ladder, the next box, the running dedupe and the one-left-
   edge measure.
 - **THE REST SCREENS TELL ONE STORY, AND THE CARD IS ALWAYS THE ERG'S OWN

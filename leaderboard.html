@@ -5451,6 +5451,15 @@ window.addEventListener("error",function(ev){
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
           if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`];
             fRot=true; fOwn=xs9[myIx]; fNx=xs9[(myIx+1)%xs9.length]; } }
+        // the format-independent rule (437): a plain sequence filters to
+        // this machine's piece too, NEXT = what follows it in the list
+        else if(fIt&&!fIt.rest&&fIt.fmt!=="waves"){ const xs9=(fIt.exercises||[]).filter(Boolean);
+          const mine=xs9.filter(x=>machineOf(x.name)===mtype);
+          if(xs9.length>1&&mine.length&&mine.length<xs9.length){
+            fLines=mine.map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
+            fRot=true; fOwn=mine[0];
+            const li=xs9.lastIndexOf(mine[mine.length-1]);
+            if(li>=0&&li<xs9.length-1) fNx=xs9[li+1]; } }
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
         const fThen=fRot?"":fIts.slice(fI+1).map(fSum).join(" · ");
         // THE SPARE FOLLOWS THE ROOM, STATE FOR STATE (436 — Omar:
@@ -5723,6 +5732,25 @@ window.addEventListener("error",function(ev){
           // tracked the PERSON's half and printed Burpee Box Jumps over a
           // Max Cal Row card on half the rowers — no crew line here
           jSub=""; } }
+      // THE RULE IS FORMAT-INDEPENDENT (437 — Omar, on Send It Saturday:
+      // "the erg screen shows only the exercise related to that erg and
+      // the next station in the bottom right! why do the rules change
+      // from one workout to the other?!"): 426 filtered ROTATING parts
+      // only, so a plain group item printed the team's whole list on the
+      // erg. Any multi-exercise working item now filters to THIS
+      // machine's exercises; the room's full list stays on the big
+      // screen. Waves and self-paced circuits keep their own guides.
+      if(nowIt&&!nowIt.rest&&!itRot(nowIt)&&nowIt.fmt!=="waves"&&!(seg&&seg.self)){
+        const xs9=(nowIt.exercises||[]).filter(Boolean);
+        const mine=xs9.filter(x=>machineOf(x.name)===mtype);
+        if(xs9.length>1&&mine.length&&mine.length<xs9.length){
+          nowLines=mine.map(x=>`<em>${esc(exTxt(x,{it:nowIt}))}</em>`);
+          after=[];
+          // the list is a SEQUENCE (Omar: "they do the run, then burpees,
+          // then bike") — NEXT is what follows this machine's piece; the
+          // last piece keeps the next-station box
+          const li=xs9.lastIndexOf(mine[mine.length-1]);
+          if(phase!=="rest"&&!holding&&li>=0&&li<xs9.length-1) rotNext=xs9[li+1]; } }
       // A REST WINDOW IS STILL THE MACHINE'S SCREEN (432 — the audit): a
       // written rest between rotate windows let the ladder creep back and
       // dropped NEXT to the next block. The machine's story holds — rest
@@ -9281,7 +9309,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=436;
+  const BUILD=437;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
