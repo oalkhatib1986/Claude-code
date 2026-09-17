@@ -1,5 +1,10 @@
 # ATHL3TE Erg Leaderboard — standing rules
 
+**REPLIES TO OMAR ARE SHORT (17 Sep 2026: "be more brief and precise —
+if I need more info I'll ask").** What shipped, the link, what he needs
+to do or decide. No mechanism explanations, no history, no selling the
+fix. He asks when he wants the why.
+
 Single-file app: `leaderboard.html` (source of truth). `app.html` is a byte-for-byte
 copy for cache-free serving; `version.txt` holds the build number.
 
