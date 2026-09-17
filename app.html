@@ -200,8 +200,8 @@
      an occupant list ellipsises rather than spills. */
   .blk .teams .t .mtag{margin-left:auto;max-width:100%;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:34px;
-    text-align:right;line-height:1.35}
-  .blk .teams .t.unnamed .mtag,.blk .teams .t.spare .mtag{flex:0 0 auto;min-width:0}
+    width:var(--mtw,auto);text-align:center;line-height:1.35}
+  .blk .teams .t.unnamed .mtag,.blk .teams .t.spare .mtag{flex:0 0 auto;min-width:0;width:auto}
   .blk .teams .t .tn .tnm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .blk .teams .t .tn .tno{font-style:normal;margin-left:4px}
   .blk .teams .t .tn{min-width:0;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:baseline}
@@ -500,6 +500,11 @@
     font-size:clamp(17px,4.9vw,32px);line-height:1.12;letter-spacing:.02em;text-transform:uppercase;
     color:#0a0a0b;min-width:0;overflow-wrap:anywhere}
   .tk.hot .tk-now em{color:#c81111}
+  /* a coach's cue under its own line — quiet, wraps, never uppercase (449) */
+  .tk-now .tknote{display:block;flex:none;font-style:italic;font-weight:600;
+    font-size:clamp(11px,2.6vw,15px);line-height:1.25;color:rgba(10,10,11,.62);
+    min-width:0;margin-top:-2px}
+  .tk-now.rest .tknote{color:rgba(255,255,255,.5)}
   .tk-now.rest{background:transparent;border:2px dashed rgba(255,255,255,.42)}
   .tk-now.rest em{color:rgba(255,255,255,.55)}
   /* the DONE bar — hit while sweating, so it takes the whole width and is tall */
@@ -778,6 +783,7 @@
   :is(body.kioskon,.twt) .tk-work{padding:13px 22px 14px;gap:11px}
   :is(body.kioskon,.twt) .tk-now{padding-left:15px;gap:6px}
   :is(body.kioskon,.twt) .tk-now em{font-size:32px}
+  :is(body.kioskon,.twt) .tk-now .tknote{font-size:15px}
   :is(body.kioskon,.twt) .tk-done{padding:15px 22px}
   :is(body.kioskon,.twt) .tk-done b{font-size:32px}
   :is(body.kioskon,.twt) .tk-done i{font-size:20px}
@@ -3853,6 +3859,15 @@ window.addEventListener("error",function(ev){
         })()}
       </div>`;
     }).map((h,bi)=>h+(bi<R().blocks.length-1&&restAfterBlock(bi)>0?`<div class="blkrest" data-bi="${bi}"><b>Rest</b><span>${fmtMS(restAfterBlock(bi))}</span></div>`:"")).join("");
+    // EVERY NAME PILL ONE WIDTH (build 449 — Omar: "the team name pills
+    // must be the same size so always take the widest one"): measure the
+    // widest NAMED tag and size them all to it. offsetWidth, never a
+    // screen rect — the scaled wall shrinks those; width (not min-width)
+    // so a squeezed chip still shrinks and ellipsises instead of spilling.
+    { const bc=$("blockCards"); bc.style.removeProperty("--mtw");
+      let w9=0; bc.querySelectorAll(".teams .t:not(.unnamed):not(.spare) .mtag")
+        .forEach(t2=>{ if(t2.offsetWidth>w9) w9=t2.offsetWidth; });
+      if(w9) bc.style.setProperty("--mtw",(w9+1)+"px"); }
     fitBlockCols();
   }
   /* ===== EDIT-IN-PLACE ON THE OVERVIEW (build 406 — Omar's Option A) =====
@@ -5456,6 +5471,12 @@ window.addEventListener("error",function(ev){
       const t=`<div class="tb-note" style="padding:38px 12px;text-align:center">Today\u2019s workout has <b>no ergs</b> \u2014 these tablets aren\u2019t needed for it. Put the workout on the big screen and the class follows it, splitting itself across the floor.</div>`;
       if(scr.innerHTML!==t) scr.innerHTML=t;
       return; }
+    // A COACH'S CUE RIDES THE WORK IT CUES (build 449 — Omar: "why do these
+    // comments like split as a team not show on the erg tablets?"): a
+    // per-exercise note prints under its own line on the tablet card, with
+    // the overview's own echo filter — a note that restates the line drops
+    const tkExLine=(x,it)=>`<em>${esc(exTxt(x,{it}))}</em>`
+      +(String(x&&x.note||"").trim()&&!noteRedundant(x.note,x)?`<i class="tknote">${esc(x.note)}</i>`:"");
     if(!tile&&!scr.__doneWired){ scr.__doneWired=1;
       // the screen redraws on a timer, so bind the tap to the container, never to
       // the button itself — otherwise a tap landing mid-redraw is lost
@@ -5556,19 +5577,19 @@ window.addEventListener("error",function(ev){
         const fIt=fI>=0?fIts[fI]:null;
         const fSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
-        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
+        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>tkExLine(x,fIt));
         // a bolted tablet shows ITS station's work, not the whole ladder (426)
         let fRot=false,fNx=null,fOwn=null,fNi=null;
         if(fIt&&!fIt.rest&&itRot(fIt)){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
-          if(xs9.length>1&&myIx>=0){ fLines=[`<em>${esc(exTxt(xs9[myIx],{it:fIt}))}</em>`];
+          if(xs9.length>1&&myIx>=0){ fLines=[tkExLine(xs9[myIx],fIt)];
             fRot=true; fOwn=xs9[myIx]; fNx=xs9[(myIx+1)%xs9.length]; } }
         // the format-independent rule (437): a plain sequence filters to
         // this machine's piece too, NEXT = what follows it in the list
         else if(fIt&&!fIt.rest&&fIt.fmt!=="waves"){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const mine=xs9.filter(x=>machineOf(x.name)===mtype);
           if(xs9.length>1&&mine.length&&mine.length<xs9.length){
-            fLines=mine.map(x=>`<em>${esc(exTxt(x,{it:fIt}))}</em>`);
+            fLines=mine.map(x=>tkExLine(x,fIt));
             fRot=true; fOwn=mine[0];
             const li=xs9.lastIndexOf(mine[mine.length-1]);
             if(li>=0&&li<xs9.length-1) fNx=xs9[li+1];
@@ -5581,6 +5602,8 @@ window.addEventListener("error",function(ev){
               else if(fSeg&&bRounds(fb)>1&&fSeg.round<fSeg.rounds-1)
                 fNi={b:"Round "+((fSeg.round||0)+2)+" of "+fSeg.rounds,em:"this station"}; } } }
         if(!fLines.length) fLines=[`<em>${esc(fIt?fSum(fIt):(fb.name||"Work"))}</em>`];
+        if(fIt&&!fIt.rest&&String(fIt.note||"").trim())
+          fLines.push(`<i class="tknote">${esc(fIt.note)}</i>`);
         const fThen=fRot?"":fIts.slice(fI+1).map(fSum).join(" · ");
         // THE SPARE FOLLOWS THE ROOM, STATE FOR STATE (436 — Omar:
         // "everyone is on rest but some machines are not?!"): a written
@@ -5829,7 +5852,7 @@ window.addEventListener("error",function(ev){
       const nowIt=nowI>=0?wIts[nowI]:null;
       const itSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
         :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
-      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>`<em>${esc(exTxt(x,{it:nowIt}))}</em>`);
+      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>tkExLine(x,nowIt));
       if(!nowLines.length) nowLines=[`<em>${esc(nowIt?itSum(nowIt):(wBlk.desc||wBlk.name||"Work"))}</em>`];
       let after=wIts.slice(nowI+1).map(itSum), thenLab="then";
       // THE TABLET IS BOLTED TO THE ERG (build 426 — Omar: "it just tells
@@ -5843,7 +5866,7 @@ window.addEventListener("error",function(ev){
         const xs9=(nowIt.exercises||[]).filter(Boolean);
         const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&myIx>=0){
-          nowLines=[`<em>${esc(exTxt(xs9[myIx],{it:nowIt}))}</em>`];
+          nowLines=[tkExLine(xs9[myIx],nowIt)];
           // the head named the WINDOW's lead station — on the other
           // machine it survived the dedupe and printed RUN over a Max Cal
           // Bike card (434, Omar: "why some screens are different?!");
@@ -5872,7 +5895,7 @@ window.addEventListener("error",function(ev){
         const xs9=(nowIt.exercises||[]).filter(Boolean);
         const mine=xs9.filter(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&mine.length&&mine.length<xs9.length){
-          nowLines=mine.map(x=>`<em>${esc(exTxt(x,{it:nowIt}))}</em>`);
+          nowLines=mine.map(x=>tkExLine(x,nowIt));
           after=[];
           // NEXT RESOLVES NEAREST-FIRST (438 — Omar: "that's not what's
           // next! how can next be two different machines?!"): the next
@@ -5910,6 +5933,8 @@ window.addEventListener("error",function(ev){
           const xs9=(nIt.exercises||[]).filter(Boolean);
           const mine=xs9.filter(x=>machineOf(x.name)===mtype);
           if(mine.length){ restRot=mine[0]; after=[]; jSub=""; } } }
+      if(nowIt&&!nowIt.rest&&String(nowIt.note||"").trim())
+        nowLines.push(`<i class="tknote">${esc(nowIt.note)}</i>`);
       if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
       if(phase==="rest"||holding) after=[];
       if(phase==="done"){ thenLab="today"; after=[];
@@ -9460,7 +9485,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=448;
+  const BUILD=449;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

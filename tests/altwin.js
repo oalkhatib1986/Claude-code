@@ -518,6 +518,69 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     const again=await p4.evaluate(()=>!!document.querySelector('.tk-score'));
     ok(again,'448: and it asks fresh when the piece ends again'); }
   await p4.close(); }
+
+// ===== part 5: A COACH'S CUE RIDES THE WORK, AND EVERY NAME PILL IS ONE
+// WIDTH (build 449 — Omar: "why do these comments like split as a team
+// not show on the erg tablets?" + "the team name pills must be the same
+// size so always take the widest one") =====
+{ const p5=await br.newPage({viewport:{width:1280,height:900}});
+  p5.on('pageerror',e=>{fail++;console.log('FAIL pageerror(p5):',e.message);});
+  await p5.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p5.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p5.reload(); await p5.waitForTimeout(1500);
+  await p5.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const it=(name,dur,xs)=>({name,dur,rest:false,fmt:'',
+      exercises:xs.map(([n,note])=>({name:n,unit:'cal',max:true,amounts:[],note:note||''}))});
+    Object.assign(c,{name:'Probe 449',wkName:'Probe 449',mode:'rotation',teamKind:'teams',
+      teamSize:2,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:120,sameRest:true,blocks:[
+      {name:'Run / Bike',rounds:1,items:[
+        it('Block 1',600,[['110/135/160m Run','Split as a team'],
+          ['60 Burpees','2 people working in sync'],
+          ['Max Cal Bike','Remaining time — remember your number for Block 2']]),
+        {rest:true,dur:180,exercises:[]},
+        it('Block 2',300,[['Max Cal Bike','']]) ]},
+      {name:'Row / Ski',rounds:1,items:[
+        it('Block 1',600,[['Max Cal Row',''],['60 Burpees',''],['Max Cal Ski','']]) ]} ]});
+    c.crews=[{name:'LEVANT'},{name:'YOMNA'},{name:'LUNA'},{name:'SIMBA'},{name:'AUS'},{name:'DIS'}];
+    c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p5.reload(); await p5.waitForTimeout(1600);
+  // one width for every named pill, on the widest name
+  { const r=await p5.evaluate(()=>{
+      const tags=[...document.querySelectorAll('#blockCards .teams .t:not(.unnamed):not(.spare) .mtag')];
+      const ws=tags.map(t=>t.getBoundingClientRect().width);
+      const spill=[...document.querySelectorAll('#blockCards .teams .t')].filter(e=>e.scrollWidth>e.clientWidth+1).length;
+      return {n:tags.length,spread:ws.length?Math.max(...ws)-Math.min(...ws):99,spill};
+    });
+    ok(r.n>=6&&r.spread<1.5,'449: named pills share ONE width, the widest ('+r.n+' pills, spread '+r.spread.toFixed(1)+'px)');
+    ok(r.spill===0,'449: no chip spills for it'); }
+  // the note rides the tablet card — wall tile, idle screen, and the
+  // FILTERED running card carries only ITS OWN exercise's note
+  await p5.click('#tabTablet'); await p5.waitForTimeout(800);
+  await p5.evaluate(()=>window.__tbWall&&window.__tbWall()); await p5.waitForTimeout(1100);
+  { const tile=await p5.evaluate(()=>{
+      const t=document.querySelector('#tbWall .twt[data-k="Run:1"]');
+      return t?/split as a team/i.test(t.querySelector('.tk-now')?.textContent||''):null; });
+    ok(tile===true,'449: the wall tile carries the note'); }
+  await p5.evaluate(()=>window.__tbOpen&&window.__tbOpen('Run:1')); await p5.waitForTimeout(900);
+  { const r=await p5.evaluate(()=>{
+      const nw=document.querySelector('#tbScreen .tk-now');
+      return {note:/split as a team/i.test(nw?nw.textContent:''),
+        fits:nw?nw.scrollHeight<=nw.clientHeight+1&&nw.scrollWidth<=nw.clientWidth+1:false}; });
+    ok(r.note,'449: idle screen prints the note under its line');
+    ok(r.fits,'449: and the slab still contains its lines'); }
+  await p5.click('#tabTrainer'); await p5.waitForTimeout(400);
+  await p5.evaluate(()=>document.getElementById('startBtn').click()); await p5.waitForTimeout(1300);
+  await p5.click('#tabTablet'); await p5.waitForTimeout(600);
+  await p5.evaluate(()=>window.__tbOpen&&window.__tbOpen('Bike:1')); await p5.waitForTimeout(900);
+  { const r=await p5.evaluate(()=>{
+      const txt=document.querySelector('#tbScreen .tk-now')?.textContent||'';
+      return {own:/remember your number/i.test(txt),other:/split as a team|working in sync/i.test(txt)}; });
+    ok(r.own&&!r.other,'449: the filtered running card carries its OWN note only '+JSON.stringify(r)); }
+  await p5.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
