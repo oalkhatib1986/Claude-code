@@ -5655,7 +5655,12 @@ window.addEventListener("error",function(ev){
         if(xs9.length>1&&myIx>=0){
           nowLines=[`<em>${esc(exTxt(xs9[myIx],{it:nowIt}))}</em>`];
           rotNext=xs9[(myIx+1)%xs9.length];
-          after=[]; } }
+          after=[];
+          // the tablet speaks for the MACHINE (431 — Omar: "how are two
+          // rowers showing different?!"): the crew-centric "Now:" line
+          // tracked the PERSON's half and printed Burpee Box Jumps over a
+          // Max Cal Row card on half the rowers — no crew line here
+          jSub=""; } }
       if(!after.length&&bRounds(wBlk)>1&&seg&&wBlk===b&&seg.round<seg.rounds-1) after.push(`Round ${(seg.round||0)+2} of ${seg.rounds}`);
       if(phase==="rest"||holding) after=[];
       if(phase==="done"){ thenLab="today"; after=[];
@@ -5692,8 +5697,10 @@ window.addEventListener("error",function(ev){
       else if(lastRound){ nxSpan="After this"; nxB="Session ends"; nxEm="Finish strong"; }
       // a rotating part points at the station the athlete walks to next —
       // that is the whole job of this card on a bolted tablet (426)
+      // NEXT names the WORK, not the kit (431 — Omar: "it should be the
+      // exercise name"); the map keeps the equipment names (425)
       if(rotNext&&phase!=="done"&&team){ nxSpan="Next";
-        nxB=esc(gearFor(rotNext.name)||rotNext.name);
+        nxB=esc(rotNext.name);
         nxEm=esc(rotNext.max?("Max"+maxUnit(rotNext.unit)):(amtList(rotNext).join("/")+exUnit(rotNext.unit)).trim()); }
       // a circuit always points at the next station — that is the whole job of this card
       if(cir&&phase!=="done"&&team){ nxSpan="After this"; nxB=esc(cir.next.name);
@@ -9198,7 +9205,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=430;
+  const BUILD=431;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

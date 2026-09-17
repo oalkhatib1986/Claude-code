@@ -218,6 +218,30 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   ok(await p2.evaluate(()=>!document.body.classList.contains('tbfull')
     &&getComputedStyle(document.querySelector('.tabs')).display!=='none'),
     '429: the corner pill exits and the nav returns');
+  // THE TABLET SPEAKS FOR THE MACHINE (431 — Omar: "how are two rowers
+  // showing different?!"): adjacent slots' crews sit on OPPOSITE halves,
+  // yet both Ski tablets read identically — the machine's work, no
+  // crew-centric "Now:" line on either
+  { const read=async k=>{ await p2.evaluate(k2=>window.__tbOpen(k2),k);
+      await p2.waitForTimeout(900);
+      return p2.evaluate(()=>({now:(document.querySelector('.tk-now')||{}).innerText||'',
+        txt:document.getElementById('tbScreen').innerText.replace(/\s+/g,' ')})); };
+    const a=await read('Ski:1'), b2=await read('Ski:2');
+    ok(/max cal ski/i.test(a.now)&&/max cal ski/i.test(b2.now),
+      '431: both Ski tablets show the machine\'s work');
+    ok(!/now:/i.test(a.txt)&&!/now:/i.test(b2.txt),
+      '431: neither carries a crew-centric Now: line'); }
+  // NEXT names the WORK, not the kit (431): linked or not, the next box
+  // says the exercise
+  await p2.evaluate(()=>{ const K='af_erg_cfg_v8'; const c=JSON.parse(localStorage.getItem(K));
+    c.gear=[{name:'Med Balls',n:6}]; c.exGear={'wall balls':'Med Balls'};
+    localStorage.setItem(K,JSON.stringify(c)); });
+  await p2.reload(); await p2.waitForTimeout(1600);
+  await p2.click('#tabTablet'); await p2.waitForTimeout(600);
+  await p2.evaluate(()=>window.__tbOpen('Ski:1')); await p2.waitForTimeout(900);
+  { const nx=await p2.evaluate(()=>(document.querySelector('.tk-nxt')||{}).innerText||'');
+    ok(/wall balls/i.test(nx)&&!/med balls/i.test(nx),
+      '431: NEXT says the exercise, not the equipment — '+nx.replace(/\s+/g,' ')); }
   await p2.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

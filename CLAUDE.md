@@ -356,9 +356,15 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   filters to the exercise whose `machineOf` matches `mtype`, the
   `then`/window-ladder line is dropped (the big screen carries the
   ladder for the room), and the `.tk-nxt` box reads "Next ·
-  <station> · <prescription>" — the station the athlete walks to,
-  `(myIx+1)%n` in the cycle, wearing its equipment name where linked
-  (`gearFor||name`, the 425 rule). Applies to BOTH tablet screens
+  <exercise> · <prescription>" — where the athlete walks to,
+  `(myIx+1)%n` in the cycle, named by the EXERCISE (build 431 — Omar:
+  "Next shouldn't be Box, it should be the exercise name"; only the
+  MAP wears equipment names, the 425 rule). AND THE TABLET SPEAKS FOR
+  THE MACHINE (431 — Omar: "how are two rowers showing different?!"):
+  the rotNext branch clears `jSub` — the crew-centric "Now:" line
+  tracked the PERSON's half and printed Burpee Box Jumps over a Max
+  Cal Row card on the rowers whose crews were on the floor; the
+  machine's card is the whole story. Applies to BOTH tablet screens
   (screen 1 gains `fRot`, screen 2 `rotNext`; the rotNext override
   sits BEFORE `cir`'s so circuits win). AND SAY IT ONCE (build 427 —
   Omar: "Ski · Now: Ski · Max Cal Ski — they all say the same
