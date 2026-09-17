@@ -15,7 +15,14 @@ copy for cache-free serving; `version.txt` holds the build number.
   options (solo/teams, scored/no-score, together/stations, share/waves/rotate,
   per-block rests, collab, long names), at 390px phone width and on TV.
   Before shipping ANY layout-touching change, run
-  `test_fitall.js` — 3 config states × 9 pages, zero tolerance.
+  `test_fitall.js` — REBUILT in `tests/` (17 Sep 2026 audit): 3 board
+  shapes × 8 pages × 3 widths (390/834/1920), idle AND running, 113
+  checks. Its detector judges transform-scaled stages (`.twt-scr`,
+  `#smStage`, `#tbStage`) and absolutely-positioned badges (`#aiFabX`)
+  by SCREEN rects — scroll geometry is blind to transforms, so those
+  always read as overflow; everything must still paint inside the
+  viewport and its own stage box. Flow content past its box stays a
+  hard failure whatever the overflow mode.
 - **Content wider than its own box is always a bug — clipped OR spilling.**
   `overflow:hidden` cuts it mid-glyph; `overflow:visible` draws it outside its own
   border (a pill's text sitting past the pill). Both look broken. `test_fitall.js`
