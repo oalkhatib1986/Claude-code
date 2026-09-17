@@ -467,7 +467,24 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   squeezed chip still shrinks and ellipsises instead of spilling, and
   FREE/spare tags keep `width:auto` (a tag that says "free" at name width
   reads as a ghost). `altwin` part 5 pins notes on tile/idle/running-own-
-  only and the one-width, no-spill pills. The
+  only and the one-width, no-spill pills.
+- **BOTH FIRST BLOCKS ARE SCORED, OR THE TOTAL LIES (build 450 — Omar:
+  "why is 1 block red and the other not?!").** The red slab is CORRECT
+  display (`.blk.scoring .exg.pnow` — a piece marked Scored runs hot);
+  the asymmetry was his SIS board's DATA: Row/Ski Block 1 never carried
+  the Scored mark its Run/Bike twin has, so it never lit and never asked
+  for its calories — breaking his explicit run+bike+row+ski total.
+  `sisScoreMend` fingerprints exactly the twin asymmetry (a Run/Bike
+  block whose first working piece IS scored beside a Row/Ski block whose
+  first working piece is NOT, ending on a max-cal Row/Ski line) and
+  copies the mark across — one-shot `af_fixsissc_v1` + the sessApply
+  idle-arrival arm, the standard self-repair pair. No seed board carries
+  those block names, so boot defaults are untouched. LESSON: when a
+  state renders on one block and not its twin, check the DATA before the
+  renderer — the code was right, the board was wrong, and the fix still
+  ships IN the app (never as a Setup step for Omar). `altwin` p5 pins
+  the mend and both slabs running hot together.
+- **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a
   name alone shows none, pre-clock or mid-session; paired pre-clock reads
