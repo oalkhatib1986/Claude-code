@@ -309,6 +309,14 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   chases nobody. Anything reading machine numbers off the card takes `.tn`;
   names live in `.mtag`. The old `freechip.js` contract (station flips
   between .tn/.mtag) is RETIRED; `stcap.js` reads the new rows.
+- **A STATION-PAIR IS TWO MACHINES, BOTH ON THE MAP (build 440 — Omar:
+  "why is it not showing the bike and ski?!").** A non-rotate item with
+  two erg types (SIS's Run/Bike) maps BOTH machines to each crew in
+  `machSlots` — but the card's chips took only `ts2[0]`, and the spares
+  pass skipped the bikes too because `byKey` already held them, so half
+  the station-pair's kit was invisible. The chips branch now adds a row
+  for EVERY type the crew's slot owns (the crew's name rides each of its
+  machines). `altwin` pins run+bike columns on the synthetic SIS shape.
 - **THE COLUMNS STAND SIDE BY SIDE, ALWAYS (build 373 — Omar: "why didn't
   you do it in 3 columns!").** `.teams` is a GRID
   (`repeat(auto-fit,minmax(min(100%,120px),1fr))`), never flex with a fixed

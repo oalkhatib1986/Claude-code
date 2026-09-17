@@ -397,6 +397,17 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       mk('Block 2',[ex('Run'),ex('Down Ups'),ex('Bike',true)])]}];
     c.together=false; localStorage.setItem(K,JSON.stringify(c)); });
   await p3.reload(); await p3.waitForTimeout(1500);
+  // A STATION-PAIR IS TWO MACHINES, BOTH ON THE MAP (440 — Omar: "why is
+  // it not showing the bike and ski?!")
+  { const labs=await p3.evaluate(()=>{
+      const c0=document.querySelectorAll('#blockCards .blk')[0];
+      return [...c0.querySelectorAll('.teams .t')].map(x=>{
+        const nm=x.querySelector('.tnm'),no=x.querySelector('.tno'),tn=x.querySelector('.tn');
+        return (nm?nm.textContent+' '+(no?no.textContent:''):tn.textContent).trim(); }); });
+    const runs=labs.filter(l=>/^run \d/i.test(l)).length,
+      bikes=labs.filter(l=>/^bike \d/i.test(l)).length;
+    ok(runs>=4&&bikes>=4&&runs===bikes,
+      '440: the map shows BOTH machines of the pair ('+runs+' runs, '+bikes+' bikes)'); }
   await p3.click('#tabTablet'); await p3.waitForTimeout(700);
   const rd3=async k=>{ await p3.evaluate(k2=>window.__tbOpen(k2),k); await p3.waitForTimeout(700);
     return p3.evaluate(()=>{const q=s=>{const x=document.querySelector(s);return x?x.innerText.replace(/\s+/g,' ').trim():'';};

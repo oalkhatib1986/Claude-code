@@ -3719,7 +3719,16 @@ window.addEventListener("error",function(ev){
               else flab=String(gearFor(x.name)||x.name||"");
             } else if(curIt){
               const ts2=itemTypes(curIt).filter(m2=>mm[m2]!=null);
-              if(ts2.length){ tp=ts2[0]; tpNum=mm[ts2[0]]; }
+              // A STATION-PAIR IS TWO MACHINES, BOTH ON THE MAP (440 —
+              // Omar: "why is it not showing the bike and ski?!"): a
+              // Run/Bike item maps BOTH ergs to the crew, but only
+              // ts2[0] ever drew a row — and the spares pass skipped
+              // the bikes too, because byKey already holds them. The
+              // crew's name rides every machine its slot owns.
+              if(ts2.length){ tp=ts2[0]; tpNum=mm[ts2[0]];
+                ts2.slice(1).forEach(t3=>{ const k3=t3+":"+mm[t3];
+                  if(!rows[k3]){ rows[k3]={label:mInfo(t3).short+" "+mm[t3],names:[],free:0}; order.push(k3); }
+                  if(free) rows[k3].free++; else rows[k3].names.push(nm); }); }
             }
             if(tp){ const k=tp+":"+tpNum;
               if(!rows[k]){ rows[k]={label:mInfo(tp).short+" "+tpNum,names:[],free:0}; order.push(k); }
@@ -9351,7 +9360,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=439;
+  const BUILD=440;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
