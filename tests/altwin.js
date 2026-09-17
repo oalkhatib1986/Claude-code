@@ -403,8 +403,8 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       return {now:q('.tk-now'),nxt:q('.tk-nxt')};}); };
   { const b=await rd3('Bike:1');
     ok(/max cal bike/i.test(b.now),'438: the Bike card is its piece alone');
-    ok(/block 2/i.test(b.nxt)&&/after 3:00 rest/i.test(b.nxt)&&!/row|ski/i.test(b.nxt),
-      '438: the LAST piece’s NEXT is the next piece HERE — '+b.nxt); }
+    ok(/rest 3:00/i.test(b.nxt)&&!/block 2|row|ski/i.test(b.nxt),
+      '439: the LAST piece’s NEXT is the rest itself, nothing else — '+b.nxt); }
   { const r=await rd3('Run:1');
     ok(/burpees/i.test(r.nxt),'438: mid-sequence NEXT is the next exercise — '+r.nxt); }
   await p3.evaluate(()=>document.getElementById('startBtn').click());
