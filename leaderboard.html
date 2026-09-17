@@ -701,6 +701,22 @@
   .twc.spare{border-style:dashed;opacity:.72}
   .twc.live{border-color:rgba(58,222,107,.5)}
   .twc.live .twc-m{color:#3ade6b}
+  /* FULL SCREEN FOR THE TABLET, LIKE THE BIG SCREEN (build 429 — Omar:
+     "why can I not see the tablet as full page view?"): body.tbfull drops
+     the chrome and scales the 1005x600 frame edge-to-edge; a corner pill
+     exits (the frame itself is a TOUCH surface — taps belong to it). */
+  #tbFull{display:none}
+  body.kioskon.tabone #tbFull{display:inline-block}
+  #tbFullX{display:none;position:fixed;right:12px;top:12px;z-index:96;
+    border:1px solid rgba(255,255,255,.3);background:rgba(10,10,10,.85);color:var(--ink-dim);
+    border-radius:999px;padding:8px 14px;font-family:var(--disp);font-weight:600;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;opacity:.7}
+  #tbFullX:hover{opacity:1;color:var(--ink)}
+  body.tbfull #tbFullX{display:block}
+  body.tbfull .mark,body.tbfull .tabs,body.tbfull .subtabs,body.tbfull #siteFoot,
+  body.tbfull .tb-back,body.tbfull #tbCap,body.tbfull #aiFab{display:none!important}
+  body.tbfull #tbStage{position:fixed;inset:0;z-index:90;background:#000;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
   .tb-back{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
     position:relative;z-index:6}
   .tb-back .btn{min-height:38px}
@@ -2004,10 +2020,12 @@
       <div class="tb-back" id="tbBack">
         <button class="btn small" id="tbBackBtn" type="button">&larr; All screens</button>
         <button id="tbFit" type="button" class="btn small">Phone view</button>
+        <button id="tbFull" type="button" class="btn small">Full screen</button>
         <span class="tb-stepper"><button class="btn small" id="tbPrev" type="button" aria-label="Previous machine">&lsaquo;</button><b id="tbWhich">&mdash;</b><button class="btn small" id="tbNext" type="button" aria-label="Next machine">&rsaquo;</button></span>
       </div>
       <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
       <div class="tbprev-stage" id="tbStage"><div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div></div>
+      <button id="tbFullX" type="button" aria-label="Exit full screen">&times; Exit full screen</button>
       <div class="tbprev-cap" id="tbCap" hidden></div>
     </div>
   </section>
@@ -4680,7 +4698,7 @@ window.addEventListener("error",function(ev){
     // Leaving the tab must take the kiosk with it. These classes are the erg
     // tablet's own layout — body.kioskon strips the page's padding and pins a
     // 1005x600 frame — and left behind they warp every other page instead.
-    if(which!=="tablet") document.body.classList.remove("kioskon","tabprev","tabwall","tabone");
+    if(which!=="tablet") document.body.classList.remove("kioskon","tabprev","tabwall","tabone","tbfull");
     // A CHANGE IN SETUP IS KEPT ON PURPOSE (build 411 — Omar: leaving Setup
     // must ask keep-or-not, mid-class included). Entering Setup snapshots
     // the cfg; leaving with a different one asks in the site's own dialog.
@@ -4730,6 +4748,8 @@ window.addEventListener("error",function(ev){
   $("tabTablet").onclick=()=>show("tablet");
   { const tf=$("tbFit"); if(tf) tf.onclick=()=>{ tbPrev=!tbPrev;
       tf.textContent=tbPrev?"Phone view":"Tablet preview"; renderTablet(); fitTablet(); }; }
+  { const fb=$("tbFull"); if(fb) fb.onclick=()=>{ document.body.classList.add("tbfull"); fitTablet(); };
+    const fx=$("tbFullX"); if(fx) fx.onclick=()=>{ document.body.classList.remove("tbfull"); fitTablet(); }; }
   [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
@@ -5247,6 +5267,18 @@ window.addEventListener("error",function(ev){
       const k=Math.min(d.clientWidth/1005,d.clientHeight/600);
       tk.style.transform="scale("+k.toFixed(4)+")";
       tk.style.marginLeft=Math.max(0,Math.round((d.clientWidth-1005*k)/2))+"px"; };
+    // FULL SCREEN (build 429): the frame is authored 1005x600 and scales to
+    // the real viewport, centred — the tablet's own tvfull
+    if(document.body.classList.contains("tbfull")){
+      const k=Math.min(window.innerWidth/1005,window.innerHeight/600);
+      d.style.width="1005px"; d.style.height="600px";
+      d.style.transformOrigin="center center";
+      d.style.transform="scale("+k.toFixed(4)+")";
+      if(stage){ stage.style.width=""; stage.style.height=""; stage.style.margin=""; }
+      fitCanvas();
+      { const cap=$("tbCap"); if(cap) cap.hidden=true; }
+      return; }
+    d.style.width=""; d.style.transformOrigin="";
     if(tbPrev&&document.body.classList.contains("tabkiosk")){
       // render at true tablet size, then scale the whole frame to the phone
       d.style.height=""; d.style.transform="";
@@ -9132,7 +9164,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=428;
+  const BUILD=429;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

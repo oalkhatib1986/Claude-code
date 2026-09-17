@@ -203,6 +203,21 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(!/now:\s*ski/i.test(r.txt),'427: no "Now: Ski" echo while running');
     ok(!r.head||!/^ski$/i.test(r.head),'427: no bare "Ski" headline over the Max Cal Ski card');
     ok(/working/i.test(r.tag),'427: the WORKING state tag stays'); }
+  // FULL SCREEN FOR THE TABLET (429 — Omar: "why can I not see the tablet
+  // as full page view?"): the frame scales edge-to-edge, chrome gone, the
+  // corner pill exits
+  await p2.click('#tbFull'); await p2.waitForTimeout(800);
+  { const d2=await p2.evaluate(()=>{
+      const r2=document.querySelector('.tb-device').getBoundingClientRect();
+      return {wf:r2.width/innerWidth,hf:r2.height/innerHeight,
+        tabsGone:getComputedStyle(document.querySelector('.tabs')).display==='none'}; });
+    ok(Math.max(d2.wf,d2.hf)>0.98&&d2.wf<=1.01&&d2.hf<=1.01&&d2.tabsGone,
+      '429: full screen fills an axis edge-to-edge, chrome gone ('
+      +Math.round(d2.wf*100)+'% × '+Math.round(d2.hf*100)+'%)'); }
+  await p2.click('#tbFullX'); await p2.waitForTimeout(500);
+  ok(await p2.evaluate(()=>!document.body.classList.contains('tbfull')
+    &&getComputedStyle(document.querySelector('.tabs')).display!=='none'),
+    '429: the corner pill exits and the nav returns');
   await p2.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
