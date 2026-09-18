@@ -474,7 +474,49 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   squeezed chip still shrinks and ellipsises instead of spilling, and
   FREE/spare tags keep `width:auto` (a tag that says "free" at name width
   reads as a ghost). `altwin` part 5 pins notes on tile/idle/running-own-
-  only and the one-width, no-spill pills.
+  only and the one-width, no-spill pills. AND THE MAP FITS ITS FONT SO
+  NOTHING CROPS (build 457 — Omar: "why is the text cropped! didn't we
+  have a rule to resize fonts so it fits!"): the equal-width pill can, in a
+  narrow 3-across card, steal enough of the chip that a SHORT station name
+  crops ("Run 1" → "R… 1"). `fitTeams()` shrinks ONE map font BOARD-WIDE
+  (`--tfs` on `#blockCards`, so pills stay uniform per 449) until the short
+  station names AND the equal pills both fit, remeasuring `--mtw` at each
+  size; a genuinely long station label (a crammed AMRAP name, `.tn` text
+  >16 chars) is EXEMPT and ellipsises, so it never drags the map to the
+  floor chasing an impossible fit. Runs after `fitBlockCols` and on the
+  `#blockCards` width observer. `altwin` p6 + the deep audits pin no-crop.
+- **A ROTATE STATION CARRIES ITS OWN MOVEMENT LIST (build 456 — Omar's
+  Send It Saturday AMRAP: "why don't we show it Pair 2 — AMRAP (Shared) /
+  30 Air Squats / 20 HR Press Ups / 10 Burpees?").** A station whose work
+  is a shared multi-movement AMRAP had nowhere to live — a rotate item
+  treats every exercise as its own station, so three movements became
+  three phantom stations, and cramming them into one name truncated on the
+  wall. `x.lines` is an optional array of movement strings on ONE station
+  exercise: it stays one station (the engine still counts exercises), the
+  movements are its sub-rows. `exLineList(x)` reads them; `exLines` stacks
+  them as `.exl.exsub` rows under the station header on the card/wall,
+  `tkExLine` as `<em class="tksub">` on the tablet, and `exTxt` joins them
+  flat (" / ") for the lane/PDF/Control; `o.noLines` suppresses the flat
+  join where the stack is drawn instead. Never truncated. `aiSystem()`'s
+  schema carries `lines[]` with the law, `applyAiWorkout` + `aiSnapshot`
+  pass it through. `altwin` p6 pins stacked card/wall + two-stations-not-
+  five + no clipped row.
+- **A TEAM SPLIT ACROSS AN ERG AND FLOOR WORK IS A PLAIN ITEM, NOT A
+  ROTATE (build 457 — Omar: "6 teams should be on Run 1-6, why 1,3,5?!").**
+  His Send It Saturday: teams of 4, 2 on a max-distance erg (scored), 2 on
+  a shared floor AMRAP, swapping WITHIN the team every 4:00, final all on
+  the erg. The AI built it `fmt:"rotate"`, which spins WHOLE teams through
+  the two stations (3 teams on ergs numbered 1,3,5, 3 on the AMRAP) — the
+  gap Omar saw. The correct model (confirmed with him: "each team owns
+  both") is a PLAIN scored erg item — each team owns ITS OWN erg, so a
+  plain item numbers the map Run 1-6 contiguous with NO allocator change —
+  plus the AMRAP as parallel work (a `lines`-station); the "swap every N"
+  is a coach cue, and the final all-erg minutes are a SEPARATE plain scored
+  erg item. `aiSystem()` now carries this law (team-split-across-erg-and-
+  floor = plain, never rotate). No engine change — verified the map shows
+  Run/Row/Ski 1-6. LESSON: teams rotating whole through shared stations is
+  the rare case; a team splitting its own members across an erg + floor is
+  a plain item, and rotate's whole-team spin is what gaps the numbers.
 - **SEND IT SATURDAY SCORES EVERY MAX-CAL ERG PIECE, ALWAYS (builds
   450-453 — Omar, over and over: "why is 1 block red and the other not?!",
   then "why do you keep changing it unscored?!").** The red slab is CORRECT
