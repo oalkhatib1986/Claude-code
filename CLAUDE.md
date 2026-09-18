@@ -1110,7 +1110,11 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 - **THE ROTATE ROUND COUNTER COUNTS SWAPS TOO (build 460).** The live card's
   `.bwhere` printed "Round x of y" for a clocked rotate with `y = repeats`
   (passes), out of step with the 459 header. Now a clocked rotate
-  (`itRot(seg.it)&&!seg.it.alt&&seg.swaps>1`) reads
+  (`itRot(seg.it)&&!seg.it.alt&&!seg.self&&seg.swaps>1` — CLOCKED only, build
+  462: a self-paced circuit `rotBy:"done"` has no swap beat and keeps its own
+  "Round N of repeats", 417; the first cut omitted `!seg.self` and turned
+  Lower Body Part B's "Round 2 of 3" into a swap count, which lbsolo caught)
+  reads
   `currentSwap = seg.rep*seg.swaps + seg.swap + 1` of `seg.repN*seg.swaps` —
   "Round 1 of 4" … "Round 4 of 4" (dur 480, 2 stations, repeats 2); "Swap"
   instead of "Round" when the part itself has rounds, so two "Round"s never
