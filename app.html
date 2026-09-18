@@ -3405,9 +3405,17 @@ window.addEventListener("error",function(ev){
       const label=(it.name&&!nameRedundant(it,xs))?esc(it.name):"";
       // a repeating piece leads with its count — "3 × 4:00" (build 417)
       const rp=itReps(it), rpre=rp>1?`${rp} × `:"";
+      // ROTATE HEADER (build 459): athletes never experience the per-pass window,
+      // so a clocked rotate counts the SWAPS and the TOTAL time, never "2 × 8:00":
+      // interval = dur ÷ stations · totalSwaps = repeats × stations · total = dur × repeats
+      // → "swap every 4:00 × 4 · 16:00 total". A name that ALREADY says "swap"/"rotate"
+      // takes only the swap COUNT ("Pairs swap every 4:00 × 4"), never both name and line.
+      const isRot=itRot(it)&&!it.alt, rotN=xs.length||1, rotSwaps=rp*rotN;
+      const rotDedup=isRot&&/swap|rotate/i.test(it.name||"")&&!!label;
       const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`
         :itSelf(it)?`${xs.length} stations · self-paced${rp>1?` · ${rp} × ${fmtMS(it.dur)}`:""}`
-        :itRot(it)?(it.alt?fmtMS(it.dur):`${rpre}${fmtMS(it.dur)} · swap every ${fmtMS(Math.round(it.dur/xs.length))}`)
+        :isRot?(rotDedup?"":`swap every ${fmtMS(Math.round(it.dur/rotN))} &times; ${rotSwaps} &middot; ${fmtMS(it.dur*rp)} total`)
+        :it.alt&&itRot(it)?fmtMS(it.dur)
         :itShare(it)?(shr?(rp>1?`${rp} × ${minTxt(it.dur)}`:minTxt(it.dur)):`${rpre}${fmtMS(it.dur)} · share in ${shareNs(it)}, alternate`)
         :rp>1?`${rp} × ${minTxt(it.dur)}`
         :us?((it.dur>0&&it.dur%us===0)?`${us} rounds × ${minTxt(it.dur/us)}`:`${us} sets`)
@@ -3417,7 +3425,7 @@ window.addEventListener("error",function(ev){
       // "FINISH — ALL 4 ON ONE MACHINE, / ALTERNATING · 4:00" rather than leaving a
       // line that opens on a dot. Only while the pair is short enough to fit a card
       // on its own — an unbreakable run wider than its box is the other bug.
-      const head=(()=>{
+      const head=rotDedup?`${label} <span class="amt">&times;&nbsp;${rotSwaps}</span>`:(()=>{
         if(!label&&!tlab) return "";
         if(!label) return tlab;
         if(!tlab) return label;
@@ -9682,7 +9690,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=458;
+  const BUILD=459;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

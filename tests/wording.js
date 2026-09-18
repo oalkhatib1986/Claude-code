@@ -209,6 +209,40 @@ ok(/Pair 1/i.test(SB),'403: a real split (Pair 1) still prints');
       .filter(e=>e.scrollWidth>e.clientWidth+1).length}));
   ok(f.sx<=0&&f.bad===0,'402: nothing scrolls or clips ('+f.sx+'/'+f.bad+')'); }
 await p.screenshot({path:'wording_wall.png'});
+// THE ROTATE HEADER COUNTS SWAPS, NOT THE PER-PASS WINDOW (build 459): a
+// clocked rotate reads "swap every <interval> × <totalSwaps> · <total> total",
+// never "2 × 8:00" (an 8:00 window nobody experiences). A name that already
+// says swap/rotate takes only the swap COUNT, never both name and auto line.
+{ const pr=await br.newPage({viewport:{width:1440,height:960}});
+  pr.on('pageerror',e=>{fail++;console.log('FAIL pageerror(rot):',e.message);});
+  await pr.goto('file:///home/user/Claude-code/leaderboard.html');
+  await pr.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await pr.reload(); await pr.waitForTimeout(1200);
+  await pr.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const erg=(nm)=>({name:nm,unit:'m',max:true,amounts:[]});
+    // NOT "Send It Saturday" — that name heals rotate->plain (build 458)
+    Object.assign(c,{name:'Rotate Header Test',wkName:'Rotate Header Test',mode:'rotation',
+      teamKind:'teams',teamSize:4,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
+      {name:'Part A',rounds:1,items:[{name:'',dur:480,rpt:2,fmt:'rotate',rotBy:'clock',scored:true,metric:'metres',scorers:4,
+        exercises:[erg('Max Distance Run'),{name:'AMRAP',unit:'reps',amounts:[],lines:['30 Air Squats','20 Press Ups']}]}]},
+      {name:'Part B',rounds:1,items:[{name:'Pairs rotate every 4:00',dur:480,rpt:2,fmt:'rotate',rotBy:'clock',scored:true,metric:'metres',scorers:4,
+        exercises:[erg('Max Distance Row'),{name:'AMRAP',unit:'reps',amounts:[],lines:['30 Wall Balls']}]}]} ]});
+    c.crews=Array.from({length:8},(_,i)=>({name:'Team '+(i+1)}));
+    c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await pr.reload(); await pr.waitForTimeout(1400);
+  const rh=await pr.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')]
+    .map(b=>{const h=b.querySelector('.exg-h');return h?h.textContent.replace(/\s+/g,' ').trim():'';}));
+  // the unit-test case: dur 480, 2 stations, repeats 2 → "swap every 4:00 × 4 · 16:00 total"
+  ok(/swap every 4:00 × 4 · 16:00 total/.test(rh[0]),'459: rotate header is "swap every 4:00 × 4 · 16:00 total" ['+rh[0]+']');
+  ok(!/8:00/.test(rh[0])&&!/2 ×/.test(rh[0]),'459: it never prints the per-pass window "2 × 8:00"');
+  // a name that already says rotate/swap takes only the swap count, no auto line
+  ok(/Pairs rotate every 4:00 × 4/.test(rh[1])&&/scored/i.test(rh[1]),'459: a rotate-named part reads "…× 4 · scored" ['+rh[1]+']');
+  ok(!/8:00/.test(rh[1])&&!/swap every 4:00 ×/.test(rh[1]),'459: the rotate-named part never doubles the auto line');
+  await pr.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
