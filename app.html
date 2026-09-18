@@ -7386,6 +7386,43 @@ window.addEventListener("error",function(ev){
     const pre=(cfg.teamKind==="solo")?"Athlete":"Team";
     (cfg.crews||[]).forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c&&c.name||"")) c.name=pre+" "+(i+1); });
   }
+  // SEND IT SATURDAY SCORES EVERY MAX-CAL ERG PIECE (build 453 — Omar,
+  // repeatedly: "why do you keep changing it unscored?!"). His score is
+  // the Run + Bike + Row + Ski maxes, and on his board those pieces live
+  // in BOTH sub-blocks — Max Cal Bike/Ski end Block 1, Max Cal Run/Row end
+  // Block 2 — so EVERY working item that carries a Max Cal <erg> piece must
+  // be scored. This is deliberately NOT a consumable one-shot: the reason
+  // it never stuck (450-452) is that a stale device kept re-pushing the
+  // unscored copy while the boot flag was already spent. It rides
+  // migrateLoaded — the ONE pass every cfg makes (storage, library pick,
+  // import, and every live-sync arrival) — so it re-applies forever and
+  // can never be un-scored back. Flags only, no allocator input, so it is
+  // safe on every arrival; pinned to the board's own name.
+  function sisScoreEnforce(c){
+    if(!c||c.noScore) return false;
+    if(!/send it saturday/i.test(String(c.wkName||c.name||""))) return false;
+    // erg test is INLINED, never machineOf: the boot migrateLoaded (line
+    // 2533) runs BEFORE machineOf's const initialises, so calling it here
+    // would throw a TDZ error the try/catch swallows — which is exactly why
+    // 450-452 silently no-opped on boot. Mirror machineOf's buy-in and
+    // strength-row bails so a "Renegade Row" is never mistaken for the erg.
+    const ergPiece=nm=>{ const s=String(nm||"").toLowerCase();
+      if(s.includes("buy-in")||s.includes("buy in")) return false;
+      if(/\brow/.test(s)&&/(gorilla|bent.?over|renegade|pendlay|landmine|inverted|upright|seated|supported|chest|bench|ring|single.?arm|one.?arm|3.?point|banded|cable|meadows|kroc|db |dumbbell|barbell|bbell|kb |kettlebell|plate |trx)/.test(s)) return false;
+      return /(bike|row|ski|run|echo)/.test(s); };
+    let changed=false;
+    (((c.rotation||{}).blocks)||[]).forEach(b=>{ (b.items||[]).forEach(it=>{
+      if(!it||it.rest||it.scored) return;
+      const mx=(it.exercises||[]).find(x=>x&&x.max&&ergPiece(x.name));
+      if(!mx) return;
+      it.scored=true;
+      const u=String(mx.unit||"").toLowerCase();
+      it.metric=(u==="m"||u==="metres")?"metres":"calories";
+      if(!it.scorers) it.scorers=(c.teamKind==="teams"?(c.teamSize||4):4);
+      changed=true;
+    }); });
+    return changed;
+  }
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
     if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
@@ -7420,6 +7457,9 @@ window.addEventListener("error",function(ev){
       if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
       if(!cfg.rotation.laps) cfg.rotation.laps=1;
       if(cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
+      // his max-cal pieces score, always (453) — before the backfill below,
+      // which then fills metric/scorers on anything this just marked
+      try{ sisScoreEnforce(cfg); }catch(e){}
       (cfg.rotation.blocks||[]).forEach(b=>{ if(!b.items) b.items=[];
         b.items.forEach(it=>{ if(it.scored){
           if(!it.metric) it.metric=(cfg.rotation.metric||"calories");
@@ -8052,7 +8092,7 @@ window.addEventListener("error",function(ev){
       // healed local then matches and nothing is re-adopted or churned;
       // the first stale arrival adopts already-healed. Idle, the heal is
       // republished below so the room store converges too.
-      let ssArr=false; try{ ssArr=!!(s.cfg&&sisScoreMend(s.cfg)); }catch(e){}
+      let ssArr=false; try{ ssArr=!!(s.cfg&&sisScoreEnforce(s.cfg)); }catch(e){}
       if(s.cfg&&JSON.stringify(s.cfg)!==JSON.stringify(cfg)){
         cfg=s.cfg; migrateLoaded();
         // a stale device can still push the WRONG Engine 15/09 (build 390) or
@@ -8394,43 +8434,6 @@ window.addEventListener("error",function(ev){
       p.ts=Date.now(); touched=true; libPush(p); } });
     if(touched) savePresets();
     if(lbPartBMend(cfg)){ migrateLoaded(); save();
-      setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
-      if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
-    }
-  })();
-  // BOTH FIRST BLOCKS ARE SCORED, OR THE TOTAL LIES (build 450 — Omar's
-  // Send It Saturday: "why is 1 block red and the other not?!"). His spec
-  // is explicit — the score is Run + Bike + Row + Ski maxes — but the
-  // board's Row/Ski Block 1 never carried the Scored mark its Run/Bike
-  // twin has: no red slab (correct display of wrong data) and, worse, no
-  // calorie ask at its end, so the rowers' Block 1 never counted.
-  // Fingerprinted to the twin shape itself: a Run/Bike block whose first
-  // working piece IS scored beside a Row/Ski block whose first working
-  // piece is NOT, ending on a max-cal Row/Ski line. A board where the
-  // asymmetry is deliberate has no such twin and is never touched.
-  function sisScoreMend(c){
-    if(!c||c.noScore) return false;
-    const bs=(((c.rotation||{}).blocks)||[]);
-    const rb=bs.find(x=>x&&/run\s*\/\s*bike/i.test(String(x.name||"")));
-    const rs=bs.find(x=>x&&/row\s*\/\s*ski/i.test(String(x.name||"")));
-    if(!rb||!rs) return false;
-    const w1=(rb.items||[]).find(x=>x&&!x.rest);
-    const s1=(rs.items||[]).find(x=>x&&!x.rest);
-    if(!w1||!s1||!w1.scored||s1.scored) return false;
-    const last=(s1.exercises||[]).filter(Boolean).slice(-1)[0];
-    if(!last||!last.max||!/(ski|row)/i.test(String(last.name||""))) return false;
-    s1.scored=true; s1.metric=w1.metric==="metres"?"metres":"calories";
-    s1.scorers=w1.scorers||4;
-    return true;
-  }
-  (function fixSISScore(){
-    const K="af_fixsissc_v2";  // v1 was consumed while a stale device could still re-stomp mid-class (451)
-    try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
-    let touched=false;
-    presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&sisScoreMend(p.cfg)){
-      p.ts=Date.now(); touched=true; libPush(p); } });
-    if(touched) savePresets();
-    if(sisScoreMend(cfg)){ migrateLoaded(); save();
       setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },5000);
       if(!running&&!sessionActive){ try{ buildControlRoom(); build(); }catch(e){} }
     }
@@ -9545,7 +9548,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=452;
+  const BUILD=453;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

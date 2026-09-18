@@ -533,34 +533,46 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     const it=(name,dur,xs,sc)=>({name,dur,rest:false,fmt:'',scored:!!sc,
       metric:sc?'calories':undefined,scorers:sc?4:undefined,
       exercises:xs.map(([n,note])=>({name:n,unit:'cal',max:true,amounts:[],note:note||''}))});
-    Object.assign(c,{name:'Probe 449',wkName:'Probe 449',mode:'rotation',teamKind:'teams',
+    // Omar's REAL Send It Saturday (build 453): each side is [Block 1, rest,
+    // Block 2]; the max-cal erg piece ends EVERY sub-block, and ALL of them
+    // score — authored here UNSCORED so migrateLoaded's durable enforcer
+    // must mark every one (450-452's one-shot never stuck; this is the fix)
+    Object.assign(c,{name:'Send It Saturday',wkName:'Send It Saturday',mode:'rotation',teamKind:'teams',
       teamSize:2,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
-    // Omar's real asymmetry (build 450): Run/Bike Block 1 scored, its
-    // Row/Ski twin NOT — the mend must make them symmetric at boot
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:120,sameRest:true,blocks:[
       {name:'Run / Bike',rounds:1,items:[
         it('Block 1',600,[['110/135/160m Run','Split as a team'],
           ['60 Burpees','2 people working in sync'],
-          ['Max Cal Bike','Remaining time — remember your number for Block 2']],true),
+          ['Max Cal Bike','Remaining time — remember your number for Block 2']],false),
         {rest:true,dur:180,exercises:[]},
-        it('Block 2',300,[['Max Cal Bike','']],true) ]},
+        it('Block 2',300,[['Max Cal Run','']],false) ]},
       {name:'Row / Ski',rounds:1,items:[
-        it('Block 1',600,[['Max Cal Row',''],['60 Burpees',''],['Max Cal Ski','']]) ]} ]});
+        it('Block 1',600,[['Max Cal Row',''],['60 Burpees',''],['Max Cal Ski','']],false),
+        {rest:true,dur:180,exercises:[]},
+        it('Block 2',300,[['Max Cal Ski','']],false) ]} ]});
     c.crews=[{name:'LEVANT'},{name:'YOMNA'},{name:'LUNA'},{name:'SIMBA'},{name:'AUS'},{name:'DIS'}];
     c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
     localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
-    localStorage.removeItem('af_fixsissc_v2'); // re-arm the one-shot for this board
   });
   await p5.reload(); await p5.waitForTimeout(1600);
-  // 450: the twin block's first piece is scored after the mend
-  { const r=await p5.evaluate(()=>{
+  // 453: EVERY max-cal erg item is scored after the durable enforce — read
+  // the RENDERED truth (the in-memory cfg drives the card and the sync push;
+  // localStorage lags until the next save). Four scored sub-blocks = four
+  // "scored" tags on the cards.
+  { const r=await p5.evaluate(()=>({
+      tags:[...document.querySelectorAll('#blockCards .exg-h i')].filter(i=>/scored/i.test(i.textContent)).length}));
+    ok(r.tags===4,'453: every max-cal erg item is scored — four tags on the cards '+JSON.stringify(r)); }
+  // 453b: the enforce is DURABLE, not a spent one-shot — strip every scored
+  // flag from the STORED cfg (what a stale device would push) and reload;
+  // migrateLoaded re-scores all four on the way back in, forever
+  { await p5.evaluate(()=>{
       const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
-      const rs=c.rotation.blocks.find(b=>/row \/ ski/i.test(b.name));
-      const s1=(rs.items||[]).find(x=>!x.rest);
-      const tags=[...document.querySelectorAll('#blockCards .exg-h i')].length;
-      return {scored:!!s1.scored,metric:s1.metric,tags}; });
-    ok(r.scored&&r.metric==='calories','450: the mend marks Row/Ski Block 1 scored like its twin '+JSON.stringify(r));
-    ok(r.tags>=3,'450: the card wears the scored tag on both Block 1s ('+r.tags+' tags)'); }
+      c.rotation.blocks.forEach(b=>(b.items||[]).forEach(it=>{ delete it.scored; delete it.metric; }));
+      localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
+    await p5.reload(); await p5.waitForTimeout(1500);
+    const r=await p5.evaluate(()=>({
+      tags:[...document.querySelectorAll('#blockCards .exg-h i')].filter(i=>/scored/i.test(i.textContent)).length}));
+    ok(r.tags===4,'453: a stripped/re-pushed copy is re-scored on reload — durable ('+r.tags+'/4 tags)'); }
   // one width for every named pill, on the widest name
   { const r=await p5.evaluate(()=>{
       const tags=[...document.querySelectorAll('#blockCards .teams .t:not(.unnamed):not(.spare) .mtag')];
