@@ -1598,12 +1598,14 @@
   body.bigscreen:not(.mobscreen):not(.wkscreen) .tvfit>.subhead{grid-column:2;grid-row:1;
     justify-self:end;margin:0 0 14px}
   body.bigscreen:not(.mobscreen):not(.wkscreen) .tvfit>.board{grid-column:1/-1;grid-row:2}
-  /* the logo drops to a header-bar size, and the name with it */
-  body.bigscreen:not(.mobscreen):not(.wkscreen) .badge{width:auto;height:54px;max-width:40vw}
-  body[data-logo="badge"].bigscreen:not(.mobscreen):not(.wkscreen) .badge{height:54px}
+  /* the logo drops to a compact header-bar size, and the name with it — the
+     leaderboard TABLE is the point, so the chrome stays small (build 461,
+     Omar: "the logo and name can go even smaller than this") */
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .badge{width:auto;height:34px;max-width:34vw}
+  body[data-logo="badge"].bigscreen:not(.mobscreen):not(.wkscreen) .badge{height:34px}
   body.bigscreen:not(.mobscreen):not(.wkscreen) .subhead .ttl{flex-direction:row;
     align-items:baseline;justify-content:flex-end;gap:0}
-  body.bigscreen:not(.mobscreen):not(.wkscreen) .subhead .ttl b{font-size:30px;
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .subhead .ttl b{font-size:20px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .tvfit{display:contents}
@@ -9701,7 +9703,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=460;
+  const BUILD=461;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
