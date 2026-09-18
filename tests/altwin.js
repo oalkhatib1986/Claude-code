@@ -549,7 +549,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     c.crews=[{name:'LEVANT'},{name:'YOMNA'},{name:'LUNA'},{name:'SIMBA'},{name:'AUS'},{name:'DIS'}];
     c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
     localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
-    localStorage.removeItem('af_fixsissc_v1'); // re-arm the one-shot for this board
+    localStorage.removeItem('af_fixsissc_v2'); // re-arm the one-shot for this board
   });
   await p5.reload(); await p5.waitForTimeout(1600);
   // 450: the twin block's first piece is scored after the mend

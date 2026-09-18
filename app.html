@@ -4239,10 +4239,17 @@ window.addEventListener("error",function(ev){
     // the board's OWN width: its parent may still carry an authored width from the
     // last time the picture was fitted, and a stale number lets the tracks overflow
     // the tracks live INSIDE the lane's own padding, so that is not room they have
-    const lane=bd.querySelector(".lane")||bd.querySelector(".board-head");
+    // MEASURE A VISIBLE LANE (452 — the 443 rowH lesson, repeated here):
+    // on pager page 2+ the FIRST lane is display:none, clientWidth 0, and
+    // every fit call bailed — a SECTION board then kept the CSS machine
+    // template and the head snaked (Omar's scrambled table)
+    let lane=bd.querySelector(".lane")||bd.querySelector(".board-head");
+    if(lane&&!lane.clientWidth)
+      lane=[...bd.querySelectorAll(".lane")].find(x=>x.clientWidth>0)
+        ||bd.querySelector(".board-head")||lane;
     const pad=lane?(parseFloat(getComputedStyle(lane).paddingLeft)||0)
                   +(parseFloat(getComputedStyle(lane).paddingRight)||0):24;
-    const w=((lane?lane.clientWidth:bd.clientWidth)||0)-pad;
+    const w=((lane&&lane.clientWidth?lane.clientWidth:bd.clientWidth)||0)-pad;
     if(w<=0) return;
     const tv=document.body.classList.contains("bigscreen")&&!document.body.classList.contains("mobscreen");
     const fams=tv?[[FRAME_TV,TIER_TV],[FRAME,TIER],[FRAME_SM,TIER_SM]]
@@ -8035,6 +8042,17 @@ window.addEventListener("error",function(ev){
       // merge the room's score sheet BEFORE the rebuild — build() writes the
       // merged sheet back into the fresh ergs
       if(s.man) manMerge(s.man);
+      // A STALE DEVICE MUST NOT STRIP THE SCORED MARK (build 451 — Omar:
+      // "why do you keep changing it unscored?!"): a pre-450 device that
+      // starts the class publishes the unmended board with every clock
+      // push, and RUNNING arrivals skipped the idle-only mends — so every
+      // healed screen adopted the stale copy back, mid-class, repeatedly.
+      // The scored-flag mend is SHAPE-SAFE (flags only, no allocator
+      // input), so it heals the ARRIVING copy BEFORE the compare: a
+      // healed local then matches and nothing is re-adopted or churned;
+      // the first stale arrival adopts already-healed. Idle, the heal is
+      // republished below so the room store converges too.
+      let ssArr=false; try{ ssArr=!!(s.cfg&&sisScoreMend(s.cfg)); }catch(e){}
       if(s.cfg&&JSON.stringify(s.cfg)!==JSON.stringify(cfg)){
         cfg=s.cfg; migrateLoaded();
         // a stale device can still push the WRONG Engine 15/09 (build 390) or
@@ -8045,11 +8063,15 @@ window.addEventListener("error",function(ev){
           if(f) migrateLoaded();
           const lb=lbSoloMend(cfg); if(lb){ try{ normCrewNames(); }catch(e){} }
           const pb=lbPartBMend(cfg);
-          const ss=sisScoreMend(cfg);
-          if(eng1509InvMend(cfg)||f||lb||pb||ss)
+          if(eng1509InvMend(cfg)||f||lb||pb)
             setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200); }
         save(); applyAccent(); buildControlRoom();
       }
+      // the scored heal republishes even when nothing was adopted (local
+      // already healed, room still stale) — idle only; a running room's
+      // stale actor keeps publishing, and every screen heals what arrives
+      if(ssArr&&!(s.run&&s.run.act))
+        setTimeout(()=>{ try{ sessOnSave(); }catch(e){} },1200);
       const r=s.run||{};
       // the same move setTeamCount makes mid-class: rebuild clean, then put the
       // running state back and restart the loop that owns the clock
@@ -8402,7 +8424,7 @@ window.addEventListener("error",function(ev){
     return true;
   }
   (function fixSISScore(){
-    const K="af_fixsissc_v1";
+    const K="af_fixsissc_v2";  // v1 was consumed while a stale device could still re-stomp mid-class (451)
     try{ if(localStorage.getItem(K)) return; localStorage.setItem(K,"1"); }catch(e){ return; }
     let touched=false;
     presets.forEach(p=>{ if(p&&p.cfg&&!p.seedV&&sisScoreMend(p.cfg)){
@@ -9523,7 +9545,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=450;
+  const BUILD=452;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -9598,14 +9620,29 @@ window.addEventListener("error",function(ev){
     lanes.style.transition="none"; lanes.style.display="none";
     const rest=f.scrollHeight;                         // everything that is not lanes
     lanes.style.display=dsp;
-    const room=Math.max(0,A-rest-6);
+    // FILL MODE MEASURES IN AUTHORED UNITS (452 — Omar: "I don't see all
+    // the teams! this has to be completely redone!"). A arrives in SCREEN
+    // px but `rest` is measured at the AUTHORED width — and the chrome
+    // (the --tvw clock, the title) GROWS with that width, so the mixed
+    // budget spiralled: fewer rows -> shorter content -> wider authored
+    // board -> bigger chrome -> fewer rows, down to 3 giant lanes on a
+    // 12-team wall. The authored budget is A*W/cw, readability is judged
+    // ON SCREEN (authored px x scale), and the board shows ALL teams
+    // whenever the on-screen row clears the floor — it pages only when
+    // it truly cannot.
+    const fl=f._fill;
+    let A2=A, sc=1;
+    if(fl&&fl[0]>0){ const W=f.clientWidth||fl[0]; sc=fl[0]/W; A2=A*W/fl[0]; }
+    const room=Math.max(0,A2-rest-6);
     // All of them while the rows stay readable; past that, a page at a time — but
     // NEVER fewer than three on screen. A phone in full screen has room for one row
     // at the wall's row height, and one row scaled up to fill the screen is not a
     // leaderboard, it is a poster of whoever is winning.
+    const minA=fl?Math.max(34,Math.round(30/sc)):MINROW;  // 30 on-screen px in fill
+    const pageA=fl?minA:PAGEAT;
     let per=n, h=Math.floor(room/n);
-    if(h<PAGEAT){
-      per=Math.min(n,Math.max(3,Math.floor(room/MINROW)));
+    if(h<pageA){
+      per=Math.min(n,Math.max(3,Math.floor(room/minA)));
       h=Math.floor(room/per);
     }
     h=Math.max(34,Math.min(168,h));
