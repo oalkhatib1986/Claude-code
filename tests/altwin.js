@@ -481,11 +481,15 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     const lane=await p4.evaluate(()=>[...document.querySelectorAll('#board .lane')]
       .find(l=>/team1/i.test(l.innerText)).innerText.replace(/\s+/g,' '));
     ok(/57/.test(lane),'442: an entered section score lands in its column — '+lane); }
-  const seen=new Set();
-  for(let i=0;i<3;i++){ seen.add(await p4.evaluate(()=>
-      (document.querySelector('#boardPage')||{innerText:''}).innerText));
-    await p4.waitForTimeout(7200); }
-  ok(seen.size>=2,'442: the LIVE board turns its pages ('+[...seen].join(' | ')+')');
+  // EVERY TEAM ON ONE PAGE, NEVER PAGED (build 454 — Omar: "whatever the
+  // team numbers they should ALL show on one page!"): the pager is retired;
+  // every lane is visible at once and the pager label stays empty
+  { const r=await p4.evaluate(()=>{
+      const lanes=[...document.querySelectorAll('#lanes .lane')];
+      return {vis:lanes.filter(l=>l.offsetHeight>0&&getComputedStyle(l).display!=='none').length,
+        total:lanes.length,pager:(document.querySelector('#boardPage')||{textContent:''}).textContent}; });
+    ok(r.total>0&&r.vis===r.total&&!r.pager,
+      '454: every team on one page, no pager ('+r.vis+'/'+r.total+', pager "'+r.pager+'")'); }
   // 443 (Omar's page-2 screenshot: rows hanging out of the card with
   // gaps): rowH() must measure a VISIBLE lane — on page 2+ the first
   // child is display:none and the 92px fallback stepped 40px rows apart
@@ -508,7 +512,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   await p4.evaluate(()=>window.__tbOpen('Bike:1')); await p4.waitForTimeout(700);
   { const pre=await p4.evaluate(()=>!!document.querySelector('.tk-score,.tks-strip'));
     ok(!pre,'448: no ask while the scored piece runs');
-    await p4.evaluate(()=>window.__seek(290)); await p4.waitForTimeout(1100);
+    await p4.evaluate(()=>window.__seek(305)); await p4.waitForTimeout(1100);
     const atRest=await p4.evaluate(()=>!!document.querySelector('.tk-score'));
     ok(atRest,'448: the ask arrives when the piece ENDS (at the rest)');
     await p4.evaluate(()=>window.__seek(-160)); await p4.waitForTimeout(1100);

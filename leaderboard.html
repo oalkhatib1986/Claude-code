@@ -1577,6 +1577,26 @@
   body.tvprev.wkscreen #viewBoard{padding-left:50px;padding-right:50px}
   /* on a TV the board is the whole picture: it carries the mark and centres itself */
   body.bigscreen:not(.mobscreen) .tvfit>.mark{flex:none;align-self:flex-start;margin:0 0 18px}
+  /* THE LEADERBOARD IS NOT THE WORKOUT OVERVIEW (build 454 — Omar: "we
+     don't need the logo and workout name that big! the title can be on
+     the same line as the logo on the right"). On the leaderboard screen
+     the chrome is ONE compact band — a small logo left, the workout name
+     right — so the table gets the whole screen and every team fits. The
+     workout wall (wkscreen) keeps its big two-zone header. */
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .tvfit{display:grid;
+    grid-template-columns:auto 1fr; align-items:center; column-gap:32px}
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .tvfit>.mark{grid-column:1;grid-row:1;
+    margin:0 0 14px;align-self:center}
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .tvfit>.subhead{grid-column:2;grid-row:1;
+    justify-self:end;margin:0 0 14px}
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .tvfit>.board{grid-column:1/-1;grid-row:2}
+  /* the logo drops to a header-bar size, and the name with it */
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .badge{width:auto;height:54px;max-width:40vw}
+  body[data-logo="badge"].bigscreen:not(.mobscreen):not(.wkscreen) .badge{height:54px}
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .subhead .ttl{flex-direction:row;
+    align-items:baseline;justify-content:flex-end;gap:0}
+  body.bigscreen:not(.mobscreen):not(.wkscreen) .subhead .ttl b{font-size:30px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .tvfit{display:contents}
   body.bigscreen:not(.mobscreen) #viewBoard.active{display:block;padding-bottom:0;overflow:hidden}
@@ -9548,7 +9568,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=453;
+  const BUILD=454;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -9634,24 +9654,21 @@ window.addEventListener("error",function(ev){
     // whenever the on-screen row clears the floor — it pages only when
     // it truly cannot.
     const fl=f._fill;
-    let A2=A, sc=1;
-    if(fl&&fl[0]>0){ const W=f.clientWidth||fl[0]; sc=fl[0]/W; A2=A*W/fl[0]; }
+    let A2=A;
+    if(fl&&fl[0]>0){ const W=f.clientWidth||fl[0]; A2=A*W/fl[0]; }
     const room=Math.max(0,A2-rest-6);
-    // All of them while the rows stay readable; past that, a page at a time — but
-    // NEVER fewer than three on screen. A phone in full screen has room for one row
-    // at the wall's row height, and one row scaled up to fill the screen is not a
-    // leaderboard, it is a poster of whoever is winning.
-    const minA=fl?Math.max(34,Math.round(30/sc)):MINROW;  // 30 on-screen px in fill
-    const pageA=fl?minA:PAGEAT;
-    let per=n, h=Math.floor(room/n);
-    if(h<pageA){
-      per=Math.min(n,Math.max(3,Math.floor(room/minA)));
-      h=Math.floor(room/per);
-    }
-    h=Math.max(34,Math.min(168,h));
+    // EVERY TEAM ON ONE PAGE, ALWAYS (build 454 — Omar: "whatever the team
+    // numbers they should ALL show on one page! the table and fonts need to
+    // resize, it should never crop team names, no team names should
+    // disappear!"). This RETIRES the pager (442-446): the board no longer
+    // shows a handful and turns the page — it fits the whole class at once
+    // by shrinking the row (and, through --rowH, the figures with it) down
+    // to whatever height the room allows. The floor is low enough that a
+    // very large class still lands on one screen; nobody is ever hidden.
+    let per=n, h=Math.max(20,Math.min(168,Math.floor(room/n)));
     bd.style.setProperty("--rowH",h+"px");
-    bdPer=per;
-    lanes.style.height=(h*Math.min(n,per))+"px";
+    bdPer=n;   // never page — show them all
+    lanes.style.height=(h*n)+"px";
     void lanes.offsetHeight; lanes.style.transition=tr;
     showPage();
   }
