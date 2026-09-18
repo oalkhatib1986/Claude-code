@@ -1091,6 +1091,22 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   by s, never sets it. `lbsolo.js` (30) pins the v4 shape, both stale
   conversions, "3 × 4:00" on the card, "Round 2 of 3" live, the flow
   between windows and the park after window 3.
+- **THE ROTATE HEADER COUNTS SWAPS, NOT THE PER-PASS WINDOW (build 459).**
+  A clocked rotate's `tlab` (exLines head, the overview card + wall) printed
+  `${rpre}${fmtMS(dur)} · swap every ${dur÷stations}` — e.g. "2 × 8:00 ·
+  swap every 4:00" — but an 8:00 pass is a window nobody experiences, so the
+  line now reads "swap every <interval> × <totalSwaps> · <total> total":
+  interval = `dur÷stations`, totalSwaps = `itReps(it)×stations`, total =
+  `dur×reps` → "swap every 4:00 × 4 · 16:00 total". A part NAME that already
+  says swap/rotate takes only the swap COUNT glued without a middot
+  (`rotDedup` → "Pairs rotate every 4:00 × 4"), never both the name and the
+  full auto line — the scored/Now tags still ride line 3429. DISPLAY ONLY:
+  `segAt`/rotation untouched, and an ALT window keeps its bare `fmtMS(dur)`
+  (the 391 "never swap every" law). The only "swap every" header site is
+  this `tlab`; `partLabel` still says "· rotating · ×N" and the tablet
+  "Now: … · rotation n/N". `wording.js` carries the unit test (dur 480, 2
+  stations, repeats 2 → "swap every 4:00 × 4 · 16:00 total") + the dedup;
+  `gallery`/`test_fitall` pin no clip from the longer line.
 - **THE CONTROLS SIT IN THE PAGE, NOT ON IT (builds 418-421 — Omar:
   "I'm thinking of combining the control and overview pages", stage 1
   of the merge; stage 2 — folding Control's deep panels in as collapsed
