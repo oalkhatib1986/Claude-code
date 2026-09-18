@@ -475,22 +475,33 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   FREE/spare tags keep `width:auto` (a tag that says "free" at name width
   reads as a ghost). `altwin` part 5 pins notes on tile/idle/running-own-
   only and the one-width, no-spill pills.
-- **BOTH FIRST BLOCKS ARE SCORED, OR THE TOTAL LIES (build 450 — Omar:
-  "why is 1 block red and the other not?!").** The red slab is CORRECT
-  display (`.blk.scoring .exg.pnow` — a piece marked Scored runs hot);
-  the asymmetry was his SIS board's DATA: Row/Ski Block 1 never carried
-  the Scored mark its Run/Bike twin has, so it never lit and never asked
-  for its calories — breaking his explicit run+bike+row+ski total.
-  `sisScoreMend` fingerprints exactly the twin asymmetry (a Run/Bike
-  block whose first working piece IS scored beside a Row/Ski block whose
-  first working piece is NOT, ending on a max-cal Row/Ski line) and
-  copies the mark across — one-shot `af_fixsissc_v1` + the sessApply
-  idle-arrival arm, the standard self-repair pair. No seed board carries
-  those block names, so boot defaults are untouched. LESSON: when a
-  state renders on one block and not its twin, check the DATA before the
-  renderer — the code was right, the board was wrong, and the fix still
-  ships IN the app (never as a Setup step for Omar). `altwin` p5 pins
-  the mend and both slabs running hot together.
+- **SEND IT SATURDAY SCORES EVERY MAX-CAL ERG PIECE, ALWAYS (builds
+  450-453 — Omar, over and over: "why is 1 block red and the other not?!",
+  then "why do you keep changing it unscored?!").** The red slab is CORRECT
+  display (`.blk.scoring .exg.pnow` — a piece marked Scored runs hot); the
+  problem was the board's DATA and, for three builds, a broken REPAIR. His
+  score is the Run + Bike + Row + Ski maxes, and on his board those pieces
+  live in BOTH sub-blocks (Max Cal Bike/Ski end Block 1, Max Cal Run/Row
+  end Block 2), so EVERY working item carrying a Max Cal <erg> piece must
+  be scored. 450-452 fixed it with a CONSUMABLE ONE-SHOT
+  (`af_fixsissc_v1/v2`) that ran once, then a stale device re-pushed the
+  unscored board and the boot flag was already spent — AND the boot
+  `migrateLoaded` (line 2533) runs BEFORE `machineOf`'s const initialises,
+  so the mend's `machineOf` call threw a TDZ error the try/catch swallowed:
+  it silently no-opped on boot every single time. THE FIX (453):
+  `sisScoreEnforce(c)` is NOT a one-shot — it lives in `migrateLoaded`, the
+  one pass EVERY cfg makes (storage, library pick, import, and every
+  live-sync arrival), with an INLINED erg test (no forward dependency, no
+  TDZ). On any board named `/send it saturday/i` every working item with a
+  `max` erg exercise is scored (calories/metres from the piece's unit,
+  scorers from teamSize). It re-applies forever and can never be un-scored
+  back; a stripped copy re-pushed through sync is re-scored on arrival
+  (`sessApply` pre-heals `s.cfg` before the compare so a healed local never
+  churns). Flags only, name-pinned, no allocator input. LESSON: a rule that
+  must ALWAYS hold belongs in `migrateLoaded`, never a consumable
+  `af_fix*` key; and never call a `const` (machineOf) from boot-time
+  migrate — inline it. `altwin` p5 authors his real shape UNSCORED and
+  pins all-four-scored + strip-and-reload durability + both slabs hot.
 - **A NUMBER ON THE TABLET IS A MONITOR'S NUMBER, OR IT IS NOT THERE.** The
   simulated vitals are gone (Omar: "dummy numbers… moving all the time"): the
   `.tk-vit` strip exists only while `pm5On()` (paired + fresh within 6s) — a
@@ -608,6 +619,12 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   counts the interval the class is inside right now (`segAt(leadB,t).remain`,
   same beat as the NOW slab), falling back to the to-the-change countdown
   only once the lead block is done. Never the block's remaining sum.
+  THE DAY FOLLOWS THE DATE (build 455 — Omar: "why is the day not loaded
+  automatically based on the date chosen!"): `#pgDate`'s handler derives
+  the weekday (`dayFromDate` → `#pgDay` + `cfg.prog.day`), and a dated
+  board opened with a blank Day fills its own in on the Setup render. Parse
+  the parts and build a LOCAL date (`new Date(y,m-1,d)`) — `new Date("YYYY-
+  MM-DD")` is UTC midnight and `getDay()` slips a day across the timezone.
 - **The sheet lies in small ways; trust content, not labels.** Two week headers are
   blank and one is junk ("1.0") — a week EXISTS if its content row has sessions, and
   its NUMBER is its position. The PREVIOUS BLOCK LIBRARY tab is four stacked
@@ -1500,24 +1517,26 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   never restyle them one at a time. The ERG TABLET is no longer that white card:
   since build 376 it is DARK (see the tablet-theme rule below) — the two
   surfaces are now deliberately different, do not "re-unify" them.
-- **A WALL SHOWS EIGHT TEAMS, NOT TWENTY.** Twenty rows on a 1080 screen is a 52px
-  row and type nobody can read from the floor. `fitRowH()` keeps the rows above
-  `PAGEAT` and, when the class is bigger than that allows, shows a page at a time —
-  `showPage()` hides the rest and turns the page every 7s, with `1–7 of 20` in the
-  head. THE PAGE RIDES WALL TIME, NEVER A TIMER A REPAINT CAN RESET (442 — Omar:
-  "why are not all the teams showing?!"): a LIVE board repaints every second and
-  each repaint re-entered showPage and cleared the 7s timeout, so the pager froze
-  on 1–3 all class. `bdPage = floor(Date.now()/7000) % pages` — every repaint
-  agrees within a window and the boundary advances on its own (a timeout at the
-  next boundary keeps an IDLE board turning). AND `rowH()` MEASURES A VISIBLE
-  LANE (443 — Omar's page-2 screenshot, rows hanging out of the card with black
-  gaps): on page 2+ the FIRST child is display:none, offsetHeight 0, and the
-  92px `ROW` fallback stepped 40px rows apart and past the card's bottom; it
-  now falls through to the first lane with a height. `altwin` pins the live
-  turn, page containment and gap-free steps. The lane's place comes from `data-pos` (the rank it was given), never its DOM
-  order, so the pager and the sort cannot disagree. Never fewer than three on screen:
-  a phone in full screen has room for one row at the wall's row height, and one row
-  blown up to fill the screen is a poster of whoever is winning, not a leaderboard.
+- **EVERY TEAM ON ONE PAGE, ALWAYS (build 454 — Omar: "whatever the team
+  numbers they should ALL show on one page! the table and fonts need to
+  resize, it should never crop team names, no team names should
+  disappear!").** This RETIRES the pager (the old 442-446 "8 teams, turn
+  the page every 7s" rule — do NOT reintroduce it; Omar chose fit-all over
+  big-rows-and-page outright). `fitRowH()` now sets `per = n` (the whole
+  class) and shrinks `--rowH` to `floor(room/n)` down to a low floor (20px),
+  so the figures shrink with it (`min(var(--mvfs),rowH*.34)`) and even a
+  large class lands on ONE screen; `showPage()` hides nobody and the pager
+  label stays empty. The chrome is compact so the table gets the room: on
+  the leaderboard screen (`body.bigscreen:not(.mobscreen):not(.wkscreen)`)
+  `.tvfit` is a 2-col grid — small logo (`.badge` 54px) left, workout name
+  (`.ttl b` 30px) right, on ONE row — and `.board` spans row 2. The workout
+  wall (`wkscreen`) keeps its big two-zone header, untouched. FILL MODE
+  MEASURES IN AUTHORED UNITS (452): `A` is screen px but `rest` (chrome) is
+  authored px and grows with `--tvw`, so the budget is `A*W/cw` or the
+  solver spirals to 3 giant rows. The lane's place comes from `data-pos`
+  (the rank it was given), never DOM order. Verified 12/16/24 teams fit on
+  1366/1440/1920 with no clip and no name truncation. `altwin` pins the
+  one-page contract (all lanes visible, empty pager).
 - **Measure the room against a picture the lanes are NOT in.** `fitRowH()` took the
   leftover height as `#tvFit.scrollHeight - lanes.clientHeight`, but `.lanes` ANIMATES
   its height (.4s), so every re-fit read a value part-way through the easing and got a
