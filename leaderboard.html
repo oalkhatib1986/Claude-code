@@ -7443,6 +7443,13 @@ window.addEventListener("error",function(ev){
     }); });
     return changed;
   }
+  // THE DAY FOLLOWS THE DATE (build 455 — Omar: "why is the day not loaded
+  // automatically based on the date chosen!"). Parse the parts and build a
+  // LOCAL date — new Date("2026-09-05") is UTC midnight and getDay() can
+  // slip a day across the timezone; new Date(y,m-1,d) never does.
+  const DOW_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  function dayFromDate(s){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s||"")); if(!m) return "";
+    const d=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(d.getTime())?"":DOW_NAMES[d.getDay()]; }
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
     if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
@@ -8938,6 +8945,8 @@ window.addEventListener("error",function(ev){
       $("pgDate").value=/^\d{4}-\d{2}-\d{2}$/.test(pr.date||"")?pr.date:"";
       $("pgBlock").value=pr.block||"";
       $("pgWeek").value=pr.week||"";
+      // a dated board with no day fills its own in — the weekday IS the date
+      if(!pr.day){ const dn=dayFromDate(pr.date); if(dn) pr.day=dn; }
       $("pgDay").value=pr.day||"";
       $("pgType").value=pr.stype||""; }
     $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent;
@@ -9009,7 +9018,13 @@ window.addEventListener("error",function(ev){
     const pgSet=(id,key,xf)=>{ $(id).oninput=e=>{ if(!cfg.prog) cfg.prog={};
       cfg.prog[key]=xf?xf(e.target.value):e.target.value; save();
       if(!sessionActive&&!running) build(); }; };
-    pgSet("pgDate","date"); pgSet("pgBlock","block");
+    // the date sets the day with it (455) — a new pick fills the weekday
+    $("pgDate").oninput=e=>{ if(!cfg.prog) cfg.prog={};
+      cfg.prog.date=e.target.value;
+      const dn=dayFromDate(e.target.value);
+      if(dn){ cfg.prog.day=dn; const sel=$("pgDay"); if(sel) sel.value=dn; }
+      save(); if(!sessionActive&&!running) build(); };
+    pgSet("pgBlock","block");
     pgSet("pgWeek","week",v=>parseInt(v,10)||"");
     pgSet("pgDay","day"); pgSet("pgType","stype");
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
@@ -9568,7 +9583,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=454;
+  const BUILD=455;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
