@@ -615,6 +615,56 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       return {own:/remember your number/i.test(txt),other:/split as a team|working in sync/i.test(txt)}; });
     ok(r.own&&!r.other,'449: the filtered running card carries its OWN note only '+JSON.stringify(r)); }
   await p5.close(); }
+
+// ===== part 6: A ROTATE STATION CARRIES ITS OWN MOVEMENT LIST (build 456 —
+// Omar's Send It Saturday AMRAP: "Pair 2 — AMRAP (Shared) / 30 Air Squats /
+// 20 HR Press Ups / 10 Burpees"). x.lines stacks the movements under ONE
+// station — still one station, never split into extra rotation stops, never
+// truncated on the wall. =====
+{ const p6=await br.newPage({viewport:{width:1440,height:960}});
+  p6.on('pageerror',e=>{fail++;console.log('FAIL pageerror(p6):',e.message);});
+  await p6.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p6.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p6.reload(); await p6.waitForTimeout(1400);
+  await p6.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const part=(name,ergName,lines)=>({name,rounds:1,items:[
+      {name:'',dur:480,rpt:2,fmt:'rotate',rotBy:'clock',scored:true,metric:'metres',scorers:4,
+        exercises:[{who:'Pair 1',name:ergName,unit:'m',max:true,amounts:[]},
+          {who:'Pair 2',name:'AMRAP (Shared)',unit:'reps',max:false,amounts:[],lines}]},
+      {name:'Final',dur:240,fmt:'',scored:true,metric:'metres',scorers:4,
+        exercises:[{who:'All 4',name:ergName,unit:'m',max:true,amounts:[]}]} ]});
+    Object.assign(c,{name:'Send It Saturday',wkName:'Send It Saturday',mode:'rotation',teamKind:'teams',
+      teamSize:4,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:180,sameRest:true,blocks:[
+      part('Part A — Run','Max Distance Run',['30 Air Squats','20 HR Press Ups','10 Burpees']),
+      part('Part B — Row','Max Distance Row',['30 DBall Box Step Overs','20 DBall Reverse Lunge','10 DBall Over Shoulder']) ]});
+    c.crews=Array.from({length:8},(_,i)=>({name:'Team '+(i+1)}));
+    c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p6.reload(); await p6.waitForTimeout(1500);
+  // the card: AMRAP header + its 3 movements as their OWN stacked rows
+  { const r=await p6.evaluate(()=>{
+      const blk=document.querySelectorAll('#blockCards .blk')[0];
+      return {subs:[...blk.querySelectorAll('.exl.exsub')].map(e=>e.textContent.trim()),
+        header:/AMRAP \(Shared\)/i.test(blk.innerText),
+        swap:/swap every 4:00/i.test(blk.innerText.replace(/\s+/g,' '))}; });
+    ok(r.header&&r.subs.length===3&&r.subs[0]==='30 Air Squats'&&r.subs[2]==='10 Burpees',
+      '456: the AMRAP station stacks its 3 movements under one header '+JSON.stringify(r.subs));
+    ok(r.swap,'456: it is still ONE rotate piece — swap every 4:00'); }
+  // it is TWO stations, never five
+  { const r=await p6.evaluate(()=>{
+      const rot=JSON.parse(localStorage.getItem('af_erg_cfg_v8')).rotation.blocks[0].items.find(i=>i.fmt==='rotate');
+      return {stations:(rot.exercises||[]).length}; });
+    ok(r.stations===2,'456: the movements did NOT become extra stations ('+r.stations+' stations)'); }
+  // the wall stacks them and never clips a movement row
+  await p6.goto('file:///home/user/Claude-code/leaderboard.html#workout'); await p6.waitForTimeout(1500);
+  { const r=await p6.evaluate(()=>{
+      const subs=[...document.querySelectorAll('#blockCards .exl.exsub')];
+      return {n:subs.length,clipped:subs.filter(e=>e.scrollWidth>e.clientWidth+1).length}; });
+    ok(r.n>=6&&r.clipped===0,'456: the wall stacks every movement, none clipped ('+r.n+' rows, '+r.clipped+' clipped)'); }
+  await p6.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
