@@ -1107,6 +1107,17 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   "Now: … · rotation n/N". `wording.js` carries the unit test (dur 480, 2
   stations, repeats 2 → "swap every 4:00 × 4 · 16:00 total") + the dedup;
   `gallery`/`test_fitall` pin no clip from the longer line.
+- **THE ROTATE ROUND COUNTER COUNTS SWAPS TOO (build 460).** The live card's
+  `.bwhere` printed "Round x of y" for a clocked rotate with `y = repeats`
+  (passes), out of step with the 459 header. Now a clocked rotate
+  (`itRot(seg.it)&&!seg.it.alt&&seg.swaps>1`) reads
+  `currentSwap = seg.rep*seg.swaps + seg.swap + 1` of `seg.repN*seg.swaps` —
+  "Round 1 of 4" … "Round 4 of 4" (dur 480, 2 stations, repeats 2); "Swap"
+  instead of "Round" when the part itself has rounds, so two "Round"s never
+  collide. The `.bclk` beside it already counts the swap interval
+  (`seg.remain`), and the tablet's `tbSegLine` "rotation n/N" is swap-based
+  too. Display only — `segAt` is untouched; alt windows keep their own
+  display. `altwin` p8 pins pass 2 station 1 → "Round 3 of 4".
 - **THE CONTROLS SIT IN THE PAGE, NOT ON IT (builds 418-421 — Omar:
   "I'm thinking of combining the control and overview pages", stage 1
   of the merge; stage 2 — folding Control's deep panels in as collapsed
@@ -1605,8 +1616,9 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   large class lands on ONE screen; `showPage()` hides nobody and the pager
   label stays empty. The chrome is compact so the table gets the room: on
   the leaderboard screen (`body.bigscreen:not(.mobscreen):not(.wkscreen)`)
-  `.tvfit` is a 2-col grid — small logo (`.badge` 54px) left, workout name
-  (`.ttl b` 30px) right, on ONE row — and `.board` spans row 2. The workout
+  `.tvfit` is a 2-col grid — small logo (`.badge` 34px, build 461 — Omar:
+  "the logo and name can go even smaller than this") left, workout name
+  (`.ttl b` 20px, 461) right, on ONE row — and `.board` spans row 2. The workout
   wall (`wkscreen`) keeps its big two-zone header, untouched. FILL MODE
   MEASURES IN AUTHORED UNITS (452): `A` is screen px but `rest` (chrome) is
   authored px and grows with `--tvw`, so the budget is `A*W/cw` or the
