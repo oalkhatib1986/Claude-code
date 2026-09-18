@@ -3743,9 +3743,17 @@ window.addEventListener("error",function(ev){
         bits.push(seg.i<0?"Round rest":`Part ${seg.i+1} of ${its}`);
         // the superset's beat, said out loud — the clock beside it counts this set
         if(seg.setN>1) bits.push(`Set ${seg.set+1} of ${seg.setN}`);
+        // A CLOCKED ROTATE COUNTS SWAPS, not passes (build 460 — consistent with
+        // the "swap every 4:00 × 4" header, 459): currentSwap = pass×stations +
+        // station + 1, of repeats×stations. "Round 1 of 4" … "Round 4 of 4" (the
+        // clock beside it already counts the swap interval). "Swap" if the part
+        // itself has rounds, so two "Round"s never collide.
+        const rotSw=seg.it&&itRot(seg.it)&&!seg.it.alt&&seg.swaps>1;
+        if(rotSw){ const tot=(seg.repN||1)*seg.swaps, cur=(seg.rep||0)*seg.swaps+(seg.swap||0)+1;
+          if(tot>1) bits.push(`${seg.rounds>1?"Swap":"Round"} ${cur} of ${tot}`); }
         // a repeating piece's window (417) — "Round" unless the part itself
         // has rounds, where two Rounds would collide
-        if(seg.repN>1) bits.push(`${seg.rounds>1?"Rep":"Round"} ${(seg.rep||0)+1} of ${seg.repN}`);
+        else if(seg.repN>1) bits.push(`${seg.rounds>1?"Rep":"Round"} ${(seg.rep||0)+1} of ${seg.repN}`);
       }
       const stat=state==="queued"?"Up next":state==="donez"?"Done":"";
       return `<div class="blk ${hot?"scoring":""} ${state} bcw" data-bi="${bi}">
@@ -5139,8 +5147,11 @@ window.addEventListener("error",function(ev){
       return myW===seg.wave?`${segLabel} — wave ${seg.wave+1}/${seg.waves}: GO`
         :`Wave ${seg.wave+1}/${seg.waves} working — you're wave ${myW+1}`; }
     if(seg.swap!=null){ const x=(seg.it.exercises||[])[(Math.max(0,j)+seg.swap)%seg.swaps];
-      // an alt window has no rotation inside it — the station IS the window
-      return x?(seg.it.alt?`Now: ${x.name}`:`Now: ${x.name} · rotation ${seg.swap+1}/${seg.swaps}`):segLabel; }
+      // an alt window has no rotation inside it — the station IS the window;
+      // otherwise it counts SWAPS across all passes (build 460, matching the card):
+      // currentSwap = pass×stations + station + 1, of repeats×stations
+      const tot=(seg.repN||1)*seg.swaps, cur=(seg.rep||0)*seg.swaps+(seg.swap||0)+1;
+      return x?(seg.it.alt?`Now: ${x.name}`:`Now: ${x.name} · rotation ${cur}/${tot}`):segLabel; }
     if(itShare(seg.it)) return `${segLabel} — share the station in ${shareNs(seg.it)} & alternate`;
     return segLabel; }
   // simulated PM5 warm-up feed (per machine) + last-effort cache (per team) —
@@ -9690,7 +9701,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=459;
+  const BUILD=460;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

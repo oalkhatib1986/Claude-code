@@ -745,6 +745,36 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       return {hasRun:tns.some(x=>/^Run/.test(x)),hasBike:tns.some(x=>/^Bike/.test(x))}; });
     ok(kept.hasRun&&kept.hasBike,'458: a two-erg station-pair rotate is left as rotate (both ergs mapped)'); }
   await p7.close(); }
+// ===== part 8: THE ROTATE ROUND COUNTER COUNTS SWAPS (build 460 — consistent
+// with the "swap every 4:00 × 4" header, 459). dur 480, 2 stations, repeats 2:
+// currentSwap = pass×stations + station + 1, of repeats×stations. Windows
+// pass1[0-480] pass2[480-960], swap at 240 within each. =====
+{ const p8=await br.newPage({viewport:{width:1440,height:960}});
+  p8.on('pageerror',e=>{fail++;console.log('FAIL pageerror(p8):',e.message);});
+  await p8.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p8.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p8.reload(); await p8.waitForTimeout(1200);
+  await p8.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    Object.assign(c,{name:'Round Test',wkName:'Round Test',mode:'rotation',teamKind:'solo',together:true,noScore:true,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
+      {name:'Part A',rounds:1,items:[{name:'',dur:480,rpt:2,fmt:'rotate',rotBy:'clock',scored:false,
+        exercises:[{name:'Ski',unit:'m',amounts:[],max:true},{name:'Row',unit:'m',amounts:[],max:true}]}]} ]});
+    c.crews=Array.from({length:6},(_,i)=>({name:'A'+(i+1)}));
+    c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p8.reload(); await p8.waitForTimeout(1300);
+  await p8.evaluate(()=>document.getElementById('startBtn')&&document.getElementById('startBtn').click());
+  await p8.waitForTimeout(350);
+  const bwhere=async(d)=>{ await p8.evaluate(t=>window.__seek&&window.__seek(t),d); await p8.waitForTimeout(300);
+    return p8.evaluate(()=>{const w=document.querySelector('#blockCards .blk.live .bwhere');return w?w.textContent.replace(/\s+/g,' ').trim():'';}); };
+  // __seek is RELATIVE — advance in deltas to land at ~100/300/500/800
+  ok((await bwhere(100)).includes('Round 1 of 4'),'460: pass 1 station 1 → Round 1 of 4');
+  ok((await bwhere(200)).includes('Round 2 of 4'),'460: pass 1 station 2 → Round 2 of 4');
+  ok((await bwhere(200)).includes('Round 3 of 4'),'460: pass 2 station 1 → Round 3 of 4 (the unit test)');
+  ok((await bwhere(300)).includes('Round 4 of 4'),'460: pass 2 station 2 → Round 4 of 4');
+  await p8.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
