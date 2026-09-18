@@ -7458,6 +7458,46 @@ window.addEventListener("error",function(ev){
     const pre=(cfg.teamKind==="solo")?"Athlete":"Team";
     (cfg.crews||[]).forEach((c,i)=>{ if(/^(Team|Athlete) \d+$/.test(c&&c.name||"")) c.name=pre+" "+(i+1); });
   }
+  // SEND IT SATURDAY: A TEAM SPLIT ACROSS AN ERG AND FLOOR WORK IS A PLAIN
+  // ITEM, NOT A ROTATE (build 458 — Omar: "where is run 2 row 2 ski 2 and 4!
+  // its 12 teams 48 athletes! why arent all the ergs showing!"). His board
+  // is teams of 4, two pairs per team — one pair on a max-distance erg
+  // (scored), one on a shared floor AMRAP — swapping WITHIN the team. The
+  // app AI keeps authoring that as fmt:"rotate", which spins WHOLE teams
+  // through the two stations: half the teams land on the erg (numbered per
+  // crew via machSlots' mm[] — Run 1,3,5,6, the gap Omar photographed) and
+  // half on the floor. The correct model is a PLAIN scored erg item: each
+  // team owns ITS OWN erg, so the map numbers Run/Row/Ski 1-N contiguous
+  // with NO allocator change, and the AMRAP rides as the second pair's
+  // parallel work. The "swap every 4:00" is a coach cue, not an engine
+  // mechanic (the 457 law). The 457 aiSystem() prompt already carries this
+  // rule, but the AI ignores it, so the board heals in code on every
+  // migrateLoaded pass — flags only, name-pinned, no allocator input. A
+  // genuine two-ERG station-pair (Run+Bike rotate, build 440) has TWO erg
+  // pieces and is left untouched; only a single-erg-plus-floor rotate is
+  // the mis-build.
+  function sisRotToPlain(c){
+    if(!c) return false;
+    if(!/send it saturday/i.test(String(c.wkName||c.name||""))) return false;
+    // erg test INLINED, never machineOf: boot migrateLoaded runs before that
+    // const initialises (the 453 TDZ trap). Mirrors machineOf's buy-in and
+    // strength-row bails so a "Renegade Row" is never read as the erg.
+    const ergPiece=nm=>{ const s=String(nm||"").toLowerCase();
+      if(s.includes("buy-in")||s.includes("buy in")) return false;
+      if(/\brow/.test(s)&&/(gorilla|bent.?over|renegade|pendlay|landmine|inverted|upright|seated|supported|chest|bench|ring|single.?arm|one.?arm|3.?point|banded|cable|meadows|kroc|db |dumbbell|barbell|bbell|kb |kettlebell|plate |trx)/.test(s)) return false;
+      return /(bike|row|ski|run|echo)/.test(s); };
+    let changed=false;
+    (((c.rotation||{}).blocks)||[]).forEach(b=>{ (b.items||[]).forEach(it=>{
+      if(!it||it.rest||it.fmt!=="rotate") return;
+      const xs=(it.exercises||[]).filter(Boolean);
+      if(xs.length!==2) return;
+      const ergs=xs.filter(x=>x.max&&ergPiece(x.name));
+      if(ergs.length!==1) return;             // two ergs = real station-pair (440), leave it
+      it.fmt=""; delete it.rotBy; delete it.alt;
+      changed=true;
+    }); });
+    return changed;
+  }
   // SEND IT SATURDAY SCORES EVERY MAX-CAL ERG PIECE (build 453 — Omar,
   // repeatedly: "why do you keep changing it unscored?!"). His score is
   // the Run + Bike + Row + Ski maxes, and on his board those pieces live
@@ -7536,6 +7576,9 @@ window.addEventListener("error",function(ev){
       if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
       if(!cfg.rotation.laps) cfg.rotation.laps=1;
       if(cfg.rotation.blockRest===undefined) cfg.rotation.blockRest=0;
+      // his erg+floor split is a plain item, not a rotate (458) — before
+      // scoring, so the converted plain items then get their max-erg scored
+      try{ sisRotToPlain(cfg); }catch(e){}
       // his max-cal pieces score, always (453) — before the backfill below,
       // which then fills metric/scorers on anything this just marked
       try{ sisScoreEnforce(cfg); }catch(e){}
@@ -9639,7 +9682,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=457;
+  const BUILD=458;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -634,7 +634,11 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
           {who:'Pair 2',name:'AMRAP (Shared)',unit:'reps',max:false,amounts:[],lines}]},
       {name:'Final',dur:240,fmt:'',scored:true,metric:'metres',scorers:4,
         exercises:[{who:'All 4',name:ergName,unit:'m',max:true,amounts:[]}]} ]});
-    Object.assign(c,{name:'Send It Saturday',wkName:'Send It Saturday',mode:'rotation',teamKind:'teams',
+    // NOT named "Send It Saturday": that name triggers the build-458
+    // rotate->plain heal (see part 7), which would strip the swap wording.
+    // The lines-station feature is format-independent, so a plain rotate
+    // tester keeps this a pure 456 check.
+    Object.assign(c,{name:'AMRAP Rotate Tester',wkName:'AMRAP Rotate Tester',mode:'rotation',teamKind:'teams',
       teamSize:4,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:180,sameRest:true,blocks:[
       part('Part A — Run','Max Distance Run',['30 Air Squats','20 HR Press Ups','10 Burpees']),
@@ -665,6 +669,82 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       return {n:subs.length,clipped:subs.filter(e=>e.scrollWidth>e.clientWidth+1).length}; });
     ok(r.n>=6&&r.clipped===0,'456: the wall stacks every movement, none clipped ('+r.n+' rows, '+r.clipped+' clipped)'); }
   await p6.close(); }
+// ===== part 7: SEND IT SATURDAY erg+floor split HEALS ROTATE -> PLAIN
+// (build 458 — Omar: "where is run 2 row 2 ski 2 and 4! its 12 teams 48
+// athletes! why arent all the ergs showing!"). The app AI builds his
+// team-split-across-erg-and-floor board as fmt:"rotate", which spins whole
+// teams through the two stations and gaps the map (Run 1,3,5,6). On load
+// sisRotToPlain flips a single-erg-plus-floor SIS rotate to a plain item,
+// so each team owns its own erg and the map numbers 1-6 contiguous — while
+// the AMRAP lines still render and every max-erg item stays scored. =====
+{ const p7=await br.newPage({viewport:{width:1440,height:960}});
+  p7.on('pageerror',e=>{fail++;console.log('FAIL pageerror(p7):',e.message);});
+  await p7.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p7.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p7.reload(); await p7.waitForTimeout(1400);
+  await p7.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const erg=(nm)=>({who:'Pair 1',name:nm,unit:'m',max:true,amounts:[]});
+    const amrap=(lines)=>({who:'Pair 2',name:'AMRAP (Shared)',unit:'reps',max:false,amounts:[],lines});
+    const part=(name,ergName,lines)=>({name,rounds:1,items:[
+      {name:'',dur:480,rpt:2,fmt:'rotate',rotBy:'clock',scored:true,metric:'metres',scorers:4,
+        exercises:[erg(ergName),amrap(lines)]} ]});
+    Object.assign(c,{name:'Send It Saturday',wkName:'Send It Saturday',mode:'rotation',teamKind:'teams',
+      teamSize:4,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:180,sameRest:true,blocks:[
+      part('Part A — Run','Max Distance Run',['30 Air Squats','20 HR Press Ups','10 Burpees']),
+      part('Part B — Row','Max Distance Row',['30 DBall Box Step Overs','20 DBall Reverse Lunge','10 DBall Over Shoulder']),
+      part('Part C — Ski','Max Distance Ski',['30 Goblet Squats','20 DB Snatches','10 SA Devil Press']) ]});
+    c.crews=Array.from({length:12},(_,i)=>({name:'Team '+(i+1)}));
+    c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p7.reload(); await p7.waitForTimeout(1700);
+  // the map: every erg numbered 1-6 contiguous, no gap (was Run 1,3,5,6)
+  { const r=await p7.evaluate(()=>{
+      return [...document.querySelectorAll('#blockCards .blk')].map(blk=>
+        [...blk.querySelectorAll('.teams .t .tn')].map(e=>e.textContent.replace(/\s+/g,' ').trim())); });
+    const run=r[0].filter(x=>/^Run/.test(x)).join(',');
+    const row=r[1].filter(x=>/^Row/.test(x)).join(',');
+    const ski=r[2].filter(x=>/^Ski/.test(x)).join(',');
+    ok(run==='Run1,Run2,Run3,Run4,Run5,Run6','458: Part A ergs number 1-6 contiguous ('+run+')');
+    ok(row==='Row1,Row2,Row3,Row4,Row5,Row6','458: Part B ergs number 1-6 contiguous ('+row+')');
+    ok(ski==='Ski1,Ski2,Ski3,Ski4,Ski5,Ski6','458: Part C ergs number 1-6 contiguous ('+ski+')'); }
+  // the AMRAP movements still render as stacked rows after the heal
+  { const r=await p7.evaluate(()=>{
+      const blk=document.querySelectorAll('#blockCards .blk')[0];
+      return {subs:[...blk.querySelectorAll('.exl.exsub')].map(e=>e.textContent.trim()),
+        header:/AMRAP \(Shared\)/i.test(blk.innerText)}; });
+    ok(r.header&&r.subs.length===3&&r.subs[0]==='30 Air Squats',
+      '458: the AMRAP floor lines still stack after the heal '+JSON.stringify(r.subs)); }
+  // start the clock: the healed board runs as a plain item, no page error,
+  // map stays contiguous while live
+  await p7.evaluate(()=>document.getElementById('startBtn')&&document.getElementById('startBtn').click());
+  await p7.waitForTimeout(500);
+  await p7.evaluate(()=>window.__seek&&window.__seek(200)); await p7.waitForTimeout(500);
+  { const r=await p7.evaluate(()=>{
+      return {run:[...document.querySelectorAll('#blockCards .blk')[0].querySelectorAll('.teams .t .tn')].map(e=>e.textContent.replace(/\s+/g,' ').trim()),
+        live:!!document.querySelector('#blockCards .blk.live')}; });
+    ok(r.run.filter(x=>/^Run/.test(x)).join(',')==='Run1,Run2,Run3,Run4,Run5,Run6'&&r.live,
+      '458: the healed board runs as plain, map still 1-6 while live'); }
+  // a two-ERG station-pair rotate (Run+Bike, build 440) is NOT converted
+  { const r=await p7.evaluate(()=>{
+      const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+      c.rotation.blocks=[{name:'Part A',rounds:1,items:[
+        {name:'',dur:480,fmt:'rotate',rotBy:'clock',scored:true,metric:'metres',scorers:4,
+          exercises:[{who:'Pair 1',name:'Max Distance Run',unit:'m',max:true,amounts:[]},
+            {who:'Pair 2',name:'Max Distance Bike',unit:'m',max:true,amounts:[]}]} ]}];
+      localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+      return true; });
+    await p7.reload(); await p7.waitForTimeout(1500);
+    const kept=await p7.evaluate(()=>{
+      // migrateLoaded healed the in-memory cfg; read it back via a render-side
+      // probe: a two-erg rotate still SUBDIVIDES (two stations swap), so the
+      // Part A card shows BOTH erg types as station chips.
+      const tns=[...document.querySelectorAll('#blockCards .blk')[0].querySelectorAll('.teams .t .tn')].map(e=>e.textContent.replace(/\s+/g,' ').trim());
+      return {hasRun:tns.some(x=>/^Run/.test(x)),hasBike:tns.some(x=>/^Bike/.test(x))}; });
+    ok(kept.hasRun&&kept.hasBike,'458: a two-erg station-pair rotate is left as rotate (both ergs mapped)'); }
+  await p7.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

@@ -517,6 +517,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   Run/Row/Ski 1-6. LESSON: teams rotating whole through shared stations is
   the rare case; a team splitting its own members across an erg + floor is
   a plain item, and rotate's whole-team spin is what gaps the numbers.
+  AND WHEN THE AI IGNORES THE PROMPT, THE BOARD HEALS ITSELF (build 458 —
+  Omar again: "where is run 2 row 2 ski 2 and 4! its 12 teams 48 athletes!
+  why arent all the ergs showing! how many times do i need to say this!?").
+  The 457 `aiSystem()` law was not enough — the app AI kept authoring his
+  Send It Saturday as `fmt:"rotate"`, so the map still gapped (Run 1,3,5,6).
+  `sisRotToPlain(c)` lives in `migrateLoaded` beside `sisScoreEnforce` (runs
+  BEFORE it, so the converted item then scores) — the ONE pass every cfg
+  makes (storage, pick, import, live-sync arrival), so it re-heals forever
+  and can never revert: on a board named `/send it saturday/i`, any
+  `fmt:"rotate"` item with EXACTLY ONE max-erg piece + ONE non-erg (floor)
+  station is flipped to plain (`fmt:""`, drop `rotBy`/`alt`). A genuine
+  two-ERG station-pair (Run+Bike, build 440) has TWO erg pieces and is left
+  a rotate. Flags only, name-pinned, no allocator input, erg test INLINED
+  (never `machineOf` — the boot-migrate TDZ trap). It mutates in-memory like
+  `sisScoreEnforce`; a stale rotate copy the room pushes back heals on
+  arrival and republishes plain. `altwin` p7 pins contiguous 1-6, the AMRAP
+  lines still stacking, the live run, and the two-erg rotate left untouched.
+  LESSON: an AI-prompt rule the model keeps ignoring needs a durable
+  code-side heal in `migrateLoaded`, not just prompt words.
 - **SEND IT SATURDAY SCORES EVERY MAX-CAL ERG PIECE, ALWAYS (builds
   450-453 — Omar, over and over: "why is 1 block red and the other not?!",
   then "why do you keep changing it unscored?!").** The red slab is CORRECT
