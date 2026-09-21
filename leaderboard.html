@@ -4255,12 +4255,16 @@ window.addEventListener("error",function(ev){
     // still fill the screen's height — four wide cards leave a band of empty floor.
     let fit=3;
     if(wall){
-      // an UPRIGHT screen stacks one card per row. Letting the count pick two
-      // columns on a portrait phone put the solver in a two-cycle: at the 1-col
-      // width the cards want 2 columns, at the 2-col width they want 1 — H(W)
-      // jumps at the column change and the fill has no fixed point to land on.
+      // an UPRIGHT FULL-SCREEN device (a phone / portrait TV) stacks one card
+      // per row so the tall board fills its tall screen — and it dodges the
+      // solver two-cycle (at the 1-col width the cards want 2, at the 2-col
+      // width they want 1). But the Big Screen TAB is ALWAYS inside a landscape
+      // desktop (this fill path only runs at >=1100px), so a portrait-SHAPED
+      // board box there must NOT collapse to one column — that left Omar's
+      // Engine in a tall left-hand strip with the rest of the wall black.
+      // Gate the collapse on tvfull; the tab keeps its columns.
       const f=$("tvFit"), fl=f&&f._fill;
-      if(fl&&fl[1]>fl[0]) fit=1;
+      if(fl&&fl[1]>fl[0]&&document.body.classList.contains("tvfull")) fit=1;
     } else { const gap=14, min=230;
       const w=el.clientWidth||el.getBoundingClientRect().width||0;
       fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
@@ -9819,7 +9823,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=469;
+  const BUILD=470;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

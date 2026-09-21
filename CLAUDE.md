@@ -1881,6 +1881,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (edge-to-edge is its contract, `fsfill` holds it); the tab centres its slack.
   The main tabs stay visible on the Big Screen tab (`opacity:1`) — only `tvfull`
   drops the chrome, and that is the mode to cast from.
+  THE 1-COLUMN COLLAPSE IS TVFULL-ONLY (build 470 — Omar's Engine: "why is
+  the big screen showing as four rows not columns!", a tall single column in
+  the LEFT half of the wall with the rest black). `fitBlockCols`' wall branch
+  collapsed to ONE column whenever the board BOX was portrait
+  (`fl[1]>fl[0]`) — right for a genuinely upright FULL-SCREEN device (a phone
+  / portrait TV, so its tall board fills a tall screen) but WRONG for the Big
+  Screen TAB, which only ever runs at ≥1100px inside a landscape desktop: a
+  portrait-SHAPED board box there (tall chrome above it, or a nearly-square
+  window) collapsed the four parts into a tall left strip. The collapse is now
+  gated on `document.body.classList.contains("tvfull")`; the tab keeps its 2–3
+  columns and fills the width at every aspect. tvfull on a real portrait phone
+  still stacks to 1 (coverage). His exact cfg reproduced as 2×2 in tvfull AND
+  landscape tab — the trigger was a portrait-shaped board box in the tab; the
+  diagnostic he pasted (`fill:[499,688]`, DevTools eating the width) confirmed
+  the portrait measure. `tabcols.js` (7) pins the tab keeping columns at
+  portrait/landscape/squarish boxes and tvfull-phone still stacking. LESSON:
+  a rendering that keys on the board BOX aspect must know whether that box is
+  a whole device (tvfull) or a panel inside a desktop (tab) — they want
+  opposite things.
 - **Full screen FILLS the screen, edge to edge.** `body.tvfull` drops the 1920x1080
   conceit entirely: `#viewBoard` is sized to the real viewport (turned on its side
   when the device is held upright) and `fillTvBoard()` picks the width the board is
