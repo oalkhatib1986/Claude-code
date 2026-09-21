@@ -3596,7 +3596,14 @@ window.addEventListener("error",function(ev){
   // mid-class; a countdown that fires before they finish loading simply kicks
   // the load and stays silent that once.
   let voicePrev=null, AC=null, buzzBuf=null, buzzLoading=false;
-  function loadBuzz(){ if(buzzBuf||buzzLoading||!AC) return; buzzLoading=true;
+  // Decode the two WAVs AHEAD OF TIME so the FIRST of the last N seconds sounds,
+  // not just the last two (build 485 — Omar: "it's only beeping on the last two
+  // seconds"). An AudioContext can be created and decodeAudioData run while it
+  // is still suspended (no gesture needed to DECODE — only to PLAY), so this is
+  // safe to call at boot; voicePrime() then just resumes it on the first tap.
+  function loadBuzz(){ if(buzzBuf||buzzLoading) return;
+    try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; AC=AC||new Ctx(); }catch(e){ return; }
+    buzzLoading=true;
     const one=url=>fetch(url).then(r=>r.arrayBuffer()).then(a=>new Promise(res=>{
       try{ AC.decodeAudioData(a,b=>res(b),()=>res(null)); }catch(e){ res(null); } }));
     Promise.all([one("buzzer-beep.wav"),one("buzzer-final.wav")])
@@ -9982,7 +9989,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=484;
+  const BUILD=485;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10020,6 +10027,7 @@ window.addEventListener("error",function(ev){
   // after the screen is powered off and on (build 483). It caches nothing, so
   // it never serves a stale build.
   if("serviceWorker" in navigator){ try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){} }
+  try{ loadBuzz(); }catch(e){}   // decode the countdown buzzers ahead of the first countdown
   applyAccent(); buildControlRoom(); build(); syncCoLogo();
   // THE PROJECTION URL IS A PICTURE, NOT A PAGE. #screen / #workout is the link a
   // TV opens, so it carries no chrome at all — no tabs, no sub-tabs, at any width.
