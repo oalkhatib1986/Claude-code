@@ -9829,7 +9829,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=473;
+  const BUILD=474;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -9984,6 +9984,19 @@ window.addEventListener("error",function(ev){
     const lo=new ResizeObserver(()=>{ const el=$("board"); if(!el) return;
       const w=Math.round(el.clientWidth); if(w===lw) return; lw=w; fitLaneCols(); });
     const bq=$("board"); if(bq) lo.observe(bq);
+    // THE BOARD RE-FITS WHEN ITS CONTAINER CHANGES WIDTH, not only on a window
+    // resize (build 474 — Omar's board stayed sized for a narrow moment). The
+    // `ro` above watches #tvFit, whose OWN box is the authored width fillTvBoard
+    // sets, so it never notices the CONTAINER (#viewBoard) growing or shrinking
+    // — e.g. DevTools docking/undocking, or a resize event the window missed.
+    // Watch #viewBoard's width and re-run the whole fit; guarded on WIDTH so the
+    // height fitScreen itself sets can't loop back in.
+    let vow=-1;
+    const vo=new ResizeObserver(()=>{ const v=$("viewBoard"); if(!v) return;
+      const w=Math.round(v.clientWidth); if(w===vow) return; vow=w;
+      const b=document.body;
+      if(b.classList.contains("bigscreen")&&!b.classList.contains("mobscreen")) fitScreen(); });
+    const vbEl=$("viewBoard"); if(vbEl) vo.observe(vbEl);
   }
   // FILL a box, don't fit inside it. A uniform scale can only ever match one axis, so
   // instead of shrinking the picture until it fits (and leaving bands on the other

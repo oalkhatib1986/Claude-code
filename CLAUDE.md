@@ -1929,6 +1929,18 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   in a wide screen" can be a HEIGHT problem — a board fitted to a short box
   goes narrow; match the grid's row/col shape to the box's aspect, don't just
   count columns by width.
+  BUILD 474 — the board RE-FITS ON ITS CONTAINER'S WIDTH, not only on a window
+  resize. Omar's diagnostic proved the board fills its container (`fitW===vbW`)
+  — the "black on the right" was the DevTools panel docked to the side (`iw`
+  503 while the outer window was 1280), and the risk was the board not
+  re-fitting the instant the container grew back (DevTools closing, or a resize
+  event the window missed). The existing `ro` observer watches `#tvFit`, whose
+  own box IS the authored width `fillTvBoard` sets, so it never notices the
+  CONTAINER changing. Added a ResizeObserver on `#viewBoard` that re-runs
+  `fitScreen()` when its width changes (guarded on width so the height
+  `fitScreen` sets can't loop). LESSON: to observe "the space I was given
+  changed", watch the CONTAINER, not the transform-scaled child whose layout
+  box you control.
   `tabcols.js` also pins the scaled desktop (1067 dpr1.5 → not
   tvprev, full board, fills width). LESSON: CSS px is physical ÷ dpr, so a
   small `clientWidth` can be a big scaled monitor — a "small screen" test must
