@@ -8283,14 +8283,24 @@ window.addEventListener("error",function(ev){
                                                 // rotation clock is shared
       const pn=performance.now();
       sessionActive=true; running=!!r.run; finished=!!r.fin;
-      holding=!!r.hold; paused=false; resultSaved=false;
       rot.round=r.round||0; rot.phase=r.phase||"run";
       rot.elapsed=r.elapsed||0; rot.remain=r.remain||0;
       if(r.restDur) rot.restDur=r.restDur;
       t0=pn-(sessNow()-r.t0e);
       if(r.rt0e) restT0=pn-(sessNow()-r.rt0e);
       resetBtn.disabled=false;
-      holdPend=holdBounds().filter(x=>x>((pn-t0)/1000)+0.05);
+      const hbs=holdBounds();
+      holdPend=hbs.filter(x=>x>((pn-t0)/1000)+0.05);
+      // A HOLD IS RE-DERIVED, NEVER BLINDLY TRUSTED (build 466 — Omar's Upper
+      // Body kept showing "Next part — press start" on a build that rests).
+      // A stale device (or a stale relay state) can publish hold:true at a
+      // boundary THIS build no longer holds at — e.g. a blockRest transition
+      // (build 464 made that an automatic rest, not a hold). Only honour the
+      // synced hold when this device's OWN holdBounds agrees there is a hold
+      // boundary at that elapsed; otherwise it is spurious, so resume the
+      // engine and let the block rest/transition correctly instead of freezing.
+      holding=!!r.hold && hbs.some(x=>Math.abs(x-(r.elapsed||0))<1.5);
+      paused=false; resultSaved=false;
       if(r.pau){ paused=true; pauseMark=pn; pauseUi(true); }
       else if(running&&!holding){
         startBtn.disabled=true;
@@ -9723,7 +9733,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=465;
+  const BUILD=466;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

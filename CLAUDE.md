@@ -823,6 +823,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   typing on. Only the rotation clock is shared; no relay link = standalone.
   `livesync.js` gates board-follow, same-second clocks, reset-follow, URL
   relay, and the standalone path.
+  A SYNCED HOLD IS RE-DERIVED, NEVER BLINDLY TRUSTED (build 466 — Omar's Upper
+  Body kept showing "Next part — press start" on a build that RESTS). `sessApply`
+  used to set `holding=!!r.hold` straight from the publish. A stale device — or
+  a stale relay state left behind by an OLDER build — can publish `hold:true` at
+  a boundary THIS build no longer holds at (a blockRest transition, build 464
+  made that an automatic rest). A follower then froze on the phantom hold even
+  though its OWN engine would rest. Now `holding = !!r.hold && holdBounds()
+  .some(x=>Math.abs(x-(r.elapsed||0))<1.5)` — the synced hold is honoured only
+  when THIS device's own holdBounds agrees there is a hold boundary there;
+  otherwise it is spurious and the engine resumes so the block rests/transitions.
+  A real `it.hold` boundary still syncs (holdBounds has it). LESSON: when "my
+  build is fixed but the trainer still sees it," suspect the ROOM — a follower
+  applying a stale publisher's state. `synchold.js` pins a spurious synced hold
+  being rejected by a follower whose board has no hold boundary.
 - **The AI's board is FILED like every other save (build 364).** `applyAiWorkout`
   goes through the name+date identity: the schema carries `workout.date`
   (the coach says "for 1 September" in chat), a taken name files as
