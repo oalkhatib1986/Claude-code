@@ -887,10 +887,20 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   minutes (`minTxt` — a naked "3:00" over a list read as a mystery number); the single repeated interval → "EVERY 2:30 FOR
   10 MINUTES". A SCHEME REPLACES THE FOOTER'S SHAPE, NEVER ITS FACTS (Omar
   caught the 2:00 between-block rest vanishing, build 354): the footer also
-  carried "then X rest" (rest-after-block), so a scheme block prints its own
-  slim `.win` "then 2:00 rest" line — when replacing a display element, list
-  everything it carried and re-home EVERY piece. Anything shapelier keeps the
-  footer — a scheme that lies is worse than none. "Group" is never printed. `wording.js` pins the whole grammar
+  carried "then X rest" (rest-after-block) — but the WALL already draws that
+  rest as the `.blkrest` divider standing between the part columns, so on the
+  wall the footer's copy was the SAME fact twice on one screen (build 476 —
+  Omar: "no need to say then rest, they can see it on the screen, it's just
+  extra text for no reason"). The `.winbr` span and its two CSS rules are GONE:
+  the footer ends at "N:NN total", the divider carries the between-block rest
+  (it shows under the exact same condition the winbr did — `restAfterBlock(bi)>0
+  && bi<blocks-1`), and a scheme block, which suppresses the whole `.win`, loses
+  nothing either — the divider stands regardless. The PDF brief keeps its own
+  "THEN REST · N:NN" (canvas, no divider element). `wording.js` already pinned
+  "no rest-after line rides inside a card" + "ONE Rest divider between the
+  parts"; that now holds for every card, not just scheme cards. Anything
+  shapelier than a scheme keeps the footer — a scheme that lies is worse than
+  none. "Group" is never printed. `wording.js` pins the whole grammar
   against Omar's slide, live NOW slab included. **`gallery.js` is the ship gate
   for ANY wall-wording or card-layout change**: it renders all 14 house boards
   + every 9th programme session on a 1920 wall and machine-checks each against
@@ -1960,6 +1970,30 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   when a threshold has two conditions and one keeps missing the user's case,
   the weaker condition is probably wrong — here `lw>=900` fought the very
   scaling that caused the bug.
+  BUILD 475 — THE PARTS ARE COLUMNS, NEVER ROWS (Omar, after 470-474 all
+  failed on his real screen: "it has to be 4 columns not rows! you already do
+  it in columns in the overview page! so why cant you just do it here too!",
+  then "it should NEVER stack into rows, it should ALWAYS be columns whether
+  1, 2, 3, 4, 5 or whatever"). This RETIRES the 470-473 aspect-from-box-shape
+  row count — do NOT reintroduce it. The whole 470-474 saga chased a fill
+  solver / `_fill` measurement I could never reproduce; the aspect formula
+  `rows=round(sqrt(n·K·ch/cw))` rounds to 4 rows / 1 column whenever the
+  measured box comes out portrait/narrow, which on Omar's 1280×720 (150%-
+  scaled) screen it did — a tall strip in the left half with the rest black,
+  in BOTH the Big Screen tab and tvfull. `fitBlockCols`' wall branch is now
+  simply `fit=n`: every part sits side by side in ONE row (bcols===parts),
+  exactly like the overview page's non-wall branch, and `fillTvBoard`'s
+  width-fill retry (`W*k<cw*0.97` re-solve) keeps them edge to edge at ANY
+  measured box shape — no measurement of the box, so no way for a mis-measured
+  box to collapse it. A board with more parts than the width can carry shrinks
+  the type (`fitBlockText`), it never wraps to a second row. Accepts vertical
+  floor when the row is short (centred via `dy`) — Omar chose columns-fill-
+  width over height-fill outright, three times. `tabcols.js` pins bcols===parts
+  + width-fill in tab/scaled/short-wide/tvfull. LESSON: when a fix keyed on a
+  measured value fails repeatedly on the user's machine and never in tests,
+  STOP measuring — count from data you already hold (the part count). And when
+  the user names the surface that already works ("you do it in the overview!"),
+  copy THAT code path instead of inventing a cleverer one.
 - **Full screen FILLS the screen, edge to edge.** `body.tvfull` drops the 1920x1080
   conceit entirely: `#viewBoard` is sized to the real viewport (turned on its side
   when the device is held upright) and `fillTvBoard()` picks the width the board is
