@@ -50,31 +50,33 @@ async function boot(br,voice,beepN){
 }
 (async()=>{
 const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
-// ---- default (3): two short buzzes then the final on the last second ----
-{ const {p}=await boot(br,true);
+// ---- DEFAULT is 5 (build 486 — Omar: "the default is 5 seconds always"):
+// four short buzzes then the final, with NO beepN set ----
+{ const {p}=await boot(br,true);   // no beepN -> default
   await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
   await p.waitForTimeout(300);   // let the two WAVs "decode"
   await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
   await p.evaluate(()=>window.__spoken.length=0);
-  await p.evaluate(()=>window.__seek&&window.__seek(16.2)); // ~3.8s left in Part A (dur 20)
-  await p.waitForTimeout(5000);
+  await p.evaluate(()=>window.__seek&&window.__seek(14.2)); // ~5.8s left in Part A (dur 20)
+  await p.waitForTimeout(6500);
   const said=await p.evaluate(()=>window.__spoken.slice());
-  ok(said.length===3,'buzzer on: sounds three times over the last three seconds ['+said.join(',')+']');
-  ok(said[0]==='beep'&&said[1]==='beep'&&said[2]==='fin',
-     'buzzer on: short buzz, short buzz, final buzz ['+said.join(',')+']');
+  ok(said.length===5,'default: sounds five times (default is 5s) ['+said.join(',')+']');
+  ok(said.slice(0,4).every(x=>x==='beep')&&said[4]==='fin',
+     'default: four short buzzes then the final ['+said.join(',')+']');
   await p.close(); }
-// ---- beepN=5: four short buzzes then the final ----
-{ const {p}=await boot(br,true,5);
+// ---- a smaller N (3): two short buzzes then the final; also no two within a
+// second (the min-gap guard against a rest boundary firing 5 and 4 at once) ----
+{ const {p}=await boot(br,true,3);
   await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
   await p.waitForTimeout(300);
   await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
   await p.evaluate(()=>window.__spoken.length=0);
-  await p.evaluate(()=>window.__seek&&window.__seek(14.2)); // ~5.8s left
-  await p.waitForTimeout(6500);
+  await p.evaluate(()=>window.__seek&&window.__seek(16.2)); // ~3.8s left
+  await p.waitForTimeout(5000);
   const said=await p.evaluate(()=>window.__spoken.slice());
-  ok(said.length===5,'beepN 5: five sounds ['+said.join(',')+']');
-  ok(said.slice(0,4).every(x=>x==='beep')&&said[4]==='fin',
-     'beepN 5: four short buzzes then the final ['+said.join(',')+']');
+  ok(said.length===3,'beepN 3: three sounds, none doubled ['+said.join(',')+']');
+  ok(said[0]==='beep'&&said[1]==='beep'&&said[2]==='fin',
+     'beepN 3: short, short, final ['+said.join(',')+']');
   await p.close(); }
 // ---- off: silence ----
 { const {p}=await boot(br,false);

@@ -3595,7 +3595,7 @@ window.addEventListener("error",function(ev){
   // (voicePrime) so they sit in memory and still sound if the wifi drops
   // mid-class; a countdown that fires before they finish loading simply kicks
   // the load and stays silent that once.
-  let voicePrev=null, AC=null, buzzBuf=null, buzzLoading=false;
+  let voicePrev=null, voiceLast=0, AC=null, buzzBuf=null, buzzLoading=false;
   // Decode the two WAVs AHEAD OF TIME so the FIRST of the last N seconds sounds,
   // not just the last two (build 485 — Omar: "it's only beeping on the last two
   // seconds"). An AudioContext can be created and decodeAudioData run while it
@@ -3615,24 +3615,37 @@ window.addEventListener("error",function(ev){
     if(AC.state==="suspended") AC.resume();
     loadBuzz();
   }catch(e){} }
+  // ONE BUZZ AT A TIME (build 486 — Omar: "in the 1:00 off it combines second
+  // 5 and 4"). The beep WAV rings ~0.87s, so two fired close together overlap
+  // and smear into one; cut the previous SHORT beep off before the next starts
+  // (never the final — it must ring out, Omar's spec). voiceSrc holds the live
+  // short beep.
+  let voiceSrc=null;
   function buzz(which){ try{
     const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
     AC=AC||new Ctx();
     if(AC.state==="suspended") AC.resume();
     if(!buzzBuf){ loadBuzz(); return; }
     const b=buzzBuf[which]; if(!b) return;
+    if(voiceSrc){ try{ voiceSrc.stop(); }catch(e){} voiceSrc=null; }
     const src=AC.createBufferSource(); src.buffer=b;
     src.connect(AC.destination); src.start();
+    if(which!=="fin"){ voiceSrc=src; try{ src.onended=()=>{ if(voiceSrc===src) voiceSrc=null; }; }catch(e){} }
   }catch(e){} }
   // called every clock frame with the current interval's remaining seconds; the
   // buzzer sounds each of the last N seconds (Layout > Countdown beeps): the
   // short buzz on seconds N..2 and the longer final buzz on the last second.
+  // A minimum 750ms gap guards against a rem discontinuity (a rest boundary)
+  // firing two seconds at once — a real countdown second is always ≥1s apart.
   function voiceCountdown(remain){
     if(!(cfg.display&&cfg.display.voice)){ voicePrev=null; return; }
-    const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||3));
+    const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
     const n=Math.ceil(remain);
     if(n!==voicePrev){
-      if(n>=1&&n<=N&&(voicePrev===null||n<voicePrev)) buzz(n===1?"fin":"beep");
+      if(n>=1&&n<=N&&(voicePrev===null||n<voicePrev)){
+        const t=(typeof performance!=="undefined"?performance.now():Date.now());
+        if(t-voiceLast>=750){ buzz(n===1?"fin":"beep"); voiceLast=t; }
+      }
       voicePrev=n;
     }
   }
@@ -9406,8 +9419,8 @@ window.addEventListener("error",function(ev){
     // the countdown-beep toggle changes no layout — just flips the flag
     document.querySelectorAll("#dispVoice input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
       c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save(); if(c.checked) voicePrime(); }; });
-    { const bn=$("beepN"); if(bn){ bn.value=String(Math.max(1,parseInt(cfg.display&&cfg.display.beepN,10)||3));
-      bn.onchange=()=>{ cfg.display.beepN=parseInt(bn.value,10)||3; save(); voicePrime(); }; } }
+    { const bn=$("beepN"); if(bn){ bn.value=String(Math.max(1,parseInt(cfg.display&&cfg.display.beepN,10)||5));
+      bn.onchange=()=>{ cfg.display.beepN=parseInt(bn.value,10)||5; save(); voicePrime(); }; } }
     // HIDE THE INTERVAL TIME IN A PART TITLE (build 477 — Omar: "4:00 ON / 1:00
     // OFF … then it says 4 minutes, which is repetitive; the 4 minutes is the
     // time set and 4:00 ON / 1:00 OFF is the title — a hide or show option?").
@@ -9989,7 +10002,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=485;
+  const BUILD=486;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
