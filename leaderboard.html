@@ -4255,16 +4255,16 @@ window.addEventListener("error",function(ev){
     // still fill the screen's height — four wide cards leave a band of empty floor.
     let fit=3;
     if(wall){
-      // an UPRIGHT FULL-SCREEN device (a phone / portrait TV) stacks one card
-      // per row so the tall board fills its tall screen — and it dodges the
-      // solver two-cycle (at the 1-col width the cards want 2, at the 2-col
-      // width they want 1). But the Big Screen TAB is ALWAYS inside a landscape
-      // desktop (this fill path only runs at >=1100px), so a portrait-SHAPED
-      // board box there must NOT collapse to one column — that left Omar's
-      // Engine in a tall left-hand strip with the rest of the wall black.
-      // Gate the collapse on tvfull; the tab keeps its columns.
+      // ONE COLUMN ONLY WHEN THE SCREEN IS GENUINELY NARROW — keyed on the
+      // board box's real WIDTH, never on aspect or tvfull. A tall single column
+      // draws narrow and (transformOrigin:top left) hugs the left, so on a wide
+      // screen it left Omar's Engine in a strip with the rest black. So: stack
+      // to one column only when the box cannot hold two side by side (a phone /
+      // narrow portrait screen, cw<900) AND it is upright; anything wider keeps
+      // its 2-3 columns and fills the width, whatever the aspect or mode.
       const f=$("tvFit"), fl=f&&f._fill;
-      if(fl&&fl[1]>fl[0]&&document.body.classList.contains("tvfull")) fit=1;
+      const cw=fl?fl[0]:0;
+      if(fl&&fl[1]>fl[0]&&cw>0&&cw<900) fit=1;
     } else { const gap=14, min=230;
       const w=el.clientWidth||el.getBoundingClientRect().width||0;
       fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
@@ -9823,7 +9823,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=471;
+  const BUILD=472;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10068,14 +10068,17 @@ window.addEventListener("error",function(ev){
     // Below TV width, don't squeeze the page — draw the board at its true TV size and
     // scale the frame, exactly like the erg tablet preview. The tabs stay full size.
     const full=big&&document.body.classList.contains("tvfull");
-    // THE PHONE PREVIEW IS FOR PHONES, NOT SCALED DESKTOPS (build 471 — Omar's
-    // big screen showed a mini board in the left with the rest black). At 150%
-    // Windows scaling a ~1600px laptop reports ~1067 CSS px, which fell under
-    // the 1100 "small screen" line and got the scaled-1920 TV-preview frame
-    // meant for phones. A real desktop (dpr>1.25 AND still >=900 CSS px wide)
-    // is NOT a phone — it takes the full big-screen board fill, columns and
-    // all. Genuine phones (narrow CSS px whatever the dpr) keep the preview.
-    const on=big&&!full&&lw<1100&&!(devicePixelRatio>1.25&&lw>=900);
+    // THE PHONE PREVIEW IS FOR PHONES, NOT SCALED DESKTOPS (builds 471-472 —
+    // Omar's big screen: a mini board in the left with the rest black). At 150%
+    // Windows scaling his 1920×1080 monitor reports 1280×720 CSS px, which fell
+    // under the 1100 "small screen" line and got the scaled-1920 TV-preview
+    // frame meant for phones. A scaled display (dpr>1.25) is a real monitor,
+    // never a phone — it always takes the full big-screen board fill (which
+    // scales to any width, 1 or more columns), never the preview frame. 471
+    // also gated this on lw>=900, but DevTools docked to the side dropped his
+    // width below 900 and the preview came back — the dpr signal alone is the
+    // right test. Genuine phones at dpr 1 keep the preview.
+    const on=big&&!full&&lw<1100&&!(devicePixelRatio>1.25);
     document.body.classList.toggle("tvprev",on);
     const stage=$("smStage"), view=$("viewBoard"), cap=$("smCap");
     w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin="";

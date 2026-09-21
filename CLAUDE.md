@@ -1911,11 +1911,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   a real desktop (dpr>1.25 AND still ≥900 CSS px) is not a phone and takes the
   full big-screen fill; genuine narrow screens keep the preview (or are
   `mobscreen` phone view), and 100%-scale desktops are untouched (dpr 1 fails
-  the exclusion). `tabcols.js` (9) adds the scaled desktop (1067 dpr1.5 → not
+  the exclusion). `tabcols.js` adds the scaled desktop (1067 dpr1.5 → not
   tvprev, full board, fills width). LESSON: CSS px is physical ÷ dpr, so a
   small `clientWidth` can be a big scaled monitor — a "small screen" test must
   consider dpr, and a bug that only appears at non-100% scaling will NEVER
   reproduce at the default dpr 1 (get the user's dpr early next time).
+  BUILD 472 — the 471 exclusion ALSO required `lw>=900`, but Omar's monitor is
+  1920×1080 at 150% = only 1280×720 CSS, and with DevTools docked to the side
+  his width dropped to ~508, back under 900, so the preview returned. The dpr
+  signal ALONE is right: `!(devicePixelRatio>1.25)` — a scaled display never
+  previews, at any width (narrow scaled widths land on `mobscreen` phone view,
+  which is clean, not the tiny-left frame). AND the wall column rule is now
+  WIDTH-BASED, not aspect-or-tvfull: one column only when the board box is
+  upright AND `cw<900` (a phone / narrow portrait that truly can't hold two);
+  anything wider keeps 2-3 columns and fills, in the tab AND tvfull. Verified
+  at his real 1280×720 (2-col, fills), his DevTools 523 (clean phone view),
+  and tvfull TV 2×2 / portrait phone 1-col / landscape phone 2-col. LESSON:
+  when a threshold has two conditions and one keeps missing the user's case,
+  the weaker condition is probably wrong — here `lw>=900` fought the very
+  scaling that caused the bug.
 - **Full screen FILLS the screen, edge to edge.** `body.tvfull` drops the 1920x1080
   conceit entirely: `#viewBoard` is sized to the real viewport (turned on its side
   when the device is held upright) and `fillTvBoard()` picks the width the board is
