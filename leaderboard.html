@@ -537,8 +537,13 @@
     border-top:2px solid rgba(255,255,255,.14)}
   .tk-nxt>span{font-family:var(--disp);font-weight:600;font-size:clamp(11px,2.8vw,18px);letter-spacing:.2em;
     text-transform:uppercase;color:rgba(255,255,255,.5)}
-  .tk-nxt>b{font-family:var(--disp);font-weight:700;font-size:clamp(18px,4.8vw,32px);line-height:1.08;
-    letter-spacing:.03em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* The next exercise WRAPS and the box grows to fit it (build 482 — Omar:
+     "I don't like the …; that box can resize vertically, the timer has a lot
+     of space"). One line when short (the default), up to 3 lines when long,
+     ellipsis only past that so a runaway name can never overflow the card. */
+  .tk-nxt>b{font-family:var(--disp);font-weight:700;font-size:clamp(18px,4.8vw,32px);line-height:1.12;
+    letter-spacing:.03em;text-transform:uppercase;overflow:hidden;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3}
   .tk-nxt>em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,22px);
     letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -5106,13 +5111,28 @@ window.addEventListener("error",function(ev){
       document.body.classList.remove("tbfull");
       try{ if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
       fitTablet(); }; }
-  // any tap while full brings the × back for a moment, then it goes again
+  // any tap while full brings the × back for a moment; and if real full screen
+  // was lost while still LOCKED (screen off/on drops it), re-acquire it on this
+  // gesture so the Android bars hide again.
+  let tbFullReacq=false;
   ["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,()=>{
-    if(document.body.classList.contains("tbfull")) tbFullPoke(); },{passive:true}));
-  // if the device leaves full screen on its own (system gesture), drop the class
+    if(!document.body.classList.contains("tbfull")) return;
+    tbFullPoke();
+    if(tbFullReacq&&!document.fullscreenElement){ tbFullReacq=false;
+      const el=document.documentElement; try{ if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); }catch(e){} }
+  },{passive:true}));
+  // LEAVING REAL FULL SCREEN MUST NOT UNLOCK THE TABLET (build 482 — Omar:
+  // "click the on/off button and switch it on again, it exits full screen
+  // WITHOUT the code"). Turning the screen off drops the browser's full screen;
+  // dropping the app lock with it let a class member out without the code. When
+  // an exit code is set we STAY in the full-screen lock (the code-gated × is
+  // still the only way out) and re-acquire real full screen on the next tap.
+  // With no code set, a system exit drops the mode as before.
   document.addEventListener("fullscreenchange",()=>{
-    if(!document.fullscreenElement&&document.body.classList.contains("tbfull")){
-      document.body.classList.remove("tbfull"); fitTablet(); } });
+    if(document.fullscreenElement||!document.body.classList.contains("tbfull")) return;
+    let pin=""; try{ pin=(localStorage.getItem(KPIN)||"").trim(); }catch(e){}
+    if(pin){ tbFullReacq=true; fitTablet(); }
+    else { document.body.classList.remove("tbfull"); fitTablet(); } });
   [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
@@ -7771,7 +7791,15 @@ window.addEventListener("error",function(ev){
     const keep=structuredClone(cfg.crews||[]);
     cfg=structuredClone(p.cfg); cfg.wkName=p.name;
     if(keep.length) cfg.crews=keep;               // the roster is the room, not the board
-    migrateLoaded(); stampSeed(p); save(); applyAccent();
+    migrateLoaded();
+    // A PICKED WORKOUT ALWAYS FITS THE GYM (build 482 — Omar: "whenever I select
+    // a workout it should always load to fit the gym automatically"). Turn on
+    // auto-fit and drop any typed attendance, exactly like tapping "Fit the gym"
+    // in the picker; syncTeamCount()/applyGymFit() then size the roster to the
+    // equipment (gymFit() returns 0 for a board with no gym-fittable stations,
+    // and applyGymFit no-ops, so such a board simply keeps its count).
+    cfg.autoCrews=true; delete cfg.attend;
+    stampSeed(p); save(); applyAccent();
     if(setupSnap!=null) setupSnap=JSON.stringify(cfg);   // a pick is a fact, not a pending edit
     buildControlRoom(); if(!running&&!sessionActive) build();
     return true;
@@ -9947,7 +9975,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=481;
+  const BUILD=482;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
