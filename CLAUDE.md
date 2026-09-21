@@ -625,6 +625,61 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   the same on ALL pages); only the bottom goes, and the frame scales to what is
   left. The back bar carries NO side padding: its button's left edge lines up with
   the frame below it.
+- **THE BOLTED TABLET IS A LOCKED, BAR-FREE KIOSK (builds 479-483, Omar's real
+  gym setup).** Four independent pieces, each solving a distinct leak:
+  - **True full screen (479).** The tablet's `#tbFull` calls
+    `document.documentElement.requestFullscreen()` (not just a CSS class), so
+    Android hides its status bar and dock. The exit control is a small round
+    `#tbFullX` × that fades in on a tap and hides itself (`tbFullPoke`, ~2.6s)
+    so it never sits on the erg name; the old "× Exit full screen" pill is gone.
+  - **Black frame (480).** `body.kioskon .tb-device`/`.tb-screen` are `#000`
+    (were `#fff` from the pre-376 light-card era, which peeked as a white border
+    at the edges); `body.tbfull #tbStage` radius is 0. Edge to edge.
+  - **Exit code (480-481).** `cfg`-FREE, this-device-only `localStorage` key
+    `af_kiosk_pin` (KPIN; a kiosk lock is physical, never synced). Set in Setup >
+    Board display · Brand > "Erg tablet exit code" (digits, blank = no lock).
+    In full screen the × is the ONLY control, so a code on it locks the tablet
+    to the workout. Entry is the app's own on-screen NUMPAD (`askExitPin`, reuses
+    `.tks-pad`), NEVER a text field — a bolted tablet's OS keyboard does not
+    reliably appear on a focused input (Omar: "the keyboard should load unless I
+    click inside the box").
+  - **Leaving full screen must not unlock (482).** Screen off/on drops the
+    browser's fullscreen and fired `fullscreenchange`, which used to drop the
+    `tbfull` lock too — a code-free way out. Now, when a code is set, the lock
+    STAYS and real fullscreen is re-acquired on the next tap (`tbFullReacq`); no
+    code = old behavior (system exit drops the mode).
+  - **Bar-free install (483) — THE PROPER FIX for "browser bars after power
+    off/on".** A plain browser can't silently re-hide its chrome after a manual
+    screen-off (needs a user gesture — a security rule), so the answer is to run
+    the app as an INSTALLED home-screen app (WebAPK), which has no browser chrome
+    at all and survives sleep/power-off. `manifest.webmanifest`
+    (`display_override:["fullscreen"]`) + `icon-192/512.png` already existed, but
+    Android Chrome only builds a WebAPK when the site also has a SERVICE WORKER —
+    without one, "Add to Home screen" makes a plain shortcut that opens in Chrome
+    WITH bars. `sw.js` is a minimal NETWORK-ONLY worker (caches NOTHING, so it
+    never serves a stale build or fights `checkUpdate`), registered at boot.
+    Setup: install to the home screen, launch from THAT icon. LESSON: PWA
+    install on Android needs manifest + icons + HTTPS + a service worker with a
+    fetch handler; the manifest alone is a shortcut, not an app.
+  - **Getting the gym link onto a new device (478).** Every device joins the
+    shared library + live clock through the relay link (`af_ai_url`); it lands
+    only via `?relay=`/`?r=` or paste, and was HIDDEN once saved, so a working
+    device could not surface it to copy onto a tablet. The Build-with-AI setup
+    box now always shows with the saved link pre-filled + a Copy button; Save
+    kicks `libSync` at once. Paste it once per device (phone, laptop, tablet).
+- **A PICKED WORKOUT ALWAYS FITS THE GYM (build 482 — Omar: "whenever I select
+  a workout it should always load to fit the gym automatically").** `loadLib`
+  sets `cfg.autoCrews=true` and drops `cfg.attend` after `migrateLoaded`, so
+  `syncTeamCount`/`applyGymFit` size the roster to the equipment on every pick —
+  the manual "Fit the gym" tap is no longer needed. `gymFit()` returns 0 for a
+  board with no fittable stations, and `applyGymFit` no-ops, so those keep their
+  count. This overrides the old autoCrews-false-by-default habit for PICKED
+  boards (a hand-typed attendance still turns autoCrews off, as before).
+- **THE NEXT BOX ON THE TABLET WRAPS TO FIT (build 482 — Omar: "I don't like
+  the …, that box can resize vertically, the timer has space").** `.tk-nxt>b`
+  is a `-webkit-line-clamp:3` box, not one-line ellipsis: one line when short,
+  up to 3 when long (the box grows and the flexible clock cell yields the
+  space), ellipsis only past 3 so a runaway name can never overflow the card.
 - **The logo is one asset in two forms, and the cfg picks.** The white wordmark
   ships in the header markup (the default everywhere); `LOGO_BADGE` is the square
   A3 mark; Layout > Brand radios set `cfg.display.logo` ("word"|"badge"),
