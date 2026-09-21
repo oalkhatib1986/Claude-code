@@ -4255,22 +4255,20 @@ window.addEventListener("error",function(ev){
     // still fill the screen's height — four wide cards leave a band of empty floor.
     let fit=3;
     if(wall){
-      // MATCH THE GRID SHAPE TO THE SCREEN SHAPE, so the board FILLS both ways.
-      // fillTvBoard scales the whole board to fit the box preserving aspect, so
-      // a board taller than the box (2 rows in a short window) gets scaled down
-      // to the height and ends up narrow, hugging the left (transformOrigin:top
-      // left) with the rest black — Omar's Engine on a 1280x720 (150%-scaled)
-      // window. The cure is the ROW COUNT: pick rows so the board's own aspect
-      // (cols*cardW)/(rows*cardH) tracks the box's cw/ch. A wide-short box wants
-      // fewer rows (more columns), a tall box more rows (fewer columns). K≈1.8
-      // (a card's authored w/h) makes a 16:9 screen land on 2 rows for 4 parts
-      // (the 2x2 it always was). Keyed on _fill, which is constant through the
-      // fill solve, so no two-cycle.
-      const f=$("tvFit"), fl=f&&f._fill;
-      if(fl&&fl[0]>0&&fl[1]>0){
-        const K=1.8, rows=Math.max(1,Math.min(n,Math.round(Math.sqrt(n*K*fl[1]/fl[0]))));
-        fit=Math.ceil(n/rows);
-      }
+      // THE PARTS ARE COLUMNS, NEVER ROWS (build 475 — Omar, over and over:
+      // "it has to be 4 columns not rows! you already do it in columns in the
+      // overview page!", "it should NEVER stack into rows, it should ALWAYS be
+      // columns whether 1, 2, 3, 4, 5 or whatever"). The wall lays every part
+      // side by side in ONE row, exactly like the overview, and fillTvBoard's
+      // width-fill retry keeps them edge to edge. This RETIRES the 470-473
+      // aspect-from-box-shape row count: on Omar's 1280x720 (150%-scaled)
+      // screen the measured box came out portrait/narrow and the formula
+      // rounded to 4 rows / 1 column — a tall strip in the left half with the
+      // rest black. Counting from the part count alone cannot do that, in the
+      // tab OR tvfull, at any measured box. A board with more parts than the
+      // width can carry at a readable size shrinks the type (fitBlockText),
+      // it does not wrap to a second row — that is Omar's explicit choice.
+      fit=n;
     } else { const gap=14, min=230;
       const w=el.clientWidth||el.getBoundingClientRect().width||0;
       fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
@@ -9829,7 +9827,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=474;
+  const BUILD=475;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

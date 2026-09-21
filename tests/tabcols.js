@@ -1,11 +1,12 @@
-// THE BIG SCREEN TAB KEEPS ITS COLUMNS (build 470 — Omar's Engine showed as a
-// tall one-column strip in the left half of the wall, rest black). The
-// aspect-collapse-to-1-column rule is for a genuinely upright FULL-SCREEN
-// device (a phone / portrait TV) so its tall board fills a tall screen. The
-// Big Screen TAB is always inside a landscape desktop (its fill path only runs
-// at >=1100px), so a portrait-SHAPED board box there must NOT collapse — it
-// keeps 2+ columns and fills the width. tvfull on a real portrait phone still
-// stacks to 1. This suite drives both and pins the split.
+// THE PARTS ARE COLUMNS, NEVER ROWS (build 475 — Omar: "it has to be 4 columns
+// not rows! you already do it in columns in the overview page!", "it should
+// NEVER stack into rows, it should ALWAYS be columns whether 1, 2, 3, 4, 5 or
+// whatever"). This RETIRES the 470-473 aspect-from-box-shape row count, which
+// on Omar's 1280x720 (150%-scaled) screen rounded to 4 rows / 1 column — a tall
+// strip in the left half with the rest black — in BOTH the Big Screen tab and
+// tvfull. The wall now lays every part side by side in ONE row (bcols === parts)
+// and fillTvBoard's width-fill retry keeps them edge to edge, at every measured
+// box shape. This suite pins: columns == parts, one row, filling the width.
 const {chromium}=require('playwright');
 let pass=0,fail=0;
 const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
@@ -76,16 +77,20 @@ for(const [W,H,tag] of [[1280,500,'short'],[1280,420,'very short']]){
   ok(!i.tvprev&&i.drawnW>=i.vw*0.8,'short-wide '+tag+' ('+W+'x'+H+' @1.5): board fills the width, not a left strip [drawn '+i.drawnW+'/'+i.vw+']');
   await p.close(); await ctx.close();
 }
-// ---- tvfull on a real portrait phone: still stacks to 1 (coverage) ----
-{ const p=await br.newPage({viewport:{width:500,height:900}});
-  p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(full phone):',e.message);});
+// ---- tvfull, every part is a COLUMN filling the width, never stacked rows.
+// 4 parts -> 4 columns in ONE row, whatever the box shape (build 475). ----
+for(const [W,H,tag] of [[1600,900,'landscape TV'],[1280,600,'short-wide']]){
+  const ctx=await br.newContext({viewport:{width:W,height:H},deviceScaleFactor:1});
+  const p=await ctx.newPage();
+  p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(tvfull '+tag+'):',e.message);});
   await load(p);
   await p.goto(F+'#workout'); await p.reload(); await p.waitForTimeout(1300);
   await p.evaluate(()=>{document.body.classList.add('tvfull');dispatchEvent(new Event('resize'));});
-  await p.waitForTimeout(1200);
+  await p.waitForTimeout(1300);
   const i=await read(p);
-  ok(i.bcols===1,'tvfull portrait phone: still stacks to 1 column [bcols '+i.bcols+']');
-  await p.close(); }
+  ok(i.bcols===4,'tvfull '+tag+' ('+W+'x'+H+'): 4 parts -> 4 columns, one row, no 1-col strip [bcols '+i.bcols+']');
+  ok(i.drawnW>=i.vw*0.8,'tvfull '+tag+': board fills the width [drawn '+i.drawnW+'/'+i.vw+']');
+  await p.close(); await ctx.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
