@@ -67,6 +67,19 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   ok(said.slice(0,4).every(x=>x==='beep')&&said[4]==='fin',
      'default: four short buzzes then the final ['+said.join(',')+']');
   await p.close(); }
+// ---- entering the window PAST the 5-mark still fires all five (build 488 —
+// Omar: "sometimes it starts at 4 not 5"): a seek that lands at ~4.4s left
+// still schedules the 5 (fired a touch late) so the count stays 5 ----
+{ const {p}=await boot(br,true);
+  await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
+  await p.waitForTimeout(300);
+  await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
+  await p.evaluate(()=>window.__spoken.length=0);
+  await p.evaluate(()=>window.__seek&&window.__seek(15.6)); // ~4.4s left — past the 5-mark
+  await p.waitForTimeout(5500);
+  const said=await p.evaluate(()=>window.__spoken.slice());
+  ok(said.length===5&&said[4]==='fin','late entry (~4.4s left): still all five, 5 not dropped ['+said.join(',')+']');
+  await p.close(); }
 // ---- a smaller N (3): two short buzzes then the final; also no two within a
 // second (the min-gap guard against a rest boundary firing 5 and 4 at once) ----
 { const {p}=await boot(br,true,3);

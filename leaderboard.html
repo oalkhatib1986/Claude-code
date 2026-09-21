@@ -3595,7 +3595,7 @@ window.addEventListener("error",function(ev){
   // (voicePrime) so they sit in memory and still sound if the wifi drops
   // mid-class; a countdown that fires before they finish loading simply kicks
   // the load and stays silent that once.
-  let AC=null, buzzBuf=null, buzzLoading=false, voiceEnd=-1, voiceNodes=[];
+  let AC=null, buzzBuf=null, buzzLoading=false, voiceNodes=[], voiceArmed=false, voiceRemPrev=0;
   // Decode the two WAVs AHEAD OF TIME so every one of the last N seconds sounds.
   // An AudioContext can be created and decodeAudioData run while it is still
   // suspended (no gesture needed to DECODE — only to PLAY), so this is safe at
@@ -3615,26 +3615,32 @@ window.addEventListener("error",function(ev){
     loadBuzz();
   }catch(e){} }
   // cancel any beeps scheduled but not yet played (pause / seek / reset / new
-  // interval), so a stale countdown never fires late over the wrong window
-  function clearVoice(){ voiceNodes.forEach(s=>{ try{ s.stop(); }catch(e){} }); voiceNodes=[]; voiceEnd=-1; }
-  // THE BEEPS ARE PRE-SCHEDULED ON THE AUDIO CLOCK, NOT FIRED PER FRAME (build
-  // 487 — Omar: "it gets confused at 5 and misses a beep"). Driving the buzz off
-  // the rendered clock meant a dropped frame skipped a second (the 5) and it was
-  // lost, or a clock jitter fired two at once. Now, the first time the interval
-  // comes within the window, all N beeps are scheduled at their EXACT audio-clock
-  // times (endAt - k), sample-accurate and immune to frame drops — exactly like
-  // Omar's own timer. Scheduled once per interval (endAt is stable as it counts
-  // down); a new interval (endAt jumps) reschedules; pause/seek/reset clear.
+  // interval) and disarm, so a stale countdown never fires over the wrong window
+  function clearVoice(){ voiceNodes.forEach(s=>{ try{ s.stop(); }catch(e){} }); voiceNodes=[]; voiceArmed=false; }
+  // THE BEEPS ARE PRE-SCHEDULED ON THE AUDIO CLOCK, NOT FIRED PER FRAME (builds
+  // 487-488 — Omar: "it gets confused at 5 and misses a beep", "sometimes it
+  // starts at 4 not 5"). Driving the buzz off the rendered clock meant a dropped
+  // frame skipped a second and it was lost. Now, the FIRST frame the interval
+  // comes within the window ARMS the countdown and schedules ALL N beeps at
+  // their exact audio-clock times (endAt - k) — sample-accurate, immune to frame
+  // drops. It arms EARLY (N+2.5s out) so a stall near the 5-mark can't beat the
+  // scheduling, and it NEVER re-schedules mid-descent (a live-sync clock nudge
+  // used to cross a drift threshold, wipe the pending 5 and re-arm at 4). It
+  // re-arms only when a NEW interval begins — remain jumps UP by >1s — and
+  // pause/seek/reset clear+disarm it.
   function voiceCountdown(remain){
-    if(!(cfg.display&&cfg.display.voice)){ if(voiceEnd>=0) clearVoice(); return; }
-    if(!AC||!buzzBuf||!(remain>0)){ if(!buzzBuf) loadBuzz(); return; }
+    const on=!!(cfg.display&&cfg.display.voice);
+    if(!on){ if(voiceArmed) clearVoice(); voiceRemPrev=remain>0?remain:0; return; }
+    if(!AC||!buzzBuf){ if(!buzzBuf) loadBuzz(); voiceRemPrev=remain>0?remain:0; return; }
+    if(remain>voiceRemPrev+1){ clearVoice(); }   // a new interval — re-arm
+    voiceRemPrev=remain>0?remain:0;
+    if(!(remain>0)||voiceArmed) return;
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
+    if(remain>N+2.5) return;                       // not near the end yet
+    voiceArmed=true;
     const now=AC.currentTime, endAt=now+remain;
-    if(remain>N+1.2) return;                 // not near the end yet
-    if(Math.abs(endAt-voiceEnd)<=0.6) return; // already scheduled for this interval
-    clearVoice(); voiceEnd=endAt;
     if(AC.state==="suspended"){ try{ AC.resume(); }catch(e){} }
-    for(let k=Math.min(N,Math.round(remain)); k>=1; k--){
+    for(let k=Math.min(N,Math.ceil(remain-0.05)); k>=1; k--){
       const at=Math.max(now, endAt-k);
       const b=buzzBuf[k===1?"fin":"beep"]; if(!b) continue;
       const src=AC.createBufferSource(); src.buffer=b;
@@ -9999,7 +10005,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=487;
+  const BUILD=488;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
