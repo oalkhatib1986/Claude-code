@@ -29,6 +29,7 @@ for(const name of boards){
   await p.evaluate(n=>window.__loadLib(n),name);
   await p.waitForTimeout(500);
   await p.click('#tabTrainer'); await p.waitForTimeout(250);
+  await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: fuzz the block clock, not the get-ready count-in
   await p.evaluate(()=>{ const b=document.getElementById('startBtn'); if(!b.disabled) b.click(); });
   await p.waitForTimeout(700);
   let bad='';
@@ -51,6 +52,7 @@ for(const name of boards){
 // ---------- B. minute-by-minute fuzz of the whole Engine class ----------
 await p.evaluate(()=>window.__loadLib('Tuesday Engine')); await p.waitForTimeout(500);
 await p.click('#tabTrainer'); await p.waitForTimeout(250);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: fuzz the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(800);
 await p.click('#tabBoard'); await p.waitForTimeout(500);
@@ -84,6 +86,7 @@ await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'))
   localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
 await p.reload(); await p.waitForTimeout(1400);
 await p.click('#tabTrainer'); await p.waitForTimeout(300);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: fuzz the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1000);
 await p.evaluate(()=>window.__seek(23)); await p.waitForTimeout(2500);
@@ -98,6 +101,7 @@ await p.evaluate(()=>window.__seek(23)); await p.waitForTimeout(2500);
 await boot();   // a fresh boot: section C left a FINISHED session behind
 await p.evaluate(()=>window.__loadLib('Tuesday Engine')); await p.waitForTimeout(500);
 await p.click('#tabTrainer'); await p.waitForTimeout(300);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: fuzz the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(900);
 await p.evaluate(()=>window.__seek(130)); await p.waitForTimeout(400);
@@ -202,6 +206,7 @@ for(let i=0;i<5;i++){
 await boot();
 await p.evaluate(()=>window.__loadLib('Tuesday Engine')); await p.waitForTimeout(500);
 await p.click('#tabTrainer'); await p.waitForTimeout(300);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: fuzz the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(900);
 await p.reload(); await p.waitForTimeout(1600);
@@ -213,6 +218,7 @@ await p.reload(); await p.waitForTimeout(1600);
 
 // ---------- J. the tablet mid-session ----------
 await p.click('#tabTrainer'); await p.waitForTimeout(300);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: fuzz the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(900);
 await p.click('#tabTablet'); await p.waitForTimeout(900);

@@ -21,6 +21,7 @@ const seed=async(extra)=>{ await p.evaluate(x=>{
     const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
     Object.assign(cfg,{name:'Score Test',wkName:null,mode:'rotation',teamKind:'solo',
       together:true,noScore:false,scoreSrc:'manual'},x||{});
+    cfg.display=Object.assign(cfg.display||{},{ready:0});  // no get-ready count-in — this suite times scored sections
     cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:0,blocks:[
       {name:'Part A',rounds:1,items:[
         {dur:60,scored:true,metric:'calories',exercises:[{name:'Row',amounts:[],unit:'cal',max:true}]},

@@ -1409,6 +1409,56 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   earlier speech mock had to use `defineProperty` because `speechSynthesis` is
   a read-only accessor; `AudioContext` assigns fine. `voice.js` (3) pins the
   three rising beeps in order, once each, and silence when the toggle is off.
+- **THE BEEP IS OMAR'S OWN BUZZER, AND THE FINAL ONE RINGS OUT (builds 484-489
+  — he designed and rendered the sound in a Claude chat and sent two WAVs).**
+  The 469 sine tones are replaced by two files in the repo root:
+  `buzzer-beep.wav` (short run-up buzz) and `buzzer-final.wav` (the longer last-
+  second "go"). `loadBuzz()` fetches + `decodeAudioData`s both ONCE at boot
+  (decode works while the context is suspended) into `buzzBuf={beep,fin}`;
+  `voicePrime()` resumes `AC` on the first gesture and calls `loadBuzz()`.
+  `voiceCountdown(remain)` PRE-SCHEDULES the whole descent on the AUDIO clock the
+  instant the interval enters the last `beepN+2.5`s (`voiceArmed`, armed ONCE):
+  for k=N..1 it `src.start(endAt-k)` — the short buzz on N..2, the final buzz on
+  k===1. Scheduling on the audio clock (not per-frame) is why a dropped frame no
+  longer skips a second (487), and arming ONCE and NEVER rescheduling mid-descent
+  is why a live-sync clock nudge no longer wipes a scheduled beep (488). Boot
+  preload (not lazy-on-gesture) fixed "only the last two seconds" (485); a
+  new-interval re-arm DROPS the node references WITHOUT calling `stop()` so the
+  still-ringing final buzz is never cut — only `pause`/`seek`/`reset` call
+  `clearVoice()` (that regression, 489: "the last beep is identical to all the
+  others!"). Default `beepN` is 5 (Omar: "the default is 5 seconds always").
+  `voice.js` (8) pins default-5, late-entry-still-fires-5, beepN 3, the final
+  buzz ringing out across a boundary (never stopped), and off. The mock records
+  each buffer source's tag on `start` and `stop`.
+- **GET READY — A COUNT-IN BEFORE THE CLOCK (build 490 — Omar: "when the trainer
+  starts the workout, and whenever he needs to start the next block or part,
+  before the workout time starts, I'd like a 10 second countdown so people just
+  get ready… it also has to have a beep at 5 seconds, and we can change the 10
+  seconds to whatever we like and the beep at which second to whatever we
+  like").** Approved: manual starts by default, an opt-in toggle for automatic
+  block transitions, the beep SHARED with Countdown beeps. It is modelled as a
+  LABELLED REST, never a new phase — it inherits the rest clock, the live sync
+  and `voiceCountdown` for free. `cfg.display.ready` = length (Layout > Board
+  display > Get ready countdown, options off/5/10/15/20/30, default 10 via
+  `readySecs()` `v==null?10` — stored absent = 10, no migration, and 0 = off);
+  `cfg.display.readyAuto` = also before automatic block starts (default off).
+  `beginReady(act)` sets `rot.phase="rest"; rot.getReady=true; rot.readyAct=act`
+  (`"block"`|`"resume"`), `rot.restDur=secs`, `clearVoice()`, runs `frameRest`,
+  and returns true so the caller stops; `readyFire()` at 0 does the act
+  (`startBlock()` or resume the held part). Triggers: `start()`'s initial/pre
+  path and the Control round-row clicks call `if(beginReady("block")) return;`
+  before `startBlock()`; the hold-release path calls `beginReady("resume")`;
+  `frameRest`'s at-0 arm inserts one on an automatic transition ONLY when
+  `readyAuto` (else `startBlock()` straight, the 464 auto-flow). EVERY surface
+  says "Get ready", never "Rest": the wall `clockLab` + `syncRotChrome`'s rest
+  branch (no "rest & rotate", nothing to skip "early"), both tablet screens
+  (screen-1 `fGR`, screen-2 the `phase==="rest"&&rot.getReady` branch — tag/head
+  "Get ready", clock label "Starts in", the next box says "Starting <machine>").
+  It rides the sess publish as `s.run.gr`/`grAct` and `sessApply` sets
+  `rot.getReady`/`rot.readyAct` so a follower shows the count-in and fires the
+  right transition at 0. `getready.js` (11) pins default-10, the "Get ready"
+  label, the block running after the count-in, off-skips-it, a custom 5s, and
+  readyAuto off/on at a blockRest. `window.__ready()` is the suite hook.
 - **THE PICKER IS SORTED BY DATE, NEWEST FIRST (build 469 — Omar: "shouldn't
   these be sorted by date! common sense").** The saved-workout picker
   (`buildPresetSel`'s `menuField` getOpts) listed the trainer's boards in

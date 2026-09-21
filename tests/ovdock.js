@@ -81,6 +81,7 @@ await p.press('#ovPick .msearch','Enter'); await p.waitForTimeout(600);
   const lab2=await p.evaluate(()=>document.querySelector('#tcPick .mfield').textContent);
   ok(/23 athletes/.test(lab2),'Control\'s picker agrees — one number, two places'); }
 // 4) start from the strip — transport row appears, picker makes way
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: test the transport, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('ovStart').click());
 await p.waitForTimeout(900);
 ok(await p.evaluate(()=>document.getElementById('ovCtl').classList.contains('run')),

@@ -56,6 +56,7 @@ for(const board of ['Tuesday Engine','Send It Saturday']){
 // ---------- 2. a running class driven through its states ----------
 await loadCase('Tuesday Engine',40,'solo',false);
 await p.click('#tabTrainer'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1500);
 await p.click('#tabBoard'); await p.waitForTimeout(700);
@@ -107,6 +108,7 @@ await p.waitForTimeout(800);
 // ---------- 3. a scored board: leaderboard + SCORE state ----------
 await loadCase('Send It Saturday',8,'teams',false,true);
 await p.click('#tabTrainer'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1500);
 await p.evaluate(()=>window.__seek(990)); await p.waitForTimeout(900);

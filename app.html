@@ -2294,6 +2294,18 @@
                 seconds out</label>
             </div>
           </div>
+          <div class="fld"><label>Get ready countdown</label>
+            <div class="checks" id="dispReady">
+              <label class="chk chksel">before you start a block, count down
+                <select id="readyN">
+                  <option value="0">off</option>
+                  <option value="5">5</option><option value="10">10</option>
+                  <option value="15">15</option><option value="20">20</option><option value="30">30</option>
+                </select>
+                seconds</label>
+              <label class="chk"><input type="checkbox" data-d="readyAuto"> Also before automatic block starts</label>
+            </div>
+          </div>
           <div class="fld"><label>Part titles</label>
             <div class="checks" id="dispTitle">
               <label class="chk"><input type="checkbox" data-d="hideTime"> Hide the interval time when the title already says it</label>
@@ -3564,11 +3576,20 @@ window.addEventListener("error",function(ev){
       clockEl.textContent=fmtMS(curRoundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="rest"){
       $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
-      startBtn.disabled=false; startBtn.textContent=`Start ${nextTag()} early`;
-      clockState.textContent="Rest & rotate";
       $("phaseBanner").classList.remove("scoring");
-      $("phaseLabel").textContent=`Rest & rotate — ${nextTag()} next`;
-      $("phaseDesc").textContent="Move to your next station · the clock counts down the rest";
+      if(rot.getReady){
+        // GET READY count-in (build 490): a labelled rest before the block — no
+        // "rest & rotate" wording, nothing to skip to "early"
+        startBtn.disabled=true; startBtn.textContent="Get ready…";
+        clockState.textContent="Get ready";
+        $("phaseLabel").textContent=`Get ready — ${nextTag()} starting`;
+        $("phaseDesc").textContent="Get to your station · the block starts when the countdown ends";
+      } else {
+        startBtn.disabled=false; startBtn.textContent=`Start ${nextTag()} early`;
+        clockState.textContent="Rest & rotate";
+        $("phaseLabel").textContent=`Rest & rotate — ${nextTag()} next`;
+        $("phaseDesc").textContent="Move to your next station · the clock counts down the rest";
+      }
     } else if(rot.phase==="done"){
       $("phaseBanner").hidden=false; clockEl.parentElement.hidden=true;
       startBtn.disabled=true; startBtn.textContent="Session complete";
@@ -3663,14 +3684,20 @@ window.addEventListener("error",function(ev){
     // start"). The rest counts down here; when it ends the next block just
     // begins. A press-start wait is only for blockRest 0/omitted (the plain
     // "pre" path at block end) or an it.hold boundary (holdPend).
-    if(remain<=0){ startBlock(); sessPushNow(); return; }
+    if(remain<=0){
+      if(rot.getReady){ readyFire(); }
+      // an automatic block start gets a get-ready too, but only when the trainer
+      // opted in (build 490); otherwise it just begins, as before (464)
+      else if(cfg.display&&cfg.display.readyAuto&&beginReady("block")){ /* took over */ }
+      else { startBlock(); }
+      sessPushNow(); return; }
     rot.remain=remain;
     voiceCountdown(remain);
     clockEl.textContent=fmtMS(remain); clockEl.classList.remove("hot");
     { const ck=clockEl.parentElement; ck.classList.add("rest");
       ck.classList.toggle("last",remain<=10);
       ck.style.setProperty("--cfrac",clamp(remain/Math.max(1,rot.restDur||1),0,1).toFixed(4));
-      const lb=$("clockLab"); if(lb) lb.textContent="Rest"; }
+      const lb=$("clockLab"); if(lb) lb.textContent=rot.getReady?"Get ready":"Rest"; }
     renderTablet();
     raf=requestAnimationFrame(frameRest);
   }
@@ -3731,6 +3758,7 @@ window.addEventListener("error",function(ev){
       running=false; cancelAnimationFrame(raf); clearTimeout(ticker);
       if(rot.round>=totalRounds()-1){ rot.phase="done"; finished=true; maybeSaveResult(); }
       else { rot.round++;
+        rot.getReady=false;   // a real blockRest is a rest, never a get-ready count-in (build 490)
         if(restAfterBlock(blockIdxOf(rot.round-1))>0){ rot.phase="rest"; rot.restDur=restAfterBlock(blockIdxOf(rot.round-1)); rot.remain=rot.restDur; restT0=now; raf=requestAnimationFrame(frameRest); }
         else rot.phase="pre"; }
       syncRotChrome(); renderLanesRot(); renderTablet();
@@ -4944,7 +4972,7 @@ window.addEventListener("error",function(ev){
     // written straight back (a reload or a remote apply must not eat scores)
     manApplyScores();
     try{ renderScorePanel(); }catch(e){}
-    rot.round=0; rot.phase="pre";
+    rot.round=0; rot.phase="pre"; rot.getReady=false;   // a fresh build is never mid-count-in (build 490)
     $("evName").textContent=cfg.name;
     { const el=$("evProg"), pr=cfg.prog;
       if(el){ const bits=[];
@@ -4977,6 +5005,41 @@ window.addEventListener("error",function(ev){
     else { buildSequenceBoard(); renderLanesSeq(); }
     buildTabletSel(); renderTablet();
   }
+  // GET READY (build 490 — Omar: "before the workout time starts I'd like a 10s
+  // countdown so people get ready", on manual block starts, with a toggle for
+  // automatic ones). readySecs = the length (0 = off, default 10). beginReady()
+  // runs it as a LABELLED REST — it inherits the rest phase's clock, sync and
+  // countdown beeps — then at 0 does `act`: "block" (startBlock) or "resume" (a
+  // held part). Returns true when it takes over so the caller stops.
+  const readySecs=()=>{ const d=cfg.display||{}; const v=d.ready;
+    return v==null?10:Math.max(0,Math.min(60,parseInt(v,10)||0)); };
+  function beginReady(act){
+    if(cfg.mode!=="rotation") return false;
+    const secs=readySecs(); if(!(secs>0)) return false;
+    cancelAnimationFrame(raf); clearTimeout(ticker);
+    paused=false; pauseUi(false);
+    running=true; sessionActive=true; finished=false; resultSaved=false;
+    holding=false;
+    rot.phase="rest"; rot.getReady=true; rot.readyAct=act||"block";
+    rot.restDur=secs; rot.remain=secs; restT0=performance.now();
+    try{ clearVoice(); }catch(e){}   // fresh countdown for the get-ready window
+    startBtn.disabled=true; startBtn.textContent="Get ready…"; resetBtn.disabled=false;
+    try{ syncRotChrome(); }catch(e){}
+    renderBlockCards(); renderTablet(true);
+    if(reduce){ const loop=()=>{ if(rot.phase!=="rest")return; frameRest(performance.now()); if(rot.phase==="rest") ticker=setTimeout(loop,250); }; loop(); }
+    else raf=requestAnimationFrame(frameRest);
+    return true;
+  }
+  // at the end of the get-ready, do what it was counting into
+  function readyFire(){
+    rot.getReady=false;
+    if(rot.readyAct==="resume"){
+      holding=false; rot.phase="run"; running=true; t0=performance.now()-rot.elapsed*1000;
+      startBtn.disabled=true; startBtn.textContent=`${whereNow(false)} running…`;
+      if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
+      else raf=requestAnimationFrame(frameRotation);
+    } else startBlock();
+  }
   function start(){
     if(cfg.mode==="waves"){
       const now=performance.now();
@@ -4990,6 +5053,7 @@ window.addEventListener("error",function(ev){
       return;
     }
     if(cfg.mode==="rotation"&&holding){
+      if(beginReady("resume")) return;   // count-in before resuming the held part
       holding=false; t0=performance.now()-rot.elapsed*1000;
       startBtn.disabled=true; startBtn.textContent=`${whereNow(false)} running\u2026`;
       if(reduce){ const loop=()=>{ if(!running)return; frameRotation(performance.now()); if(running) ticker=setTimeout(loop,250); }; loop(); }
@@ -4997,7 +5061,7 @@ window.addEventListener("error",function(ev){
       return;
     }
     if(running) return;
-    if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)||anyOver()) return; startBlock(); renderBlockCards(); return; }
+    if(cfg.mode==="rotation"){ if(!nBlocks()||R().blocks.every(b=>!(b.items||[]).length)||anyOver()) return; if(beginReady("block")) return; startBlock(); renderBlockCards(); return; }
     // sequence: full auto run
     build(); running=true; sessionActive=true; finished=false; resultSaved=false; t0=performance.now();
     startBtn.disabled=true; startBtn.textContent="Running…"; resetBtn.disabled=false;
@@ -5914,13 +5978,17 @@ window.addEventListener("error",function(ev){
         // crewed screens — never a static preview beside live ones
         const fRest=!!(fSeg&&fSeg.it&&fSeg.it.rest&&fPh!=="rest");
         if(fRest) fLines=[`<em>${esc("Rest "+fmtMS(fSeg.it.dur))}</em>`];
+        // GET READY count-in (build 490): a labelled rest before the block —
+        // the tablet says "Get ready", not "Rest / move to your next station"
+        const fGR=fPh==="rest"&&rot.getReady;
         const fClk=fPh==="rest"?fmtMS(rot.remain):fSeg?fmtMS(Math.max(0,fSeg.remain)):fmtMS(blockLen(fb));
-        const fClkLab=(fPh==="rest"||fRest)?"Rest ends in":fSeg?"Time left in this block":"This block lasts";
-        const fTag=running?((fPh==="rest"||fRest)?"Rest":"Working"):"Get ready";
-        const fHead=fPh==="rest"?"Move to your next station":fRest?"Rest — recover":"";
+        const fClkLab=fGR?"Starts in":(fPh==="rest"||fRest)?"Rest ends in":fSeg?"Time left in this block":"This block lasts";
+        const fTag=running?(fGR?"Get ready":(fPh==="rest"||fRest)?"Rest":"Working"):"Get ready";
+        const fHead=fGR?"Get ready":fPh==="rest"?"Move to your next station":fRest?"Rest — recover":"";
         const fPr=x=>esc(x.max?("Max"+maxUnit(x.unit)):(amtList(x).join("/")+exUnit(x.unit)).trim());
         const fNb=R().blocks[(openSlot.bi+1)%nBlocks()]||fb;
         const fNxt=fAsk?`<span>You start on</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`
+          :fGR?`<span>Starting</span><b>${esc(fb.name||"")}</b><em>${esc(mtype?mInfo(mtype).label+" "+mnum:bmLabel(fb))}</em>`
           :fPh==="rest"?`<span>Go now &rarr;</span><b>${esc(fNb.name)}</b><em>${esc(bmLabel(fNb))}</em>`
           :(fRest&&fOwn)?`<span>Next here</span><b>${esc(fOwn.name)}</b><em>${fPr(fOwn)}</em>`
           :fNx?`<span>Next</span><b>${esc(fNx.name)}</b><em>${fPr(fNx)}</em>`
@@ -6103,6 +6171,9 @@ window.addEventListener("error",function(ev){
       const goNext=`${esc(nxBlock.name)} · ${bmLabel(nxBlock)}`;
       let jTag="",jHead="",jSub="",jBig="";
       if(phase==="done"){ jTag="Finished"; jHead="Session complete"; jSub="Great work — check the board"; }
+      // GET READY count-in (build 490): a labelled rest before the block starts —
+      // "Get ready", not "Rest / move to your next station" (nothing to go to yet)
+      else if(phase==="rest"&&rot.getReady){ jTag="Get ready"; jHead="Get ready"; jSub="The block starts when the countdown ends"; }
       else if(phase==="rest"||holding){ jTag="Rest"; jHead="Move to your next station"; jBig=machHosts?"":goNext; }
       else if(!running){
         jTag=tsw?"Starts on this machine":"Get ready";
@@ -6127,7 +6198,7 @@ window.addEventListener("error",function(ev){
       // in an AMRAP or a self-paced circuit the lap length is an internal detail —
       // what the athlete is racing is the block's own clock
       const capMode=isAmrap(b)||!!(seg&&seg.self);
-      const clkLab=phase==="done"?"Finished":phase==="rest"?"Rest ends in":holding?"Next part in a moment"
+      const clkLab=phase==="done"?"Finished":(phase==="rest"&&rot.getReady)?"Starts in":phase==="rest"?"Rest ends in":holding?"Next part in a moment"
         :running?(isAmrap(b)?"Left in this AMRAP"
           :(seg&&seg.it&&seg.it.rest&&!capMode?"Rest ends in"
           :(seg&&seg.setN>1?`Set ${seg.set+1} of ${seg.setN} — left`:"Time left in this block")))
@@ -8395,6 +8466,9 @@ window.addEventListener("error",function(ev){
       act:sessionActive, run:running, fin:finished, hold:holding, pau:paused,
       round:rot.round, phase:rot.phase, elapsed:rot.elapsed, remain:rot.remain,
       restDur:rot.restDur||0,
+      // the get-ready count-in rides the rest slot (build 490) so the whole room
+      // counts down together and shows GET READY, not Rest
+      gr: !!rot.getReady, grAct: rot.getReady?(rot.readyAct||"block"):null,
       t0e: sessionActive? sessNow()-(pn-t0) : 0,
       rt0e: (sessionActive&&rot.phase==="rest")? sessNow()-(pn-restT0) : 0 };
   }
@@ -8489,6 +8563,9 @@ window.addEventListener("error",function(ev){
       rot.round=r.round||0; rot.phase=r.phase||"run";
       rot.elapsed=r.elapsed||0; rot.remain=r.remain||0;
       if(r.restDur) rot.restDur=r.restDur;
+      // a GET READY countdown is a labelled rest — carry it so a follower shows
+      // "Get ready" (not "Rest") and fires the right transition at 0
+      rot.getReady=!!r.gr; rot.readyAct=r.grAct||"block";
       t0=pn-(sessNow()-r.t0e);
       if(r.rt0e) restT0=pn-(sessNow()-r.rt0e);
       resetBtn.disabled=false;
@@ -8544,6 +8621,12 @@ window.addEventListener("error",function(ev){
   try{ window.__sessPull=sessPull; window.__sessPush=sessPushNow;
     window.__sessState=()=>({run:running,act:sessionActive,hold:holding,pau:paused,
       phase:rot.phase,round:rot.round,el:sessionActive?(performance.now()-t0)/1000:0}); }catch(e){}
+  // GET READY test hook (build 490): the count-in state a suite checks, and a
+  // setter so engine suites can switch the count-in off (they time block clocks,
+  // not the count-in — getready.js is the one suite that exercises it)
+  try{ window.__ready=()=>({on:!!rot.getReady,act:rot.readyAct||null,phase:rot.phase,
+    remain:rot.remain,dur:rot.restDur,secs:readySecs()});
+    window.__setReady=n=>{ cfg.display=cfg.display||{}; cfg.display.ready=n; }; }catch(e){}
 
   // TUESDAY ENGINE (one-shot, build 341): Omar's sheet — two EMOM 20s of
   // 0:50 minutes (ski/down ups/run/rest, 2:00 between, row/box jump overs/
@@ -9427,6 +9510,13 @@ window.addEventListener("error",function(ev){
       c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save(); if(c.checked) voicePrime(); }; });
     { const bn=$("beepN"); if(bn){ bn.value=String(Math.max(1,parseInt(cfg.display&&cfg.display.beepN,10)||5));
       bn.onchange=()=>{ cfg.display.beepN=parseInt(bn.value,10)||5; save(); voicePrime(); }; } }
+    // GET READY countdown (build 490): a pre-workout count-in before the clock
+    // starts on a block. readyN = seconds (0 = off, default 10); readyAuto also
+    // runs it before automatic block transitions.
+    { const rn=$("readyN"); if(rn){ rn.value=String(readySecs());
+      rn.onchange=()=>{ cfg.display.ready=parseInt(rn.value,10)||0; save(); voicePrime(); }; } }
+    document.querySelectorAll("#dispReady input[type=checkbox]").forEach(c=>{ c.checked=!!(cfg.display&&cfg.display[c.dataset.d]);
+      c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save(); }; });
     // HIDE THE INTERVAL TIME IN A PART TITLE (build 477 — Omar: "4:00 ON / 1:00
     // OFF … then it says 4 minutes, which is repetitive; the 4 minutes is the
     // time set and 4:00 ON / 1:00 OFF is the title — a hide or show option?").
@@ -9971,10 +10061,10 @@ window.addEventListener("error",function(ev){
         rlSig=""; buildTrainerList(); };
     });
     el.querySelectorAll(".rrow.next").forEach(row=>{
-      row.onclick=()=>{ if(running||paused||holding) return; rot.round=+row.dataset.r; rot.phase="pre"; syncRotChrome(); startBlock(); sessPushNow(); };
+      row.onclick=()=>{ if(running||paused||holding) return; rot.round=+row.dataset.r; rot.phase="pre"; syncRotChrome(); if(!beginReady("block")) startBlock(); sessPushNow(); };
     });
     const curRow=el.querySelector(".rrow.cur");
-    if(curRow&&!running&&rot.phase==="pre"){ curRow.style.cursor="pointer"; curRow.onclick=()=>{ startBlock(); sessPushNow(); }; }
+    if(curRow&&!running&&rot.phase==="pre"){ curRow.style.cursor="pointer"; curRow.onclick=()=>{ if(!beginReady("block")) startBlock(); sessPushNow(); }; }
     el.querySelectorAll(".ptr").forEach(p=>{
       p.onclick=ev=>{ ev.stopPropagation();
         const b2=R().blocks[blockIdxOf(rot.round)]; const it2=(b2.items||[])[+p.dataset.ii]; if(!it2) return;
@@ -10010,7 +10100,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=489;
+  const BUILD=490;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

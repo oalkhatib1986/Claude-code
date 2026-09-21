@@ -195,6 +195,7 @@ libPuts=[]; sessPuts=[]; sess=null;
 // windows flow into each other; after 3 × 4:00 the board says "press start"
 // until the trainer starts the 9-minute section
 await p.click('#tabTrainer'); await p.waitForTimeout(500);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // time the block clock, not the get-ready count-in (build 490)
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(800);
 // walk out of Part A (150s) into Part B: block ends, trainer starts the next

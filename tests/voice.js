@@ -41,7 +41,7 @@ async function boot(br,voice,beepN){
     const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
     Object.assign(c,{name:'VoiceTest',wkName:'VoiceTest',mode:'rotation',teamKind:'solo',
       together:true,noScore:true,scoreSrc:'manual'});
-    c.display=Object.assign(c.display||{},{voice,beepN});
+    c.display=Object.assign(c.display||{},{voice,beepN,ready:0});  // no get-ready count-in — this suite times the buzzer on the block clock
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
       {name:'Part A',rounds:1,items:[{name:'',dur:20,scored:false,exercises:[{name:'Row',amounts:[10],unit:'reps'}]}]},
       {name:'Part B',rounds:1,items:[{name:'',dur:20,scored:false,exercises:[{name:'Ski',amounts:[10],unit:'reps'}]}]}
@@ -110,7 +110,7 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
     Object.assign(c,{name:'RingTest',wkName:'RingTest',mode:'rotation',teamKind:'solo',
       together:true,noScore:true,scoreSrc:'manual'});
-    c.display=Object.assign(c.display||{},{voice:true});
+    c.display=Object.assign(c.display||{},{voice:true,ready:0});  // no get-ready count-in — this suite times the buzzer on the block clock
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
       {name:'Part A',rounds:2,rrest:8,items:[{name:'',dur:12,scored:false,exercises:[{name:'Row',amounts:[10],unit:'reps'}]}]}
     ]});

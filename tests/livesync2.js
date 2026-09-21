@@ -41,6 +41,7 @@ const phone=await boot(br,'phone');
 const tv=await boot(br,'tv');
 // start a class from the phone
 await phone.click('#tabTrainer'); await phone.waitForTimeout(500);
+await phone.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: test the reload/reset choreography on the block clock, not the count-in
 await phone.evaluate(()=>document.getElementById('startBtn').click());
 await phone.waitForTimeout(400);
 ok(sess&&sess.run&&sess.run.act===true,'class started and published');

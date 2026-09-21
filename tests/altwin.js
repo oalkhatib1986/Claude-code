@@ -49,6 +49,7 @@ await p.reload(); await p.waitForTimeout(1800);
   ok(/15:00 total/i.test(A),'each part totals 15:00'); }
 // the halves REALLY trade stations between windows
 await p.click('#tabTrainer'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1300);
 await p.click('#tabBoard'); await p.waitForTimeout(700);
@@ -192,6 +193,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   // SAY IT ONCE (427 — Omar: "Ski · Now: Ski · Max Cal Ski — repetitive"):
   // running, the headline and the Now: line are echoes of the work card
   // and drop; the WORKING state tag stays
+  await p2.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p2.evaluate(()=>document.getElementById('startBtn').click());
   await p2.waitForTimeout(1600);
   { const r=await p2.evaluate(()=>{
@@ -270,6 +272,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   // (never the next block's pair), the big destination line is gone, and
   // the walk target lives only in the Go-now box
   await p2.evaluate(()=>window.__tbOpen('Row:1')); await p2.waitForTimeout(600);
+  await p2.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p2.evaluate(()=>document.getElementById('startBtn').click());
   await p2.waitForTimeout(1200);
   { let r={};
@@ -332,6 +335,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   await p2.reload(); await p2.waitForTimeout(1500);
   await p2.click('#tabTablet'); await p2.waitForTimeout(600);
   await p2.evaluate(()=>window.__tbOpen('Bike:6')); await p2.waitForTimeout(600);
+  await p2.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p2.evaluate(()=>document.getElementById('startBtn').click());
   await p2.waitForTimeout(1100);
   await p2.evaluate(()=>window.__seek(184)); await p2.waitForTimeout(900);
@@ -378,6 +382,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       '437: a plain group item filters to THIS erg’s piece — '+r.now);
     ok(/next/i.test(r.nxt)&&/air squats/i.test(r.nxt),
       '437: NEXT follows the sequence after the erg’s piece — '+r.nxt); }
+  await p3.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p3.evaluate(()=>document.getElementById('startBtn').click());
   await p3.waitForTimeout(1400);
   { const r=await p3.evaluate(()=>({now:(document.querySelector('.tk-now')||{innerText:''}).innerText.replace(/\s+/g,' ').trim()}));
@@ -418,6 +423,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       '439: the LAST piece’s NEXT is the rest itself, nothing else — '+b.nxt); }
   { const r=await rd3('Run:1');
     ok(/burpees/i.test(r.nxt),'438: mid-sequence NEXT is the next exercise — '+r.nxt); }
+  await p3.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p3.evaluate(()=>document.getElementById('startBtn').click());
   await p3.waitForTimeout(1200);
   await p3.evaluate(()=>window.__seek(605)); await p3.waitForTimeout(900);
@@ -475,6 +481,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       return cs; });
     ok(r.every(v=>Math.abs(v-r[0])<=2),
       '445: sections and Score share ONE column width ('+r.join(', ')+')'); }
+  await p4.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p4.evaluate(()=>document.getElementById('startBtn').click());
   await p4.waitForTimeout(1400);
   { await p4.evaluate(()=>window.__man.set(0,0,0,57)); await p4.waitForTimeout(900);
@@ -602,6 +609,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(r.note,'449: idle screen prints the note under its line');
     ok(r.fits,'449: and the slab still contains its lines'); }
   await p5.click('#tabTrainer'); await p5.waitForTimeout(400);
+  await p5.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p5.evaluate(()=>document.getElementById('startBtn').click()); await p5.waitForTimeout(1300);
   // 450: with both Block 1s scored, BOTH live slabs run hot (red) together
   await p5.click('#tabBoard'); await p5.waitForTimeout(700);
@@ -719,6 +727,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
       '458: the AMRAP floor lines still stack after the heal '+JSON.stringify(r.subs)); }
   // start the clock: the healed board runs as a plain item, no page error,
   // map stays contiguous while live
+  await p7.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p7.evaluate(()=>document.getElementById('startBtn')&&document.getElementById('startBtn').click());
   await p7.waitForTimeout(500);
   await p7.evaluate(()=>window.__seek&&window.__seek(200)); await p7.waitForTimeout(500);
@@ -765,6 +774,7 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
   });
   await p8.reload(); await p8.waitForTimeout(1300);
+  await p8.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p8.evaluate(()=>document.getElementById('startBtn')&&document.getElementById('startBtn').click());
   await p8.waitForTimeout(350);
   const bwhere=async(d)=>{ await p8.evaluate(t=>window.__seek&&window.__seek(t),d); await p8.waitForTimeout(300);

@@ -18,6 +18,7 @@ await p.evaluate(()=>{
   const k='af_erg_cfg_v8'; const cfg=JSON.parse(localStorage.getItem(k));
   Object.assign(cfg,{name:'Push Day',wkName:null,mode:'rotation',teamKind:'solo',
     together:true,noScore:true,scoreSrc:'manual'});
+  cfg.display=Object.assign(cfg.display||{},{ready:0});  // no get-ready count-in — this suite times the set/hold clock
   cfg.rotation=Object.assign(cfg.rotation||{},{laps:1,blockRest:0,blocks:[
     {name:'Part B',rounds:1,items:[
       {dur:540,group:true,hold:true,scored:false,exercises:[

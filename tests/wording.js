@@ -65,6 +65,7 @@ ok(/3rd:\s*12\/8 cal Ski/i.test(C),'C: 3rd minute reads 12/8 cal Ski');
 ok(!/3 rounds × 3:00/i.test(C),'C: no duplicate rounds footer');
 // live: the NOW slab still lands on the running minute
 await p.click('#tabTrainer'); await p.waitForTimeout(500);
+await p.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: check the live board, not the get-ready count-in
 await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1500);
 await p.click('#tabBoard'); await p.waitForTimeout(700);

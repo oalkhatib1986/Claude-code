@@ -15,6 +15,7 @@ async function board(p,blockRest){
     const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
     Object.assign(c,{name:'Upper Body',wkName:'Upper Body',mode:'rotation',teamKind:'solo',
       together:true,noScore:true,scoreSrc:'manual',titleSet:false});
+    c.display=Object.assign(c.display||{},{ready:0});  // no get-ready count-in — this suite times the block clock
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest,sameRest:true,blocks:[
       {name:'Part A',rounds:1,items:[{name:'',dur:600,scored:false,hold:false,
         exercises:[{name:'Bench Press',amounts:[8],unit:'reps',sets:4}]}]},
@@ -72,6 +73,7 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
     const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
     Object.assign(c,{name:'Upper Body',wkName:'Upper Body',mode:'rotation',teamKind:'solo',
       together:true,noScore:true,scoreSrc:'manual',titleSet:false});
+    c.display=Object.assign(c.display||{},{ready:0});  // no get-ready count-in — this suite times the block clock
     c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:60,sameRest:true,blocks:[
       {name:'Part A',rounds:1,items:[{name:'Every 2:30 × 4',dur:600,scored:false,
         exercises:[{name:'Bench Press',amounts:[8],unit:'reps',sets:4}]}]},
