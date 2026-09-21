@@ -1453,6 +1453,13 @@
   .dlg .dmsg{font-size:14px;line-height:1.55;color:var(--ink);white-space:pre-line;margin:0 0 16px}
   .dlg input{margin:0 0 16px}
   .dlg .dbtns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  /* on-screen numpad for the erg-tablet exit code — no OS keyboard needed,
+     which never reliably pops up on a bolted tablet (build 481) */
+  .dlg .pinDisp{font-family:var(--mono);font-weight:700;font-size:30px;letter-spacing:.22em;
+    text-align:center;color:var(--ink);min-height:40px;margin:2px 0 14px}
+  .dlg .pinDisp.bad{color:#ff5f57;animation:pinbad .3s}
+  @keyframes pinbad{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .dlg .pinPad{max-width:250px;margin:0 auto 16px}
   #wkPick{display:block}
   #wkPick .mwrap{display:block}
   /* the recycle bin: quiet rows, name ellipsised, actions whole */
@@ -5095,8 +5102,7 @@ window.addEventListener("error",function(ev){
       // screen the × is the ONLY control, so a code on it locks everything:
       // wrong or cancelled, the class stays on the workout. Blank code = no lock.
       let pin=""; try{ pin=(localStorage.getItem(KPIN)||"").trim(); }catch(e){}
-      if(pin){ const v=await dlgAsk("Enter the exit code","","Unlock");
-        if(v==null) return; if(v!==pin){ await dlgTell("Wrong code."); return; } }
+      if(pin){ const ok=await askExitPin(pin); if(!ok) return; }
       document.body.classList.remove("tbfull");
       try{ if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
       fitTablet(); }; }
@@ -9548,6 +9554,43 @@ window.addEventListener("error",function(ev){
   const dlgTell=m=>dlg({msg:m,cancel:false});
   const dlgAsk=(m,v,ok)=>dlg({msg:m,input:v||"",ok:ok||"Save"}).then(t=>t&&String(t).trim()||null);
   const dlgConfirm=(m,ok)=>dlg({msg:m,ok:ok||"Yes"}).then(v=>v===true);
+  // EXIT-CODE ENTRY IS AN ON-SCREEN NUMPAD, not a text field (build 481 — Omar:
+  // "the keyboard should load unless I click inside the box"). A bolted tablet's
+  // OS keyboard does not reliably appear on a focused input, so the code is
+  // typed on the app's own dark numpad — same one the score card uses. Returns
+  // true only when the entered digits match; a wrong code flashes and clears.
+  function askExitPin(correct){
+    return new Promise(res=>{
+      const back=document.createElement("div"); back.className="dlg-back";
+      const keys=["1","2","3","4","5","6","7","8","9","C","0","B"];
+      back.innerHTML='<div class="dlg" role="dialog" aria-modal="true">'
+        +'<p class="dmsg">Enter the exit code</p><div class="pinDisp"></div>'
+        +'<div class="tks-pad pinPad">'
+        +keys.map(k=>`<button type="button" class="tks-k" data-k="${k}">${k==="B"?"&#9003;":k==="C"?"C":k}</button>`).join("")
+        +'</div><div class="dbtns"><button type="button" class="btn small dno">Cancel</button>'
+        +'<button type="button" class="btn small dok">Unlock</button></div></div>';
+      let val=""; const disp=back.querySelector(".pinDisp");
+      const draw=()=>{ disp.textContent=val?"•".repeat(val.length):"– – – –"; };
+      draw();
+      const done=ok=>{ back.remove(); document.removeEventListener("keydown",key,true); res(ok); };
+      const submit=()=>{ if(val===String(correct)) done(true);
+        else { disp.classList.remove("bad"); void disp.offsetWidth; disp.classList.add("bad"); val=""; draw(); } };
+      back.querySelector(".pinPad").onclick=e=>{ const b=e.target.closest("button[data-k]"); if(!b) return;
+        const k=b.dataset.k;
+        if(k==="B") val=val.slice(0,-1); else if(k==="C") val=""; else if(val.length<12) val+=k;
+        draw(); };
+      back.querySelector(".dok").onclick=submit;
+      back.querySelector(".dno").onclick=()=>done(false);
+      back.addEventListener("pointerdown",e=>{ if(e.target===back) done(false); });
+      // a real keyboard, if one IS attached, still works
+      const key=e=>{ if(e.key==="Escape"){ e.preventDefault(); done(false); }
+        else if(e.key==="Enter"){ e.preventDefault(); submit(); }
+        else if(/^[0-9]$/.test(e.key)){ if(val.length<12) val+=e.key; draw(); }
+        else if(e.key==="Backspace"){ val=val.slice(0,-1); draw(); } };
+      document.addEventListener("keydown",key,true);
+      document.body.appendChild(back);
+    });
+  }
 
   const RKEY="af_results_v1";
   let results; try{ results=JSON.parse(localStorage.getItem(RKEY))||[]; }catch(e){ results=[]; }
@@ -9904,7 +9947,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=480;
+  const BUILD=481;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
