@@ -57,6 +57,25 @@ for(const [W,H,tag] of [[1280,1400,'portrait box'],[1900,960,'landscape'],[1440,
   ok(!i.tvprev,'scaled desktop (1067 dpr1.5): NOT the phone preview frame [tvprev '+i.tvprev+']');
   ok(i.bcols>=2&&i.drawnW>=i.vw*0.6,'scaled desktop: full board, columns, fills width [bcols '+i.bcols+' drawn '+i.drawnW+'/'+i.vw+']');
   await p.close(); await ctx.close(); }
+// ---- SHORT WIDE WINDOW fills the width (build 473 — Omar's 1280x720 @150%
+// scaling gave a short board box; a 2x2 board was too tall, scaled to the
+// height and went narrow in the left with black around it). The grid shape now
+// tracks the box shape: a short-wide box uses more columns / fewer rows and
+// fills the width. ----
+for(const [W,H,tag] of [[1280,500,'short'],[1280,420,'very short']]){
+  const ctx=await br.newContext({viewport:{width:W,height:H},deviceScaleFactor:1.5});
+  const p=await ctx.newPage();
+  p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(short '+tag+'):',e.message);});
+  await load(p);
+  await p.evaluate(()=>document.getElementById('startBtn')&&document.getElementById('startBtn').click()); await p.waitForTimeout(250);
+  await p.evaluate(()=>window.__seek&&window.__seek(600)); await p.waitForTimeout(250);
+  await p.evaluate(()=>document.getElementById('tabScreen').click()); await p.waitForTimeout(250);
+  await p.evaluate(()=>document.getElementById('smWork').click()); await p.waitForTimeout(1400);
+  const i=await p.evaluate(()=>{const f=document.getElementById('tvFit');const r=f.getBoundingClientRect();
+    return {drawnW:Math.round(r.width),vw:innerWidth,tvprev:document.body.classList.contains('tvprev')};});
+  ok(!i.tvprev&&i.drawnW>=i.vw*0.8,'short-wide '+tag+' ('+W+'x'+H+' @1.5): board fills the width, not a left strip [drawn '+i.drawnW+'/'+i.vw+']');
+  await p.close(); await ctx.close();
+}
 // ---- tvfull on a real portrait phone: still stacks to 1 (coverage) ----
 { const p=await br.newPage({viewport:{width:500,height:900}});
   p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(full phone):',e.message);});

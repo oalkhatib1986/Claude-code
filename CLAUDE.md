@@ -1911,7 +1911,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   a real desktop (dpr>1.25 AND still ≥900 CSS px) is not a phone and takes the
   full big-screen fill; genuine narrow screens keep the preview (or are
   `mobscreen` phone view), and 100%-scale desktops are untouched (dpr 1 fails
-  the exclusion). `tabcols.js` adds the scaled desktop (1067 dpr1.5 → not
+  the exclusion). BUILD 473 — THE ACTUAL CAUSE was the board box being SHORT,
+  not narrow: Omar's 1920×1080 at 150% = 1280×720 CSS, and on the Big Screen
+  tab the running phaseBanner + limited height left the board box short and
+  wide. `fillTvBoard` scales the whole board to fit the box preserving aspect,
+  so a 2×2 board (2 rows, taller than a short box) scaled DOWN to the height
+  and ended up narrow, hugging the left (`transformOrigin:top left`) with the
+  rest black. The fix is the ROW COUNT: `fitBlockCols`' wall branch now picks
+  rows so the board's own aspect tracks the box's — `rows =
+  round(sqrt(n*K*fl[1]/fl[0]))` (K≈1.8, a card's authored w/h), `fit =
+  ceil(n/rows)`. A wide-short box → fewer rows / more columns (his 4-across at
+  short heights, filling the width); a 16:9 screen → 2 rows (the 2×2 it always
+  was); a tall/phone box → more rows / one column. Keyed on `_fill` (constant
+  through the solve, no two-cycle). Verified filling at 1280×{585,500,420,360}
+  and tvfull unchanged (TV 2×2, portrait phone 1-col, landscape phone 2-col).
+  `tabcols.js` adds short-wide windows filling the width. LESSON: "narrow board
+  in a wide screen" can be a HEIGHT problem — a board fitted to a short box
+  goes narrow; match the grid's row/col shape to the box's aspect, don't just
+  count columns by width.
+  `tabcols.js` also pins the scaled desktop (1067 dpr1.5 → not
   tvprev, full board, fills width). LESSON: CSS px is physical ÷ dpr, so a
   small `clientWidth` can be a big scaled monitor — a "small screen" test must
   consider dpr, and a bug that only appears at non-100% scaling will NEVER

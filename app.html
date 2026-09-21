@@ -4255,16 +4255,22 @@ window.addEventListener("error",function(ev){
     // still fill the screen's height — four wide cards leave a band of empty floor.
     let fit=3;
     if(wall){
-      // ONE COLUMN ONLY WHEN THE SCREEN IS GENUINELY NARROW — keyed on the
-      // board box's real WIDTH, never on aspect or tvfull. A tall single column
-      // draws narrow and (transformOrigin:top left) hugs the left, so on a wide
-      // screen it left Omar's Engine in a strip with the rest black. So: stack
-      // to one column only when the box cannot hold two side by side (a phone /
-      // narrow portrait screen, cw<900) AND it is upright; anything wider keeps
-      // its 2-3 columns and fills the width, whatever the aspect or mode.
+      // MATCH THE GRID SHAPE TO THE SCREEN SHAPE, so the board FILLS both ways.
+      // fillTvBoard scales the whole board to fit the box preserving aspect, so
+      // a board taller than the box (2 rows in a short window) gets scaled down
+      // to the height and ends up narrow, hugging the left (transformOrigin:top
+      // left) with the rest black — Omar's Engine on a 1280x720 (150%-scaled)
+      // window. The cure is the ROW COUNT: pick rows so the board's own aspect
+      // (cols*cardW)/(rows*cardH) tracks the box's cw/ch. A wide-short box wants
+      // fewer rows (more columns), a tall box more rows (fewer columns). K≈1.8
+      // (a card's authored w/h) makes a 16:9 screen land on 2 rows for 4 parts
+      // (the 2x2 it always was). Keyed on _fill, which is constant through the
+      // fill solve, so no two-cycle.
       const f=$("tvFit"), fl=f&&f._fill;
-      const cw=fl?fl[0]:0;
-      if(fl&&fl[1]>fl[0]&&cw>0&&cw<900) fit=1;
+      if(fl&&fl[0]>0&&fl[1]>0){
+        const K=1.8, rows=Math.max(1,Math.min(n,Math.round(Math.sqrt(n*K*fl[1]/fl[0]))));
+        fit=Math.ceil(n/rows);
+      }
     } else { const gap=14, min=230;
       const w=el.clientWidth||el.getBoundingClientRect().width||0;
       fit=Math.max(1,Math.floor((w+gap)/(min+gap))); }
@@ -9823,7 +9829,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=472;
+  const BUILD=473;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
