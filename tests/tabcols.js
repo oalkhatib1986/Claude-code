@@ -42,6 +42,21 @@ for(const [W,H,tag] of [[1280,1400,'portrait box'],[1900,960,'landscape'],[1440,
   ok(i.drawnW>=i.vw*0.6,'tab '+tag+': board fills the width, not a left strip [drawn '+i.drawnW+'/'+i.vw+']');
   await p.close();
 }
+// ---- SCALED DESKTOP (150% scaling → small CSS width, dpr>1) gets the full
+// board, NOT the phone TV-preview frame (build 471 — Omar's ~1600px laptop at
+// 150% reported ~1067 CSS px and got a mini board in the left with black
+// around it). ----
+{ const ctx=await br.newContext({viewport:{width:1067,height:600},deviceScaleFactor:1.5});
+  const p=await ctx.newPage();
+  p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(scaled):',e.message);});
+  await load(p);
+  await p.evaluate(()=>document.getElementById('tabScreen').click()); await p.waitForTimeout(300);
+  await p.evaluate(()=>document.getElementById('smWork').click()); await p.waitForTimeout(1400);
+  const i=await p.evaluate(()=>{const bc=document.getElementById('blockCards');const f=document.getElementById('tvFit');const r=f.getBoundingClientRect();
+    return {tvprev:document.body.classList.contains('tvprev'),bcols:+getComputedStyle(bc).getPropertyValue('--bcols').trim()||0,drawnW:Math.round(r.width),vw:innerWidth};});
+  ok(!i.tvprev,'scaled desktop (1067 dpr1.5): NOT the phone preview frame [tvprev '+i.tvprev+']');
+  ok(i.bcols>=2&&i.drawnW>=i.vw*0.6,'scaled desktop: full board, columns, fills width [bcols '+i.bcols+' drawn '+i.drawnW+'/'+i.vw+']');
+  await p.close(); await ctx.close(); }
 // ---- tvfull on a real portrait phone: still stacks to 1 (coverage) ----
 { const p=await br.newPage({viewport:{width:500,height:900}});
   p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(full phone):',e.message);});

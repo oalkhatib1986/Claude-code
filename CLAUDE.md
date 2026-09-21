@@ -1895,11 +1895,27 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   still stacks to 1 (coverage). His exact cfg reproduced as 2×2 in tvfull AND
   landscape tab — the trigger was a portrait-shaped board box in the tab; the
   diagnostic he pasted (`fill:[499,688]`, DevTools eating the width) confirmed
-  the portrait measure. `tabcols.js` (7) pins the tab keeping columns at
+  the portrait measure. `tabcols.js` pins the tab keeping columns at
   portrait/landscape/squarish boxes and tvfull-phone still stacking. LESSON:
   a rendering that keys on the board BOX aspect must know whether that box is
   a whole device (tvfull) or a panel inside a desktop (tab) — they want
   opposite things.
+  AND THE PHONE PREVIEW IS FOR PHONES, NOT SCALED DESKTOPS (build 471 — the
+  ACTUAL cause, found from Omar's pasted diagnostic `dpr:1.5`). At 150% Windows
+  scaling a ~1600px laptop reports ~1067 CSS px, which fell under the `lw<1100`
+  "small screen" line in `fitScreen`, so the Big Screen tab switched to
+  `tvprev` — the scaled 1920×1080 TV-PREVIEW frame built for phones — and drew
+  a mini board in the LEFT corner with the rest black (drawnW ~412 in a ~1016
+  box). A 100%-scale screen was fine, which is why every test at dpr 1 rendered
+  2×2. FIX: `const on=big&&!full&&lw<1100&&!(devicePixelRatio>1.25&&lw>=900)` —
+  a real desktop (dpr>1.25 AND still ≥900 CSS px) is not a phone and takes the
+  full big-screen fill; genuine narrow screens keep the preview (or are
+  `mobscreen` phone view), and 100%-scale desktops are untouched (dpr 1 fails
+  the exclusion). `tabcols.js` (9) adds the scaled desktop (1067 dpr1.5 → not
+  tvprev, full board, fills width). LESSON: CSS px is physical ÷ dpr, so a
+  small `clientWidth` can be a big scaled monitor — a "small screen" test must
+  consider dpr, and a bug that only appears at non-100% scaling will NEVER
+  reproduce at the default dpr 1 (get the user's dpr early next time).
 - **Full screen FILLS the screen, edge to edge.** `body.tvfull` drops the 1920x1080
   conceit entirely: `#viewBoard` is sized to the real viewport (turned on its side
   when the device is held upright) and `fillTvBoard()` picks the width the board is

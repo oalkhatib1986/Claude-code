@@ -9823,7 +9823,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=470;
+  const BUILD=471;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10068,7 +10068,14 @@ window.addEventListener("error",function(ev){
     // Below TV width, don't squeeze the page — draw the board at its true TV size and
     // scale the frame, exactly like the erg tablet preview. The tabs stay full size.
     const full=big&&document.body.classList.contains("tvfull");
-    const on=big&&!full&&lw<1100;
+    // THE PHONE PREVIEW IS FOR PHONES, NOT SCALED DESKTOPS (build 471 — Omar's
+    // big screen showed a mini board in the left with the rest black). At 150%
+    // Windows scaling a ~1600px laptop reports ~1067 CSS px, which fell under
+    // the 1100 "small screen" line and got the scaled-1920 TV-preview frame
+    // meant for phones. A real desktop (dpr>1.25 AND still >=900 CSS px wide)
+    // is NOT a phone — it takes the full big-screen board fill, columns and
+    // all. Genuine phones (narrow CSS px whatever the dpr) keep the preview.
+    const on=big&&!full&&lw<1100&&!(devicePixelRatio>1.25&&lw>=900);
     document.body.classList.toggle("tvprev",on);
     const stage=$("smStage"), view=$("viewBoard"), cap=$("smCap");
     w.style.width=""; w.style.maxWidth=""; w.style.transform=""; w.style.transformOrigin="";
