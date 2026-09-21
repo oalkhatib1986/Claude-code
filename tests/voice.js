@@ -13,7 +13,7 @@ const F='file:///home/user/Claude-code/leaderboard.html';
 // fetch returns a 1-byte buffer marking which file; decodeAudioData reads it
 // back into a tagged buffer; a buffer source records its buffer's tag on start.
 const MOCK=`
-  window.__spoken=[];
+  window.__spoken=[]; window.__stopped=[];
   window.fetch=(url)=>{ const which=/final/.test(String(url))?1:0;
     return Promise.resolve({ arrayBuffer(){ return Promise.resolve(new Uint8Array([which]).buffer); } }); };
   function FakeCtx(){ this._t0=Date.now(); this.state='running'; this.destination={};
@@ -23,8 +23,9 @@ const MOCK=`
     if(okCb){ okCb({which:w}); return; } return Promise.resolve({which:w}); };
   // beeps are pre-scheduled with start(at); the mock records each scheduled beep
   // once (order = k=N..1 => N-1 short then final), which is what we assert
-  FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){}, stop(){},
-    start(){ if(this.buffer&&this.buffer.which) window.__spoken.push(this.buffer.which); } }; };
+  FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){},
+    start(){ if(this.buffer&&this.buffer.which) window.__spoken.push(this.buffer.which); },
+    stop(){ if(this.buffer&&this.buffer.which) window.__stopped.push(this.buffer.which); } }; };
   window.AudioContext=FakeCtx; window.webkitAudioContext=FakeCtx;
 `;
 async function boot(br,voice,beepN){
@@ -94,6 +95,40 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   ok(said[0]==='beep'&&said[1]==='beep'&&said[2]==='fin',
      'beepN 3: short, short, final ['+said.join(',')+']');
   await p.close(); }
+// ---- the FINAL buzz rings out across an interval boundary — it is NOT stopped
+// when the next interval arms (build 489 — Omar: "the last beep is identical to
+// the others"; clearVoice() was cutting the still-ringing final buzz). Uses a
+// rounds:2 board so a rrest boundary lands right after the final buzz. ----
+{ const ctx=await br.newContext({viewport:{width:1440,height:960}});
+  const p=await ctx.newPage();
+  await p.addInitScript(MOCK);
+  p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(ringout):',e.message);});
+  p.on('dialog',d=>d.accept());
+  await p.goto(F);
+  await p.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p.reload(); await p.waitForTimeout(1200);
+  await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    Object.assign(c,{name:'RingTest',wkName:'RingTest',mode:'rotation',teamKind:'solo',
+      together:true,noScore:true,scoreSrc:'manual'});
+    c.display=Object.assign(c.display||{},{voice:true});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
+      {name:'Part A',rounds:2,rrest:8,items:[{name:'',dur:12,scored:false,exercises:[{name:'Row',amounts:[10],unit:'reps'}]}]}
+    ]});
+    c.crews=[{name:'A1'}];
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
+  await p.reload(); await p.waitForTimeout(1300);
+  await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
+  await p.waitForTimeout(300);
+  await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
+  await p.evaluate(()=>window.__spoken.length=0);
+  // round 1 (dur 12): seek to ~6s left, then wait past the final buzz and across
+  // the boundary into the rrest
+  await p.evaluate(()=>window.__seek&&window.__seek(6));
+  await p.waitForTimeout(9000);
+  const info=await p.evaluate(()=>({spoke:window.__spoken.slice(),stopped:window.__stopped.slice()}));
+  ok(info.spoke.includes('fin'),'ring-out: a final buzz played at the end of round 1 ['+info.spoke.join(',')+']');
+  ok(!info.stopped.includes('fin'),'ring-out: the final buzz was NEVER stopped by the next interval ['+info.stopped.join(',')+']');
+  await p.close(); await ctx.close(); }
 // ---- off: silence ----
 { const {p}=await boot(br,false);
   await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });

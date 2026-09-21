@@ -3632,7 +3632,12 @@ window.addEventListener("error",function(ev){
     const on=!!(cfg.display&&cfg.display.voice);
     if(!on){ if(voiceArmed) clearVoice(); voiceRemPrev=remain>0?remain:0; return; }
     if(!AC||!buzzBuf){ if(!buzzBuf) loadBuzz(); voiceRemPrev=remain>0?remain:0; return; }
-    if(remain>voiceRemPrev+1){ clearVoice(); }   // a new interval — re-arm
+    // A NEW INTERVAL re-arms, but the final buzz of the interval just ended is
+    // still ringing out past the boundary (it starts 1s before the end and runs
+    // ~2s) — do NOT stop it (Omar: "the last beep is identical to the others"
+    // was clearVoice() cutting it short). Just drop the references and disarm;
+    // only pause/seek/reset actually stop sound.
+    if(remain>voiceRemPrev+1){ voiceNodes=[]; voiceArmed=false; }
     voiceRemPrev=remain>0?remain:0;
     if(!(remain>0)||voiceArmed) return;
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
@@ -10005,7 +10010,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=488;
+  const BUILD=489;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
