@@ -2261,6 +2261,11 @@
               <label class="chk"><input type="checkbox" data-d="demo"> Sample numbers</label>
             </div>
           </div>
+          <div class="fld"><label>Countdown</label>
+            <div class="checks" id="dispVoice">
+              <label class="chk"><input type="checkbox" data-d="voice"> Say &ldquo;three, two, one&rdquo; before each change</label>
+            </div>
+          </div>
           <div class="fld"><label>Score entry</label>
             <div class="checks" id="scoreSrcPick">
               <label class="chk"><input type="radio" name="scoresrc" value="manual"> The class types it in</label>
@@ -2516,7 +2521,7 @@ window.addEventListener("error",function(ev){
       {name:"5-min Run", machine:"Run", format:"time", target:1000, duration:300},
     ],
     scoring:{ mode:"distance", rankPoints:[12,9,7,5,3,1,1,1], perValue:1, perUnit:10, perBasis:"metres" },
-    display:{ split:true, watts:true, rate:true, metres:false, cals:true, logo:"word" },
+    display:{ split:true, watts:true, rate:true, metres:false, cals:true, logo:"word", voice:true },
     crews:[
       {name:"Team 1", ath:"", color:"#ffffff"},
       {name:"Team 2", ath:"", color:"#c2c8d0"},
@@ -3532,6 +3537,33 @@ window.addEventListener("error",function(ev){
     renderBlockCards();
   }
 
+  // SPOKEN COUNTDOWN (Omar: "could it say three, two, one"). The last three
+  // seconds of whatever interval the class is inside — a set, a swap, a window,
+  // a part or a rest — are called out by voice. It rides the SAME `remain` the
+  // big clock shows, so it fires once per interval boundary for the whole room.
+  // Web Speech needs a user gesture to unlock, so voicePrime() runs on the first
+  // tap (and on Start); a cast TV with no interaction stays silent, which is why
+  // the callout comes from the device the trainer taps.
+  const VOICEWORDS={3:"three",2:"two",1:"one"};
+  let voicePrev=null;
+  function voicePrime(){ try{ if(!("speechSynthesis" in window)) return;
+    speechSynthesis.resume();
+    const u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u);
+  }catch(e){} }
+  function voiceSay(word){ try{ if(!("speechSynthesis" in window)) return;
+    const u=new SpeechSynthesisUtterance(word); u.rate=1; u.volume=1; u.lang="en-US";
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){} }
+  // called every clock frame with the current interval's remaining seconds;
+  // speaks the word only as `remain` crosses down into 3, 2 and 1
+  function voiceCountdown(remain){
+    if(!(cfg.display&&cfg.display.voice)){ voicePrev=null; return; }
+    const n=Math.ceil(remain);
+    if(n!==voicePrev){
+      if(n>=1&&n<=3&&(voicePrev===null||n<voicePrev)) voiceSay(VOICEWORDS[n]);
+      voicePrev=n;
+    }
+  }
   function frameRest(now){
     if(rot.phase!=="rest") return;
     if(paused) return;
@@ -3543,6 +3575,7 @@ window.addEventListener("error",function(ev){
     // "pre" path at block end) or an it.hold boundary (holdPend).
     if(remain<=0){ startBlock(); sessPushNow(); return; }
     rot.remain=remain;
+    voiceCountdown(remain);
     clockEl.textContent=fmtMS(remain); clockEl.classList.remove("hot");
     { const ck=clockEl.parentElement; ck.classList.add("rest");
       ck.classList.toggle("last",remain<=10);
@@ -3699,6 +3732,7 @@ window.addEventListener("error",function(ev){
     // drain bar empties with the interval, the digits beat in the last 10s.
     { const segLead=(!leadDone&&leadB)?segAt(leadB,t):null;
       const rem=Math.max(0,segLead?segLead.remain:(leadDone?curRoundLen():leadLen)-t);
+      voiceCountdown(rem);
       clockEl.textContent=fmtMS(segLead?Math.ceil(rem):rem);
       const ck=clockEl.parentElement;
       const ckRest=!!(segLead&&(segLead.i<0||(segLead.it&&segLead.it.rest)));
@@ -5003,6 +5037,10 @@ window.addEventListener("error",function(ev){
   ["pointerdown","pointermove","keydown","wheel"].forEach(ev=>
     document.addEventListener(ev,()=>{
       if(document.body.classList.contains("bigscreen")) tvctlPoke(); },{passive:true}));
+  // unlock the spoken countdown on the first real interaction (Web Speech needs
+  // a user gesture) — one shot; a cast TV with no interaction simply stays quiet
+  document.addEventListener("pointerdown",voicePrime,{once:true});
+  document.addEventListener("keydown",voicePrime,{once:true});
   function setFull(on){
     document.body.classList.toggle("tvfull",on);
     try{
@@ -7613,6 +7651,9 @@ window.addEventListener("error",function(ev){
     // the wordmark is the default logo everywhere; a cfg saved before there was
     // a choice gets it spelled out
     if(cfg.dispV<4){ if(!cfg.display.logo) cfg.display.logo="word"; cfg.dispV=4; }
+    // the spoken "three, two, one" countdown ships ON; a board saved before it
+    // existed adopts it once (Omar asked for it), and unchecking it sticks
+    if(cfg.dispV<5){ if(cfg.display.voice===undefined) cfg.display.voice=true; cfg.dispV=5; }
     if(cfg.rotation){
       if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
       if(!cfg.rotation.laps) cfg.rotation.laps=1;
@@ -9209,6 +9250,9 @@ window.addEventListener("error",function(ev){
       c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save();
         // a switch on the board's columns has to rebuild the head, not just repaint
         buildBoardHead(); renderLanesRot(); }; });
+    // the spoken-countdown toggle changes no layout — just flips the flag
+    document.querySelectorAll("#dispVoice input").forEach(c=>{ c.checked=!!cfg.display[c.dataset.d];
+      c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save(); if(c.checked) voicePrime(); }; });
     $("exportCfg").onclick=async()=>{
       const code=JSON.stringify(cfg);
       let copied=false;
@@ -9740,7 +9784,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=467;
+  const BUILD=468;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

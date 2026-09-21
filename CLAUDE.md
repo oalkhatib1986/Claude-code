@@ -1297,6 +1297,24 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   LESSON: get the EXACT cfg before rebuilding a bug from a description —
   the field that mattered (`hold:true` on Part B item0) was invisible in the
   screenshot, and five builds chased the wrong shape.
+- **THE CLOCK SPEAKS THE LAST THREE SECONDS (build 468 — Omar: "could it
+  say three, two, one").** `cfg.display.voice` (Layout > Board display >
+  Countdown, default ON via migrate dispV<5) makes the last 3s of the
+  interval the class is inside — a set, a swap, a window, a part or a rest —
+  spoken aloud ("three"/"two"/"one"). `voiceCountdown(remain)` rides the SAME
+  `remain` the big clock shows (in `frameRotation`'s clock block and in
+  `frameRest`), so it fires ONCE per interval boundary for the whole room; it
+  speaks only as `Math.ceil(remain)` crosses down into 3/2/1 (`voicePrev`
+  dedupe, so it never repeats per frame). Web Speech (`speechSynthesis`)
+  needs a user gesture to unlock, so `voicePrime()` runs on the first
+  pointerdown/keydown and on the toggle — the callout comes from the device
+  the trainer taps (if that phone feeds the gym speakers, it plays over the
+  room; a cast TV with no interaction stays silent). TEST GOTCHA: a suite
+  MUST install the `speechSynthesis` mock with `Object.defineProperty` — the
+  real one is a read-only accessor and a plain `window.speechSynthesis={}`
+  assignment silently fails, leaving the voiceless headless engine in place
+  and capturing nothing. `voice.js` (4) pins three/two/one in order, once
+  each, and silence when the toggle is off.
 - **ALTERNATING WINDOWS (build 389 — Omar's Engine 15/09, typed out in
   full: "some start on Ski, some on Wall Balls", swapping between timed
   windows with REAL rests in between).** `it.alt` on a `fmt:"rotate"` item
