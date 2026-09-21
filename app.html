@@ -9723,7 +9723,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=464;
+  const BUILD=465;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -9733,7 +9733,20 @@ window.addEventListener("error",function(ev){
     try{
       const r=await fetch(VURL+"?r="+Math.random().toString(36).slice(2),{cache:"no-store"});
       const v=parseInt((await r.text()).trim(),10);
-      if(isFinite(v)&&v>BUILD){ const bar=$("updBar"); bar.querySelector("b").textContent="Build "+v; bar.dataset.v=v; bar.hidden=false; }
+      if(isFinite(v)&&v>BUILD){ const bar=$("updBar"); bar.querySelector("b").textContent="Build "+v; bar.dataset.v=v; bar.hidden=false;
+        // A SHIPPED FIX MUST ACTUALLY REACH THE SCREEN (build 465 — Omar kept
+        // reporting bugs already fixed, because his browser held a stale
+        // app.html and the update BAR needs a tap he never gave). When the app
+        // is IDLE (no clock running, resting or held; no input focused) it
+        // reloads to the new build itself. It never interrupts a live class —
+        // there the tap bar waits. The ?v guard makes a loop impossible: after
+        // reloading to ?v=v, that param is not < v, so it never fires again
+        // even if the reload were itself served stale.
+        const u=new URL(location.href), vp=parseInt(u.searchParams.get("v"),10)||0;
+        const el=document.activeElement, typing=el&&/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+        const idle=!running&&rot.phase!=="rest"&&!holding&&!sessionActive;
+        if(vp<v&&idle&&!typing) location.replace(location.pathname+"?v="+v+"&t="+Date.now()+location.hash);
+      }
     }catch(e){}
   }
   $("updBar").onclick=()=>{

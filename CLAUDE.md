@@ -1711,6 +1711,22 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   colour, one at each end. A version set in a wide mono at its own size read as a label
   stuck on afterwards. Hidden on `body.bigscreen`
   and `body.tabkiosk` — a TV and an erg tablet are for the workout. `foot.js` gates it.
+- **A SHIPPED FIX MUST REACH THE SCREEN — THE APP SELF-UPDATES (build 465).**
+  GitHub Pages / the browser can serve a stale `app.html`, so a fix ships but
+  the trainer keeps seeing the OLD build (Omar reported the SAME
+  block-transition bug builds after it was fixed — his screenshots were an
+  older cached build every time, citing old version numbers). `checkUpdate()`
+  (boot + every 120s) fetches `version.txt` cache-busted; when a newer build
+  is live it shows the `#updBar` tap bar AND, when the app is IDLE
+  (`!running && rot.phase!=="rest" && !holding && !sessionActive`, no input
+  focused), reloads to it itself — it NEVER interrupts a live class (there the
+  tap bar waits). The `?v` guard makes a loop impossible: it only reloads when
+  the URL's `v` param is BELOW the live build, so after reloading to `?v=<new>`
+  it never fires again even if that reload were itself served stale. LESSON: a
+  correct fix the user can't see is still a bug to them — the app has to pull
+  the new build, not wait for a tap. The footer's "Version N" (`#buildTag`) is
+  how a trainer confirms which build they are on. `verify_upd` in scratchpad
+  pins idle-auto-reload, no-loop and no-reload-when-current.
 - **The Erg Tablet tab opens on the WALL, not on one machine.** "Which erg?" is the
   first question, and the dropdown that used to answer it is hidden by the preview
   (`body.kioskon .tb-selrow{display:none}`) — so there was no way off a machine at all.
