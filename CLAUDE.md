@@ -1723,6 +1723,13 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   wall and lands on its own machine. `kioskOn()` and `fitTablet()` both bail while the
   wall is up. Suites that read one machine's screen must call `window.__tbOpen(key)`
   after entering the tab. `tbwall.js` gates it.
+  THE CONTROL SITS ABOVE THE TILES, NOT BELOW THEM (build 463 — Omar: "why is
+  the control still at the bottom?!"). On the wall the back bar and stage are
+  `display:none`, so in DOM order (`#tbWall` before `#tbCtl`) the Start/
+  transport strip fell UNDER every tile. `.tb-wrap` is a flex column, so
+  `body.tabwall #tbCtl{order:-1}` lifts the strip to the top; wall-only (the
+  one-machine view already has it above the card). `altwin` p9 pins control-
+  above-tiles and control-above-card.
 - **A phone is held upright.** The tablet's own layout is landscape, and the only way
   to show it big enough to read on a phone is to turn it on its side — which asks the
   trainer to rotate the phone just to look at a machine. So `tbPrev` defaults to
