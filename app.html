@@ -3510,7 +3510,10 @@ window.addEventListener("error",function(ev){
       $("phaseLabel").textContent = k===0&&!sessionActive ? "Ready — machines assigned"
         : `Rotate — ${cfg.together?`Block ${blockIdxOf(k)+1}${roundTag(k)}`:nextTag()} up next`;
       $("phaseDesc").textContent = `Every screen shows each ${kw()} their machine · trainer starts the block`;
-      clockEl.textContent=fmtMS(roundLen()); clockEl.classList.remove("hot");
+      // preview the block ABOUT to run, not the longest block on the board
+      // (build 464 — Omar: the transition clock showed 10:00 for a 5:00 next
+      // part). curRoundLen is this block's own length in together flow.
+      clockEl.textContent=fmtMS(curRoundLen()); clockEl.classList.remove("hot");
     } else if(rot.phase==="rest"){
       $("phaseBanner").hidden=false; clockEl.parentElement.hidden=false;
       startBtn.disabled=false; startBtn.textContent=`Start ${nextTag()} early`;
@@ -3533,7 +3536,12 @@ window.addEventListener("error",function(ev){
     if(rot.phase!=="rest") return;
     if(paused) return;
     const remain=(rot.restDur||0)-(now-restT0)/1000;
-    if(remain<=0){ rot.phase="pre"; syncRotChrome(); renderLanesRot(); renderTablet(); return; }
+    // A CONFIGURED blockRest IS AN AUTOMATIC TRANSITION, NOT A HOLD (build 464
+    // — Omar: "a fixed blockRest is NOT a hold and must not require press-
+    // start"). The rest counts down here; when it ends the next block just
+    // begins. A press-start wait is only for blockRest 0/omitted (the plain
+    // "pre" path at block end) or an it.hold boundary (holdPend).
+    if(remain<=0){ startBlock(); sessPushNow(); return; }
     rot.remain=remain;
     clockEl.textContent=fmtMS(remain); clockEl.classList.remove("hot");
     { const ck=clockEl.parentElement; ck.classList.add("rest");
@@ -9715,7 +9723,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=463;
+  const BUILD=464;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

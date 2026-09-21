@@ -1247,6 +1247,23 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   between items, also tappable in Control's part list `.ptr`), stops the
   clock at the boundary ("Next part — press start") and is in the AI schema.
   `setbeat.js` gates beat + labels + hold end to end.
+- **A CONFIGURED blockRest IS AN AUTOMATIC TRANSITION, NOT A HOLD (build 464
+  — Omar's Upper Body 21 Sept: "a fixed blockRest is NOT a hold and must not
+  require press-start").** When a block ends and `restAfterBlock(bi)>0`, the
+  REST counts down (`frameRest`) and then the next block JUST BEGINS —
+  `frameRest`'s `remain<=0` arm now calls `startBlock()`+`sessPushNow()`
+  instead of parking at `rot.phase="pre"`. A press-start wait belongs only to
+  `blockRest` 0/omitted (the plain `rot.phase="pre"` at block end) or an
+  `it.hold` boundary (holdPend). And the "pre" clock previews the block ABOUT
+  to run — `curRoundLen()` (this block's own length in together flow), not
+  `roundLen()` (the LONGEST block) — so a 5:00 next part no longer shows
+  10:00. LESSON: a rest the trainer configured is the transition; only the
+  absence of a rest (or an explicit hold) asks the trainer to press start.
+  `blockrest.js` pins auto-flow after a 60s rest and the press-start wait +
+  correct preview at blockRest 0. NOTE: the reporter's described board
+  (one item dur 600, sets 4) reproduced CLEANLY before this — the visible
+  fault was the rest-then-press-start wait and the wrong 10:00 preview, not a
+  phantom hold; both are fixed here.
 - **ALTERNATING WINDOWS (build 389 — Omar's Engine 15/09, typed out in
   full: "some start on Ski, some on Wall Balls", swapping between timed
   windows with REAL rests in between).** `it.alt` on a `fmt:"rotate"` item
