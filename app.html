@@ -2336,8 +2336,8 @@
     <div class="aipb">
       <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the Setup fills itself for you to review and save. Unclear bits come back as questions. Dictate with your keyboard's mic or the Voice button.</div>
       <div id="aiChat" class="aichat" hidden></div>
-      <div class="note" id="aiSetupNote" hidden>One-time setup: this needs your private AI relay link (see <b>AI_SETUP.md</b> in the project — about 10 minutes). Paste it here once per device:
-        <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
+      <div class="note" id="aiSetupNote" hidden>Your gym link connects this device to every saved workout and the live clock. It must be pasted once on <b>each</b> device — phone, laptop and tablet. On a device that already works, tap <b>Copy</b> to get the link, then paste it on the new device and tap <b>Save</b>.
+        <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlCopy" type="button">Copy</button><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
       </div>
     <div class="aibar">
         <div id="aiPend" class="aipend" hidden></div>
@@ -9038,7 +9038,11 @@ window.addEventListener("error",function(ev){
   })();
   function aiOpen(){
     document.body.classList.add("aiopen");
-    if(!aiUrl) $("aiSetupNote").hidden=false;
+    // Always show the gym-link box (build 478): a device that already works
+    // needs it visible to COPY the link onto a new device (tablet), not only a
+    // device that lacks it. Omar: "why does it work on the phone not tablet?" —
+    // the tablet never got the link, and the link was hidden once saved.
+    $("aiSetupNote").hidden=false;
     setTimeout(()=>{ const t=$("aiText"); if(t) t.focus({preventScroll:true}); },340);
   }
   function aiCloseP(){ document.body.classList.remove("aiopen"); }
@@ -9093,12 +9097,18 @@ window.addEventListener("error",function(ev){
           e.preventDefault(); aiAddImage(it.getAsFile()); } }
       }); }
 
-    const ui=$("aiUrl"), us=$("aiUrlSave");
+    const ui=$("aiUrl"), us=$("aiUrlSave"), uc=$("aiUrlCopy");
     if(ui&&us){ ui.value=aiUrl;
       us.onclick=()=>{ const v=(ui.value||"").trim();
-        if(!/^https:\/\//.test(v)){ aiBubble("err","The relay link must start with https://"); return; }
+        if(!/^https:\/\//.test(v)){ aiBubble("err","The gym link must start with https://"); return; }
         aiUrl=v; try{ localStorage.setItem(AIKEY,v); }catch(e){}
-        $("aiSetupNote").hidden=true; aiBubble("ok","Relay saved \u2014 describe your workout above."); }; }
+        aiBubble("ok","Saved \u2014 this device is now connected. Give it a few seconds to pull your workouts.");
+        try{ if(window.__libSync) window.__libSync(); }catch(e){} }; }
+    if(ui&&uc){ uc.onclick=async()=>{ const v=(ui.value||"").trim();
+        if(!v){ aiBubble("err","No gym link saved on this device yet \u2014 copy it from a device that works."); return; }
+        let done=false; try{ await navigator.clipboard.writeText(v); done=true; }catch(e){}
+        try{ ui.focus(); ui.select(); }catch(e){}
+        aiBubble("ok",done?"Link copied \u2014 now paste it on the other device.":"Link selected above \u2014 press copy on your keyboard."); }; }
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     const mic=$("aiMic");
     if(SR&&mic){ mic.hidden=false; let rec=null;
@@ -9848,7 +9858,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=477;
+  const BUILD=478;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
