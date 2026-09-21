@@ -16,11 +16,14 @@ const MOCK=`
   window.__spoken=[];
   window.fetch=(url)=>{ const which=/final/.test(String(url))?1:0;
     return Promise.resolve({ arrayBuffer(){ return Promise.resolve(new Uint8Array([which]).buffer); } }); };
-  function FakeCtx(){ this.currentTime=0; this.state='running'; this.destination={}; }
+  function FakeCtx(){ this._t0=Date.now(); this.state='running'; this.destination={};
+    Object.defineProperty(this,'currentTime',{get:function(){return (Date.now()-this._t0)/1000;}}); }
   FakeCtx.prototype.resume=function(){ this.state='running'; return Promise.resolve(); };
   FakeCtx.prototype.decodeAudioData=function(arr,okCb){ const w=new Uint8Array(arr)[0]===1?'fin':'beep';
     if(okCb){ okCb({which:w}); return; } return Promise.resolve({which:w}); };
-  FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){},
+  // beeps are pre-scheduled with start(at); the mock records each scheduled beep
+  // once (order = k=N..1 => N-1 short then final), which is what we assert
+  FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){}, stop(){},
     start(){ if(this.buffer&&this.buffer.which) window.__spoken.push(this.buffer.which); } }; };
   window.AudioContext=FakeCtx; window.webkitAudioContext=FakeCtx;
 `;

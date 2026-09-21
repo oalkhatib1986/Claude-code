@@ -3595,12 +3595,11 @@ window.addEventListener("error",function(ev){
   // (voicePrime) so they sit in memory and still sound if the wifi drops
   // mid-class; a countdown that fires before they finish loading simply kicks
   // the load and stays silent that once.
-  let voicePrev=null, voiceLast=0, AC=null, buzzBuf=null, buzzLoading=false;
-  // Decode the two WAVs AHEAD OF TIME so the FIRST of the last N seconds sounds,
-  // not just the last two (build 485 — Omar: "it's only beeping on the last two
-  // seconds"). An AudioContext can be created and decodeAudioData run while it
-  // is still suspended (no gesture needed to DECODE — only to PLAY), so this is
-  // safe to call at boot; voicePrime() then just resumes it on the first tap.
+  let AC=null, buzzBuf=null, buzzLoading=false, voiceEnd=-1, voiceNodes=[];
+  // Decode the two WAVs AHEAD OF TIME so every one of the last N seconds sounds.
+  // An AudioContext can be created and decodeAudioData run while it is still
+  // suspended (no gesture needed to DECODE — only to PLAY), so this is safe at
+  // boot; voicePrime() just resumes it on the first tap.
   function loadBuzz(){ if(buzzBuf||buzzLoading) return;
     try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; AC=AC||new Ctx(); }catch(e){ return; }
     buzzLoading=true;
@@ -3615,38 +3614,33 @@ window.addEventListener("error",function(ev){
     if(AC.state==="suspended") AC.resume();
     loadBuzz();
   }catch(e){} }
-  // ONE BUZZ AT A TIME (build 486 — Omar: "in the 1:00 off it combines second
-  // 5 and 4"). The beep WAV rings ~0.87s, so two fired close together overlap
-  // and smear into one; cut the previous SHORT beep off before the next starts
-  // (never the final — it must ring out, Omar's spec). voiceSrc holds the live
-  // short beep.
-  let voiceSrc=null;
-  function buzz(which){ try{
-    const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
-    AC=AC||new Ctx();
-    if(AC.state==="suspended") AC.resume();
-    if(!buzzBuf){ loadBuzz(); return; }
-    const b=buzzBuf[which]; if(!b) return;
-    if(voiceSrc){ try{ voiceSrc.stop(); }catch(e){} voiceSrc=null; }
-    const src=AC.createBufferSource(); src.buffer=b;
-    src.connect(AC.destination); src.start();
-    if(which!=="fin"){ voiceSrc=src; try{ src.onended=()=>{ if(voiceSrc===src) voiceSrc=null; }; }catch(e){} }
-  }catch(e){} }
-  // called every clock frame with the current interval's remaining seconds; the
-  // buzzer sounds each of the last N seconds (Layout > Countdown beeps): the
-  // short buzz on seconds N..2 and the longer final buzz on the last second.
-  // A minimum 750ms gap guards against a rem discontinuity (a rest boundary)
-  // firing two seconds at once — a real countdown second is always ≥1s apart.
+  // cancel any beeps scheduled but not yet played (pause / seek / reset / new
+  // interval), so a stale countdown never fires late over the wrong window
+  function clearVoice(){ voiceNodes.forEach(s=>{ try{ s.stop(); }catch(e){} }); voiceNodes=[]; voiceEnd=-1; }
+  // THE BEEPS ARE PRE-SCHEDULED ON THE AUDIO CLOCK, NOT FIRED PER FRAME (build
+  // 487 — Omar: "it gets confused at 5 and misses a beep"). Driving the buzz off
+  // the rendered clock meant a dropped frame skipped a second (the 5) and it was
+  // lost, or a clock jitter fired two at once. Now, the first time the interval
+  // comes within the window, all N beeps are scheduled at their EXACT audio-clock
+  // times (endAt - k), sample-accurate and immune to frame drops — exactly like
+  // Omar's own timer. Scheduled once per interval (endAt is stable as it counts
+  // down); a new interval (endAt jumps) reschedules; pause/seek/reset clear.
   function voiceCountdown(remain){
-    if(!(cfg.display&&cfg.display.voice)){ voicePrev=null; return; }
+    if(!(cfg.display&&cfg.display.voice)){ if(voiceEnd>=0) clearVoice(); return; }
+    if(!AC||!buzzBuf||!(remain>0)){ if(!buzzBuf) loadBuzz(); return; }
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
-    const n=Math.ceil(remain);
-    if(n!==voicePrev){
-      if(n>=1&&n<=N&&(voicePrev===null||n<voicePrev)){
-        const t=(typeof performance!=="undefined"?performance.now():Date.now());
-        if(t-voiceLast>=750){ buzz(n===1?"fin":"beep"); voiceLast=t; }
-      }
-      voicePrev=n;
+    const now=AC.currentTime, endAt=now+remain;
+    if(remain>N+1.2) return;                 // not near the end yet
+    if(Math.abs(endAt-voiceEnd)<=0.6) return; // already scheduled for this interval
+    clearVoice(); voiceEnd=endAt;
+    if(AC.state==="suspended"){ try{ AC.resume(); }catch(e){} }
+    for(let k=Math.min(N,Math.round(remain)); k>=1; k--){
+      const at=Math.max(now, endAt-k);
+      const b=buzzBuf[k===1?"fin":"beep"]; if(!b) continue;
+      const src=AC.createBufferSource(); src.buffer=b;
+      src.connect(AC.destination);
+      try{ src.start(at); }catch(e){}
+      voiceNodes.push(src);
     }
   }
   function frameRest(now){
@@ -5005,6 +4999,7 @@ window.addEventListener("error",function(ev){
     try{ const ck=clockEl.parentElement; ck.classList.remove("rest","last");
       ck.style.removeProperty("--cfrac"); }catch(e){}
     manClear();   // the class starts over, so does its score sheet — everywhere
+    try{ clearVoice(); }catch(e){}   // no beep left scheduled from the old run
     circReset(); tbFresh(); startBtn.disabled=false; resetBtn.disabled=true; build(); }
   // acting on the clock is what makes THIS device the controller — publish at once
   startBtn.onclick=()=>{ start(); sessPushNow(); };
@@ -7811,7 +7806,7 @@ window.addEventListener("error",function(ev){
   }
   try{ window.__loadLib=v=>loadLib(v,true); }catch(e){}   // suites load hidden boards directly
   // suites drive the clock through boundaries without waiting real time
-  try{ window.__seek=s=>{ t0-=s*1000; try{ restT0-=s*1000; }catch(e){} }; }catch(e){}
+  try{ window.__seek=s=>{ t0-=s*1000; try{ restT0-=s*1000; }catch(e){} try{ clearVoice(); }catch(e){} }; }catch(e){}
   try{ window.voicePrime=voicePrime; }catch(e){}   // test hook: unlock + preload the buzzer
   function loadLib(v,all){
     const p=libFind(v,all); if(!p) return false;
@@ -9846,12 +9841,14 @@ window.addEventListener("error",function(ev){
     if(!active||v===paused) return;
     paused=v; pauseUi(v);
     if(v){ pauseMark=performance.now(); cancelAnimationFrame(raf); clearTimeout(ticker);
+      try{ clearVoice(); }catch(e){}   // cancel beeps scheduled past the pause
       clockState.textContent="Paused"; }
     else { const d=performance.now()-pauseMark; t0+=d; restT0+=d; enginePump(); }
   }
   function seek(ds){
     armRelock();
     if(paused||holding||tkLock||cfg.mode==="waves") return;
+    try{ clearVoice(); }catch(e){}   // the window moved — drop beeps scheduled for the old one
     const now=performance.now();
     if(cfg.mode==="rotation"&&rot.phase==="rest"){ restT0-=ds*1000; if(restT0>now) restT0=now; return; }
     if(!running) return;
@@ -10002,7 +9999,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=486;
+  const BUILD=487;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
