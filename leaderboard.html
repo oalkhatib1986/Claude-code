@@ -9975,7 +9975,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=482;
+  const BUILD=483;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10008,6 +10008,11 @@ window.addEventListener("error",function(ev){
     location.replace(location.pathname+"?v="+v+"&t="+Date.now()+location.hash);
   };
   checkUpdate(); setInterval(checkUpdate,120000);
+  // Register the service worker so the app installs as a real home-screen app
+  // (WebAPK) on Android — that is what launches with NO browser bars, even
+  // after the screen is powered off and on (build 483). It caches nothing, so
+  // it never serves a stale build.
+  if("serviceWorker" in navigator){ try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){} }
   applyAccent(); buildControlRoom(); build(); syncCoLogo();
   // THE PROJECTION URL IS A PICTURE, NOT A PAGE. #screen / #workout is the link a
   // TV opens, so it carries no chrome at all — no tabs, no sub-tabs, at any width.
