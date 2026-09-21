@@ -1,22 +1,27 @@
-// COUNTDOWN BEEPS (build 469 — Omar: "instead of someone saying 3 2 1 why
-// don't we do it as beeps?"). The last three seconds of the interval the class
-// is inside are beeped (rising 660/830/1046 Hz), riding the same `remain` the
-// big clock shows. cfg.display.voice gates it (default on via migrate dispV<5).
-// This suite mocks Web Audio, runs the clock through a boundary, and asserts
-// three beeps fire in rising pitch — and that toggling it off silences them.
+// COUNTDOWN BUZZER (build 484 — Omar designed and rendered the sound himself
+// and sent two WAVs: buzzer-beep.wav (short run-up buzz) and buzzer-final.wav
+// (the longer last-second "go"). They are fetched + decoded once and played as
+// Web Audio buffers on each of the last N seconds (N from Layout > Countdown
+// beeps): short buzz on seconds N..2, the final buzz on the last second.
+// This suite mocks fetch + decodeAudioData + AudioBufferSourceNode, tagging each
+// decoded buffer by its file, and asserts the right buffer plays each second —
+// and that toggling the countdown off silences it.
 const {chromium}=require('playwright');
 let pass=0,fail=0;
 const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
 const F='file:///home/user/Claude-code/leaderboard.html';
-// Mock AudioContext: every oscillator records its frequency the instant it is
-// started, so __spoken holds the pitch of each beep in order.
+// fetch returns a 1-byte buffer marking which file; decodeAudioData reads it
+// back into a tagged buffer; a buffer source records its buffer's tag on start.
 const MOCK=`
   window.__spoken=[];
+  window.fetch=(url)=>{ const which=/final/.test(String(url))?1:0;
+    return Promise.resolve({ arrayBuffer(){ return Promise.resolve(new Uint8Array([which]).buffer); } }); };
   function FakeCtx(){ this.currentTime=0; this.state='running'; this.destination={}; }
-  FakeCtx.prototype.resume=function(){ this.state='running'; };
-  FakeCtx.prototype.createGain=function(){ return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}}; };
-  FakeCtx.prototype.createOscillator=function(){ const o={frequency:{value:0},type:'',connect(){},stop(){},
-    start(){ window.__spoken.push(Math.round(o.frequency.value)); }}; return o; };
+  FakeCtx.prototype.resume=function(){ this.state='running'; return Promise.resolve(); };
+  FakeCtx.prototype.decodeAudioData=function(arr,okCb){ const w=new Uint8Array(arr)[0]===1?'fin':'beep';
+    if(okCb){ okCb({which:w}); return; } return Promise.resolve({which:w}); };
+  FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){},
+    start(){ if(this.buffer&&this.buffer.which) window.__spoken.push(this.buffer.which); } }; };
   window.AudioContext=FakeCtx; window.webkitAudioContext=FakeCtx;
 `;
 async function boot(br,voice,beepN){
@@ -45,38 +50,42 @@ async function boot(br,voice,beepN){
 }
 (async()=>{
 const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
-// ---- beeps ON: three rising beeps as Part A nears its end ----
+// ---- default (3): two short buzzes then the final on the last second ----
 { const {p}=await boot(br,true);
   await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
+  await p.waitForTimeout(300);   // let the two WAVs "decode"
   await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
   await p.evaluate(()=>window.__spoken.length=0);
   await p.evaluate(()=>window.__seek&&window.__seek(16.2)); // ~3.8s left in Part A (dur 20)
-  await p.waitForTimeout(5000);                              // let the clock run through 3-2-1
+  await p.waitForTimeout(5000);
   const said=await p.evaluate(()=>window.__spoken.slice());
-  ok(said.length===3,'beeps on: exactly three beeps, one per second, none repeated per frame ['+said.join(',')+']');
-  ok(said[0]===660&&said[1]===830&&said[2]===1046,'beeps on: rising 660/830/1046 in order ['+said.join(',')+']');
+  ok(said.length===3,'buzzer on: sounds three times over the last three seconds ['+said.join(',')+']');
+  ok(said[0]==='beep'&&said[1]==='beep'&&said[2]==='fin',
+     'buzzer on: short buzz, short buzz, final buzz ['+said.join(',')+']');
   await p.close(); }
-// ---- beepN=5: five beeps — two low ticks then the rising go ----
+// ---- beepN=5: four short buzzes then the final ----
 { const {p}=await boot(br,true,5);
   await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
+  await p.waitForTimeout(300);
   await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
   await p.evaluate(()=>window.__spoken.length=0);
-  await p.evaluate(()=>window.__seek&&window.__seek(14.2)); // ~5.8s left in Part A (dur 20)
+  await p.evaluate(()=>window.__seek&&window.__seek(14.2)); // ~5.8s left
   await p.waitForTimeout(6500);
   const said=await p.evaluate(()=>window.__spoken.slice());
-  ok(said.length===5,'beepN 5: exactly five beeps ['+said.join(',')+']');
-  ok(said[0]===520&&said[1]===520&&said[2]===660&&said[3]===830&&said[4]===1046,
-     'beepN 5: two low 520 ticks then rising 660/830/1046 ['+said.join(',')+']');
+  ok(said.length===5,'beepN 5: five sounds ['+said.join(',')+']');
+  ok(said.slice(0,4).every(x=>x==='beep')&&said[4]==='fin',
+     'beepN 5: four short buzzes then the final ['+said.join(',')+']');
   await p.close(); }
-// ---- beeps OFF: silence ----
+// ---- off: silence ----
 { const {p}=await boot(br,false);
   await p.evaluate(()=>{ if(window.voicePrime) window.voicePrime(); });
+  await p.waitForTimeout(300);
   await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(200);
   await p.evaluate(()=>window.__spoken.length=0);
   await p.evaluate(()=>window.__seek&&window.__seek(16.2));
   await p.waitForTimeout(5000);
   const said=await p.evaluate(()=>window.__spoken.slice());
-  ok(said.length===0,'beeps off: nothing sounds ['+said.join(',')+']');
+  ok(said.length===0,'buzzer off: nothing sounds ['+said.join(',')+']');
   await p.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

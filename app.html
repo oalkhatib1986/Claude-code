@@ -3587,39 +3587,45 @@ window.addEventListener("error",function(ev){
   // Web Speech needs a user gesture to unlock, so voicePrime() runs on the first
   // tap (and on Start); a cast TV with no interaction stays silent, which is why
   // the callout comes from the device the trainer taps.
-  // Omar asked for BEEPS, not a spoken "three, two, one" (build 469). Web Audio
-  // is more reliable than speech — no voice pack needed, it just tones — so the
-  // countdown is three rising beeps: 660Hz at 3s, 830Hz at 2s, a longer 1046Hz
-  // "go" at 1s. The pitch climbs so the ear reads it as a countdown.
-  const BEEPHZ={3:660,2:830,1:1046};
-  let voicePrev=null, AC=null;
+  // OMAR'S BUZZER (build 484 — he designed and rendered the sound himself and
+  // sent the two WAVs; replaces the 469 sine beeps). buzzer-beep.wav is the
+  // short buzz for the run-up seconds, buzzer-final.wav the longer "go" on the
+  // last second — his exact, tuned files, played lossless, NEVER re-synthesised
+  // or recompressed. They are fetched and decoded ONCE on the first gesture
+  // (voicePrime) so they sit in memory and still sound if the wifi drops
+  // mid-class; a countdown that fires before they finish loading simply kicks
+  // the load and stays silent that once.
+  let voicePrev=null, AC=null, buzzBuf=null, buzzLoading=false;
+  function loadBuzz(){ if(buzzBuf||buzzLoading||!AC) return; buzzLoading=true;
+    const one=url=>fetch(url).then(r=>r.arrayBuffer()).then(a=>new Promise(res=>{
+      try{ AC.decodeAudioData(a,b=>res(b),()=>res(null)); }catch(e){ res(null); } }));
+    Promise.all([one("buzzer-beep.wav"),one("buzzer-final.wav")])
+      .then(([beep,fin])=>{ buzzBuf={beep,fin}; })
+      .catch(()=>{ buzzLoading=false; }); }
   function voicePrime(){ try{
     const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
     AC=AC||new Ctx();
     if(AC.state==="suspended") AC.resume();
+    loadBuzz();
   }catch(e){} }
-  function beep(hz,ms){ try{
+  function buzz(which){ try{
     const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
     AC=AC||new Ctx();
     if(AC.state==="suspended") AC.resume();
-    const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
-    o.type="sine"; o.frequency.value=hz;
-    g.gain.setValueAtTime(0.0001,t);
-    g.gain.exponentialRampToValueAtTime(0.5,t+0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000);
-    o.connect(g); g.connect(AC.destination);
-    o.start(t); o.stop(t+ms/1000+0.02);
+    if(!buzzBuf){ loadBuzz(); return; }
+    const b=buzzBuf[which]; if(!b) return;
+    const src=AC.createBufferSource(); src.buffer=b;
+    src.connect(AC.destination); src.start();
   }catch(e){} }
-  // called every clock frame with the current interval's remaining seconds;
-  // beeps each second from beepN down to 1 (Omar: "make it in the setup if it
-  // starts beeping at 3 or 4 or 5 or 10"). The LAST three seconds rise
-  // 660/830/1046 for the "go"; any earlier second is a plain low 520Hz tick.
+  // called every clock frame with the current interval's remaining seconds; the
+  // buzzer sounds each of the last N seconds (Layout > Countdown beeps): the
+  // short buzz on seconds N..2 and the longer final buzz on the last second.
   function voiceCountdown(remain){
     if(!(cfg.display&&cfg.display.voice)){ voicePrev=null; return; }
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||3));
     const n=Math.ceil(remain);
     if(n!==voicePrev){
-      if(n>=1&&n<=N&&(voicePrev===null||n<voicePrev)) beep(n<=3?BEEPHZ[n]:520, n===1?260:130);
+      if(n>=1&&n<=N&&(voicePrev===null||n<voicePrev)) buzz(n===1?"fin":"beep");
       voicePrev=n;
     }
   }
@@ -7786,6 +7792,7 @@ window.addEventListener("error",function(ev){
   try{ window.__loadLib=v=>loadLib(v,true); }catch(e){}   // suites load hidden boards directly
   // suites drive the clock through boundaries without waiting real time
   try{ window.__seek=s=>{ t0-=s*1000; try{ restT0-=s*1000; }catch(e){} }; }catch(e){}
+  try{ window.voicePrime=voicePrime; }catch(e){}   // test hook: unlock + preload the buzzer
   function loadLib(v,all){
     const p=libFind(v,all); if(!p) return false;
     const keep=structuredClone(cfg.crews||[]);
@@ -9975,7 +9982,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=483;
+  const BUILD=484;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
