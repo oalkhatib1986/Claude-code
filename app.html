@@ -725,7 +725,7 @@
   body.tbfull #tbFullX{display:flex}
   body.tbfull .mark,body.tbfull .tabs,body.tbfull .subtabs,body.tbfull #siteFoot,
   body.tbfull .tb-back,body.tbfull #tbCap,body.tbfull #aiFab{display:none!important}
-  body.tbfull #tbStage{position:fixed;inset:0;z-index:90;background:#000;
+  body.tbfull #tbStage{position:fixed;inset:0;z-index:90;background:#000;border-radius:0;
     display:flex;align-items:center;justify-content:center;overflow:hidden}
   /* TEMPORARY (build 430, Omar: "so I can test how it acts, just till we
      go live"): the Workout page's transport on the Erg Tablet tab too —
@@ -771,8 +771,12 @@
      way off a machine once the picker is hidden. NO side padding: its button's
      left edge lines up with the tablet frame below it. */
   body.kioskon.tabone .tb-back{display:flex;padding:0 0 8px}
-  body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none;background:#fff;overflow:hidden}
-  body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#fff;display:block;overflow:hidden}
+  /* The frame is BLACK, not white (build 480 — Omar: "white border showing on
+     the edges" in full screen). The tablet went dark at build 376; this white
+     bg was left from the light-card era and peeked around the dark board at the
+     edges. Black matches #tbStage so no border of any colour shows. */
+  body.kioskon .tb-device{border-radius:0;padding:0;box-shadow:none;background:#000;overflow:hidden}
+  body.kioskon .tb-screen{border-radius:0;height:100%;min-height:0;padding:0;background:#000;display:block;overflow:hidden}
   :is(body.kioskon,.twt) .tk{width:1005px;height:600px;border-radius:0;transform-origin:top left}
   :is(body.kioskon,.twt) .tk-vit .opt{display:block}
   :is(body.kioskon,.twt) .tk-id{padding:18px 22px;gap:16px}   /* 22 = the cards' own inset — the logo shares their line (427); taller row per Omar (428) */
@@ -2282,6 +2286,10 @@
             <div class="checks" id="dispTitle">
               <label class="chk"><input type="checkbox" data-d="hideTime"> Hide the interval time when the title already says it</label>
             </div>
+          </div>
+          <div class="fld"><label>Erg tablet exit code</label>
+            <input id="kioskPin" type="text" inputmode="numeric" autocomplete="off" placeholder="none — the full-screen &times; exits freely" style="width:100%;max-width:320px">
+            <div class="hint" style="margin-top:6px">Set a code (digits) and the full-screen &times; asks for it, so the class can&rsquo;t leave the workout. Saved on this tablet only.</div>
           </div>
           <div class="fld"><label>Score entry</label>
             <div class="checks" id="scoreSrcPick">
@@ -5081,7 +5089,15 @@ window.addEventListener("error",function(ev){
   { const fb=$("tbFull"); if(fb) fb.onclick=()=>{ document.body.classList.add("tbfull");
       const el=document.documentElement; try{ if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); }catch(e){}
       fitTablet(); tbFullPoke(2600); };
-    const fx=$("tbFullX"); if(fx) fx.onclick=()=>{ document.body.classList.remove("tbfull");
+    const fx=$("tbFullX"); if(fx) fx.onclick=async()=>{
+      // A KIOSK EXIT CODE LOCKS THE TABLET TO THE WORKOUT (build 480 — Omar:
+      // "they can close the full screen and start clicking things"). In full
+      // screen the × is the ONLY control, so a code on it locks everything:
+      // wrong or cancelled, the class stays on the workout. Blank code = no lock.
+      let pin=""; try{ pin=(localStorage.getItem(KPIN)||"").trim(); }catch(e){}
+      if(pin){ const v=await dlgAsk("Enter the exit code","","Unlock");
+        if(v==null) return; if(v!==pin){ await dlgTell("Wrong code."); return; } }
+      document.body.classList.remove("tbfull");
       try{ if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
       fitTablet(); }; }
   // any tap while full brings the × back for a moment, then it goes again
@@ -8043,6 +8059,7 @@ window.addEventListener("error",function(ev){
 
   /* ============ AI workout builder ============ */
   const AIKEY="af_ai_url";
+  const KPIN="af_kiosk_pin";   // erg-tablet full-screen exit code, this device only
   try{ localStorage.removeItem("af_ai_fabpos"); }catch(e){}
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
   // THE COACH'S AI RUNS THE TOP MODEL (build 395): most capable first,
@@ -9351,6 +9368,11 @@ window.addEventListener("error",function(ev){
     document.querySelectorAll("#dispTitle input").forEach(c=>{ c.checked=!!(cfg.display&&cfg.display[c.dataset.d]);
       c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save();
         try{ renderBlockCards(true); }catch(e){} try{ fitScreen(); }catch(e){} }; });
+    // The erg-tablet exit code lives on THIS device (a kiosk lock is physical),
+    // never in the shared cfg (build 480). Digits only; blank = no lock.
+    { const kp=$("kioskPin"); if(kp){ try{ kp.value=localStorage.getItem(KPIN)||""; }catch(e){}
+        kp.oninput=()=>{ const v=(kp.value||"").replace(/\D/g,""); kp.value=v;
+          try{ v?localStorage.setItem(KPIN,v):localStorage.removeItem(KPIN); }catch(e){} }; } }
     $("exportCfg").onclick=async()=>{
       const code=JSON.stringify(cfg);
       let copied=false;
@@ -9882,7 +9904,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=479;
+  const BUILD=480;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
