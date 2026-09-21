@@ -775,6 +775,37 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   ok((await bwhere(200)).includes('Round 3 of 4'),'460: pass 2 station 1 → Round 3 of 4 (the unit test)');
   ok((await bwhere(300)).includes('Round 4 of 4'),'460: pass 2 station 2 → Round 4 of 4');
   await p8.close(); }
+// ===== part 9: THE ERG-TABLET CONTROL SITS ABOVE THE TILES (build 463 —
+// Omar: "why is the control still at the bottom?!"). On the wall the back bar
+// and stage are hidden, so #tbWall (tiles) preceded #tbCtl (Start/transport)
+// and the strip fell under every tile. It must be at the TOP in both views. =====
+{ const p9=await br.newPage({viewport:{width:390,height:840}});
+  p9.on('pageerror',e=>{fail++;console.log('FAIL pageerror(p9):',e.message);});
+  await p9.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p9.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p9.reload(); await p9.waitForTimeout(1200);
+  await p9.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    const erg=(nm)=>({who:'Pair 1',name:nm,unit:'m',max:true,amounts:[]});
+    Object.assign(c,{name:'Ctl Pos Test',wkName:'Ctl Pos Test',mode:'rotation',teamKind:'teams',
+      teamSize:4,together:false,noScore:false,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
+      {name:'Part C',rounds:1,items:[{name:'',dur:480,fmt:'',scored:true,metric:'metres',scorers:4,exercises:[erg('Max Metres Ski')]}]} ]});
+    c.crews=Array.from({length:4},(_,i)=>({name:'Team '+(i+1)}));
+    c.inventory=Object.assign({},c.inventory,{Row:6,Ski:6,Bike:6,Run:6});
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p9.reload(); await p9.waitForTimeout(1000);
+  await p9.evaluate(()=>{ const t=[...document.querySelectorAll('.tabs button,button')].find(b=>/erg tablet/i.test(b.textContent||'')); if(t) t.click(); });
+  await p9.waitForTimeout(500);
+  const topOf=id=>p9.evaluate(i=>{const e=document.getElementById(i);return e&&getComputedStyle(e).display!=='none'?Math.round(e.getBoundingClientRect().top):null;},id);
+  { const ctl=await topOf('tbCtl'), wall=await topOf('tbWall');
+    ok(ctl!=null&&wall!=null&&ctl<wall,'463: on the wall the control sits ABOVE the tiles ('+ctl+' < '+wall+')'); }
+  await p9.evaluate(()=>{ const tile=document.querySelector('#tbWall .twt'); if(tile) tile.click(); });
+  await p9.waitForTimeout(500);
+  { const ctl=await topOf('tbCtl'), stage=await topOf('tbStage');
+    ok(ctl!=null&&stage!=null&&ctl<stage,'463: one machine — control still above the card ('+ctl+' < '+stage+')'); }
+  await p9.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

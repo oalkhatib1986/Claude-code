@@ -744,6 +744,13 @@
   body.tabone .tbwall,body.tabone .tb-wallnote{display:none}
   body.tabwall .tb-back,body.tabwall #tbStage,body.tabwall #tbCap,
   body.tabwall .tb-selrow,body.tabwall .tb-onenote{display:none}
+  /* THE CONTROL SITS ABOVE THE TILES, NOT BELOW THEM (build 463 — Omar:
+     "why is the control still at the bottom?!"). On the wall the back bar and
+     stage are hidden, so in DOM order (#tbWall before #tbCtl) the Start/
+     transport strip fell under every tile. .tb-wrap is a flex column, so
+     order:-1 lifts the strip to the top where the trainer expects it. The
+     one-machine view already has it above the card, so this is wall-only. */
+  body.tabwall #tbCtl{order:-1;margin:0 0 14px}
   /* the drill-in is for LOOKING at the machine, so the frame starts as high up the
      page as it can: the wall, the stepper and a swipe already choose it, and the
      dropdown that used to say so just pushed the screen below the fold */
@@ -9708,7 +9715,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=462;
+  const BUILD=463;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
