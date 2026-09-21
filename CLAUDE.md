@@ -222,6 +222,27 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   width, not a pixel count: 24px on an 1820 board and on a 1302 one are two different
   sizes to the eye. Measured at authored width, so it never chases `fitTvBoard`.
   `wallfit.js` gates it on 1920/2560/1366 and the phone preview.
+  ONE FINAL FIT AT THE SETTLED WIDTH (build 477): the solver calls `fitBlockText`
+  inside its loop at intermediate (wider) authored widths, so the LAST run could
+  measure a column wider than the width that actually settled, find everything
+  fits and clear `--bfs` — a dense 4-column board (the 475 change made columns
+  narrower) then painted its work lines at full 34px and wrapped. `fillTvBoard`
+  now calls `fitBlockText()` once more after the width settles; a shrink only
+  makes the board shorter, never wider, so it can add a little floor but never
+  overflow the width the scale already filled.
+- **THE COACH'S TITLE CAN CARRY THE TIME, SO THE APP NEED NOT REPEAT IT (build
+  477 — Omar: "4:00 ON / 1:00 OFF … then it says 4 minutes, repetitive; the
+  4 minutes is the time set and 4:00 ON / 1:00 OFF is the title — a hide or show
+  option?").** Layout > Board display > Part titles > "Hide the interval time
+  when the title already says it" (`cfg.display.hideTime`, default OFF — stored
+  absent = show, so no migration and every other board is unchanged). When ON,
+  the BARE-duration `tlab` (`=== minTxt(it.dur)` — the plain "· 4 minutes"
+  fallback) is dropped from a part heading that HAS a title (`label`) — never a
+  scheme like "3 rounds × 4:00", "swap every…", "share in 2s" or a repeats
+  count, which say something the title does not, and never when there is no
+  title to carry the heading. `dispHideTime()` gates it; the toggle rebuilds the
+  cards + re-fits. `hidetime.js` pins the drop, the default-show, and that a
+  scheme heading is never stripped.
 - **A slab is as tall as the work it holds.** `.exg.pnow` shared a `height:8px` rule
   with `.bprog` — the running part was squashed to a stripe and painted its own light
   ground straight across the words. A height that belongs to a progress bar belongs to

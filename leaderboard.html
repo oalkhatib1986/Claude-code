@@ -2273,6 +2273,11 @@
                 seconds out</label>
             </div>
           </div>
+          <div class="fld"><label>Part titles</label>
+            <div class="checks" id="dispTitle">
+              <label class="chk"><input type="checkbox" data-d="hideTime"> Hide the interval time when the title already says it</label>
+            </div>
+          </div>
           <div class="fld"><label>Score entry</label>
             <div class="checks" id="scoreSrcPick">
               <label class="chk"><input type="radio" name="scoresrc" value="manual"> The class types it in</label>
@@ -3433,7 +3438,7 @@ window.addEventListener("error",function(ev){
       // takes only the swap COUNT ("Pairs swap every 4:00 × 4"), never both name and line.
       const isRot=itRot(it)&&!it.alt, rotN=xs.length||1, rotSwaps=rp*rotN;
       const rotDedup=isRot&&/swap|rotate/i.test(it.name||"")&&!!label;
-      const tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`
+      let tlab=it.fmt==="waves"?`${fmtMS(it.dur)} &times; ${itWaves(it)} waves`
         :itSelf(it)?`${xs.length} stations · self-paced${rp>1?` · ${rp} × ${fmtMS(it.dur)}`:""}`
         :isRot?(rotDedup?"":`swap every ${fmtMS(Math.round(it.dur/rotN))} &times; ${rotSwaps} &middot; ${fmtMS(it.dur*rp)} total`)
         :it.alt&&itRot(it)?fmtMS(it.dur)
@@ -3441,6 +3446,12 @@ window.addEventListener("error",function(ev){
         :rp>1?`${rp} × ${minTxt(it.dur)}`
         :us?((it.dur>0&&it.dur%us===0)?`${us} rounds × ${minTxt(it.dur/us)}`:`${us} sets`)
         :(bs&&its.length===1)?"":minTxt(it.dur);
+      // Omar's Part-titles option (build 477): when the coach's own title
+      // carries the timing, drop the bare "· 4 minutes" duration — but only the
+      // BARE duration (never a scheme like "3 rounds × 4:00", "swap every…" or
+      // "share in 2s", which say something the title does not), and only when a
+      // title is actually there to carry the heading.
+      if(dispHideTime()&&label&&tlab===minTxt(it.dur)) tlab="";
       // A heading breaks at a WORD, never in front of its own separator. The last
       // word of the name travels with "· 4:00" so a wrapped title reads
       // "FINISH — ALL 4 ON ONE MACHINE, / ALTERNATING · 4:00" rather than leaving a
@@ -4518,6 +4529,10 @@ window.addEventListener("error",function(ev){
   // are drawn only while nothing has started, they are the same every time (a board
   // that flickers is not a preview), and the first real metre wipes them out.
   const demoOn=()=>!!(cfg.display&&cfg.display.demo)&&!sessionActive&&!running&&!finished;
+  // Omar's option (build 477): hide the bare interval time in a part title when
+  // the coach's title already says it ("4:00 on / 1:00 off · 4 minutes" → just
+  // "4:00 on / 1:00 off"). Layout > Board display > Part titles. Default off.
+  const dispHideTime=()=>!!(cfg.display&&cfg.display.hideTime);
   const DEMO={Run:[1180,178],Row:[1420,108],Ski:[1180,116],Bike:[2600,102],Echo:[2400,106]};
   const demoFor=(e,t)=>{ const i=e.id||0, [m0,p0]=DEMO[t]||[1200,112];
     const m=Math.round(m0*(1-i*0.055)), sec=p0*(1+i*0.035);
@@ -9294,6 +9309,14 @@ window.addEventListener("error",function(ev){
       c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save(); if(c.checked) voicePrime(); }; });
     { const bn=$("beepN"); if(bn){ bn.value=String(Math.max(1,parseInt(cfg.display&&cfg.display.beepN,10)||3));
       bn.onchange=()=>{ cfg.display.beepN=parseInt(bn.value,10)||3; save(); voicePrime(); }; } }
+    // HIDE THE INTERVAL TIME IN A PART TITLE (build 477 — Omar: "4:00 ON / 1:00
+    // OFF … then it says 4 minutes, which is repetitive; the 4 minutes is the
+    // time set and 4:00 ON / 1:00 OFF is the title — a hide or show option?").
+    // Drops the bare-duration suffix from the heading (the card work list, not
+    // the board columns), so it rebuilds the cards and re-fits.
+    document.querySelectorAll("#dispTitle input").forEach(c=>{ c.checked=!!(cfg.display&&cfg.display[c.dataset.d]);
+      c.onchange=()=>{ cfg.display[c.dataset.d]=c.checked; save();
+        try{ renderBlockCards(true); }catch(e){} try{ fitScreen(); }catch(e){} }; });
     $("exportCfg").onclick=async()=>{
       const code=JSON.stringify(cfg);
       let copied=false;
@@ -9825,7 +9848,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=476;
+  const BUILD=477;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10070,6 +10093,15 @@ window.addEventListener("error",function(ev){
     // from the settled state; the second pass starts with the chips already
     // wrapped, so it converges.
     if(W*k<cw*0.97&&!f._resolve){ f._resolve=1; fillTvBoard(cw,ch); f._resolve=0; return; }
+    // ONE FINAL TEXT FIT AT THE SETTLED WIDTH. The solver calls fitBlockText
+    // inside its loop, but at intermediate (wider) authored widths; the last
+    // one to run can measure a column WIDER than the width that actually
+    // settled, find everything fits and clear --bfs — so on the narrow final
+    // column of a dense 4-column board the work lines wrap at full size
+    // (build 477). Fit once more here, where W is final; a shrink only makes
+    // the board shorter, so it can add a little floor but never overflow the
+    // width the scale already filled.
+    fitBlockText();
     const dy=Math.max(0,(ch-f.scrollHeight*k)/2);
     f.style.transform=`translateY(${dy.toFixed(1)}px) scale(${k.toFixed(4)})`;
   }
