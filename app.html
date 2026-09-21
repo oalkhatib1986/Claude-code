@@ -712,12 +712,17 @@
      exits (the frame itself is a TOUCH surface — taps belong to it). */
   #tbFull{display:none}
   body.kioskon.tabone #tbFull{display:inline-block}
+  /* A small round × that shows on a tap and fades away again (like the big
+     screen's exit), so it never sits on top of the erg name. tbFullPoke() shows
+     it; it hides itself after a couple of seconds. */
   #tbFullX{display:none;position:fixed;right:12px;top:12px;z-index:96;
-    border:1px solid rgba(255,255,255,.3);background:rgba(10,10,10,.85);color:var(--ink-dim);
-    border-radius:999px;padding:8px 14px;font-family:var(--disp);font-weight:600;
-    font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;opacity:.7}
-  #tbFullX:hover{opacity:1;color:var(--ink)}
-  body.tbfull #tbFullX{display:block}
+    width:44px;height:44px;border-radius:50%;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.25);background:rgba(10,10,10,.55);color:#fff;
+    font-size:24px;line-height:1;padding:0;cursor:pointer;
+    opacity:0;pointer-events:none;transition:opacity .3s}
+  #tbFullX.show,#tbFullX:focus-visible{opacity:.92;pointer-events:auto}
+  @media (hover:hover) and (pointer:fine){ #tbFullX:hover{opacity:1} }
+  body.tbfull #tbFullX{display:flex}
   body.tbfull .mark,body.tbfull .tabs,body.tbfull .subtabs,body.tbfull #siteFoot,
   body.tbfull .tb-back,body.tbfull #tbCap,body.tbfull #aiFab{display:none!important}
   body.tbfull #tbStage{position:fixed;inset:0;z-index:90;background:#000;
@@ -2086,7 +2091,7 @@
       </div>
       <div class="fld tb-selrow" style="margin-bottom:12px"><label>This tablet is mounted on</label><select id="tabletSel"></select></div>
       <div class="tbprev-stage" id="tbStage"><div class="tb-device"><div class="tb-screen" id="tbScreen"></div></div></div>
-      <button id="tbFullX" type="button" aria-label="Exit full screen">&times; Exit full screen</button>
+      <button id="tbFullX" type="button" aria-label="Exit full screen" title="Exit full screen">&times;</button>
       <div class="tbprev-cap" id="tbCap" hidden></div>
     </div>
   </section>
@@ -5065,8 +5070,27 @@ window.addEventListener("error",function(ev){
   $("tabTablet").onclick=()=>show("tablet");
   { const tf=$("tbFit"); if(tf) tf.onclick=()=>{ tbPrev=!tbPrev;
       tf.textContent=tbPrev?"Phone view":"Tablet preview"; renderTablet(); fitTablet(); }; }
-  { const fb=$("tbFull"); if(fb) fb.onclick=()=>{ document.body.classList.add("tbfull"); fitTablet(); };
-    const fx=$("tbFullX"); if(fx) fx.onclick=()=>{ document.body.classList.remove("tbfull"); fitTablet(); }; }
+  // The tablet's Full screen asks the DEVICE for true full screen (build 479 —
+  // Omar: "I still see the bar at the bottom"), so Android hides its status bar
+  // and dock, not just the browser filling the tab. The exit × fades in on a
+  // tap and hides itself again (tbFullPoke) so it never covers the erg name.
+  let tbFullT=0;
+  function tbFullPoke(ms){ const x=$("tbFullX"); if(!x) return;
+    x.classList.add("show"); clearTimeout(tbFullT);
+    tbFullT=setTimeout(()=>x.classList.remove("show"),ms||2600); }
+  { const fb=$("tbFull"); if(fb) fb.onclick=()=>{ document.body.classList.add("tbfull");
+      const el=document.documentElement; try{ if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); }catch(e){}
+      fitTablet(); tbFullPoke(2600); };
+    const fx=$("tbFullX"); if(fx) fx.onclick=()=>{ document.body.classList.remove("tbfull");
+      try{ if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
+      fitTablet(); }; }
+  // any tap while full brings the × back for a moment, then it goes again
+  ["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,()=>{
+    if(document.body.classList.contains("tbfull")) tbFullPoke(); },{passive:true}));
+  // if the device leaves full screen on its own (system gesture), drop the class
+  document.addEventListener("fullscreenchange",()=>{
+    if(!document.fullscreenElement&&document.body.classList.contains("tbfull")){
+      document.body.classList.remove("tbfull"); fitTablet(); } });
   [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
     $(id).onclick=()=>{ subTab=k; show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
@@ -9858,7 +9882,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=478;
+  const BUILD=479;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
