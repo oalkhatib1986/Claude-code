@@ -1297,24 +1297,41 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   LESSON: get the EXACT cfg before rebuilding a bug from a description —
   the field that mattered (`hold:true` on Part B item0) was invisible in the
   screenshot, and five builds chased the wrong shape.
-- **THE CLOCK SPEAKS THE LAST THREE SECONDS (build 468 — Omar: "could it
-  say three, two, one").** `cfg.display.voice` (Layout > Board display >
-  Countdown, default ON via migrate dispV<5) makes the last 3s of the
-  interval the class is inside — a set, a swap, a window, a part or a rest —
-  spoken aloud ("three"/"two"/"one"). `voiceCountdown(remain)` rides the SAME
-  `remain` the big clock shows (in `frameRotation`'s clock block and in
-  `frameRest`), so it fires ONCE per interval boundary for the whole room; it
-  speaks only as `Math.ceil(remain)` crosses down into 3/2/1 (`voicePrev`
-  dedupe, so it never repeats per frame). Web Speech (`speechSynthesis`)
-  needs a user gesture to unlock, so `voicePrime()` runs on the first
-  pointerdown/keydown and on the toggle — the callout comes from the device
-  the trainer taps (if that phone feeds the gym speakers, it plays over the
-  room; a cast TV with no interaction stays silent). TEST GOTCHA: a suite
-  MUST install the `speechSynthesis` mock with `Object.defineProperty` — the
-  real one is a read-only accessor and a plain `window.speechSynthesis={}`
-  assignment silently fails, leaving the voiceless headless engine in place
-  and capturing nothing. `voice.js` (4) pins three/two/one in order, once
-  each, and silence when the toggle is off.
+- **THE CLOCK BEEPS THE LAST THREE SECONDS (builds 468-469 — Omar: "could it
+  say three, two, one", then "instead of someone saying 3 2 1 why don't we do
+  it as beeps?").** Shipped as spoken words in 468, switched to BEEPS in 469
+  — Web Audio is more reliable than speech (no voice pack, it just tones).
+  `cfg.display.voice` (Layout > Board display > Countdown, default ON via
+  migrate dispV<5; the flag key stays `voice` though it now beeps) sounds the
+  last few seconds of the interval the class is inside — a set, a swap, a
+  window, a part or a rest. HOW MANY seconds is per board: `cfg.display.beepN`
+  (Layout > Board display > Countdown beeps > "starts N seconds out", default
+  3, options 3/4/5/6/8/10 — Omar: "make it in the setup if it starts beeping
+  at 3 or 4 or 5 or 10"). It beeps each second from beepN down to 1; the LAST
+  three rise 660/830/1046 for the "go" and any earlier second is a plain low
+  520Hz tick. `beepN` defaults at READ time (`||3`), so no migration is needed
+  for boards saved before it. `voiceCountdown(remain)` rides the SAME `remain` the big
+  clock shows (in `frameRotation`'s clock block and in `frameRest`), so it
+  fires ONCE per interval boundary for the whole room; it beeps only as
+  `Math.ceil(remain)` crosses down into 3/2/1 (`voicePrev` dedupe, never per
+  frame). `beep(hz,ms)` uses a shared `AudioContext` (`AC`); Web Audio needs
+  a user gesture to unlock, so `voicePrime()` resumes it on the first
+  pointerdown/keydown and on the toggle — the sound comes from the device the
+  trainer taps (if that phone feeds the gym speakers it plays over the room; a
+  cast screen with no interaction stays silent). TEST GOTCHA: mock
+  `AudioContext` (each oscillator records its frequency on `start`) — the
+  earlier speech mock had to use `defineProperty` because `speechSynthesis` is
+  a read-only accessor; `AudioContext` assigns fine. `voice.js` (3) pins the
+  three rising beeps in order, once each, and silence when the toggle is off.
+- **THE PICKER IS SORTED BY DATE, NEWEST FIRST (build 469 — Omar: "shouldn't
+  these be sorted by date! common sense").** The saved-workout picker
+  (`buildPresetSel`'s `menuField` getOpts) listed the trainer's boards in
+  insertion order (which read as alphabetical). It now sorts them by each
+  board's OWN `cfg.prog.date` DESCENDING — most recent workout at the top —
+  with the whole programme still appended after. A dateless board sinks below
+  the dated ones and sorts by name. `menuField`'s `matches` preserves getOpts
+  order, so sorting the option list is all it takes; the date hint beside each
+  row already reads the same `prog.date`.
 - **ALTERNATING WINDOWS (build 389 — Omar's Engine 15/09, typed out in
   full: "some start on Ski, some on Wall Balls", swapping between timed
   windows with REAL rests in between).** `it.alt` on a `fmt:"rotate"` item
