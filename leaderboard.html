@@ -9551,7 +9551,14 @@ window.addEventListener("error",function(ev){
   // before the finisher, never between the rounds themselves. A hold on a
   // finisher gates the finisher after it.
   const holdBounds=()=>{ const s=new Set();
-    R().blocks.forEach(b=>{ const its=roundItems(b), fins=finItems(b);
+    // In SPLIT flow (together===false) every block runs on the ONE shared class
+    // clock, so a hold in any block gates that clock — union across all blocks.
+    // In TOGETHER flow (sequential — one block at a time, the clock resets per
+    // block in startBlock), boundaries are block-relative, so ONLY the current
+    // block's holds may gate the clock. Unioning all blocks here leaked Part B's
+    // item0 hold (540) into Part A and froze it mid-set-4 (Omar's Upper Body).
+    const blks=cfg.together?[R().blocks[blockIdxOf(rot.round)]||{items:[]}]:R().blocks;
+    blks.forEach(b=>{ const its=roundItems(b), fins=finItems(b);
       const one=oneRound(b); const n=bRounds(b), per=one+bRRest(b);
       const finStart=one*n+bRRest(b)*(n-1);
       for(let r=0;r<n;r++){ let acc=r*per;
@@ -9733,7 +9740,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=466;
+  const BUILD=467;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

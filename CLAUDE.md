@@ -1278,6 +1278,25 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (one item dur 600, sets 4) reproduced CLEANLY before this — the visible
   fault was the rest-then-press-start wait and the wrong 10:00 preview, not a
   phantom hold; both are fixed here.
+- **A HOLD IN TOGETHER FLOW IS THE CURRENT BLOCK'S ONLY (build 467 — the
+  REAL Upper Body bug, exact cfg pasted).** The board that kept showing
+  "1:00 · NEXT PART — PRESS START" over Part A's live set 4 was NOT the
+  one-item shape I kept rebuilding: Part B has TWO items and its item0
+  carries `hold:true` (item0→item1 trainer-start). `holdBounds()` unioned
+  hold boundaries across ALL blocks — right for SPLIT flow
+  (`together===false`, every block on the ONE shared class clock) but WRONG
+  for TOGETHER flow (`together===true`, sequential — the clock RESETS per
+  block in `startBlock`, so every block's boundaries are block-relative).
+  Part B's 540 boundary landed at Part A elapsed 540 = set 4, 1:00 left, and
+  froze the whole class mid-set. FIX: `holdBounds` now iterates ONLY
+  `[R().blocks[blockIdxOf(rot.round)]]` in together flow, all blocks in split
+  flow. Part A runs clean; the hold fires at Part B's own item0→item1
+  boundary. This is why every reconstruction rested — none put `hold:true`
+  on a LATER block's item in together mode. `blockrest.js` pins the leak
+  (Part A no-hold at 545) AND that Part B still holds at its own 540.
+  LESSON: get the EXACT cfg before rebuilding a bug from a description —
+  the field that mattered (`hold:true` on Part B item0) was invisible in the
+  screenshot, and five builds chased the wrong shape.
 - **ALTERNATING WINDOWS (build 389 — Omar's Engine 15/09, typed out in
   full: "some start on Ski, some on Wall Balls", swapping between timed
   windows with REAL rests in between).** `it.alt` on a `fmt:"rotate"` item

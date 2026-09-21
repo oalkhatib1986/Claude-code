@@ -58,6 +58,50 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   ok(s.clk==='5:00','blockRest 0: the clock previews Part B (5:00), not the longest block ['+s.clk+']');
   ok(s.live!=='Part A','blockRest 0: Part A is not held live with a phantom countdown ['+s.live+']');
   await p.close(); }
+// ---- CROSS-BLOCK HOLD LEAK (build 467 — Omar's real Upper Body). In TOGETHER
+// (sequential) flow a hold:true on a LATER block's item must NOT freeze an
+// EARLIER block: Part B item0 hold:true (boundary 540, block-relative) once
+// leaked into Part A and froze it at set 4 / 1:00 left. Part A must run clean;
+// the hold belongs to Part B's own item0->item1 boundary. ----
+{ const p=await br.newPage({viewport:{width:1440,height:960}});
+  p.on('pageerror',e=>{fail++;console.log('FAIL pageerror(leak):',e.message);});
+  await p.goto('file:///home/user/Claude-code/leaderboard.html');
+  await p.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p.reload(); await p.waitForTimeout(1200);
+  await p.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    Object.assign(c,{name:'Upper Body',wkName:'Upper Body',mode:'rotation',teamKind:'solo',
+      together:true,noScore:true,scoreSrc:'manual',titleSet:false});
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:60,sameRest:true,blocks:[
+      {name:'Part A',rounds:1,items:[{name:'Every 2:30 × 4',dur:600,scored:false,
+        exercises:[{name:'Bench Press',amounts:[8],unit:'reps',sets:4}]}]},
+      {name:'Part B',rounds:1,items:[
+        {name:'Every 3:00 × 3',dur:540,scored:false,group:true,hold:true,
+         exercises:[{name:'Chest Supported Row',amounts:[10],unit:'reps',sets:3},{name:'Push Press',amounts:[8],unit:'reps',sets:3}]},
+        {name:'Every 3:00 × 3',dur:540,scored:false,group:true,
+         exercises:[{name:'Pull Ups',amounts:[8],unit:'reps',sets:3}]} ]},
+      {name:'Part C',rounds:1,items:[{name:'21-15-9',dur:480,scored:false,group:true,
+        exercises:[{name:'HR Press Ups',amounts:[21,15,9],unit:'reps'}]}]} ]});
+    c.crews=[{name:'A1'}];
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p.reload(); await p.waitForTimeout(1300);
+  const st=()=>p.evaluate(()=>{const s=window.__sessState();
+    return {round:s.round,el:Math.round(s.el),hold:s.hold,cs:((document.getElementById('clockState')||{}).textContent||'').trim()};});
+  await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(250);
+  await p.evaluate(()=>window.__seek&&window.__seek(545)); await p.waitForTimeout(400);
+  let s=await st();
+  ok(s.round===0&&s.hold===false&&!/press start/i.test(s.cs),
+     'leak: Part A at 545 does NOT hold — Part B item0 hold does not leak in ['+s.round+'/'+s.hold+'/'+s.cs+']');
+  await p.evaluate(()=>window.__seek&&window.__seek(60)); await p.waitForTimeout(400);   // ~605, past Part A
+  s=await st();
+  ok(s.round>=1,'leak: Part A completed and advanced past its end ['+s.round+']');
+  // walk into Part B and confirm ITS item0->item1 hold DOES fire (540 block-rel)
+  await p.evaluate(()=>window.__seek&&window.__seek(60)); await p.waitForTimeout(500);   // through blockRest into Part B
+  await p.evaluate(()=>window.__seek&&window.__seek(540)); await p.waitForTimeout(500);
+  s=await st();
+  ok(s.round===1&&s.hold===true,'leak: Part B DOES hold at its own item0->item1 boundary ['+s.round+'/'+s.hold+']');
+  await p.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
