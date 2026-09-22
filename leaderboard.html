@@ -1173,6 +1173,10 @@
   }
   body.aiopen{overflow:hidden}
   body.aiopen #aiFab{opacity:0;pointer-events:none;transform:scale(.6)}
+  /* the slim connected-state gym-link row (build 496) */
+  .aiconn{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .aiconn[hidden]{display:none}   /* the display rule must yield to the hidden attr */
+  .aiconn .aiconn-t{font-size:12.5px;color:var(--ink-dim);margin-right:auto}
   .aiph{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line-soft)}
   .aiph b{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
   .aipb{flex:0 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 4px;min-height:0}
@@ -2424,8 +2428,14 @@
     <div class="aipb">
       <div class="note">Describe the class in your own words — parts, times, rounds, rests, sharing, scoring — and the Setup fills itself for you to review and save. Unclear bits come back as questions. Dictate with your keyboard's mic or the Voice button.</div>
       <div id="aiChat" class="aichat" hidden></div>
-      <div class="note" id="aiSetupNote" hidden>Your gym link connects this device to every saved workout and the live clock. It must be pasted once on <b>each</b> device — phone, laptop and tablet. On a device that already works, tap <b>Copy</b> to get the link, then paste it on the new device and tap <b>Save</b>.
-        <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlCopy" type="button">Copy</button><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div>
+      <div class="note" id="aiSetupNote" hidden>
+        <!-- CONNECTED: a slim line, not the wall of text (build 496 — Omar: "why
+             do I need to see this all the time!!! it's annoying!"). Copy is still
+             one tap for putting the link on a new device (the 478 need); Change
+             reveals the full box. -->
+        <div class="aiconn" id="aiConnLine" hidden><span class="aiconn-t">&#128279; Gym link connected</span><button class="btn small" id="aiConnCopy" type="button">Copy</button><button class="btn small" id="aiConnChange" type="button">Change</button></div>
+        <div id="aiSetupFull">Your gym link connects this device to every saved workout and the live clock. It must be pasted once on <b>each</b> device — phone, laptop and tablet. On a device that already works, tap <b>Copy</b> to get the link, then paste it on the new device and tap <b>Save</b>.
+        <div class="addbtns" style="margin-top:8px"><input id="aiUrl" type="url" placeholder="https://your-relay.workers.dev" style="flex:1;min-width:0"><button class="btn small" id="aiUrlCopy" type="button">Copy</button><button class="btn small" id="aiUrlSave" type="button">Save</button></div></div></div>
       </div>
     <div class="aibar">
         <div id="aiPend" class="aipend" hidden></div>
@@ -8990,12 +9000,26 @@ window.addEventListener("error",function(ev){
         items:(b.items||[]).map(it=>it.rest?{rest:true,dur:it.dur}:{name:it.name,dur:it.dur,scored:!!it.scored,fmt:it.fmt,shareN:it.shareN,wavesN:it.wavesN,hold:!!it.hold,
           exercises:(it.exercises||[]).map(x=>({who:x.who,name:x.name,amounts:x.amounts,unit:x.unit,max:!!x.max,lines:x.lines}))})}))});
   }
+  // THE AI CAN SEE THE GYM LIBRARY (build 496 — Omar: "why can't it see previous
+  // boards?"). A compact catalog of the trainer's SAVED boards — name, date,
+  // format, whether scored, and the part names — so the coach's AI can reference,
+  // compare or copy from past ENGINE boards. Full rep-by-rep detail comes only
+  // for the LOADED board (aiSnapshot); to edit a past one the coach loads it.
+  function aiLibrary(){
+    try{ return (presets||[]).filter(p=>p&&p.cfg&&!(LIBHIDE&&p.seedV)).map(p=>{
+      const c=p.cfg, R2=c.rotation||{};
+      return {name:p.name||c.name, date:(c.prog&&c.prog.date)||null,
+        format:c.teamKind==="teams"?("teams of "+(c.teamSize||2)):"solo",
+        scored:!c.noScore, parts:(R2.blocks||[]).map(b=>b.name).filter(Boolean)};
+    }); }catch(e){ return []; }
+  }
   function aiSystem(){
     return 'You are ATHL3TE gym\'s coach assistant \u2014 a knowledgeable, friendly training partner living inside the class app. You CONVERSE like Claude: answer the coach\'s questions (programming, exercise selection, how the app files and shows things), explain your thinking, chat back naturally \u2014 AND you build workouts. Every reply is still exactly ONE JSON object and nothing else \u2014 no markdown fences, no text outside it: {"reply":"your message to the coach \u2014 real conversation, 1-4 sentences, longer when genuinely useful","workout":<object or null>,"options":["tappable answer",...] or null}. A pure conversation turn is workout:null, options:null \u2014 talking is always allowed and never an error. The coach may ATTACH SCREENSHOTS \u2014 of the app\u2019s own screens or a written programme: read them carefully, refer to what is actually visible in them, and build or fix from them exactly as you would from typed text. After building, reply says in a sentence or two WHAT you built and anything worth double-checking. ASK, DON\'T GUESS: when the sheet honestly allows materially different builds \u2014 does the next strength piece flow automatically or does the trainer start it (hold)? scored or not? solo or teams? staggered stations or everyone together? \u2014 set workout to null, ask ONE short question in reply and put 2-4 short COMPLETE answers in options (the coach taps one and it comes back as their next message). One question per turn, the most important first; never ask when the sheet is unambiguous, and never ask about things the schema defaults sensibly. Once clear, produce the workout, a one-line reply, and options:null.\n'
       +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), alt:bool (with fmt:"rotate": the WHOLE item is ONE window — no swapping inside it; the halves hold their stations for the item and swap on the NEXT alt item, so a ladder can put real REST items between the swaps. "3:00 ski / rest / 3:00 wall balls, half start on each" = a rest item between two alt items each listing BOTH exercises), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), repeats:1-6 (piece-level rounds: this piece runs N back-to-back windows of its dur; dur stays ONE window — the wall reads "3 × 4:00"; not with waves/alt), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short COACH CUE only — pacing, standard, safety; NEVER a restatement of the prescription (no "Max Calories" on a max-cal line, no repeating the name or reps — the app drops such notes); omit unless it adds something, lines:["30 Air Squats","20 HR Press Ups","10 Burpees"] (a station whose work is a MULTI-MOVEMENT shared AMRAP: put the movements here on ONE station exercise — name it "AMRAP (Shared)" — the app stacks them under that station. On a fmt:"rotate" piece NEVER make the AMRAP movements separate exercises (each exercise is a STATION, so three movements become three extra rotation stops) and NEVER cram them into one name; use lines)}]}]}]}\n'
       +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. PIECE-LEVEL ROUNDS: when ONE piece of a part repeats while the others run once ("3 rounds of the superset, each round 4:00, then the core piece once"), give THAT item repeats:N with dur = ONE round (repeats:3, dur:240) — never block rounds for it, and never sets to fake the timing. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. TEAM SPLIT ACROSS AN ERG AND FLOOR WORK: a team of 4 where 2 people are on a max-distance/max-cal ERG (scored) and the OTHER 2 do a shared floor AMRAP, swapping WITHIN the team every N minutes ("2 people max distance Run, 2 people AMRAP, swap every 4:00, final all on the erg") is a PLAIN item (no fmt) — each team owns ITS OWN erg, so the map shows Run 1..6 for six teams. Put the erg exercise (max:true, scored) and the AMRAP on ONE plain item; give the AMRAP its movements in lines:[...] (never separate exercises). It is NOT fmt:"rotate" — rotate spins WHOLE teams through shared stations and gaps the erg numbers (1,3,5). The "swap every N" is a coach cue (item note), not a station rotation. The "final N minutes everyone on the erg" is a SEPARATE plain scored erg item after it. SHARED STATIONS: sets where 2+ athletes share one machine and alternate = fmt:"share" with the SAME shareN on EVERY set of the part — the app prints "Share in Ns, alternate" ONCE on its own line under the part heading and each set below reads clean ("Set 1 · 2:30"). NEVER write share/alternate/format wording into a block or item NAME (names are cut short on the wall) and never repeat it in notes — the app says the format itself. On share exercises OMIT who entirely — never "All 2"/"Everyone" (the share wording already says who; the app drops such labels); who is only for real splits doing DIFFERENT work (Pair 1 / Pair 2). SHARING A STATION IS A FORMAT, NOT A TEAM: athletes pairing up on a bar or machine to alternate is teamKind:"solo" WITH fmt:"share" — each athlete stays an individual with their own name and score. Use teamKind:"teams" ONLY for a real partner workout where the pair/team shares ONE score — never just because people share equipment. When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
-      +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot();
+      +'. Everything else is floor work. Current settings (the coach may ask for tweaks rather than a full workout): '+aiSnapshot()
+      +'. SAVED BOARDS in the gym library you CAN see (reference, compare or copy from them — you have each one\'s name, date, format, scored flag and part names, though not every rep; to edit one in detail tell the coach to load it and it becomes the current board): '+JSON.stringify(aiLibrary());
   }
   function aiBubble(cls,text,imgs){
     const c=$("aiChat"); if(!c) return; c.hidden=false;
@@ -9212,7 +9236,7 @@ window.addEventListener("error",function(ev){
     if(aiBusy) return;
     const ta=$("aiText"); const txt=(ta.value||"").trim();
     if(!txt&&!aiPend.length) return;
-    if(!aiUrl){ $("aiSetupNote").hidden=false; return; }
+    if(!aiUrl){ aiSyncSetup(true); return; }
     aiBusy=true; const btn=$("aiSend"); btn.disabled=true; btn.textContent="Thinking\u2026";
     // screenshots ride the message as vision blocks (build 397)
     const imgs=aiPend.slice(); aiPend=[]; aiRenderPend();
@@ -9315,12 +9339,21 @@ window.addEventListener("error",function(ev){
   })();
   function aiOpen(){
     document.body.classList.add("aiopen");
-    // Always show the gym-link box (build 478): a device that already works
-    // needs it visible to COPY the link onto a new device (tablet), not only a
-    // device that lacks it. Omar: "why does it work on the phone not tablet?" —
-    // the tablet never got the link, and the link was hidden once saved.
-    $("aiSetupNote").hidden=false;
+    // The gym-link box is here (build 478 — a working device needs Copy to put
+    // the link on a new one), but CONNECTED it collapses to a slim line so it is
+    // not a wall of text every time (build 496 — Omar: "why do I need to see this
+    // all the time!!!"). No link yet → the full setup box for first pairing.
+    aiSyncSetup();
     setTimeout(()=>{ const t=$("aiText"); if(t) t.focus({preventScroll:true}); },340);
+  }
+  // show the slim "connected · Copy · Change" row when a link is saved, the full
+  // box otherwise; Change reveals the full box on demand
+  function aiSyncSetup(full){
+    const note=$("aiSetupNote"); if(!note) return; note.hidden=false;
+    const connected=!!aiUrl && !full;
+    const cl=$("aiConnLine"), sf=$("aiSetupFull");
+    if(cl) cl.hidden=!connected;
+    if(sf) sf.hidden=connected;
   }
   function aiCloseP(){ document.body.classList.remove("aiopen"); }
   { const fab=$("aiFab");
@@ -9380,12 +9413,16 @@ window.addEventListener("error",function(ev){
         if(!/^https:\/\//.test(v)){ aiBubble("err","The gym link must start with https://"); return; }
         aiUrl=v; try{ localStorage.setItem(AIKEY,v); }catch(e){}
         aiBubble("ok","Saved \u2014 this device is now connected. Give it a few seconds to pull your workouts.");
+        try{ aiSyncSetup(); }catch(e){}   // collapse back to the slim line
         try{ if(window.__libSync) window.__libSync(); }catch(e){} }; }
-    if(ui&&uc){ uc.onclick=async()=>{ const v=(ui.value||"").trim();
+    const copyLink=async()=>{ const v=(($("aiUrl")||{}).value||aiUrl||"").trim();
         if(!v){ aiBubble("err","No gym link saved on this device yet \u2014 copy it from a device that works."); return; }
         let done=false; try{ await navigator.clipboard.writeText(v); done=true; }catch(e){}
-        try{ ui.focus(); ui.select(); }catch(e){}
-        aiBubble("ok",done?"Link copied \u2014 now paste it on the other device.":"Link selected above \u2014 press copy on your keyboard."); }; }
+        try{ const el=$("aiUrl"); if(el){ el.focus(); el.select(); } }catch(e){}
+        aiBubble("ok",done?"Link copied \u2014 now paste it on the other device.":"Link selected above \u2014 press copy on your keyboard."); };
+    if(uc) uc.onclick=copyLink;
+    { const cc=$("aiConnCopy"); if(cc) cc.onclick=copyLink; }
+    { const ch=$("aiConnChange"); if(ch) ch.onclick=()=>{ aiSyncSetup(true); const el=$("aiUrl"); if(el){ el.focus(); } }; }
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     const mic=$("aiMic");
     if(SR&&mic){ mic.hidden=false; let rec=null;
@@ -10186,7 +10223,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=495;
+  const BUILD=496;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
