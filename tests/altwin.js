@@ -238,10 +238,21 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
     ok(Math.max(d2.wf,d2.hf)>0.98&&d2.wf<=1.01&&d2.hf<=1.01&&d2.tabsGone,
       '429: full screen fills an axis edge-to-edge, chrome gone ('
       +Math.round(d2.wf*100)+'% × '+Math.round(d2.hf*100)+'%)'); }
-  await p2.click('#tbFullX'); await p2.waitForTimeout(500);
+  // DEFAULT EXIT CODE (build 500 — Omar: "by default there must be a password,
+  // set it to 1414"): a fresh device boots with a lock, so the corner × asks for
+  // the code and does NOT drop full screen on its own; entering 1414 exits and
+  // the nav returns.
+  ok(await p2.evaluate(()=>localStorage.getItem('af_kiosk_pin'))==='1414',
+    '500: erg-tablet exit code defaults to 1414');
+  await p2.click('#tbFullX'); await p2.waitForTimeout(400);
+  ok(await p2.evaluate(()=>!!document.querySelector('.dlg-back')
+    &&document.body.classList.contains('tbfull')),
+    '500: with a code set, the × asks for the PIN and stays full screen');
+  for(const d of '1414') await p2.click('.pinPad .tks-k[data-k="'+d+'"]');
+  await p2.click('.dlg-back .dok'); await p2.waitForTimeout(500);
   ok(await p2.evaluate(()=>!document.body.classList.contains('tbfull')
     &&getComputedStyle(document.querySelector('.tabs')).display!=='none'),
-    '429: the corner pill exits and the nav returns');
+    '429: the correct exit code drops full screen and the nav returns');
   // THE TABLET SPEAKS FOR THE MACHINE (431 — Omar: "how are two rowers
   // showing different?!"): adjacent slots' crews sit on OPPOSITE halves,
   // yet both Ski tablets read identically — the machine's work, no
