@@ -55,7 +55,10 @@
   .wrap{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 
   /* ---------- header ---------- */
-  header{display:flex;align-items:center;gap:10px 22px;flex-wrap:wrap;padding:6px 0 0}
+  /* the logo->tabs gap MATCHES the tabs->subtabs gap below it (build 500 — Omar:
+     "the space between the logo and the grey pill needs to match the spacing
+     between the two pill lines below it"); both are 22px (.wrap's gap) */
+  header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:6px 0 0}
   /* the mark owns the first row outright, so the tabs wrap under it and keep
      their own width instead of stretching into an empty capsule */
   .mark{display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:8px;flex:0 0 100%}
@@ -73,10 +76,11 @@
     font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s}
   .tabs button:hover{color:var(--ink)}
   .tabs button[aria-selected="true"]{background:var(--ink);color:#0a0a0a}
-  /* The PILL is what the eye lines up, not the bar around it. Pull the first one
-     flush so it shares a left edge with the sub-tab pills, the title and the cards. */
-  .tabs button:first-child{margin-left:-5px}
-  .tabs button:last-child{margin-right:-5px}
+  /* The selected pill keeps the grey bar's padding as breathing room on both
+     ends — it must never touch the bar's border (build 500 — Omar: "the workout
+     when selected is hitting the border of the grey pill"). The grey bar's own
+     left edge stays aligned with the logo, sub-tabs and cards; the pill sits
+     inset inside it. (This retires the old -5px flush trick.) */
   .view{display:none}.view.active{display:block}
 
   /* ---------- board head ---------- */
@@ -1869,8 +1873,14 @@
      Two fixed columns keep it beside the title and vertically centred at
      every width, and the slab's type scales with the board's own authored
      width (--tvw) so the proportions hold from a TV to an upright phone. */
+  /* BOTTOM-ALIGNED (build 500 — Omar: "the clock is not aligned from the bottom
+     with the text blocks total etc and that's why it's close to the box of block
+     3/3"). The clock slab is taller than the title+summary stack, so centring it
+     dipped its bottom below the summary line and crowded the cards. Aligning the
+     row to `end` sits the clock's bottom on the SAME line as the summary's — the
+     slab's extra height rises above the title instead of hanging below the text. */
   body.wkscreen:not(.mobscreen) .subhead{display:grid;
-    grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px 40px}
+    grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:16px 40px}
   body.wkscreen:not(.mobscreen) .subhead .ttl{flex-direction:column;align-items:flex-start;
     gap:14px;overflow:visible}
   /* THE ATHL3TE TIMER (Omar, build 358 — "a design people associate with the
@@ -1883,7 +1893,7 @@
   .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
     border:.03em solid transparent;
-    padding:.14em .34em .14em;text-align:center;align-self:center;justify-self:end;
+    padding:.14em .34em .14em;text-align:center;align-self:end;justify-self:end;
     display:flex;flex-direction:column;align-items:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
   /* NO WORDS IN THE BOX (Omar, build 362) — the digits and the drain bar are
@@ -2659,7 +2669,7 @@ window.addEventListener("error",function(ev){
       {name:"5-min Run", machine:"Run", format:"time", target:1000, duration:300},
     ],
     scoring:{ mode:"distance", rankPoints:[12,9,7,5,3,1,1,1], perValue:1, perUnit:10, perBasis:"metres" },
-    display:{ split:true, watts:true, rate:true, metres:false, cals:true, logo:"word", voice:true },
+    display:{ split:true, watts:true, rate:true, metres:false, cals:true, logo:"word", voice:true, hideTime:true },
     crews:[
       {name:"Team 1", ath:"", color:"#ffffff"},
       {name:"Team 2", ath:"", color:"#c2c8d0"},
@@ -3577,13 +3587,13 @@ window.addEventListener("error",function(ev){
       // BARE duration (never a scheme like "3 rounds × 4:00", "swap every…" or
       // "share in 2s", which say something the title does not), and only when a
       // title is actually there to carry the heading.
-      // hideTime: drop the app's timing heading when the coach's own TITLE already
-      // carries it — the bare "· 4 minutes" (build 477) OR, when the TITLE itself
-      // states a clock time like "Every 2:30 × 4", even a scheme tlab beside it,
-      // which would be that same time twice (build 498 — Omar: "EVERY 2:30 × 4 ·
-      // 4 ROUNDS × 2:30… I already told you"). A title with NO time keeps its
-      // scheme (that scheme is the only place the time is said).
-      if(dispHideTime()&&label&&(tlab===minTxt(it.dur)||/\d{1,2}:\d{2}/.test(String(label)))) tlab="";
+      // hideTime: drop the app's timing heading ONLY when the coach's own TITLE
+      // itself states a clock time (m:ss) — "4:00 ON / 1:00 OFF", "Every 2:30 × 4"
+      // — so the same time is not printed twice (builds 477/498). A title that does
+      // NOT say a time keeps the app's timing: an auto "Set 1" heading still reads
+      // "Set 1 · 2:30" (build 500 — hideTime is default-on now, so this must not
+      // strip legitimate set/interval times), and "Strength" keeps its scheme.
+      if(dispHideTime()&&label&&/\d{1,2}:\d{2}/.test(String(label))) tlab="";
       // AND when a BLOCK SCHEME already states the interval and total of a one-item
       // block ("EVERY 2:30 FOR 10:00"), the item's own timing heading ("4 ROUNDS ×
       // 2:30" / "4 sets") is the same fact twice — hideTime drops that duplicate
@@ -3595,7 +3605,12 @@ window.addEventListener("error",function(ev){
       // "FINISH — ALL 4 ON ONE MACHINE, / ALTERNATING · 4:00" rather than leaving a
       // line that opens on a dot. Only while the pair is short enough to fit a card
       // on its own — an unbreakable run wider than its box is the other bug.
-      const head=rotDedup?`${label} <span class="amt">&times;&nbsp;${rotSwaps}</span>`:(()=>{
+      const head=rotDedup?(()=>{
+        // glue the swap count to the label's LAST WORD so "× 9" never drops onto
+        // a line of its own (build 500 — Omar: "why is the ×9 on a separate line!")
+        const sp=label.lastIndexOf(" "), tail=sp<0?label:label.slice(sp+1);
+        return `${sp<0?"":label.slice(0,sp)+" "}<span class="amt">${tail}&nbsp;&times;&nbsp;${rotSwaps}</span>`;
+      })():(()=>{
         if(!label&&!tlab) return "";
         if(!label) return tlab;
         if(!tlab) return label;
@@ -3654,6 +3669,11 @@ window.addEventListener("error",function(ev){
   }
   function syncRotChrome(){
     const k=rot.round;
+    // the last-10s beat belongs to a LIVE countdown only — clear it whenever the
+    // clock is not actively running one (idle/pre, finished/done), so a stale
+    // .last from the previous interval can never leave the clock pulsing at a big
+    // number (build 500 — Omar: "why is the timer pulsing?!")
+    if(rot.phase!=="run"&&rot.phase!=="rest"){ try{ clockEl.parentElement.classList.remove("last"); }catch(e){} }
     if(rot.phase==="pre"){
       $("phaseBanner").hidden=true; clockEl.parentElement.hidden=true;
       const empty=!nBlocks()||R().blocks.every(b=>!(b.items||[]).length);
@@ -8005,6 +8025,9 @@ window.addEventListener("error",function(ev){
     // the spoken "three, two, one" countdown ships ON; a board saved before it
     // existed adopts it once (Omar asked for it), and unchecking it sticks
     if(cfg.dispV<5){ if(cfg.display.voice===undefined) cfg.display.voice=true; cfg.dispV=5; }
+    // Hide-interval-time defaults ON (build 500 — Omar: "hide interval time should
+    // be ticked by default"); a board where it was explicitly set OFF keeps that.
+    if(cfg.dispV<6){ if(cfg.display.hideTime===undefined) cfg.display.hideTime=true; cfg.dispV=6; }
     if(cfg.rotation){
       if(!cfg.rotation.scorers) cfg.rotation.scorers=4;
       if(!cfg.rotation.laps) cfg.rotation.laps=1;
@@ -8358,6 +8381,10 @@ window.addEventListener("error",function(ev){
   /* ============ AI workout builder ============ */
   const AIKEY="af_ai_url";
   const KPIN="af_kiosk_pin";   // erg-tablet full-screen exit code, this device only
+  // DEFAULT THE EXIT CODE TO 1414 (build 500 — Omar: "by default there must be a
+  // password, set it to 1414"). Only on a device that has NEVER set one (null);
+  // a device where the trainer deliberately CLEARED it (stored "") keeps no lock.
+  try{ if(localStorage.getItem(KPIN)===null) localStorage.setItem(KPIN,"1414"); }catch(e){}
   try{ localStorage.removeItem("af_ai_fabpos"); }catch(e){}
   let aiUrl=""; try{ aiUrl=localStorage.getItem(AIKEY)||""; }catch(e){}
   // THE COACH'S AI RUNS THE TOP MODEL (build 395): most capable first,
@@ -10191,6 +10218,9 @@ window.addEventListener("error",function(ev){
     paused=v; pauseUi(v);
     if(v){ pauseMark=performance.now(); cancelAnimationFrame(raf); clearTimeout(ticker);
       try{ clearVoice(); }catch(e){}   // cancel beeps scheduled past the pause
+      // a paused clock is frozen, so it must not keep pulsing (build 500 — the
+      // last-10s beat would stick if paused inside the last 10s)
+      try{ clockEl.parentElement.classList.remove("last"); }catch(e){}
       clockState.textContent="Paused"; }
     else { const d=performance.now()-pauseMark; t0+=d; restT0+=d; enginePump(); }
   }
@@ -10348,7 +10378,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=499;
+  const BUILD=500;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10485,13 +10515,27 @@ window.addEventListener("error",function(ev){
     const k=Math.min(1,A/need);
     const dy=Math.max(0,(A-need*k)/2);
     f.style.transform=(k<1||dy>1)?`translateY(${dy.toFixed(1)}px) scale(${k.toFixed(4)})`:"";
+    f._lw=Math.round(f.clientWidth); f._lh=Math.round(f.scrollHeight);
   }
   // The transform never moves the layout box, so re-measuring on resize cannot loop.
   if(window.ResizeObserver){
+    // THE WALL MUST NOT RESIZE ITSELF (build 500 — Omar: "on the big screen
+    // suddenly the screen resizes on its own… still full screen but something in
+    // the sizing changes, every once in a while"). fillTvBoard WRITES #tvFit's own
+    // width and its content height follows, so this observer fired on its own
+    // writes and on every clock-tick nudge, re-solving to a fractionally different
+    // scale each time — a visible rescale for no reason. The other three observers
+    // all skip unless their measured box actually moved; this one now does too,
+    // with a small tolerance so a real growth (the clock slab, ~tens of px) still
+    // re-fits while a sub-few-pixel reflow does not. `_lw/_lh` are stamped at the
+    // end of fillTvBoard/fitTvBoard, so a self-triggered fire reads back unchanged.
     const ro=new ResizeObserver(()=>{
       const b=document.body;
       if(!b.classList.contains("bigscreen")||b.classList.contains("mobscreen")) return;
-      const g=$("tvFit"), fl=g&&g._fill;
+      const g=$("tvFit"); if(!g) return;
+      const w=Math.round(g.clientWidth), h=Math.round(g.scrollHeight);
+      if(Math.abs(w-(g._lw||0))<3&&Math.abs(h-(g._lh||0))<6) return;
+      const fl=g._fill;
       if(fl) fillTvBoard(fl[0],fl[1]);
       else fitTvBoard(0);
     });
@@ -10610,6 +10654,8 @@ window.addEventListener("error",function(ev){
     fitBlockText();
     const dy=Math.max(0,(ch-f.scrollHeight*k)/2);
     f.style.transform=`translateY(${dy.toFixed(1)}px) scale(${k.toFixed(4)})`;
+    // record the box we just produced so the ResizeObserver skips this write
+    f._lw=Math.round(f.clientWidth); f._lh=Math.round(f.scrollHeight);
   }
   function fitScreen(){
     const w=document.querySelector(".wrap"); if(!w) return;
