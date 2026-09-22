@@ -1316,9 +1316,9 @@
   .trow.main{gap:34px}
   .trow.main .tico{width:50px;height:50px}
   .trow.main .tico svg{width:28px;height:28px}
-  .trow.sub{gap:20px}
-  .trow.sub .tico{width:38px;height:38px}
-  .trow.sub .tico svg{width:22px;height:22px}
+  .trow.sub{gap:16px}
+  .trow.sub .tico{width:46px;height:46px}
+  .trow.sub .tico svg{width:26px;height:26px}
   .tico{width:40px;height:40px;border-radius:50%;border:none;background:none;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s,background .15s,transform .1s;padding:0;flex:none}
   .tico svg{width:24px;height:24px;display:block}
   .tico svg text{font-family:var(--disp);font-weight:700;letter-spacing:0}
@@ -1339,6 +1339,14 @@
   .tico.lock .ic-open{display:none}
   .tico.lock.armed .ic-open{display:block}
   .tico.lock.armed .ic-closed{display:none}
+  /* CONTROL · SESSION — ONE COMBINED CARD ON MOBILE (build 491 — Omar: the
+     workout header + athletes eat too much space, controls fall below the fold;
+     merge into one card so the clock + transport show without scrolling). */
+  .ctlbody{padding-top:14px;padding-bottom:14px}
+  .ctlbody .wknow{padding-bottom:0;margin-bottom:10px;border-bottom:0}
+  .ctlbody .wkdiv{height:1px;background:var(--line);margin:12px 0}
+  .ctlbody .transport{padding:10px 0 2px}
+  .ctlbody .claimbar,.ctlbody #claimBar:not(:empty){margin-top:12px}
   #rlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
   .rrow{border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:opacity .3s,border-color .15s}
   .rrow .rh{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
@@ -1971,24 +1979,19 @@
 
   <!-- ============ TRAINER (the only page with controls) ============ -->
   <section class="view" id="viewTrainer">
+    <!-- ONE COMBINED CARD ON MOBILE (build 491, Option 1): the workout header +
+         athletes sit slim above the clock and transport in the SAME card, so
+         the controls show without scrolling. -->
     <div class="card" style="margin:6px 0 0">
-      <div class="body" style="padding-top:14px;padding-bottom:14px">
+      <div class="body ctlbody">
         <div class="wknow"><b id="tcWk"></b><span id="tcWkSub"></span></div>
         <div class="teamsbar">
           <label id="tcLabel">Teams today</label>
           <span id="tcPick"></span>
         </div>
-        <div id="tcNote" class="tcnote"></div>
-        <div id="claimBar"></div>
-        <div class="clearrow"><button class="btn small" id="clearNames" type="button" hidden>Clear all names</button></div>
-        <div class="ergless">No ergs in today&rsquo;s workout, so there are no tablets and nothing to hand out. Put the workout on the big screen &mdash; the class follows it and splits itself.</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin:12px 0 0">
-      <div class="body">
+        <div class="wkdiv"></div>
         <div class="clock" style="margin-left:0;text-align:left"><b id="tClock">—</b><span id="tState"></span></div>
-        <div class="controls" style="margin:0">
+        <div class="controls" style="margin-top:14px">
           <button class="btn primary" id="startBtn">Start session</button>
           <button class="btn" id="resetBtn" disabled>Reset</button>
         </div>
@@ -2007,6 +2010,9 @@
             <button class="tico" id="tkf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
           </div>
         </div>
+        <div id="claimBar"></div>
+        <div class="clearrow"><button class="btn small" id="clearNames" type="button" hidden>Clear all names</button></div>
+        <div class="ergless">No ergs in today&rsquo;s workout, so there are no tablets and nothing to hand out. Put the workout on the big screen &mdash; the class follows it and splits itself.</div>
         <div id="rlist"></div>
         <div class="note">Run the class from here — or straight from the Workout page, where the same start / pause / skip controls sit beside the title. The Big Screen stays display-only.</div>
       </div>
@@ -10100,7 +10106,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=490;
+  const BUILD=491;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
