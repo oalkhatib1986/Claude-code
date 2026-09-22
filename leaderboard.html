@@ -2857,6 +2857,13 @@ window.addEventListener("error",function(ev){
   // Repeats = this piece · Rounds = the whole part · Sets = words on a line.
   const itReps=it=>{ if(!it||it.rest||it.alt||it.fmt==="waves") return 1;
     return clamp(parseInt(it.rpt,10)||1,1,6); };
+  // A PER-REPEAT LABEL SWAP (build 501 — the who labels take turns). On a piece
+  // with repeats>1 an item-level `alternateWho` (or an exercise-level `swapWho`)
+  // rotates the exercises' `who` labels one position on each successive window:
+  // window 1 as written, window 2 swapped (two groups) / rotated one place (more).
+  // DISPLAY ONLY — the piece is still ONE window on the wall and scores once; the
+  // allocator, the clock and who physically stands where are all untouched.
+  const itAltWho=it=>!!(it&&(it.alternateWho||(it.exercises||[]).some(x=>x&&x.swapWho)));
   const itLen=it=>!it?0:((it.fmt==="waves"?it.dur*itWaves(it):it.dur)*itReps(it));
   // A FINISHER RUNS ONCE, AFTER THE ROUNDS. "Four rounds of this, then four
   // minutes all together" is a shape the gym writes on the wall constantly, and a
@@ -3313,7 +3320,20 @@ window.addEventListener("error",function(ev){
   const bmShort=b=>{ const m=blockMachine(b); return m?mInfo(m).short:"\u2014"; };
   const BLKCOL=["255,255,255","94,203,255","255,159,67","255,121,198","80,220,190","250,220,100"];
   const exUnit=u=>u==="m"?"m":u==="cal"?" cal":u==="reps"?" reps":u==="sec"?" sec":"";
-  const whoShown=(x,it)=>{ const w=(x.who||"").trim(); if(!w) return "";
+  // the who label for exercise x on repeat window `rep` (0-based): the distinct
+  // whos in first-appearance order, rotated `rep` places. Two groups swap; more
+  // rotate one position per window. Off (rep 0, no reps, flag unset) → as written.
+  const whoWindow=(it,who,rep)=>{
+    const w=String(who||"").trim();
+    if(!w||!it||!itAltWho(it)||!(rep>0)||itReps(it)<=1) return w;
+    const seen=[]; (it.exercises||[]).forEach(x=>{ const v=String((x&&x.who)||"").trim();
+      if(v&&seen.indexOf(v)<0) seen.push(v); });
+    const k=seen.length; if(k<2) return w;
+    const idx=seen.indexOf(w); if(idx<0) return w;
+    return seen[((idx+rep)%k+k)%k]; };
+  const whoShown=(x,it,rep)=>{ let w=(x.who||"").trim(); if(!w) return "";
+    // swap first, so the drop/normalise rules below judge the label ACTUALLY shown
+    if(it&&rep>0) w=whoWindow(it,w,rep);
     if(cfg.teamKind==="solo"&&/^(everyone|all ?\d*|pair ?\d+|single|solo|athlete ?\d+)$/i.test(w)) return "";
     // "ALL 2" ON A SHARE ITEM RESTATES THE FORMAT (build 403 — Omar: "why does
     // it have to say All 2, it's repetitive!"): the share wording already says
@@ -3367,7 +3387,7 @@ window.addEventListener("error",function(ev){
   // stations and never crammed into the name. Flat contexts join them; the
   // card/wall/tablet stack them.
   const exLineList=x=>Array.isArray(x&&x.lines)?x.lines.map(s=>String(s||"").trim()).filter(Boolean):[];
-  const exTxt=(x,o)=>{ const w=whoShown(x,o&&o.it); const rm=exRM(x);
+  const exTxt=(x,o)=>{ const w=whoShown(x,o&&o.it,o&&o.rep); const rm=exRM(x);
     const rpe=String(x.rpe||"").trim();
     const a=exAmt(x,o&&o.noSets);
     const ll=(o&&o.noLines)?[]:exLineList(x);
@@ -3377,7 +3397,7 @@ window.addEventListener("error",function(ev){
   // "20" at the end of one line and "reps" at the start of the next, or a separator
   // hanging off the end with nothing after it. The amount, its unit and the dot in
   // front of them move together or not at all; the break lands after the exercise.
-  const exHtml=(x,o)=>{ const w=whoShown(x,o&&o.it); const rm=exRM(x);
+  const exHtml=(x,o)=>{ const w=whoShown(x,o&&o.it,o&&o.rep); const rm=exRM(x);
     const rpe=String(x.rpe||"").trim();
     const a=exAmt(x,o&&o.noSets);
     return `${w?esc(w)+" — ":""}`
@@ -3518,6 +3538,9 @@ window.addEventListener("error",function(ev){
         &&Math.floor(altIxOf(b,i)/altN)===Math.floor(curAlt/altN));
       const mk=nowHere?" pnow":"";
       const tag=nowHere?`<em class="ptag">Now</em>`:"";
+      // the running piece's current repeat window drives the who-label swap (501);
+      // a queued/idle part reads as written (window 1)
+      const wrep=(i===cur&&itAltWho(it))?((seg&&seg.rep)||0):0;
       if(it.rest) return emom
         ?`<div class="exg${mk}" data-i="${i}">${tag?`<span class="exg-h">${tag}</span>`:""}<div class="exl exlw"><span class="emord">${ORDN(i+1)}:</span>Rest</div></div>`
         :`<div class="exg${mk}" data-i="${i}"><span class="exg-h">${tag}Rest · ${fmtMS(it.dur)}</span></div>`;
@@ -3552,12 +3575,12 @@ window.addEventListener("error",function(ev){
       // AN EMOM MINUTE IS ONE LINE, NUMBERED — "1st: 10 DB Push Press + Max DB
       // Front Rack Hold" — under the block's own "EMOM × N minutes" heading.
       if(emom){
-        const eml=`<div class="exl exlw" data-xi="0"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0,it})).join(" + ")}</div>`
+        const eml=`<div class="exl exlw" data-xi="0"><span class="emord">${ORDN(i+1)}:</span>${xs.map(x=>exHtml(x,{noSets:us>0,it,rep:wrep})).join(" + ")}</div>`
           +(tailNote?"":xs.map(x=>String(x.note||"").trim()&&!noteRedundant(x.note,x)?`<div class="exl exnote">${esc(x.note)}</div>`:"").join("")
           +(String(it.note||"").trim()?`<div class="exl exnote">${esc(it.note)}</div>`:""));
         return `<div class="exg${mk}" data-i="${i}">${tag?`<span class="exg-h">${tag}</span>`:""}${eml}</div>`;
       }
-      const lines=evy+xs.map((x,k)=>`<div class="exl" data-xi="${altOne?li:k}">${exHtml(x,{noSets:us>0,it})}</div>`
+      const lines=evy+xs.map((x,k)=>`<div class="exl" data-xi="${altOne?li:k}">${exHtml(x,{noSets:us>0,it,rep:wrep})}</div>`
         // a station's own movement list stacks under it as its own rows (456),
         // never truncated — it is the AMRAP that shares the station, not a station
         +exLineList(x).map(ln=>`<div class="exl exsub" data-xi="${altOne?li:k}">${esc(ln)}</div>`).join("")
@@ -5995,8 +6018,8 @@ window.addEventListener("error",function(ev){
     // the overview's own echo filter — a note that restates the line drops
     // a station's movement list stacks on the tablet too (456): the station
     // header, then each movement as its own work line beneath it
-    const tkExLine=(x,it)=>{ const ll=exLineList(x);
-      return `<em>${esc(exTxt(x,{it,noLines:true}))}</em>`
+    const tkExLine=(x,it,rep)=>{ const ll=exLineList(x);
+      return `<em>${esc(exTxt(x,{it,noLines:true,rep:rep||0}))}</em>`
         +ll.map(ln=>`<em class="tksub">${esc(ln)}</em>`).join("")
         +(String(x&&x.note||"").trim()&&!noteRedundant(x.note,x)?`<i class="tknote">${esc(x.note)}</i>`:""); };
     if(!tile&&!scr.__doneWired){ scr.__doneWired=1;
@@ -6097,21 +6120,23 @@ window.addEventListener("error",function(ev){
           const k=fIts.slice(fSeg.i+1).findIndex(x=>x&&!x.rest);
           if(k>=0) fI=fSeg.i+1+k; }
         const fIt=fI>=0?fIts[fI]:null;
+        // the running piece's repeat window drives the who-label swap (501)
+        const fWrep=(fSeg&&fIt&&fSeg.i===fI&&itAltWho(fIt))?((fSeg.rep)||0):0;
         const fSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
           :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
-        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>tkExLine(x,fIt));
+        let fLines=(fIt?(fIt.exercises||[]):[]).map(x=>tkExLine(x,fIt,fWrep));
         // a bolted tablet shows ITS station's work, not the whole ladder (426)
         let fRot=false,fNx=null,fOwn=null,fNi=null;
         if(fIt&&!fIt.rest&&itRot(fIt)){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
-          if(xs9.length>1&&myIx>=0){ fLines=[tkExLine(xs9[myIx],fIt)];
+          if(xs9.length>1&&myIx>=0){ fLines=[tkExLine(xs9[myIx],fIt,fWrep)];
             fRot=true; fOwn=xs9[myIx]; fNx=xs9[(myIx+1)%xs9.length]; } }
         // the format-independent rule (437): a plain sequence filters to
         // this machine's piece too, NEXT = what follows it in the list
         else if(fIt&&!fIt.rest&&fIt.fmt!=="waves"){ const xs9=(fIt.exercises||[]).filter(Boolean);
           const mine=xs9.filter(x=>machineOf(x.name)===mtype);
           if(xs9.length>1&&mine.length&&mine.length<xs9.length){
-            fLines=mine.map(x=>tkExLine(x,fIt));
+            fLines=mine.map(x=>tkExLine(x,fIt,fWrep));
             fRot=true; fOwn=mine[0];
             const li=xs9.lastIndexOf(mine[mine.length-1]);
             if(li>=0&&li<xs9.length-1) fNx=xs9[li+1];
@@ -6379,9 +6404,12 @@ window.addEventListener("error",function(ev){
       const nowI=((phase==="rest"||holding)&&machHosts)?wIts.findIndex(x=>!x.rest)
         :(seg&&wBlk===b)?seg.i:wIts.findIndex(x=>!x.rest);
       const nowIt=nowI>=0?wIts[nowI]:null;
+      // the running piece's repeat window drives the who-label swap (501); only
+      // when this card is showing the live item (not a rest/next-block preview)
+      const nWrep=(seg&&nowIt&&wBlk===b&&seg.i===nowI&&itAltWho(nowIt))?((seg.rep)||0):0;
       const itSum=it=>it.rest?`Rest ${fmtMS(it.dur)}`
         :(it.name||(it.exercises||[]).map(x=>x.name).filter(Boolean).join(" + ")||"Work");
-      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>tkExLine(x,nowIt));
+      let nowLines=(nowIt&&!nowIt.rest?(nowIt.exercises||[]):[]).map(x=>tkExLine(x,nowIt,nWrep));
       if(!nowLines.length) nowLines=[`<em>${esc(nowIt?itSum(nowIt):(wBlk.desc||wBlk.name||"Work"))}</em>`];
       let after=wIts.slice(nowI+1).map(itSum), thenLab="then";
       // THE TABLET IS BOLTED TO THE ERG (build 426 — Omar: "it just tells
@@ -6395,7 +6423,7 @@ window.addEventListener("error",function(ev){
         const xs9=(nowIt.exercises||[]).filter(Boolean);
         const myIx=xs9.findIndex(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&myIx>=0){
-          nowLines=[tkExLine(xs9[myIx],nowIt)];
+          nowLines=[tkExLine(xs9[myIx],nowIt,nWrep)];
           // the head named the WINDOW's lead station — on the other
           // machine it survived the dedupe and printed RUN over a Max Cal
           // Bike card (434, Omar: "why some screens are different?!");
@@ -6424,7 +6452,7 @@ window.addEventListener("error",function(ev){
         const xs9=(nowIt.exercises||[]).filter(Boolean);
         const mine=xs9.filter(x=>machineOf(x.name)===mtype);
         if(xs9.length>1&&mine.length&&mine.length<xs9.length){
-          nowLines=mine.map(x=>tkExLine(x,nowIt));
+          nowLines=mine.map(x=>tkExLine(x,nowIt,nWrep));
           after=[];
           // NEXT RESOLVES NEAREST-FIRST (438 — Omar: "that's not what's
           // next! how can next be two different machines?!"): the next
@@ -9092,8 +9120,8 @@ window.addEventListener("error",function(ev){
       teamKind:c&&c.teamKind,teamSize:c&&c.teamSize,noScore:!!(c&&c.noScore),
       together:!!(c&&c.together),laps:R2.laps||1,blockRest:R2.blockRest||0,sameRest:R2.sameRest!==false,
       blocks:(R2.blocks||[]).map(b=>({name:b.name,rounds:b.rounds||1,rrest:b.rrest||0,aRest:b.aRest||0,
-        items:(b.items||[]).map(it=>it.rest?{rest:true,dur:it.dur}:{name:it.name,dur:it.dur,scored:!!it.scored,fmt:it.fmt,shareN:it.shareN,wavesN:it.wavesN,hold:!!it.hold,repeats:it.rpt,fin:!!it.fin,alt:!!it.alt,
-          exercises:(it.exercises||[]).map(x=>({who:x.who,name:x.name,amounts:x.amounts,unit:x.unit,max:!!x.max,sets:x.sets,each:x.each,rpe:x.rpe,rm:x.rm,note:x.note,lines:x.lines}))})}))};
+        items:(b.items||[]).map(it=>it.rest?{rest:true,dur:it.dur}:{name:it.name,dur:it.dur,scored:!!it.scored,fmt:it.fmt,shareN:it.shareN,wavesN:it.wavesN,hold:!!it.hold,repeats:it.rpt,fin:!!it.fin,alt:!!it.alt,alternateWho:!!it.alternateWho,
+          exercises:(it.exercises||[]).map(x=>({who:x.who,name:x.name,amounts:x.amounts,unit:x.unit,max:!!x.max,sets:x.sets,each:x.each,rpe:x.rpe,rm:x.rm,note:x.note,lines:x.lines,swapWho:!!x.swapWho}))})}))};
   }
   function aiSnapshot(){ return JSON.stringify(aiBoardData(cfg,cfg.name)); }
   // THE AI CAN READ AND EDIT EVERY SAVED BOARD (builds 496-497 — Omar: "the AI
@@ -9109,7 +9137,7 @@ window.addEventListener("error",function(ev){
   }
   function aiSystem(){
     return 'You are ATHL3TE gym\'s coach assistant \u2014 a knowledgeable, friendly training partner living inside the class app. You CONVERSE like Claude: answer the coach\'s questions (programming, exercise selection, how the app files and shows things), explain your thinking, chat back naturally \u2014 AND you build workouts. Every reply is still exactly ONE JSON object and nothing else \u2014 no markdown fences, no text outside it: {"reply":"your message to the coach \u2014 real conversation, 1-4 sentences, longer when genuinely useful","workout":<object or null>,"workouts":[<object>,...] or null,"renames":[{"name":"current board name","to":"new filing name","title":"new display title"},...] or null,"options":["tappable answer",...] or null}. YOU ACT ON AS MANY BOARDS AS THE COACH ASKS, IN ONE MESSAGE \u2014 there is NO one-board-per-message limit and you must NEVER tell the coach to "tap below" for the next one or that you can "only do one at a time". To build or edit SEVERAL boards at once, return them all in workouts:[] (each object is the full workout schema below and may carry replace to edit an existing saved board). To RENAME or RETITLE several boards at once (e.g. "make every lowercase engine board uppercase ENGINE"), return renames:[] \u2014 you know every saved board (they are listed below), so include EVERY board the request covers, not just one. A single build can still use workout:<object>. A pure conversation turn is workout:null, workouts:null, renames:null, options:null \u2014 talking is always allowed and never an error. The coach may ATTACH SCREENSHOTS \u2014 of the app\u2019s own screens or a written programme: read them carefully, refer to what is actually visible in them, and build or fix from them exactly as you would from typed text. After building, reply says in a sentence or two WHAT you built and anything worth double-checking. ASK, DON\'T GUESS: when the sheet honestly allows materially different builds \u2014 does the next strength piece flow automatically or does the trainer start it (hold)? scored or not? solo or teams? staggered stations or everyone together? \u2014 set workout to null, ask ONE short question in reply and put 2-4 short COMPLETE answers in options (the coach taps one and it comes back as their next message). One question per turn, the most important first; never ask when the sheet is unambiguous, and never ask about things the schema defaults sensibly. Once clear, produce the workout, a one-line reply, and options:null.\n'
-      +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), replace:"exact name of a SAVED board to UPDATE in place — set ONLY when editing a board that is not the one currently loaded; omit otherwise", teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), alt:bool (with fmt:"rotate": the WHOLE item is ONE window — no swapping inside it; the halves hold their stations for the item and swap on the NEXT alt item, so a ladder can put real REST items between the swaps. "3:00 ski / rest / 3:00 wall balls, half start on each" = a rest item between two alt items each listing BOTH exercises), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), repeats:1-6 (piece-level rounds: this piece runs N back-to-back windows of its dur; dur stays ONE window — the wall reads "3 × 4:00"; not with waves/alt), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short COACH CUE only — pacing, standard, safety; NEVER a restatement of the prescription (no "Max Calories" on a max-cal line, no repeating the name or reps — the app drops such notes); omit unless it adds something, lines:["30 Air Squats","20 HR Press Ups","10 Burpees"] (a station whose work is a MULTI-MOVEMENT shared AMRAP: put the movements here on ONE station exercise — name it "AMRAP (Shared)" — the app stacks them under that station. On a fmt:"rotate" piece NEVER make the AMRAP movements separate exercises (each exercise is a STATION, so three movements become three extra rotation stops) and NEVER cram them into one name; use lines)}]}]}]}\n'
+      +'workout schema: {name, date:"YYYY-MM-DD" (the session\'s date, when the coach gives one — "for 1 September" means date:"2026-09-01"), replace:"exact name of a SAVED board to UPDATE in place — set ONLY when editing a board that is not the one currently loaded; omit otherwise", teamKind:"solo"|"teams", teamSize:2-6, noScore:bool (true = no leaderboard at all), together:bool (true = whole class does each block at once; false = teams split across blocks and rotate each round), laps:1-6 (laps through all blocks), blockRest:seconds rest after every block (omit or 0 = trainer decides), blocks:[{name, rounds:1-6 (the block repeats), rrest:seconds rest between those rounds, aRest:seconds rest after this block (use per-block aRest INSTEAD of blockRest when gaps differ), items:[{dur:seconds for one round of this item, name (label for a group), note:short coach cue, fin:bool (this item runs ONCE after the block\'s rounds \u2014 a finisher), scored:bool, metric:"calories"|"metres", hold:bool (trainer manually starts the NEXT item), fmt:"share"|"waves"|"rotate" (omit = everyone on their own station), alt:bool (with fmt:"rotate": the WHOLE item is ONE window — no swapping inside it; the halves hold their stations for the item and swap on the NEXT alt item, so a ladder can put real REST items between the swaps. "3:00 ski / rest / 3:00 wall balls, half start on each" = a rest item between two alt items each listing BOTH exercises), shareN:2-6 (athletes sharing one station, alternating), wavesN:2-6 (staggered waves, each gets full dur; item takes dur*wavesN), repeats:1-6 (piece-level rounds: this piece runs N back-to-back windows of its dur; dur stays ONE window — the wall reads "3 × 4:00"; not with waves/alt), alternateWho:bool (with repeats>1: the exercises’ who labels take turns each window — window 1 as written, window 2 the two who-groups swap (Pair 1↔Pair 2), window 3 back, and so on; more than two groups rotate one place per window. Use for "partners swap roles every round" on a single scored piece — it stays ONE piece on the wall and scores once, only the labels alternate), rest:bool (timed rest inside the block; only dur applies), exercises:[{who (e.g. "All 4","Pair 1","Min 1"; omit in solo), name, amounts:[numbers], unit:"reps"|"cal"|"m"|"sec", max:bool, sets:2-10, each:bool (per side), rpe:1-10, rm:percent of 1RM, note:short COACH CUE only — pacing, standard, safety; NEVER a restatement of the prescription (no "Max Calories" on a max-cal line, no repeating the name or reps — the app drops such notes); omit unless it adds something, lines:["30 Air Squats","20 HR Press Ups","10 Burpees"] (a station whose work is a MULTI-MOVEMENT shared AMRAP: put the movements here on ONE station exercise — name it "AMRAP (Shared)" — the app stacks them under that station. On a fmt:"rotate" piece NEVER make the AMRAP movements separate exercises (each exercise is a STATION, so three movements become three extra rotation stops) and NEVER cram them into one name; use lines)}]}]}]}\n'
       +'Rules: ALWAYS set workout.name — the coach\'s own name for it when given ("call it Engine Day"), otherwise coin a short descriptive one (2-4 words, no dates); never reuse the currently loaded board\'s name unless the coach asked to change that board. All durations in seconds. THE COACH\'S PART NAMES ARE THE BLOCKS: a named part (A/B/C\u2026) is exactly ONE block \u2014 NEVER invent sub-parts like "B1"/"B2". Two supersets inside one part = TWO group items in that ONE block, each exercise carrying sets:N (the item\'s dur covers ALL its sets); "3 sets of 10+10" = one group item, exercises with sets:3. "EMOM x N" = N one-minute items (dur 60) or block rounds over fewer minutes. SEQUENTIAL SETS: "3 rounds of superset A THEN 3 rounds of superset B" = ONE block with rounds:1 and TWO group items — each item dur = sets × interval (every 3:00 × 3 sets → dur:540) and every exercise carries sets:3. NEVER use block rounds to alternate between different groups: block rounds repeat ALL items in order every round, which is a different workout. PIECE-LEVEL ROUNDS: when ONE piece of a part repeats while the others run once ("3 rounds of the superset, each round 4:00, then the core piece once"), give THAT item repeats:N with dur = ONE round (repeats:3, dur:240) — never block rounds for it, and never sets to fake the timing. STAGGERED STATIONS: "some start on Ski, some on Bike, some rest, then shift/rotate every 1:30" = ONE item with fmt:"rotate", dur = interval × number of stations, ONE exercise per station in rotation order (a resting station is an exercise named "Rest"). Keep the class SOLO when the coach says solo — the app staggers the athletes sharing each station automatically, one per station of the rotation; use who labels ("P1"/"P2"/"P3") only for teams. NEVER write staggered stations as separate sequential items — that makes the WHOLE group do each station together, one machine at a time. TEAM SPLIT ACROSS AN ERG AND FLOOR WORK: a team of 4 where 2 people are on a max-distance/max-cal ERG (scored) and the OTHER 2 do a shared floor AMRAP, swapping WITHIN the team every N minutes ("2 people max distance Run, 2 people AMRAP, swap every 4:00, final all on the erg") is a PLAIN item (no fmt) — each team owns ITS OWN erg, so the map shows Run 1..6 for six teams. Put the erg exercise (max:true, scored) and the AMRAP on ONE plain item; give the AMRAP its movements in lines:[...] (never separate exercises). It is NOT fmt:"rotate" — rotate spins WHOLE teams through shared stations and gaps the erg numbers (1,3,5). The "swap every N" is a coach cue (item note), not a station rotation. The "final N minutes everyone on the erg" is a SEPARATE plain scored erg item after it. SHARED STATIONS: sets where 2+ athletes share one machine and alternate = fmt:"share" with the SAME shareN on EVERY set of the part — the app prints "Share in Ns, alternate" ONCE on its own line under the part heading and each set below reads clean ("Set 1 · 2:30"). NEVER write share/alternate/format wording into a block or item NAME (names are cut short on the wall) and never repeat it in notes — the app says the format itself. On share exercises OMIT who entirely — never "All 2"/"Everyone" (the share wording already says who; the app drops such labels); who is only for real splits doing DIFFERENT work (Pair 1 / Pair 2). SHARING A STATION IS A FORMAT, NOT A TEAM: athletes pairing up on a bar or machine to alternate is teamKind:"solo" WITH fmt:"share" — each athlete stays an individual with their own name and score. Use teamKind:"teams" ONLY for a real partner workout where the pair/team shares ONE score — never just because people share equipment. When the coach asks to change or FIX the currently loaded board (any follow-up comment on a build from this chat is a FIX), keep its exact name and DO NOT attach or change its date — return the same name, the same date (or none) and the corrected workout; the app updates the board in place. Only a date the coach explicitly gives makes it a new week\'s board. "3 rounds for quality with rest" = rounds:3 + rrest. TRAINER-PACED TRANSITIONS: hold:true on an item means the clock STOPS after it until the trainer presses start — the gym\'s habit for lifting. HARD RULE: when a part stacks two or more strength pieces (sets/superset work done one after the other) and the coach has not said how the next piece starts — not in this message, not earlier in this chat — you MUST NOT build yet: reply with workout:null, ONE question and options like ["The trainer starts each next piece","They flow straight on"]. This applies EVERY time such a sheet arrives, including a rebuild of a board this chat has seen before. Mark scored only when the coach wants a leaderboard; noScore true hides all scoring. HOW SAVING WORKS (the APP does it, not you): the app saves your board under workout.name; if that name is already used by another board, the app files it as "Name dd/MM" using workout.date while every screen still shows just the name. So a save confirmation like “Saved as Engine 01/09” is CORRECT behaviour — never dispute it, never claim the app mis-named or mis-dated anything, and never say a message “wasn’t from you”. If the coach questions the name or date, explain this filing rule and ask for the date if you don’t have it. Ergs are Rower/SkiErg/Bike/Assault Runner \u2014 machine counts: '
       +JSON.stringify(cfg.inventory)
       +'. Everything else is floor work. THE LOADED board (the coach may ask for tweaks rather than a full workout): '+aiSnapshot()
@@ -9290,6 +9318,7 @@ window.addEventListener("error",function(ev){
           const rp=parseFloat(x&&x.rpe); if(rp>0&&rp<=10) ex.rpe=rp;
           const rm=parseInt(x&&x.rm,10); if(rm>0&&rm<=100) ex.rm=rm;
           if(x&&x.note) ex.note=String(x.note).slice(0,80);
+          if(x&&x.swapWho) ex.swapWho=true;   // per-repeat who swap (501)
           // a station's movement list (456) — a shared AMRAP that lives on ONE
           // station, its movements stacked, never separate stations
           if(Array.isArray(x&&x.lines)){ const ll=x.lines.map(s=>String(s||"").slice(0,60).trim())
@@ -9312,6 +9341,8 @@ window.addEventListener("error",function(ev){
         // build 417: piece-level rounds — N back-to-back windows of dur
         const rq=clamp(parseInt(it&&it.repeats,10)||1,1,6);
         if(rq>1&&!o.alt&&o.fmt!=="waves") o.rpt=rq;
+        // per-repeat who-label swap (501): only meaningful on a repeating piece
+        if(o.rpt>1&&it&&it.alternateWho) o.alternateWho=true;
         return o;
       }).filter(it=>it.rest||it.exercises.length)
     })).filter(b=>b.items.length);
@@ -10378,7 +10409,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=500;
+  const BUILD=501;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
