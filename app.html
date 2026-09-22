@@ -454,6 +454,17 @@
   :is(body.kioskon,.twt) .tks-pad button{height:38px;font-size:19px}
   :is(body.kioskon,.twt) .tks-row .btn{height:41px}
   :is(body.kioskon,.twt) .tks-teams button{height:38px}
+  /* THE SCORE KEYPAD FILLS THE COLUMN (build 495 — Omar: "the keypad should fit
+     the whole space so it's easier to click the numbers"). The pad GROWS into the
+     leftover height of the score card and spans its full width, so a gassed
+     athlete taps big keys — but each key's MIN height stays at the old floor so a
+     tight card still fits the fixed kiosk frame (flex only grows into real slack).
+     Bigger number glyphs throughout. Scoped to .tk-score so the exit-code PIN pad
+     (.pinPad) stays compact. */
+  .tk-score .tks-pad{max-width:none;flex:1 1 auto;grid-auto-rows:1fr}
+  .tk-score .tks-row{max-width:none}
+  .tk-score .tks-pad button{height:auto;min-height:48px;font-size:26px}
+  :is(body.kioskon,.twt) .tk-score .tks-pad button{height:auto;min-height:38px;font-size:26px}
   /* No ergs, nothing to assign: no tablets, no claiming, no stations on the card.
      What is left is the workout and the clock, which is all a floor class needs. */
   .ergless{display:none}
@@ -10175,7 +10186,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=494;
+  const BUILD=495;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
