@@ -26,6 +26,11 @@ const MOCK=`
   FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){},
     start(){ if(this.buffer&&this.buffer.which) window.__spoken.push(this.buffer.which); },
     stop(){ if(this.buffer&&this.buffer.which) window.__stopped.push(this.buffer.which); } }; };
+  // build 492: the buzz is routed through a gain fade and a silent DAC-wake
+  // primer; the primer buffer has no 'which' tag so it is never counted
+  FakeCtx.prototype.createGain=function(){ return { gain:{setValueAtTime(){},linearRampToValueAtTime(){},value:1}, connect(){} }; };
+  FakeCtx.prototype.createBuffer=function(){ return {}; };
+  FakeCtx.prototype.sampleRate=44100;
   window.AudioContext=FakeCtx; window.webkitAudioContext=FakeCtx;
 `;
 async function boot(br,voice,beepN){

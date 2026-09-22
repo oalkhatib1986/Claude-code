@@ -1342,11 +1342,14 @@
   /* CONTROL · SESSION — ONE COMBINED CARD ON MOBILE (build 491 — Omar: the
      workout header + athletes eat too much space, controls fall below the fold;
      merge into one card so the clock + transport show without scrolling). */
-  .ctlbody{padding-top:14px;padding-bottom:14px}
-  .ctlbody .wknow{padding-bottom:0;margin-bottom:10px;border-bottom:0}
-  .ctlbody .wkdiv{height:1px;background:var(--line);margin:12px 0}
-  .ctlbody .transport{padding:10px 0 2px}
-  .ctlbody .claimbar,.ctlbody #claimBar:not(:empty){margin-top:12px}
+  .card .body.ctlbody{padding:14px 16px 16px;gap:9px}
+  .ctlbody .wknow{padding:0;margin:0;border-bottom:0}
+  .ctlbody .wkdiv{height:1px;background:var(--line);margin:2px 0}
+  .card .body.ctlbody .clock b{font-size:clamp(34px,4vw,46px)}
+  .card .body.ctlbody .controls{margin-top:0}
+  .ctlbody .transport{padding:4px 0 0}
+  /* empty flex children still eat a gap — drop them so the transport rises */
+  .ctlbody #startFlow:empty,.ctlbody #claimBar:empty,.ctlbody #rlist:empty{display:none}
   #rlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
   .rrow{border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:opacity .3s,border-color .15s}
   .rrow .rh{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
@@ -1991,7 +1994,7 @@
         </div>
         <div class="wkdiv"></div>
         <div class="clock" style="margin-left:0;text-align:left"><b id="tClock">—</b><span id="tState"></span></div>
-        <div class="controls" style="margin-top:14px">
+        <div class="controls">
           <button class="btn primary" id="startBtn">Start session</button>
           <button class="btn" id="resetBtn" disabled>Reset</button>
         </div>
@@ -3644,6 +3647,31 @@ window.addEventListener("error",function(ev){
   // cancel any beeps scheduled but not yet played (pause / seek / reset / new
   // interval) and disarm, so a stale countdown never fires over the wrong window
   function clearVoice(){ voiceNodes.forEach(s=>{ try{ s.stop(); }catch(e){} }); voiceNodes=[]; voiceArmed=false; }
+  // A CLICK IN THE BUZZ ON A BIG SPEAKER (build 492 — Omar, on his TV: "the
+  // buzzer sound seems to have a tick in it"). Two artifacts a phone's tiny
+  // speaker hid but a TV/HDMI amp exposes: (1) a hard buffer edge clicks when a
+  // source starts, and (2) the TV's audio output pops as it powers on out of
+  // silence. playBuzz() ramps each buffer in over 5ms so the edge can't click,
+  // and acWake() plays an inaudible sliver ~140ms early so the amp's power-on
+  // pop lands in silence, before the real buzz. Neither touches the timing or
+  // Omar's tuned files — they play lossless as before, just cleanly.
+  function playBuzz(buf, at){
+    const src=AC.createBufferSource(); src.buffer=buf;
+    let out=AC.destination;
+    try{ const g=AC.createGain(), t=Math.max(AC.currentTime, at);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(1, t+0.005);
+      g.connect(AC.destination); out=g; }catch(e){}
+    try{ src.connect(out); }catch(e){}
+    try{ src.start(at); }catch(e){}
+    voiceNodes.push(src);
+  }
+  function acWake(at){
+    try{ const sr=AC.sampleRate||44100, n=Math.max(1,Math.round(sr*0.05));
+      const b=AC.createBuffer(1, n, sr);
+      const s=AC.createBufferSource(); s.buffer=b; s.connect(AC.destination);
+      s.start(Math.max(AC.currentTime, at)); voiceNodes.push(s); }catch(e){}
+  }
   // THE BEEPS ARE PRE-SCHEDULED ON THE AUDIO CLOCK, NOT FIRED PER FRAME (builds
   // 487-488 — Omar: "it gets confused at 5 and misses a beep", "sometimes it
   // starts at 4 not 5"). Driving the buzz off the rendered clock meant a dropped
@@ -3672,13 +3700,12 @@ window.addEventListener("error",function(ev){
     voiceArmed=true;
     const now=AC.currentTime, endAt=now+remain;
     if(AC.state==="suspended"){ try{ AC.resume(); }catch(e){} }
-    for(let k=Math.min(N,Math.ceil(remain-0.05)); k>=1; k--){
+    const K0=Math.min(N,Math.ceil(remain-0.05));
+    acWake(Math.max(now, endAt-K0)-0.14);   // wake the TV amp in silence first
+    for(let k=K0; k>=1; k--){
       const at=Math.max(now, endAt-k);
       const b=buzzBuf[k===1?"fin":"beep"]; if(!b) continue;
-      const src=AC.createBufferSource(); src.buffer=b;
-      src.connect(AC.destination);
-      try{ src.start(at); }catch(e){}
-      voiceNodes.push(src);
+      playBuzz(b, at);
     }
   }
   function frameRest(now){
@@ -10106,7 +10133,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=491;
+  const BUILD=492;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
