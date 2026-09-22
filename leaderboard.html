@@ -3647,23 +3647,34 @@ window.addEventListener("error",function(ev){
   // cancel any beeps scheduled but not yet played (pause / seek / reset / new
   // interval) and disarm, so a stale countdown never fires over the wrong window
   function clearVoice(){ voiceNodes.forEach(s=>{ try{ s.stop(); }catch(e){} }); voiceNodes=[]; voiceArmed=false; }
-  // A CLICK IN THE BUZZ ON A BIG SPEAKER (build 492 — Omar, on his TV: "the
-  // buzzer sound seems to have a tick in it"). Two artifacts a phone's tiny
-  // speaker hid but a TV/HDMI amp exposes: (1) a hard buffer edge clicks when a
-  // source starts, and (2) the TV's audio output pops as it powers on out of
-  // silence. playBuzz() ramps each buffer in over 5ms so the edge can't click,
-  // and acWake() plays an inaudible sliver ~140ms early so the amp's power-on
-  // pop lands in silence, before the real buzz. Neither touches the timing or
-  // Omar's tuned files — they play lossless as before, just cleanly.
-  function playBuzz(buf, at){
+  // A CLICK NEAR THE END OF EACH BUZZ ON A BIG SPEAKER (builds 492-493 — Omar,
+  // on his TV: "a clock tick near the end of each second buzz … and it sounds
+  // laggy"). The WAV itself ends silent, so it is NOT a buffer-edge click: the
+  // short buzz has a long low DECAY TAIL (loud to ~0.45s, then rings down to
+  // ~0.8s) that a phone hid but a TV amp rings out — that ring is the "laggy",
+  // and the source NODE terminating on that quiet tail is the "tick". playBuzz()
+  // now ENVELOPES every buzz — 5ms attack in, then a release ramp to ZERO at the
+  // end of the played span — so the node always ends in silence (no tick), and
+  // it TRIMS the short buzz's dead tail (play only ~0.62s of the 0.80s file, the
+  // audible part) so each beep is crisp, not a drone. The final "go" buzz plays
+  // its full length and rings out (never stopped — build 489), just release-faded
+  // so it too ends clean. Omar's tuned files, same pitch and punch, no tail junk.
+  function playBuzz(buf, at, isFinal){
     const src=AC.createBufferSource(); src.buffer=buf;
+    const full=buf.duration||0.8;
+    const play=isFinal?full:Math.min(full,0.62);   // trim the short buzz's dead tail
     let out=AC.destination;
     try{ const g=AC.createGain(), t=Math.max(AC.currentTime, at);
       g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(1, t+0.005);
+      g.gain.linearRampToValueAtTime(1, t+0.005);            // attack
+      g.gain.setValueAtTime(1, Math.max(t+0.02, t+play-0.06));
+      g.gain.linearRampToValueAtTime(0, t+play);             // release to silence at the end
       g.connect(AC.destination); out=g; }catch(e){}
     try{ src.connect(out); }catch(e){}
     try{ src.start(at); }catch(e){}
+    // stop the SHORT beeps at the trim point (node ends at gain 0, no tick); the
+    // final buzz is never stopped here so it rings out fully (489)
+    if(!isFinal){ try{ src.stop(Math.max(AC.currentTime,at)+play+0.01); }catch(e){} }
     voiceNodes.push(src);
   }
   function acWake(at){
@@ -3705,7 +3716,7 @@ window.addEventListener("error",function(ev){
     for(let k=K0; k>=1; k--){
       const at=Math.max(now, endAt-k);
       const b=buzzBuf[k===1?"fin":"beep"]; if(!b) continue;
-      playBuzz(b, at);
+      playBuzz(b, at, k===1);
     }
   }
   function frameRest(now){
@@ -10133,7 +10144,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=492;
+  const BUILD=493;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
