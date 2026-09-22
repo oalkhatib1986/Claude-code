@@ -64,12 +64,12 @@ ok(await clearOfCards(),'idle: the strip clears the first card');
 ok(await p.evaluate(()=>{ const m=document.querySelector('#blockCards .teams .t.unnamed .mtag');
   return !m||getComputedStyle(m).display!=='none'; }),
   'a scored board keeps its FREE tags — claiming is live there');
-// the stacked pills wear ONE width (Omar: "the pills need to be same size!")
+// the Edit button rides IN the strip, beside Start (build 494 — Omar: "the edit
+// workout button next to start workout button") — no longer a stacked equal-width pair
 await p.waitForTimeout(600);
-{ const w=await p.evaluate(()=>({s:document.getElementById('ovStart').getBoundingClientRect().width,
-    e:document.getElementById('bEditBtn').getBoundingClientRect().width}));
-  ok(Math.abs(w.s-w.e)<=1.5,'Start and Edit workout are the SAME width ('
-    +Math.round(w.s)+' vs '+Math.round(w.e)+'px)'); }
+ok(await p.evaluate(()=>{ const e=document.getElementById('bEditBtn');
+  return !!e&&e.closest('#ovCtl')===document.getElementById('ovCtl'); }),
+  'Edit workout sits inside the control strip, beside Start');
 // 3) SET THE CLASS SIZE FROM THE STRIP — same picker as Control
 await p.click('#ovPick .mfield'); await p.waitForTimeout(300);
 await p.fill('#ovPick .msearch','23');
@@ -94,8 +94,14 @@ ok(await seen('ovB10')&&await seen('ovB5')&&await seen('ovF5')&&await seen('ovF1
 // THE STATUS BOX IS GONE (422 — "do we even need this box?!")
 ok(await p.evaluate(()=>getComputedStyle(document.getElementById('phaseBanner')).display==='none'),
   'the Block-1-of-3-working box no longer prints on the Workout page');
-ok(await p.evaluate(()=>parseFloat(getComputedStyle(document.querySelector('.beditrow')).marginTop)>=10),
-  'the Edit row keeps its breathing room above');
+// the running strip is LEFT-aligned and Edit sits beside Start (build 494 — Omar:
+// "the controls need to move to left")
+ok(await p.evaluate(()=>getComputedStyle(document.getElementById('ovCtl')).justifyContent==='flex-start'),
+  'running: the control strip is left-aligned');
+ok(await p.evaluate(()=>{ const s=document.getElementById('ovStart').getBoundingClientRect(),
+    e=document.getElementById('bEditBtn').getBoundingClientRect();
+    return Math.abs(s.top-e.top)<6 && e.left>=s.left-1; }),
+  'Edit workout is on the same row, just after Start');
 ok(!await p.evaluate(()=>{ const x=document.getElementById('ovPick');
   return x&&x.offsetParent!==null; }),'the picker makes way while running');
 ok(await clearOfCards(),'running: the strip still clears the cards');

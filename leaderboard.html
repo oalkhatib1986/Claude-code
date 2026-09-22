@@ -1350,6 +1350,27 @@
   .ctlbody .transport{padding:4px 0 0}
   /* empty flex children still eat a gap — drop them so the transport rises */
   .ctlbody #startFlow:empty,.ctlbody #claimBar:empty,.ctlbody #rlist:empty{display:none}
+  /* A SHORT / SCALED SCREEN (build 494 — Omar's laptop at OS/browser scaling: a
+     1899px monitor reports only ~580 CSS px tall, so the comfortable card ran
+     ~20px past the fold and the seeks were cut off). Compress the whole card
+     when the viewport is short so the transport ALWAYS lands on screen — the
+     same lesson as the big-screen scaled-display saga: a small CSS viewport can
+     be a big scaled monitor, so gate on viewport HEIGHT, not width. */
+  @media (max-height:880px){
+    .card .body.ctlbody{padding:10px 16px 10px;gap:4px}
+    .card .body.ctlbody .clock b{font-size:clamp(28px,3.2vw,38px)}
+    .ctlbody .clock span{font-size:10px}
+    .ctlbody #startFlow{font-size:11px;line-height:1.35}
+    .card .body.ctlbody .controls .btn{height:34px}
+    .ctlbody .transport{gap:6px;padding:2px 0 0}
+    #viewTrainer .trow.main{gap:26px}
+    #viewTrainer .trow.main .tico{width:42px;height:42px}
+    #viewTrainer .trow.main .tico svg{width:24px;height:24px}
+    #viewTrainer .trow.main .tico.big{width:52px;height:52px}
+    #viewTrainer .trow.sub{gap:14px}
+    #viewTrainer .trow.sub .tico{width:42px;height:42px}
+    #viewTrainer .trow.sub .tico svg{width:24px;height:24px}
+  }
   #rlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
   .rrow{border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:opacity .3s,border-color .15s}
   .rrow .rh{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
@@ -1386,7 +1407,7 @@
      transport on its own row under the clock. */
   .ovctl{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;
     flex:0 1 auto;margin-left:auto;padding-bottom:4px}
-  .ovctl.run{flex:1 1 100%;margin-left:0}
+  .ovctl.run{flex:1 1 100%;margin-left:0;justify-content:flex-start}   /* build 494 — Omar: controls to the LEFT */
   .ovctl .tico{width:36px;height:36px}
   .ovctl .tico svg{width:21px;height:21px}
   .ovctl:not(.run) .tico{display:none}
@@ -1572,11 +1593,12 @@
   /* one vertical rhythm: the Edit row keeps the SAME gap to whatever sits
      above it as the strip's own rows keep (build 422 — Omar: the Edit pill
      was touching the box above it) */
-  .beditrow{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:12px 0}
-  /* the Edit pill matches the Start pill above it exactly — one width for
-     the stacked pair (--ovbw is Start's measured width; Omar's OCD rule) */
-  #bEditBtn{min-width:var(--ovbw,0px)}
-  .bedithint{font-size:12px;color:var(--ink-mute);text-align:right}
+  /* the Edit button now rides inside the control strip (build 494); this row
+     carries only the bedit hint, so it takes no space until that shows */
+  .beditrow{display:flex;align-items:center;justify-content:flex-start;gap:12px;flex-wrap:wrap;margin:0}
+  /* beside Start now (not stacked), so the Edit pill sizes to its own text —
+     matching a long "…RUNNING…" width would bloat it (build 494) */
+  .bedithint{font-size:12px;color:var(--ink-mute);text-align:left;margin-top:10px}
   body.bigscreen .beditrow,body.tvroute .beditrow{display:none}
   /* WHAT IS TAPPABLE LOOKS TAPPABLE (Omar: "it's confusing what's clickable"):
      every editable row highlights under the pointer and flashes on the tap
@@ -1765,7 +1787,13 @@
   /* On the wall the same balanced columns, with the room a TV card needs. */
   body.wkscreen:not(.mobscreen) .blocks{display:grid!important;
     grid-template-columns:repeat(var(--bcols,1),minmax(0,1fr));
-    align-content:center;gap:26px;margin-top:26px}
+    align-content:center;gap:26px;margin-top:14px}
+  /* THE STATUS BANNER IS SLIM ON THE WALL (build 494 — Omar: "the ALL 4 BLOCKS
+     WORKING box can be smaller and move up with the clock, more space for the
+     columns below"). A shorter header means fillTvBoard scales the board up, so
+     the part columns get the room. */
+  body.wkscreen:not(.mobscreen) .phase{margin-top:10px;padding:9px 22px;border-radius:12px}
+  body.wkscreen:not(.mobscreen) .phase .plabel{font-size:17px}
   body.wkscreen:not(.mobscreen) .blocks:not(.vrests)>.blkrest{grid-column:1/-1}
   body.bigscreen:not(.mobscreen) .subhead .ttl{flex-direction:row;align-items:baseline;
     gap:12px 34px;flex-wrap:wrap;overflow:visible}
@@ -1960,6 +1988,9 @@
         <button class="tico" id="ovNext" type="button" disabled aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
         <button class="btn small" id="ovReset" type="button" disabled title="Reset session">Reset</button>
         <button class="btn small primary" id="ovStart" type="button">Start</button>
+        <!-- Edit workout rides IN the strip, right beside Start (build 494 — Omar:
+             "the edit workout button next to start workout button") -->
+        <button type="button" class="btn small" id="bEditBtn">Edit workout</button>
       </div>
     </div>
     <div class="phase" id="phaseBanner" hidden>
@@ -1967,7 +1998,7 @@
       <span class="pdesc" id="phaseDesc"></span>
     </div>
     <div id="capBanner" hidden></div>
-    <div class="beditrow" id="bEditRow"><span class="bedithint" id="bEditHint" hidden>Tap anything highlighted &mdash; names, reps, times, rests &middot; totals and SHARE lines update from the numbers</span><button type="button" class="btn small" id="bEditBtn">Edit workout</button></div>
+    <div class="beditrow" id="bEditRow"><span class="bedithint" id="bEditHint" hidden>Tap anything highlighted &mdash; names, reps, times, rests &middot; totals and SHARE lines update from the numbers</span></div>
     <div class="blocks" id="blockCards"></div>
 
     <div class="board" id="board">
@@ -10144,7 +10175,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=493;
+  const BUILD=494;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
