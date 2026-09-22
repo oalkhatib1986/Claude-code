@@ -19,7 +19,11 @@ const blocks=[
                {who:'P2',name:'Wall Balls',amounts:[20],unit:'reps'}]}]},
   {name:'Part B',rounds:1,items:[{dur:720,scored:false,group:true,name:'Strength',
     exercises:[{name:'Back Squat',amounts:[8],unit:'reps',sets:3},
-               {name:'Bench Press',amounts:[8],unit:'reps',sets:3}]}]}
+               {name:'Bench Press',amounts:[8],unit:'reps',sets:3}]}]},
+  // a one-item block whose BLOCK scheme ("Every 2:30 for 10 minutes") and the
+  // item's own timing heading ("4 sets") say the same thing — the 497 drop
+  {name:'Part C',rounds:4,items:[{dur:150,scored:false,
+    exercises:[{name:'Sumo Deadlift',amounts:[4],unit:'reps',sets:4}]}]}
 ];
 async function boot(br,hideTime){
   const ctx=await br.newContext({viewport:{width:1440,height:960}});
@@ -45,6 +49,9 @@ async function boot(br,hideTime){
 }
 const cards=p=>p.evaluate(()=>[...document.querySelectorAll('#blockCards .blk')]
   .map(b=>{const h=b.querySelector('.bd .exg-h');return h?h.textContent.replace(/\s+/g,' ').trim():'';}));
+// ALL headings of block index i, joined — to catch a duplicate item timing line
+const allHeads=(p,i)=>p.evaluate(ix=>{const b=[...document.querySelectorAll('#blockCards .blk')][ix];
+  return b?[...b.querySelectorAll('.bd .exg-h')].map(e=>e.textContent.replace(/\s+/g,' ').trim()).join(' | '):'';},i);
 (async()=>{
 const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 // ---- hideTime ON: the bare "4 minutes" is gone, the title stays; the scheme stays ----
@@ -54,12 +61,18 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
      'hideTime on: titled interval keeps the title, drops "· 4 minutes" ['+h[0]+']');
   ok(/3 rounds ×/i.test(h[1]),
      'hideTime on: a real scheme ("3 rounds × …") is NEVER stripped ['+h[1]+']');
+  { const c=await allHeads(p,2);
+    ok(/every 2:30 for 10/i.test(c)&&!/\bsets?\b/i.test(c)&&!/rounds ×/i.test(c),
+      'hideTime on: block scheme stays, the duplicate item timing heading is dropped ['+c+']'); }
   await p.close(); }
 // ---- default OFF: the duration still shows (every other board unchanged) ----
 { const {p}=await boot(br,false);
   const h=await cards(p);
   ok(/4:00 on \/ 1:00 off/i.test(h[0])&&/4 minutes/i.test(h[0]),
      'default (off): the interval time still shows ['+h[0]+']');
+  { const c=await allHeads(p,2);
+    ok(/every 2:30 for 10/i.test(c)&&/\bsets?\b/i.test(c),
+      'default (off): block scheme AND the item timing heading both show ['+c+']'); }
   await p.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
