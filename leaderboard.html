@@ -1873,14 +1873,15 @@
      Two fixed columns keep it beside the title and vertically centred at
      every width, and the slab's type scales with the board's own authored
      width (--tvw) so the proportions hold from a TV to an upright phone. */
-  /* BOTTOM-ALIGNED (build 500 — Omar: "the clock is not aligned from the bottom
-     with the text blocks total etc and that's why it's close to the box of block
-     3/3"). The clock slab is taller than the title+summary stack, so centring it
-     dipped its bottom below the summary line and crowded the cards. Aligning the
-     row to `end` sits the clock's bottom on the SAME line as the summary's — the
-     slab's extra height rises above the title instead of hanging below the text. */
+  /* CENTRED IN THE BAND (build 503 — Omar: "the marked things need to be centred
+     vertically between the logo and the box below them!"). The title stack and the
+     clock share a vertical centre, and the whole subhead sits centred between the
+     logo above and the phase bar below — margin:auto in the flex column claims the
+     header's slack equally top and bottom, so neither the title reads bottom-heavy
+     (build 500's `end` left empty space above SEND IT SATURDAY) nor the clock
+     crowds the cards. */
   body.wkscreen:not(.mobscreen) .subhead{display:grid;
-    grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:16px 40px}
+    grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px 40px}
   body.wkscreen:not(.mobscreen) .subhead .ttl{flex-direction:column;align-items:flex-start;
     gap:14px;overflow:visible}
   /* THE ATHL3TE TIMER (Omar, build 358 — "a design people associate with the
@@ -1893,7 +1894,7 @@
   .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
     border:.03em solid transparent;
-    padding:.14em .34em .14em;text-align:center;align-self:end;justify-self:end;
+    padding:.14em .34em .14em;text-align:center;align-self:center;justify-self:end;
     display:flex;flex-direction:column;align-items:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
   /* NO WORDS IN THE BOX (Omar, build 362) — the digits and the drain bar are
@@ -5273,6 +5274,28 @@ window.addEventListener("error",function(ev){
   // browsing the Big Screen tab on a phone defaults to the phone view.
   let scrFit=(location.hash==="#screen"||location.hash==="#workout")?"tv"
     :(document.documentElement.clientWidth<900?"mobile":"tv");
+  // THE MAIN-TAB BOX MATCHES THE PILLS UNDER IT (build 503 — Omar: "the box
+  // housing workout, control etc must be the same size and aligned with the pills
+  // under them!"). The grey .tabs box lives in <header> and the .subtabs rows are
+  // its siblings with different pill counts per page, so CSS alone cannot size one
+  // to the other: measure the sub-tab row on screen and widen the box to its right
+  // edge, the four tabs spread to fill it (left edges already share the wrap's
+  // padding). GROW ONLY — never shrink the box below its own tabs (Control's two
+  // pills are narrower than four tabs; shrinking there would clip them). Desktop
+  // only; the phone lays the tabs out full-width already.
+  function alignTabs(){
+    const tabs=document.querySelector(".tabs"); if(!tabs) return;
+    tabs.style.width=""; tabs.style.justifyContent="";
+    if(matchMedia("(max-width:720px)").matches) return;
+    const sub=[...document.querySelectorAll(".subtabs")].find(s=>!s.hidden&&s.offsetParent!==null);
+    if(!sub) return;
+    const pills=[...sub.querySelectorAll("button")].filter(b=>!b.hidden&&b.offsetParent!==null);
+    if(!pills.length) return;
+    const sl=sub.getBoundingClientRect().left;
+    const rightMost=Math.max(...pills.map(b=>b.getBoundingClientRect().right));
+    const w=Math.round(rightMost-sl), natural=Math.round(tabs.getBoundingClientRect().width);
+    if(w>natural+1){ tabs.style.width=w+"px"; tabs.style.justifyContent="space-between"; }
+  }
   function show(which){
     if(which!=="screen"&&document.body.classList.contains("tvfull")) setFull(false);
     // THE ROUTE IS AN ENTRANCE, NOT A STATE. Arriving by URL (boot, hashchange)
@@ -5360,6 +5383,7 @@ window.addEventListener("error",function(ev){
       if(!onAi) document.body.classList.remove("aiopen"); }
     try{ history.replaceState(null,"",which==="screen"?(scrMode==="work"?"#workout":"#screen"):location.pathname+location.search); }catch(e){}
     fitScreen();
+    try{ alignTabs(); }catch(e){}
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet");
@@ -10435,7 +10459,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=502;
+  const BUILD=503;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10810,7 +10834,7 @@ window.addEventListener("error",function(ev){
       if(view) view.style.height="";
     }
   }
-  window.addEventListener("resize",fitScreen);
+  window.addEventListener("resize",()=>{ fitScreen(); try{ alignTabs(); }catch(e){} });
   const routeIn=()=>{ let nav=null; try{ nav=sessionStorage.getItem("af_nav"); }catch(e){}
     if(!nav) document.body.classList.add("tvroute");
     show._fromRoute=true; show("screen"); };
