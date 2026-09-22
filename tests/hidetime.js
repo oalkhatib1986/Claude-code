@@ -23,6 +23,10 @@ const blocks=[
   // a one-item block whose BLOCK scheme ("Every 2:30 for 10 minutes") and the
   // item's own timing heading ("4 sets") say the same thing — the 497 drop
   {name:'Part C',rounds:4,items:[{dur:150,scored:false,
+    exercises:[{name:'Sumo Deadlift',amounts:[4],unit:'reps',sets:4}]}]},
+  // a TITLED part whose title already states a clock time ("Every 2:30 × 4"):
+  // the app's "4 rounds × 2:30" beside it is that time twice — the 498 drop
+  {name:'Part D',rounds:1,items:[{dur:600,name:'Every 2:30 × 4',scored:false,
     exercises:[{name:'Sumo Deadlift',amounts:[4],unit:'reps',sets:4}]}]}
 ];
 async function boot(br,hideTime){
@@ -64,6 +68,9 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   { const c=await allHeads(p,2);
     ok(/every 2:30 for 10/i.test(c)&&!/\bsets?\b/i.test(c)&&!/rounds ×/i.test(c),
       'hideTime on: block scheme stays, the duplicate item timing heading is dropped ['+c+']'); }
+  { const d=await allHeads(p,3);
+    ok(/every 2:30 × 4/i.test(d)&&!/rounds ×/i.test(d),
+      'hideTime on: a titled part that states a time keeps the title, drops the app timing ['+d+']'); }
   await p.close(); }
 // ---- default OFF: the duration still shows (every other board unchanged) ----
 { const {p}=await boot(br,false);
@@ -73,6 +80,9 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   { const c=await allHeads(p,2);
     ok(/every 2:30 for 10/i.test(c)&&/\bsets?\b/i.test(c),
       'default (off): block scheme AND the item timing heading both show ['+c+']'); }
+  { const d=await allHeads(p,3);
+    ok(/every 2:30 × 4/i.test(d)&&/rounds ×/i.test(d),
+      'default (off): titled part shows the app timing too ['+d+']'); }
   await p.close(); }
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');

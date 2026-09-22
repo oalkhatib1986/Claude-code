@@ -1059,6 +1059,15 @@
     background:#141518;border:1px solid var(--line);border-radius:12px;box-shadow:0 26px 60px -18px rgba(0,0,0,.95);padding:8px}
   .mwrap.time .mpanel{min-width:110px}
   .mpanel .msearch{width:100%;margin-bottom:6px;background:var(--bg-2)}
+  /* picker FILTER chips (build 498 — Omar: "filters by workout, by month… the
+     drop down will get so long"): a compact chip row per filter group */
+  .mfilters{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+  .mfilters:empty{display:none}
+  .mfrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mflab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);flex:0 0 auto;margin-right:2px}
+  .mfchip{font-family:var(--ui);font-size:11.5px;font-weight:600;color:var(--ink-dim);background:transparent;
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
+  .mfchip.on{background:#fff;color:#0a0a0b;border-color:#fff}
   .mitems{max-height:230px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .combo{position:relative}
   .combo input{padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
@@ -2546,9 +2555,24 @@ window.addEventListener("error",function(ev){
     const btn=document.createElement("button"); btn.type="button"; btn.className="mfield";
     { const gv=getValue(); btn.textContent=String(gv==null?"":gv)||o.placeholder||"\u2014"; }
     const panel=document.createElement("div"); panel.className="mpanel"; panel.hidden=true;
-    panel.innerHTML=`<input class="msearch" type="text" ${o.numeric?'inputmode="numeric"':''} placeholder="${esc(o.searchPh||"Type to search\u2026")}" autocomplete="off" autocapitalize="words"><div class="mitems"></div>`;
+    panel.innerHTML=`<input class="msearch" type="text" ${o.numeric?'inputmode="numeric"':''} placeholder="${esc(o.searchPh||"Type to search\u2026")}" autocomplete="off" autocapitalize="words">${o.filters?'<div class="mfilters"></div>':""}<div class="mitems"></div>`;
     wrap.append(btn,panel);
     const search=panel.querySelector(".msearch"), itemsEl=panel.querySelector(".mitems");
+    const filtersEl=panel.querySelector(".mfilters");
+    // FILTER CHIPS (build 498): one active key per group narrows the list on top
+    // of the search box; groups come from o.filters(opts) so they track the boards
+    const activeFilters={};
+    const renderFilters=()=>{ if(!filtersEl) return;
+      const groups=o.filters(getOpts().map(String))||[];
+      filtersEl._groups=groups;
+      filtersEl.innerHTML=groups.map((g,gi)=>!g.chips.length?"":
+        `<div class="mfrow"><span class="mflab">${esc(g.label)}</span>`
+        +`<button type="button" class="mfchip${activeFilters[gi]==null?" on":""}" data-g="${gi}" data-k="">All</button>`
+        +g.chips.map(c=>`<button type="button" class="mfchip${activeFilters[gi]===c.key?" on":""}" data-g="${gi}" data-k="${esc(c.key)}">${esc(c.label)}</button>`).join("")
+        +`</div>`).join("");
+      filtersEl.querySelectorAll(".mfchip").forEach(ch=>ch.onclick=()=>{
+        const gi=+ch.dataset.g, k=ch.dataset.k; activeFilters[gi]=k===""?null:k;
+        renderFilters(); renderList(); }); };
     const close=()=>{ panel.hidden=true; document.removeEventListener("pointerdown",away,true); };
     const away=ev=>{ if(!wrap.contains(ev.target)) close(); };
     const commit=(v,typed)=>{ v=String(v).trim(); if(!v){ close(); return; } onPick(v,typed);
@@ -2556,7 +2580,11 @@ window.addEventListener("error",function(ev){
     const renderList=()=>{
       const q=search.value.trim().toLowerCase();
       const opts=getOpts().map(String);
-      const matches=opts.filter(n=>n.toLowerCase().includes(q));
+      let matches=opts.filter(n=>n.toLowerCase().includes(q));
+      // apply any active filter chips on top of the text search
+      const groups=(filtersEl&&filtersEl._groups)||[];
+      groups.forEach((g,gi)=>{ const k=activeFilters[gi]; if(k==null) return;
+        const chip=g.chips.find(c=>c.key===k); if(chip) matches=matches.filter(n=>chip.test(n)); });
       const exact=opts.some(n=>n.toLowerCase()===q);
       let out="";
       // the add row: a fresh name is offered as typed; a TAKEN name is offered
@@ -2577,7 +2605,7 @@ window.addEventListener("error",function(ev){
       });
     };
     btn.onclick=()=>{ if(!panel.hidden){ close(); return; }
-      search.value=""; renderList(); panel.hidden=false;
+      search.value=""; renderFilters(); renderList(); panel.hidden=false;
       document.addEventListener("pointerdown",away,true); };
     search.oninput=renderList;
     search.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); const q=search.value.trim(); if(q) commit(q); } };
@@ -3549,7 +3577,13 @@ window.addEventListener("error",function(ev){
       // BARE duration (never a scheme like "3 rounds × 4:00", "swap every…" or
       // "share in 2s", which say something the title does not), and only when a
       // title is actually there to carry the heading.
-      if(dispHideTime()&&label&&tlab===minTxt(it.dur)) tlab="";
+      // hideTime: drop the app's timing heading when the coach's own TITLE already
+      // carries it — the bare "· 4 minutes" (build 477) OR, when the TITLE itself
+      // states a clock time like "Every 2:30 × 4", even a scheme tlab beside it,
+      // which would be that same time twice (build 498 — Omar: "EVERY 2:30 × 4 ·
+      // 4 ROUNDS × 2:30… I already told you"). A title with NO time keeps its
+      // scheme (that scheme is the only place the time is said).
+      if(dispHideTime()&&label&&(tlab===minTxt(it.dur)||/\d{1,2}:\d{2}/.test(String(label)))) tlab="";
       // AND when a BLOCK SCHEME already states the interval and total of a one-item
       // block ("EVERY 2:30 FOR 10:00"), the item's own timing heading ("4 ROUNDS ×
       // 2:30" / "4 sets") is the same fact twice — hideTime drops that duplicate
@@ -8067,6 +8101,30 @@ window.addEventListener("error",function(ev){
           const pd=p&&p.cfg&&p.cfg.prog&&p.cfg.prog.date; if(!pd) return "";
           const d=new Date(pd+"T00:00:00");
           return isNaN(d)?"":d.toLocaleDateString("en-GB");   // 25/08/2026 (Omar)
+        },
+        // FILTERS (build 498 — Omar: "filters by workout, by month… the drop down
+        // will get so long"). Chips derived from the SAVED boards: by workout
+        // (base name, date suffix stripped) and by month (the board's own date).
+        // A group shows only when it has more than one value to choose between.
+        filters:(opts)=>{
+          const info={};   // name -> {date}
+          presets.forEach(p=>{ if(LIBHIDE&&p.seedV) return;
+            info[p.name]={date:(p.cfg&&p.cfg.prog&&p.cfg.prog.date)||""}; });
+          const baseOf=n=>String(n).replace(/\s+\d{1,2}\/\d{1,2}(\/\d{2,4})?$/,"").trim();
+          const types=[], seenT={}, months=[], seenM={};
+          opts.forEach(n=>{ if(!info[n]) return;   // saved boards only, not programme
+            const b=baseOf(n)||n; if(b&&!seenT[b.toLowerCase()]){ seenT[b.toLowerCase()]=1; types.push(b); }
+            const d=info[n].date; if(d&&d.length>=7){ const mk=d.slice(0,7);
+              if(!seenM[mk]){ const dt=new Date(d+"T00:00:00");
+                seenM[mk]=isNaN(dt)?mk:dt.toLocaleDateString("en-GB",{month:"short",year:"2-digit"}); months.push(mk); } } });
+          types.sort((a,b)=>a.toLowerCase()<b.toLowerCase()?-1:1);
+          months.sort((a,b)=>a<b?1:-1);   // newest month first
+          const g=[];
+          if(types.length>1) g.push({label:"Workout",chips:types.map(b=>({key:b.toLowerCase(),label:b,
+            test:n=>(baseOf(n)||n).toLowerCase()===b.toLowerCase()}))});
+          if(months.length>1) g.push({label:"Month",chips:months.map(mk=>({key:mk,label:seenM[mk],
+            test:n=>{ const d=info[n]&&info[n].date; return !!d&&d.slice(0,7)===mk; }}))});
+          return g;
         }}
     ));
     // Rename and Delete offer themselves only for a board that IS in the library
@@ -10245,7 +10303,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=497;
+  const BUILD=498;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
