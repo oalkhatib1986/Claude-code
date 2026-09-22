@@ -6384,9 +6384,17 @@ window.addEventListener("error",function(ev){
           :(seg&&seg.it&&seg.it.rest&&!capMode?"Rest ends in"
           :(seg&&seg.setN>1?`Set ${seg.set+1} of ${seg.setN} — left`:"Time left in this block")))
         :(isAmrap(b)?"AMRAP time cap":"This block lasts");
-      const clkVal=running?(capMode?fmtMS(Math.max(0,blockLen(b)-rot.elapsed))
+      // A PHASE REST SHOWS THE REST COUNTDOWN, RUNNING OR NOT (build 502 — Omar:
+      // "the Get Ready shows 1:03 / 3:47, not the 10-second countdown"). beginReady
+      // and frameRest keep `running` TRUE through a get-ready / block-rest, so the
+      // running branch below was drawing seg.remain (the whole block, e.g. 4:00) as
+      // "Starts in". The clock label already checks phase==="rest" FIRST; the value
+      // must match it — during ANY phase-level rest the clock is rot.remain (a
+      // within-part rest window keeps phase==="run" and stays with seg.remain).
+      const clkVal=phase==="rest"?fmtMS(rot.remain)
+        :running?(capMode?fmtMS(Math.max(0,blockLen(b)-rot.elapsed))
           :(seg?fmtMS(seg.remain):fmtMS(curRoundLen()-rot.elapsed)))
-        :(phase==="done"?"0:00":phase==="rest"?fmtMS(rot.remain):fmtMS(blockLen(b)));
+        :(phase==="done"?"0:00":fmtMS(blockLen(b)));
       // ---- self-paced circuit: this team's own station, not the class's ----
       let cir=null;
       if(team&&seg&&seg.self&&!seg.it.rest){
@@ -7117,6 +7125,24 @@ window.addEventListener("error",function(ev){
           head.appendChild(itools);
           sec.appendChild(head);
           if(fmtRow) sec.appendChild(fmtRow);
+          // PER-REPEAT WHO SWAP (build 501 — Omar: "add it to Setup, keep it
+          // defaulted to AI and I can also choose"). Offered only when the piece
+          // REPEATS and its exercises carry ≥2 different who labels (otherwise
+          // there is nothing to alternate). Default OFF — the swap only happens
+          // when the coach ticks it here or the assistant sets it.
+          if(!isRest&&itReps(it)>1){
+            const whos=new Set((it.exercises||[]).map(x=>String((x&&x.who)||"").trim()).filter(Boolean));
+            if(whos.size>=2){
+              const arow=document.createElement("label"); arow.className="chk altwhorow";
+              arow.style.margin="2px 0 10px";
+              const ac=document.createElement("input"); ac.type="checkbox"; ac.checked=!!it.alternateWho;
+              ac.onchange=()=>{ if(ac.checked) it.alternateWho=true; else delete it.alternateWho;
+                save(); if(!sessionActive&&!running) build(); };
+              arow.appendChild(ac);
+              arow.appendChild(document.createTextNode(" Swap the who labels each round"));
+              sec.appendChild(arow);
+            }
+          }
           // GUIDANCE AND INTERRUPTS ARE FIELDS. The part's note is the coach's
           // voice under the work; the EVERY task is a standing rule ("every 4:00,
           // one partner: 20 wall balls") that heads the list on every surface.
@@ -10409,7 +10435,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=501;
+  const BUILD=502;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

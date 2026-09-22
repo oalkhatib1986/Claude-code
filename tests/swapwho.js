@@ -61,6 +61,18 @@ await openWall();
     return e?e.innerText.replace(/\s+/g,' ').trim():''; });
   ok(/×|x/i.test(h)&&/4/.test(h),'idle: the piece reads as ONE with a repeat count ['+h+']'); }
 
+// ---- Setup: the "swap the who labels each round" checkbox reflects + toggles ----
+await p.evaluate(()=>{const b=document.getElementById('stSetup'); if(b) b.click();});
+await p.waitForTimeout(600);
+{ const on=await p.evaluate(()=>{ const c=document.querySelector('.altwhorow input'); return c?c.checked:null; });
+  ok(on===true,'Setup: the swap checkbox is present and ON for this board ['+on+']');
+  await p.evaluate(()=>{ const c=document.querySelector('.altwhorow input'); if(c){ c.checked=false; c.onchange(); } });
+  await p.waitForTimeout(200);
+  const off=await p.evaluate(()=>!!(JSON.parse(localStorage.getItem('af_erg_cfg_v8')).rotation.blocks[0].items[0].alternateWho));
+  ok(off===false,'Setup: unticking clears it.alternateWho ['+off+']');
+  await p.evaluate(()=>{ const c=document.querySelector('.altwhorow input'); if(c){ c.checked=true; c.onchange(); } });
+  await p.waitForTimeout(200); }
+
 // ---- start the clock ----
 await p.evaluate(()=>document.getElementById('tabTrainer').click()); await p.waitForTimeout(300);
 await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(1000);

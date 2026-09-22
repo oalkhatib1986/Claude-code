@@ -65,6 +65,43 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   ok(/get ready/i.test(lab),'the wall clock label reads "Get ready", not "Rest" ['+lab+']');
   await p.close(); }
 
+// ---- the ERG TABLET shows the get-ready countdown, not the block length
+//      (build 502 — Omar: "the Get Ready shows 1:03 then 3:47, not the 10 second
+//      countdown"). `running` stays TRUE through a get-ready, so the crewed
+//      tablet clock was drawing the block's seg.remain instead of rot.remain. A
+//      scored TEAMS board is needed — that renders the crewed screen where the
+//      bug lived (the solo/unscored boards use the openSlot screen, always right).
+{ const ctx=await br.newContext({viewport:{width:1280,height:900}});
+  const p=await ctx.newPage(); p.on('pageerror',e=>{fail++;console.log('FAIL pageerror:',e.message);});
+  p.on('dialog',d=>d.accept());
+  await p.goto(F);
+  await p.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p.reload(); await p.waitForTimeout(1200);
+  await p.evaluate(()=>{
+    const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
+    Object.assign(c,{name:'GRTab',wkName:'GRTab',mode:'rotation',teamKind:'teams',teamSize:2,
+      together:true,noScore:false,scoreSrc:'manual'});
+    c.inventory=Object.assign(c.inventory||{},{Row:6,Ski:6});
+    c.display=Object.assign(c.display||{},{voice:false});   // ready unset -> default 10
+    c.rotation=Object.assign(c.rotation||{},{laps:1,blockRest:0,sameRest:true,blocks:[
+      {name:'Part A',rounds:1,items:[{name:'Part A',dur:30,scored:true,metric:'metres',
+        exercises:[{who:'Pair 1',name:'Row',amounts:[],unit:'m',max:true}]}]}]});
+    c.crews=[{name:'A'},{name:'B'}];
+    localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c));
+  });
+  await p.reload(); await p.waitForTimeout(1400);
+  await p.evaluate(()=>document.getElementById('tabTablet').click()); await p.waitForTimeout(400);
+  await p.evaluate(()=>window.__tbOpen&&window.__tbOpen('Row:1')); await p.waitForTimeout(400);
+  await p.evaluate(()=>document.getElementById('startBtn').click()); await p.waitForTimeout(500);
+  const times=async()=>p.evaluate(()=>[...new Set([...document.querySelectorAll('.tk *')]
+    .map(e=>(e.textContent||'').trim()).filter(s=>/^\d+:\d\d$/.test(s)))]);
+  const t=await times();
+  const sec=s=>{const m=s.match(/(\d+):(\d\d)/);return m?+m[1]*60+ +m[2]:-1;};
+  ok(t.some(x=>{const v=sec(x);return v>=5&&v<=10;}),
+    'tablet get-ready shows the ~10s countdown ['+t.join(',')+']');
+  ok(!t.includes('0:30'),'tablet get-ready does NOT show the block length 0:30 ['+t.join(',')+']');
+  await p.close(); await ctx.close(); }
+
 // ---- after the count-in, the block actually runs ----
 { const {p}=await boot(br,{ready:10});
   await startBtn(p); await p.waitForTimeout(200);
