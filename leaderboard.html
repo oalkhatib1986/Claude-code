@@ -420,6 +420,11 @@
     font-family:var(--ui);font-size:clamp(17px,4vw,21px);padding:0 14px}
   .tk-claimrow .btn{flex:none;height:52px;background:#fff;color:#0a0a0b;border:none;
     border-radius:12px;padding:0 22px;font-size:clamp(14px,3.4vw,17px);letter-spacing:.1em}
+  /* the optional result-email row is secondary — shorter, quieter (build 506) */
+  .tk-emailrow{margin-top:-3px}
+  .tk-emailrow input{height:44px;border-color:rgba(255,255,255,.18);
+    background:rgba(255,255,255,.04);font-size:clamp(14px,3.2vw,17px)}
+  .tk-emailrow input::placeholder{color:rgba(255,255,255,.4)}
   .tk-free{align-self:flex-start;border:2px solid rgba(255,255,255,.32);background:transparent;
     color:rgba(255,255,255,.65);border-radius:999px;padding:9px 17px;cursor:pointer;
     font-family:var(--disp);font-weight:700;font-size:clamp(11px,2.7vw,14px);
@@ -6104,11 +6109,14 @@ window.addEventListener("error",function(ev){
         const inp=scr.querySelector("#tbClaim")||scr.querySelector("#tbName");
         const v=inp?(inp.value||"").trim():"";
         if(!v) return;
+        // an optional email rides with the claim (scored boards) — get the result
+        const emIn=scr.querySelector("#tbEmail");
+        const em=emIn?(emIn.value||"").trim():"";
         // empty the box BEFORE the redraw: text in it reads as "someone is
         // mid-type" and holds the picture still
-        inp.value=""; inp.blur();
-        if(c.dataset.slot){ const sl=claimSlotFor(c.dataset.slot); if(sl) takeFree(sl,v); return; }
-        tbTakeName(+c.dataset.tid,v);
+        inp.value=""; inp.blur(); if(emIn){ emIn.value=""; emIn.blur(); }
+        if(c.dataset.slot){ const sl=claimSlotFor(c.dataset.slot); if(sl) takeFree(sl,v,em); return; }
+        tbTakeName(+c.dataset.tid,v,em);
       });
       // ...and a redraw that lands BETWEEN the finger going down and coming up
       // removes the element under it, so the browser fires no click at all. Hold
@@ -6122,7 +6130,7 @@ window.addEventListener("error",function(ev){
     else if(scr.__hold&&performance.now()-scr.__hold<650) return;
     if(cfg.mode==="rotation"){
       // never redraw over someone mid-type: the screen refreshes on a timer
-      { const typing=[...scr.querySelectorAll("#tbName,#tbClaim")]
+      { const typing=[...scr.querySelectorAll("#tbName,#tbClaim,#tbEmail")]
           .some(i=>i===document.activeElement||i.value);
         if(typing) return; }
       if(!nBlocks()){ scr.innerHTML=`<div class="tb-note" style="padding:40px 12px;text-align:center">No blocks yet — build the workout in Setup.</div>`; return; }
@@ -6236,6 +6244,10 @@ window.addEventListener("error",function(ev){
                     placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
                   <button type="button" class="btn" id="tbClaimGo" data-slot="${esc(openSlot.key)}">I\u2019m on</button>
                 </div>
+                ${showLeaderboard()?`<div class="tk-claimrow tk-emailrow">
+                  <input id="tbEmail" type="email" inputmode="email" maxlength="120" autocomplete="off"
+                    placeholder="Email (optional) \u2014 get your result">
+                </div>`:""}
               </div>`:`<div class="tk-card tk-inst">
                 <div class="tk-blk tk-part">${esc(fb.name||"")}</div>
                 <div class="tk-tag">${fTag}</div>
@@ -6618,7 +6630,10 @@ window.addEventListener("error",function(ev){
                        <input id="tbClaim" maxlength="18" autocomplete="off"
                          placeholder="${cfg.teamKind==="solo"?"Your name":"Your team name"}">
                        <button type="button" class="btn" id="tbClaimGo" data-tid="${team.id}">I\u2019m on</button>
-                     </div>`}
+                     </div>${showLeaderboard()?`<div class="tk-claimrow tk-emailrow">
+                       <input id="tbEmail" type="email" inputmode="email" maxlength="120" autocomplete="off"
+                         placeholder="Email (optional) \u2014 get your result">
+                     </div>`:""}`}
               </div>`:`<div class="tk-card tk-inst">
                 <div class="tk-blk tk-part">${esc(b.name)}${laps()>1?` · R${lapOf(rot.round)+1}`:""}</div>
                 <div class="tk-tag">${(mts&&mtag&&!running)?mtag:jTag}</div>
@@ -6695,15 +6710,19 @@ window.addEventListener("error",function(ev){
     const go=scr.querySelector("#tbClaimGo")||scr.querySelector("#tbNameGo");
     if(inp&&go) inp.onkeydown=ev=>{ if(ev.key==="Enter") go.click(); };
   }
-  function tbTakeName(id,v){
+  function tbTakeName(id,v,email){
     const c=cfg.crews[id]; if(!c||!v) return;
     c.name=v; const e=ergs.find(x=>x.id===id); if(e) e.name=v;
+    // OPTIONAL RESULT EMAIL (build 506 — Omar: a scored claim can leave an email
+    // and the app mails the result at the end). One per team; blank = no send.
+    if(email!==undefined){ const em=String(email||"").trim(); if(em) c.email=em; else delete c.email; }
     save(); buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true);
   }
   function tbGiveBack(id){
     const c=cfg.crews[id]; if(!c) return;
     // back to the placeholder the roster started with, so the slot reads as free
     c.name=(cfg.teamKind==="solo"?"Athlete ":"Team ")+(id+1);
+    delete c.email;   // the slot is free again — its email goes with it
     const e=ergs.find(x=>x.id===id); if(e) e.name=c.name;
     save(); buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true);
   }
@@ -7468,13 +7487,15 @@ window.addEventListener("error",function(ev){
   // Someone tapping in on a machine past the current headcount IS the class
   // growing. Set the number so that machine exists, then write the name into it.
   // A claim is a fact, not a proposal, so it takes the count off "fit the gym".
-  function takeFree(slot,name){
+  function takeFree(slot,name,email){
     if(!slot||!name) return;
     const need=Math.max(cfg.crews.length,slot.need|0);
     if(need!==cfg.crews.length){ cfg.autoCrews=false; save(); setTeamCount(need); }
     const h=machSlots().byKey[slot.key];
     const t=h?teamsAt(h.bi)[h.j]:null;
-    if(t&&cfg.crews[t.id]){ cfg.crews[t.id].name=name; t.name=name; }
+    if(t&&cfg.crews[t.id]){ cfg.crews[t.id].name=name; t.name=name;
+      const em=String(email||"").trim();
+      if(em) cfg.crews[t.id].email=em; else delete cfg.crews[t.id].email; }
     save(); buildCrews(); renderBlockCards(); renderLanesRot(); renderTablet(true);
   }
   // How many people this gym can physically hold for THIS workout, one per
@@ -10190,7 +10211,36 @@ window.addEventListener("error",function(ev){
       unit:scoreUnit(),types:cfg.mode==="rotation"?wkTypes():[],rows});
     if(results.length>200) results.length=200;
     saveResults();
+    try{ sendResultEmails(rows); }catch(e){}
     if($("viewResults").classList.contains("active")) renderResults();
+  }
+  // RESULT EMAILS (build 506 — Omar: a scored team that left an email gets its
+  // result mailed at the end to share on socials). The static page cannot send
+  // mail, so it hands the rows to the relay worker's `mail` op (SendGrid, from
+  // the gym's own address). One message per team that gave an email; no relay
+  // link or no email = nothing sent. `rows` is already sorted best-first, so the
+  // index IS the rank. Fire-and-forget — a mail failure never blocks the class.
+  const EMAILRE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  let _mailedAt=0;
+  function sendResultEmails(rows){
+    if(!aiUrl||!showLeaderboard()) return;
+    if(Date.now()-_mailedAt<10000) return;   // one send per finish, never a storm
+    const board=cfg.name||cfg.wkName||"Workout";
+    const jobs=[];
+    (cfg.crews||[]).forEach((c,id)=>{
+      const raw=String((c&&c.email)||"").trim(); if(!raw) return;
+      const to=raw.split(/[,;\s]+/).map(s=>s.trim()).filter(s=>EMAILRE.test(s));
+      if(!to.length) return;
+      const ix=rows.findIndex(r=>r.name===c.name);
+      const row=ix>=0?rows[ix]:{name:c.name,score:0};
+      jobs.push({to, name:c.name||("Team "+(id+1)),
+        rank:(ix>=0?ix:rows.length-1)+1, of:rows.length,
+        score:row.score||0, m:row.m||0, cals:row.cals||0, by:row.by||{}});
+    });
+    if(!jobs.length) return;
+    _mailedAt=Date.now();
+    // fire and forget; the worker sends each one
+    libCall({op:"mail", board, unit:scoreUnit(), when:Date.now(), results:jobs});
   }
   function renderResults(){
     const el=$("resList"); if(!el) return;
@@ -10530,7 +10580,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=505;
+  const BUILD=506;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -107,6 +107,52 @@ export default {
       return json({ ok: 1, ts: rec.ts });
     }
 
+    // ---- result emails (SendGrid; the gym's own address as the verified
+    // single sender). The app hands us the finished rows; we send one message
+    // per team that left an email, each recipient getting their own copy. ----
+    if (body.op === "mail") {
+      const KEY = env.SENDGRID_KEY, FROM = env.MAIL_FROM;
+      if (!KEY || !FROM)
+        return json({ error: "email not set up (set SENDGRID_KEY and MAIL_FROM env vars on the worker)" }, 500);
+      const EMAILRE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      const fromName = String(env.MAIL_FROM_NAME || "ATHL3TE").slice(0, 60);
+      const board = String(body.board || "Workout").slice(0, 80);
+      const unit = String(body.unit || "Score").slice(0, 20);
+      const jobs = Array.isArray(body.results) ? body.results.slice(0, 60) : [];
+      let sent = 0, failed = 0;
+      for (const j of jobs) {
+        const to = (Array.isArray(j.to) ? j.to : [])
+          .filter((x) => typeof x === "string" && EMAILRE.test(x)).slice(0, 5);
+        if (!to.length) continue;
+        const name = String(j.name || "Team").slice(0, 40);
+        const rank = parseInt(j.rank, 10) || 0, of = parseInt(j.of, 10) || 0;
+        const text = [
+          `${name} — ${board}`, ``,
+          `Score: ${Math.round(+j.score || 0)} ${unit}`,
+          rank && of ? `Placing: ${rank} of ${of}` : ``,
+          +j.m ? `Metres: ${Math.round(+j.m)}` : ``,
+          +j.cals ? `Calories: ${Math.round(+j.cals)}` : ``,
+          ``, `— ${fromName}`,
+        ].filter(Boolean).join("\n");
+        const mail = {
+          // one personalization per address = each recipient gets their own copy
+          personalizations: to.map((email) => ({ to: [{ email }] })),
+          from: { email: FROM, name: fromName },
+          subject: `${board} — your result`.slice(0, 120),
+          content: [{ type: "text/plain", value: text }],
+        };
+        try {
+          const r = await fetch("https://api.sendgrid.com/v3/mail/send", {
+            method: "POST",
+            headers: { authorization: "Bearer " + KEY, "content-type": "application/json" },
+            body: JSON.stringify(mail),
+          });
+          if (r.ok || r.status === 202) sent += to.length; else failed += to.length;
+        } catch { failed += to.length; }
+      }
+      return json({ ok: 1, sent, failed });
+    }
+
     const model = ALLOWED_MODELS.includes(body.model) ? body.model : ALLOWED_MODELS[0];
     const payload = {
       model,
