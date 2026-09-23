@@ -37,6 +37,8 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 const phone=await boot(br);
 const tvw=await boot(br,'#workout',-10000);   // TV wall clock 10s BEHIND
 await phone.click('#tabTrainer'); await phone.waitForTimeout(400);
+// no get-ready count-in — this suite times the running clock, not the pre-start (505)
+await phone.evaluate(()=>{ try{ window.__setReady(0); }catch(e){} });
 await phone.evaluate(()=>document.getElementById('startBtn').click());
 await phone.waitForTimeout(6000);
 const grab=p=>p.evaluate(()=>{
