@@ -58,6 +58,20 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   ok(tabs&&tabs.r<=390,'phone: the tab box stays within the viewport ['+tabs.r+']');
   await p.close(); }
 
+// ---- BOOT: the box aligns with the pills WITHOUT any tab click (build 504 —
+//      Omar: "make the box go wider to align with Archive", still off after 503
+//      because boot measured before the font loaded and never re-ran) ----
+for(const w of [1280,1536,1920]){
+  const p=await br.newPage({viewport:{width:w,height:860}});
+  await p.goto(F);
+  await p.evaluate(()=>(localStorage.clear(),localStorage.setItem('af_prog_v1','1')));
+  await p.reload(); await p.waitForTimeout(1600);   // no tab click — boot state only
+  const tabsR=await p.evaluate(()=>Math.round(document.querySelector('.tabs').getBoundingClientRect().right));
+  const arch=await lastPill(p);
+  ok(arch&&Math.abs(tabsR-arch.r)<=2,'w='+w+' boot: box right meets the last pill ['+tabsR+' vs '+(arch&&arch.r)+']');
+  await p.close();
+}
+
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

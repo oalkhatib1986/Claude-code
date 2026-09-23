@@ -1839,9 +1839,14 @@
      in ANY card still lands on one line. A part read from across the gym must not
      break mid-prescription. */
   body.wkscreen:not(.mobscreen) .blk .bd{font-size:var(--bfs,34px);line-height:1.55}
-  /* a single block has ~1500px of width and a tall thin list — run it in two columns
-     so the type can be twice the size instead of the card being mostly empty */
-  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd{column-count:2;column-gap:60px;
+  /* A LONE CARD RUNS IN ONE CENTRED COLUMN (build 504 — Omar: "it's only 1 column
+     and in that case everything must fit in one column and be centred
+     horizontally!"). A single block used to split its list into two columns to
+     fill the ~1500px width, but that broke the running slab across the gap and
+     read badly. Now the list is one column sized to its own content and centred in
+     the card, so the work reads straight down the middle. */
+  body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd{column-count:1;
+    width:max-content;max-width:100%;margin-left:auto;margin-right:auto;
     font-size:46px;line-height:1.5}
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exl,
   body.wkscreen:not(.mobscreen) .blocks>.blk:only-child .bd .exg-h{break-inside:avoid}
@@ -1873,17 +1878,19 @@
      Two fixed columns keep it beside the title and vertically centred at
      every width, and the slab's type scales with the board's own authored
      width (--tvw) so the proportions hold from a TV to an upright phone. */
-  /* CENTRED IN THE BAND (build 503 — Omar: "the marked things need to be centred
-     vertically between the logo and the box below them!"). The title stack and the
-     clock share a vertical centre, and the whole subhead sits centred between the
-     logo above and the phase bar below — margin:auto in the flex column claims the
-     header's slack equally top and bottom, so neither the title reads bottom-heavy
-     (build 500's `end` left empty space above SEND IT SATURDAY) nor the clock
-     crowds the cards. */
-  body.wkscreen:not(.mobscreen) .subhead{display:grid;
-    grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px 40px}
+  /* CLOCK BOTTOM ON THE SUMMARY LINE (build 504 — Omar: "the timer should have
+     space below it equal to the space below the 3 blocks / round / solo line").
+     The title stack stays centred in the band (build 503), but the clock is TALLER
+     than it, so centring the pair dipped the clock past the summary toward the
+     cards. The clock is taken out of flow and pinned so its BOTTOM sits on the
+     title stack's bottom (the summary line) — equal gap to the phase bar below —
+     and its extra height grows UPWARD into the space under the logo, never down.
+     The title column reserves the clock's width on the right so a long name never
+     slides under it. */
+  body.wkscreen:not(.mobscreen) .subhead{position:relative;display:grid;
+    grid-template-columns:minmax(0,1fr);align-items:center;gap:16px 0}
   body.wkscreen:not(.mobscreen) .subhead .ttl{flex-direction:column;align-items:flex-start;
-    gap:14px;overflow:visible}
+    gap:14px;overflow:visible;padding-right:calc(var(--tvw,1820px)*0.24)}
   /* THE ATHL3TE TIMER (Omar, build 358 — "a design people associate with the
      brand"). It speaks the CARDS' OWN LANGUAGE: solid white slab while the
      class WORKS (the NOW slab), flipped to a dashed outline while it RESTS
@@ -1894,7 +1901,7 @@
   .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
     border:.03em solid transparent;
-    padding:.14em .34em .14em;text-align:center;align-self:center;justify-self:end;
+    padding:.14em .34em .14em;text-align:center;position:absolute;right:0;bottom:0;
     display:flex;flex-direction:column;align-items:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
   /* NO WORDS IN THE BOX (Omar, build 362) — the digits and the drain bar are
@@ -3671,7 +3678,12 @@ window.addEventListener("error",function(ev){
     }
   }
   window.addEventListener("resize",()=>fitSummary());
-  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitSummary());
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ fitSummary();
+    // the tab box is sized to the pill row's WIDTH, which the web font decides —
+    // measured before the font loads it lands short (Omar: "the box should go
+    // wider to align with Archive", still off after build 503 because boot ran
+    // alignTabs against fallback metrics and never re-ran)
+    try{ alignTabs(); }catch(e){} });
   setTimeout(fitSummary,1200);
   function buildRotationBoard(){
     // an untimed programme board has no rounds and no clock — the chips that
@@ -8072,6 +8084,14 @@ window.addEventListener("error",function(ev){
     const d=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(d.getTime())?"":DOW_NAMES[d.getDay()]; }
   function migrateLoaded(){
     if(!cfg.inventory) cfg.inventory={Row:5,Ski:5,Bike:5,Run:5,Echo:0};
+    // legacy blocks a loaded board may lack — the score/waves readers touch them
+    // even from a rotation board, so one cfg / one migration pass owns them (these
+    // used to be set at BOOT only, after migrateLoaded, so a picked board missed
+    // them and crashed on load — the very trap this pass exists to close)
+    if(!cfg.scoring||typeof cfg.scoring!=="object") cfg.scoring=structuredClone(DEFAULTS.scoring);
+    if(!cfg.waves||typeof cfg.waves!=="object") cfg.waves={waveSize:4,release:"auto"};
+    if(!Array.isArray(cfg.segments)) cfg.segments=structuredClone(DEFAULTS.segments);
+    if(!Array.isArray(cfg.library)) cfg.library=structuredClone(DEFAULTS.library);
     if(!Array.isArray(cfg.gear)) cfg.gear=structuredClone(DEFAULTS.gear);
     if(!cfg.exGear||typeof cfg.exGear!=="object") cfg.exGear=structuredClone(DEFAULTS.exGear);
     if(!cfg.teamKind) cfg.teamKind="teams";
@@ -8163,6 +8183,18 @@ window.addEventListener("error",function(ev){
         return mine.map(p=>p.name).concat(LIBHIDE?[]:progList.map(x=>x.label)); },
       ()=>cfg.wkName||"Unsaved workout",
       (v,typed)=>{
+        // LOADING A BOARD MID-CLASS ASKS FIRST (build 504 — Omar: "if I choose
+        // another workout while one is running, why does the clock keep going?
+        // I should get a pop up saying changing the workout will reset the
+        // session"). Only when a session is live AND v is an existing board to
+        // load (a save-as of a NEW name is not a load); confirm, then reset the
+        // running session and load. Keep running = nothing changes.
+        if((running||sessionActive)&&libFind(v)){
+          dlg({msg:"A workout is running. Loading “"+v+"” will end the current session and reset the clock.",
+               ok:"Load & reset",cancel:"Keep running"})
+            .then(yes=>{ if(yes!==true) return; try{ reset(); }catch(e){} loadLib(v); });
+          return;
+        }
         if(loadLib(v)) return;
         // SAVING UNDER A NAME NAMES THE BOARD. cfg.name is the title every surface
         // shows (overview head, TV, tablet); leaving it while wkName changed kept
@@ -10459,7 +10491,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=503;
+  const BUILD=504;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -10508,6 +10540,9 @@ window.addEventListener("error",function(ev){
     document.body.classList.add("tvroute");
   if(location.hash==="#screen"){ show._fromRoute=true; show("screen"); }
   else if(location.hash==="#workout"){ scrMode="work"; show._fromRoute=true; show("screen"); }
+  // the default boot view (Workout) is rendered from the markup without a show()
+  // call, so size the tab box to its pill row now (and again once fonts settle)
+  else { try{ alignTabs(); }catch(e){} requestAnimationFrame(()=>{ try{ alignTabs(); }catch(e){} }); }
   // the board's own mark mirrors whatever the header badge is showing
   // On a TV the mark belongs to the picture, not to the page chrome — otherwise it
   // floats above the vertically-centred board, and the preview frame excludes it
