@@ -102,6 +102,22 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   ok(!t.includes('0:30'),'tablet get-ready does NOT show the block length 0:30 ['+t.join(',')+']');
   await p.close(); await ctx.close(); }
 
+// ---- the block cards stay FROZEN through the count-in (build 505 — Omar: "with
+//      0:08 on GET READY every block already shows 3:53 LEFT and a moving bar").
+//      Frozen at full duration (no live clock, no progress) until 0:00, then live. ----
+{ const {p}=await boot(br,{ready:10});
+  await startBtn(p); await p.waitForTimeout(300);
+  const during=await p.evaluate(()=>{ const blk=document.querySelector('#blockCards .blk');
+    return {live:blk&&blk.classList.contains('live'), clk:!!(blk&&blk.querySelector('.bclk')),
+      prog:!!(blk&&blk.querySelector('.bprog'))}; });
+  ok(during.live===false&&!during.clk&&!during.prog,
+    'during get-ready the block is frozen — no live clock, no progress ['+JSON.stringify(during)+']');
+  await p.evaluate(()=>window.__seek&&window.__seek(11)); await p.waitForTimeout(500);
+  const after=await p.evaluate(()=>{ const blk=document.querySelector('#blockCards .blk');
+    return {live:blk&&blk.classList.contains('live'), prog:!!(blk&&blk.querySelector('.bprog'))}; });
+  ok(after.live===true&&after.prog,'after the count-in the block goes live with its progress bar');
+  await p.close(); }
+
 // ---- after the count-in, the block actually runs ----
 { const {p}=await boot(br,{ready:10});
   await startBtn(p); await p.waitForTimeout(200);
