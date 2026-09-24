@@ -1560,9 +1560,20 @@
   body.libland #libLand{display:block}
   body.libland #viewCtrl .cr>.card:not(#libLand){display:none}
   body:not(.libland) #viewCtrl #libBack{display:inline-block;margin:0 0 4px}
-  .libtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .libtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
   .libtop #libSearch{flex:1 1 220px;min-width:0}
   .libtop #libNew{flex:0 0 auto;white-space:nowrap}
+  /* the picker's own search+chip filters, on the grid page (Omar) */
+  .libfltrow{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .libfllab{flex:0 0 auto;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-mute);padding-top:8px;min-width:56px}
+  .libchips{display:flex;flex-wrap:wrap;gap:7px;min-width:0}
+  .libchip{font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-dim);background:transparent;border:1px solid var(--line);border-radius:999px;
+    padding:6px 13px;cursor:pointer;transition:.14s;white-space:nowrap}
+  .libchip:hover{border-color:rgba(255,255,255,.32);color:var(--ink)}
+  .libchip.on{background:var(--accent);border-color:var(--accent);color:#0a0a0a}
+  .libfltrow+.libgrid{margin-top:6px}
   /* bigger boxes, 3-4 per row (Omar) — fixed column counts by width so the
      cards stay large instead of packing thin */
   .libgrid{display:grid;grid-template-columns:1fr;gap:14px}
@@ -2339,24 +2350,16 @@
               <input type="text" id="libSearch" placeholder="Search workouts&hellip;" autocomplete="off">
               <button class="btn small" id="libNew" type="button">New workout</button>
             </div>
+            <div class="libfltrow"><span class="libfllab">Workout</span><div class="libchips" id="libNameChips"></div></div>
+            <div class="libfltrow"><span class="libfllab">Month</span><div class="libchips" id="libMonthChips"></div></div>
             <div class="libgrid" id="libGrid"></div>
             <div class="libempty" id="libEmpty" hidden>No saved workouts yet. Tap &ldquo;New workout&rdquo; to build one, or use the AI coach.</div>
           </div>
           <div id="libListWrap" hidden>
-            <div class="libcrumb"><button class="btn small" id="libToGrid" type="button">&larr; All workouts</button><b id="libListTitle"></b></div>
-            <div class="libfilters">
-              <button class="btn small" id="libSort" type="button" data-dir="desc">Newest first</button>
-              <label class="fld libdr"><span>From</span><input type="date" id="libFrom"></label>
-              <label class="fld libdr"><span>To</span><input type="date" id="libTo"></label>
-              <label class="fld libdr"><span>Day</span><select id="libDow"><option value="">Any day</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></label>
-            </div>
+            <div class="libcrumb"><button class="btn small" id="libToGrid" type="button">&larr; All workouts</button><b id="libListTitle"></b>
+              <button class="btn small" id="libSort" type="button" data-dir="desc" style="margin-left:auto">Newest first</button></div>
             <div class="liblist" id="libList"></div>
-            <div class="libempty" id="libListEmpty" hidden>No versions match those filters.</div>
-          </div>
-          <div id="libPrevWrap" hidden>
-            <div class="libcrumb"><button class="btn small" id="libToList" type="button">&larr; Back</button></div>
-            <div class="libprev" id="libPrev"></div>
-            <div class="libprevbtns"><button class="btn primary" id="libLoad" type="button">Load workout</button></div>
+            <div class="libempty" id="libListEmpty" hidden>No versions saved yet.</div>
           </div>
         </div>
       </div>
@@ -8417,7 +8420,10 @@ window.addEventListener("error",function(ev){
     return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(+m[1],+m[2]-1,+m[3]).getDay()]; };
   const libVisible=()=>presets.filter(p=>p&&p.cfg&&!(LIBHIDE&&p.seedV));
   const libCurFam=()=>libKey(cfg.name||"")||libKey(cfg.wkName||"");   // KEY
-  const libS={view:"grid",fam:null,famDisp:"",boardEntry:null,q:"",sort:"desc",from:"",to:"",dow:""};
+  const libS={view:"grid",fam:null,famDisp:"",q:"",chipName:"",chipMonth:"",sort:"desc"};
+  const libMonKey=iso=>{ const m=/^(\d{4})-(\d{2})/.exec(iso||""); return m?m[1]+"-"+m[2]:""; };
+  const libMonLab=k=>{ const m=/^(\d{4})-(\d{2})/.exec(k||""); if(!m) return k;
+    return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m[2]-1]+" "+m[1].slice(2); };
   function libEnter(){ libS.view="grid"; libS.fam=null; document.body.classList.add("libland"); renderLib(); }
   function libLeave(){ document.body.classList.remove("libland"); }
   function libGo(v){ libS.view=v; renderLib(); }
@@ -8427,7 +8433,16 @@ window.addEventListener("error",function(ev){
     { const x=$("libPrevWrap"); if(x) x.hidden=libS.view!=="preview"; }
     if(libS.view==="grid") renderLibGrid();
     else if(libS.view==="list") renderLibList();
-    else if(libS.view==="preview") renderLibPreview(libS.boardEntry);
+  }
+  // chip row: "All" + one chip per value; active highlighted (Omar wants the
+  // saved-picker's own search + filter chips on the grid page)
+  function libChips(host,items,active,onPick){ const el=$(host); if(!el) return;
+    el.innerHTML="";
+    const mk=(val,lab)=>{ const b=document.createElement("button");
+      b.type="button"; b.className="libchip"+(active===val?" on":"");
+      b.textContent=lab; b.onclick=()=>onPick(val); el.appendChild(b); };
+    mk("","All");
+    items.forEach(it=>mk(it.val,it.lab));
   }
   function renderLibGrid(){ const box=$("libGrid"); if(!box) return;
     const q=(libS.q||"").trim().toLowerCase();
@@ -8437,9 +8452,22 @@ window.addEventListener("error",function(ev){
     const curFam=libCurFam();
     if(curFam&&!fams.has(curFam)) fams.set(curFam,{disp:libFamName(cfg.name||"",cfg.wkName||""),es:[{name:cfg.wkName||"",cfg,__cur:true}]});
     let arr=[...fams.entries()].map(([key,v])=>{ const ds=v.es.map(libDate).filter(Boolean).sort();
-      return {key,title:v.disp,count:v.es.length,latest:ds.length?ds[ds.length-1]:""}; });
+      return {key,title:v.disp,count:v.es.length,latest:ds.length?ds[ds.length-1]:"",
+        months:new Set(v.es.map(e=>libMonKey(libDate(e))).filter(Boolean))}; });
+    // the filter chips: every workout NAME, and every MONTH present
+    libChips("libNameChips",
+      arr.slice().sort((a,b)=>a.title<b.title?-1:1).map(x=>({val:x.key,lab:x.title})),
+      libS.chipName,v=>{ libS.chipName=(libS.chipName===v?"":v); renderLibGrid(); });
+    const monKeys=[...new Set([].concat(...arr.map(x=>[...x.months])))].sort().reverse();
+    libChips("libMonthChips", monKeys.map(k=>({val:k,lab:libMonLab(k)})),
+      libS.chipMonth,v=>{ libS.chipMonth=(libS.chipMonth===v?"":v); renderLibGrid(); });
+    // apply search + chip filters
     if(q) arr=arr.filter(x=>x.title.toLowerCase().includes(q));
-    arr.sort((a,b)=>{ if(a.latest&&b.latest) return a.latest<b.latest?1:a.latest>b.latest?-1:0;
+    if(libS.chipName) arr=arr.filter(x=>x.key===libS.chipName);
+    if(libS.chipMonth) arr=arr.filter(x=>x.months.has(libS.chipMonth));
+    // THE LOADED WORKOUT IS ALWAYS FIRST (Omar), then newest date, then name
+    arr.sort((a,b)=>{ const ca=a.key===curFam,cb=b.key===curFam; if(ca!==cb) return ca?-1:1;
+      if(a.latest&&b.latest) return a.latest<b.latest?1:a.latest>b.latest?-1:0;
       if(a.latest) return -1; if(b.latest) return 1; return a.title<b.title?-1:1; });
     box.innerHTML="";
     arr.forEach(x=>{ const cur=x.key===curFam;
@@ -8448,9 +8476,7 @@ window.addEventListener("error",function(ev){
         +'<div class="lcname">'+esc(x.title)+'</div>'
         +'<div class="lcmeta"><span>'+x.count+(x.count===1?" version":" versions")+'</span>'
         +(x.latest?'<span>latest '+libFmtDate(x.latest)+'</span>':"")+'</div>';
-      d.onclick=()=>{ libS.fam=x.key; libS.famDisp=x.title; libS.from="";libS.to="";libS.dow="";libS.sort="desc";
-        ["libFrom","libTo"].forEach(id=>{ const el=$(id); if(el) el.value=""; });
-        { const el=$("libDow"); if(el) el.value=""; }
+      d.onclick=()=>{ libS.fam=x.key; libS.famDisp=x.title; libS.sort="desc";
         { const el=$("libSort"); if(el){ el.dataset.dir="desc"; el.textContent="Newest first"; } }
         libGo("list"); };
       box.appendChild(d); });
@@ -8459,12 +8485,20 @@ window.addEventListener("error",function(ev){
   function libFamEntries(fam){ const es=libVisible().filter(e=>libFam(e)===fam);
     if(fam===libCurFam()&&!es.some(e=>e.name===cfg.wkName)) es.push({name:cfg.wkName||"",cfg,__cur:true});
     return es; }
+  // LOAD STRAIGHT FROM THE ROW — no preview page in between (Omar: "no need for
+  // view then page then load. Just load from here").
+  function libLoadName(nm){ if(!nm) return;
+    if(nm===cfg.wkName){ libLeave(); return; }
+    const fin=()=>{ loadLib(nm,true); libLeave(); };
+    if(running||sessionActive){
+      dlg({msg:"A workout is running. Loading “"+nm+"” will end the current session and reset the clock.",
+           ok:"Load & reset",cancel:"Keep running"})
+        .then(yes=>{ if(yes===true){ try{ reset(); }catch(e){} fin(); } });
+      return; }
+    fin(); }
   function renderLibList(){ const box=$("libList"); if(!box) return;
     { const t=$("libListTitle"); if(t) t.textContent=libS.famDisp||""; }
-    let es=libFamEntries(libS.fam);
-    if(libS.from) es=es.filter(e=>{ const d=libDate(e); return d&&d>=libS.from; });
-    if(libS.to) es=es.filter(e=>{ const d=libDate(e); return d&&d<=libS.to; });
-    if(libS.dow) es=es.filter(e=>libDowOf(libDate(e))===libS.dow);
+    let es=libFamEntries(libS.fam).slice();
     es.sort((a,b)=>{ const da=libDate(a),db=libDate(b);
       const cmp=(da&&db)?(da<db?-1:da>db?1:(a.name<b.name?-1:1)):(da?-1:db?1:(a.name<b.name?-1:1));
       return libS.sort==="desc"?-cmp:cmp; });
@@ -8473,49 +8507,20 @@ window.addEventListener("error",function(ev){
       const r=document.createElement("div"); r.className="librow"+(cur?" cur":"");
       r.innerHTML='<div><div class="lrdate">'+(d?libFmtDate(d):esc(e.name))+'</div>'
         +'<div class="lrsub">'+esc(e.name)+(day?" · "+day:"")+'</div></div>'
-        +'<div class="lrright">'+(cur?"LOADED":"View →")+'</div>';
-      r.onclick=()=>{ libS.boardEntry=e; libGo("preview"); };
+        +'<div class="lrright">'+(cur?"LOADED":"Load →")+'</div>';
+      r.onclick=()=>libLoadName(e.name);
       box.appendChild(r); });
     const empty=$("libListEmpty"); if(empty) empty.hidden=es.length>0;
-  }
-  function renderLibPreview(e){ const box=$("libPrev"); if(!box||!e) return;
-    const c=e.cfg||{}, d=libDate(e), day=libDowOf(d);
-    const type=(c.prog&&c.prog.type)||"";
-    const meta=[]; if(d) meta.push(libFmtDate(d)); if(day) meta.push(day); if(type) meta.push(type);
-    if(e.name) meta.push(e.name);
-    let h='<div class="lpttl">'+esc((c.name||e.name||"").trim())+'</div>'
-      +'<div class="lpmeta">'+meta.map(x=>'<span>'+esc(x)+'</span>').join("")+'</div>';
-    const blocks=(c.rotation&&c.rotation.blocks)||[];
-    blocks.forEach(b=>{ h+='<div class="lpblk"><b>'+esc(b.name||"Part")+'</b>';
-      (b.items||[]).forEach(it=>{ const nm=it.name||(it.exercises||[]).map(x=>x&&x.name).filter(Boolean).join(", ")||"Work";
-        h+='<div class="lpit">• '+esc(nm)+(it.dur?" · "+fmtMS(it.dur):"")+'</div>'; });
-      h+='</div>'; });
-    if(!blocks.length) h+='<div class="lpit">No parts.</div>';
-    box.innerHTML=h;
-    const lb=$("libLoad"); if(lb) lb.dataset.name=e.name||"";
   }
   function wireLibLand(){
     { const s=$("libSearch"); if(s) s.oninput=()=>{ libS.q=s.value; renderLibGrid(); }; }
     { const n=$("libNew"); if(n) n.onclick=()=>{ libLeave(); const w=$("wkNew"); if(w) w.click(); }; }
     { const b=$("libToGrid"); if(b) b.onclick=()=>libGo("grid"); }
-    { const b=$("libToList"); if(b) b.onclick=()=>libGo("list"); }
     { const b=$("libBack"); if(b) b.onclick=()=>libEnter(); }
     { const s=$("libSort"); if(s) s.onclick=()=>{ const asc=s.dataset.dir!=="asc";
         s.dataset.dir=asc?"asc":"desc"; libS.sort=asc?"asc":"desc";
         s.textContent=asc?"Oldest first":"Newest first"; renderLibList(); }; }
-    { const f=$("libFrom"); if(f) f.onchange=()=>{ libS.from=f.value; renderLibList(); }; }
-    { const t=$("libTo"); if(t) t.onchange=()=>{ libS.to=t.value; renderLibList(); }; }
-    { const d=$("libDow"); if(d) d.onchange=()=>{ libS.dow=d.value; renderLibList(); }; }
-    { const l=$("libLoad"); if(l) l.onclick=()=>{ const nm=l.dataset.name; if(!nm) return;
-        if(nm===cfg.wkName){ libLeave(); return; }
-        const fin=()=>{ loadLib(nm,true); libLeave(); };
-        if(running||sessionActive){
-          dlg({msg:"A workout is running. Loading “"+nm+"” will end the current session and reset the clock.",
-               ok:"Load & reset",cancel:"Keep running"})
-            .then(yes=>{ if(yes!==true) return; try{ reset(); }catch(e){} fin(); });
-          return; }
-        fin(); }; }
-    try{ window.__lib={enter:libEnter,go:libGo,fields:libLeave,state:libS,
+    try{ window.__lib={enter:libEnter,go:libGo,fields:libLeave,load:libLoadName,state:libS,
       isOpen:()=>document.body.classList.contains("libland")}; }catch(e){}
   }
   // LIBHIDE (Omar's hold) is declared above libFind — boot code reads it.
@@ -10937,7 +10942,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=510;
+  const BUILD=511;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

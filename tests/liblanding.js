@@ -84,32 +84,36 @@ await p.evaluate(()=>document.getElementById('libSort').click()); await p.waitFo
 rs=await rows(p);
 ok(rs[0]==='01/09/2026','sort: toggling gives oldest first ['+rs.join(',')+']');
 await p.evaluate(()=>document.getElementById('libSort').click()); await p.waitForTimeout(150);
+// back to the grid for the chip tests
+await p.evaluate(()=>document.getElementById('libToGrid').click()); await p.waitForTimeout(200);
 
-// ---- date range filter ----
-await p.evaluate(()=>{ const f=document.getElementById('libFrom'); f.value='2026-09-06'; f.dispatchEvent(new Event('change')); });
+// ---- workout name chips filter the grid ----
+{ const chips=await p.evaluate(()=>[...document.querySelectorAll('#libNameChips .libchip')].map(c=>c.textContent));
+  ok(chips[0]==='All'&&chips.includes('Zephyr'),'chips: workout name chips render (All + names) ['+chips.join(',')+']'); }
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libNameChips .libchip')].find(x=>x.textContent==='Zephyr'); c.click(); });
 await p.waitForTimeout(200);
-rs=await rows(p);
-ok(rs.length===2&&!rs.includes('01/09/2026'),'range: From 06/09 drops 01/09 ['+rs.join(',')+']');
-await p.evaluate(()=>{ const f=document.getElementById('libFrom'); f.value=''; f.dispatchEvent(new Event('change')); });
+{ const fc=await cards(p); ok(fc.length===1&&fc[0].name==='Zephyr','chips: tapping "Zephyr" narrows the grid to one card ['+fc.map(c=>c.name)+']'); }
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libNameChips .libchip')].find(x=>x.textContent==='All'); c.click(); });
 await p.waitForTimeout(150);
 
-// ---- weekday filter (07/09 is a Monday) ----
-await p.evaluate(()=>{ const d=document.getElementById('libDow'); d.value='Monday'; d.dispatchEvent(new Event('change')); });
+// ---- month chips filter the grid (Oct 26 present only on the Delta/Gamma boards) ----
+{ const mchips=await p.evaluate(()=>[...document.querySelectorAll('#libMonthChips .libchip')].map(c=>c.textContent));
+  ok(mchips[0]==='All'&&mchips.some(m=>/Oct 26/.test(m))&&mchips.some(m=>/Sep 26/.test(m)),
+    'chips: month chips render (All + MMM YY) ['+mchips.join(',')+']'); }
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libMonthChips .libchip')].find(x=>/Oct 26/.test(x.textContent)); c.click(); });
 await p.waitForTimeout(200);
-rs=await rows(p);
-ok(rs.length===1&&rs[0]==='07/09/2026','weekday: Monday keeps only 07/09 ['+rs.join(',')+']');
-await p.evaluate(()=>{ const d=document.getElementById('libDow'); d.value=''; d.dispatchEvent(new Event('change')); });
+{ const oc=await cards(p); ok(oc.every(c=>c.name==='Delta'||c.name==='Gamma')&&oc.length>=1,
+    'chips: "Oct 26" narrows to the October workouts ['+oc.map(c=>c.name)+']'); }
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libMonthChips .libchip')].find(x=>x.textContent==='All'); c.click(); });
 await p.waitForTimeout(150);
 
-// ---- preview then load ----
+// ---- LOAD DIRECTLY from a row (no preview step) ----
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libGrid .libcard')].find(x=>x.querySelector('.lcname').textContent==='Zephyr'); c.click(); });
+await p.waitForTimeout(200);
+ok(await p.evaluate(()=>document.getElementById('libPrevWrap')===null),'flow: there is no preview step anymore');
 await p.evaluate(()=>[...document.querySelectorAll('#libList .librow')].find(r=>/08\/09/.test(r.textContent)).click());
-await p.waitForTimeout(250);
-ok(await p.evaluate(()=>!document.getElementById('libPrevWrap').hidden),'preview: a row opens the preview');
-ok(await p.evaluate(()=>/Zephyr/i.test((document.querySelector('#libPrev .lpttl')||{}).textContent||'')),'preview: shows the title');
-ok(await p.evaluate(()=>document.querySelectorAll('#libPrev .lpit').length>0),'preview: lists the parts');
-ok(await p.evaluate(()=>document.getElementById('libLoad').dataset.name==='Zephyr 08/09'),'preview: Load carries the dated board name');
-await p.evaluate(()=>document.getElementById('libLoad').click()); await p.waitForTimeout(400);
-ok(!(await p.evaluate(()=>document.body.classList.contains('libland'))),'load: leaves the grid to the setup fields');
+await p.waitForTimeout(400);
+ok(!(await p.evaluate(()=>document.body.classList.contains('libland'))),'load: tapping a row loads straight away and leaves the grid');
 ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8')); return c.wkName==='Zephyr 08/09'; }),'load: loaded the chosen board');
 
 // ---- back to library from the fields ----
@@ -117,7 +121,11 @@ ok(await p.evaluate(()=>getComputedStyle(document.getElementById('libBack')).dis
 await p.evaluate(()=>document.getElementById('libBack').click()); await p.waitForTimeout(250);
 ok(await p.evaluate(()=>document.body.classList.contains('libland')&&!document.getElementById('libGridWrap').hidden),'back: ← Library returns to the grid');
 
-// ---- load while a class runs asks first (the app's own dialog) ----
+// ---- the LOADED workout is always the first card ----
+ok(await p.evaluate(()=>{ const c=document.querySelector('#libGrid .libcard'); return c&&c.classList.contains('cur'); }),
+  'order: the loaded workout is the first card');
+
+// ---- load while a class runs asks first, straight from the row ----
 await p.evaluate(()=>window.__loadLib&&window.__loadLib('Zephyr 01/09')); await p.waitForTimeout(300);
 await p.evaluate(()=>document.getElementById('tabTrainer').click()); await p.waitForTimeout(200);
 await p.evaluate(()=>{ const b=document.getElementById('startBtn'); if(b) b.click(); }); await p.waitForTimeout(400);
@@ -128,10 +136,9 @@ await p.evaluate(()=>document.getElementById('stSetup').click()); await p.waitFo
 await p.evaluate(()=>document.querySelectorAll('.dlg-back').forEach(bk=>{ const b=bk.querySelector('.dok'); if(b) b.click(); })); await p.waitForTimeout(150);
 await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libGrid .libcard')].find(x=>x.querySelector('.lcname').textContent==='Vortex'); c.click(); });
 await p.waitForTimeout(200);
-await p.evaluate(()=>document.querySelector('#libList .librow').click()); await p.waitForTimeout(200);
-await p.evaluate(()=>document.getElementById('libLoad').click()); await p.waitForTimeout(250);
+await p.evaluate(()=>document.querySelector('#libList .librow').click()); await p.waitForTimeout(250);
 const dmsg=await p.evaluate(()=>{ const ds=document.querySelectorAll('.dlg-back .dmsg'); return ds.length?ds[ds.length-1].textContent:''; });
-ok(running1&&/reset the clock/i.test(dmsg),'running: loading another board raises the reset confirm ['+dmsg.slice(0,40)+']');
+ok(running1&&/reset the clock/i.test(dmsg),'running: loading another board straight from the row raises the reset confirm ['+dmsg.slice(0,40)+']');
 // Keep running
 await p.evaluate(()=>{ const b=document.querySelector('.dlg-back .dno'); if(b) b.click(); }); await p.waitForTimeout(250);
 ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8')); return c.wkName==='Zephyr 01/09'; }),'running: "Keep running" leaves the running board loaded');
