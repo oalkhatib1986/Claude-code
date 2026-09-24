@@ -93,11 +93,14 @@ footer .r{color:var(--red)}
   .askbox .dk{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:700}
   .askbox h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(22px,3.4vw,30px);margin:8px 0 12px;line-height:.98}
   .askbox p{font-family:var(--body);font-size:15px;line-height:1.6;color:#33383d}
+  .askbox ul{list-style:none;margin:6px 0 0}
+  .askbox li{position:relative;padding:6px 0 6px 22px;font-size:15px;line-height:1.5;color:#33383d}
+  .askbox li:before{content:"\2192";position:absolute;left:0;color:var(--red);font-weight:700}
   .shot{margin-top:26px;border:1px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 18px 40px rgba(20,24,30,0.10);background:var(--panel)}
   .shot img{display:block;width:100%;height:auto}
   .shot figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .shot figcaption b{color:var(--red);font-weight:700}
-  @media print{ .sec,.fcard,.step,.callout,.askbox,.hero,.dubaiit,.shot{break-inside:avoid} }
+  @media print{ .fcard,.step,.callout,.askbox,.dubaiit,.shot{break-inside:avoid} h2,.sec h2{break-after:avoid} }
 </style>
 
 <div class="wrap">
@@ -132,7 +135,7 @@ footer .r{color:var(--red)}
     <h2>A gym you don&rsquo;t just join.<br>One you <span class="r">compete in.</span></h2>
     <div class="rule"></div>
     <p class="body">Millions of people train hard &mdash; but almost none of them get to race. Real competition is rare: a handful of events a year that you wait months for, or travel to another city to reach. So most people who put in the work have nothing to point at &mdash; no start line, no team counting on them, no moment that makes the training mean something.</p>
-    <p class="body">REDLN gives competition a permanent home. Racing stops being a once-a-year event you chase, and becomes a <b>weekly habit you build with your team</b>: coached classes through the week, real races every weekend, a season to climb and people beside you the whole way. Competition made <b>local, regular and open to everyone</b> &mdash; every level, every age.</p>
+    <p class="body">REDLN gives competition a permanent home. Racing stops being a once-a-year event you chase, and becomes a <b>weekly habit you build with your team</b>: coached classes through the week, real races every weekend, a season to climb and people beside you the whole way. Competition made <b>local, regular and open to everyone</b> &mdash; every level, every age. And it&rsquo;s <b>homegrown</b> &mdash; born in Dubai and built to Dubai-it, not flown in from somewhere else.</p>
     <p class="kick">Not a gym you visit. A <span class="r">team you belong to</span> &mdash; and a start line that&rsquo;s always near.</p>
   </section>
 
@@ -141,17 +144,18 @@ footer .r{color:var(--red)}
     <div class="lab"><span>Fig.02</span><span class="mut">How it works</span><span class="ln"></span><span class="mut">Train all week &middot; race the weekend</span></div>
     <h2>Simple to start.<br>Hard to <span class="r">put down.</span></h2>
     <div class="rule"></div>
-    <p class="body">One repeatable format, nothing to be intimidated by. The race blends <b>erg stations</b> &mdash; row, ski, bike, run &mdash; with <b>bodyweight strength</b>: honest, functional movements with no specialist skills, scalable for a first-timer or an elite athlete. Enter <b>solo or as a team of four</b>; the clock decides it, and everyone gets a real, chip-timed result.</p>
+    <p class="body">Easy to pick up, and never the same twice. Every race blends <b>erg stations</b> &mdash; row, ski, bike, run &mdash; with <b>bodyweight strength</b>: honest, functional movements, no specialist skills, scalable for a first-timer or an elite athlete. A <b>brand-new race each season</b>, entered <b>solo or as a team of four</b> &mdash; the clock decides it, and everyone gets a real, chip-timed result.</p>
     <figure class="shot">
       <img src="brochure-assets/racehaus-floor.jpg" alt="REDLN race arena concept render">
       <figcaption><b>Concept render</b> The DXB Race-haus on race day &mdash; numbered lanes, a live leaderboard and every athlete on the floor.</figcaption>
     </figure>
     <div class="fgrid">
-      <div class="step"><div class="when">All week</div><h3>Train</h3><p>Coached classes for every level, programmed toward the race &mdash; you train alongside the same people you&rsquo;ll race with on the weekend.</p></div>
+      <div class="step"><div class="when">All week</div><h3>Train</h3><p>Open coached classes for every level &mdash; strength and conditioning inspired by the race, not the race itself. No experience needed to start, and new faces are always welcome.</p></div>
       <div class="step"><div class="when">Every weekend</div><h3>Race</h3><p>The week&rsquo;s classes lead into weekend race sessions on the club floor &mdash; chip-timed, run as a live production, with the leaderboard live. Your result, every week.</p></div>
       <div class="step"><div class="when">Across the season</div><h3>Climb</h3><p>Results stack across the season and up the leaderboard, building to a season finale. Something real to chase, week after week.</p></div>
-      <div class="step"><div class="when">Twice a year</div><h3>Go again</h3><p>Two seasons a year, each with a fresh challenge &mdash; so there is always a new goal, and a reason to come back and beat your last self.</p></div>
+      <div class="step"><div class="when">Twice a year</div><h3>Go again</h3><p>Two seasons a year, and the race is <b>redesigned every season</b> &mdash; never the same challenge twice, so there is always a new goal to chase.</p></div>
     </div>
+    <div class="callout"><b>Two season finales a year.</b> Each season builds to a finale where the season&rsquo;s <b>top teams and top solos</b> go head-to-head for the title &mdash; the peak of the season, and the moment everyone trains for.</div>
   </section>
 
   <!-- 03 UNDER ONE ROOF -->
@@ -159,16 +163,16 @@ footer .r{color:var(--red)}
     <div class="lab"><span>Fig.03</span><span class="mut">Under one roof</span><span class="ln"></span><span class="mut">A place, not just a gym</span></div>
     <h2>More than a workout.<br>A <span class="r">community.</span></h2>
     <div class="rule"></div>
-    <p class="body">Everything shares one floor and one community, so the club is alive from morning to night &mdash; and gives people a reason to keep coming back, not just to train, but to belong.</p>
+    <p class="body">Four things share one floor and one community &mdash; each a reason to be part of REDLN. Not just a place to train, but a place to belong.</p>
     <figure class="shot">
-      <img src="brochure-assets/entrance.jpg" alt="REDLN arrivals concept render">
-      <figcaption><b>Concept render</b> Arrivals &mdash; the welcome, retail and the social house, with the arena beyond. A place people spend the day, not just an hour.</figcaption>
+      <img src="brochure-assets/racehaus-partner.jpg" alt="REDLN arena and community concept render">
+      <figcaption><b>Concept render</b> Race day on the floor &mdash; the arena, the partner area and the community around the lanes.</figcaption>
     </figure>
     <div class="fgrid">
       <div class="fcard"><div class="cat">Race</div><h3>The weekend races</h3><p>The heart of it &mdash; team and solo races on the club floor, run as a live event. Friends, family and the community welcome to come, watch and cheer, whatever their age.</p></div>
       <div class="fcard"><div class="cat">Train</div><h3>Coached classes</h3><p>Immersive, coached training year-round for every level and age &mdash; the everyday habit that builds the fitness, the friendships and the team.</p></div>
-      <div class="fcard"><div class="cat">Gather</div><h3>The social house</h3><p>Not just a caf&eacute; &mdash; a place to relax, meet and work. A daytime co-working and remote-work spot that keeps the club buzzing all day, run by a recognisable homegrown brand people already know and love.</p></div>
-      <div class="fcard"><div class="cat">Belong</div><h3>The store</h3><p>Gear and apparel that let members carry the badge into the rest of their week &mdash; the club, worn with pride, out in the city.</p></div>
+      <div class="fcard"><div class="cat">Gather</div><h3>The social house</h3><p>Not just a caf&eacute; &mdash; a relaxed place to meet, hang out and get work done, run by a recognisable homegrown brand people already know and love.</p></div>
+      <div class="fcard"><div class="cat">Wear</div><h3>The store</h3><p>Quality gear and apparel &mdash; the kit members actually want to train and race in, and to wear beyond the club.</p></div>
     </div>
   </section>
 
@@ -182,20 +186,25 @@ footer .r{color:var(--red)}
       <div class="fcard"><div class="cat">Community</div><h3>A crowd that already gathers</h3><p>Alserkal draws a curious, active, creative community of all ages who come to spend real time &mdash; not just pass through. That is exactly the community a club is built around.</p></div>
       <div class="fcard"><div class="cat">Accessible</div><h3>Easy to make a habit</h3><p>A central, well-known destination people can fold into their week &mdash; so racing becomes a regular part of life, not a special trip across the city.</p></div>
       <div class="fcard"><div class="cat">Energy</div><h3>Real character and soul</h3><p>A place with genuine culture and energy. REDLN adds sport, movement and team spirit to the mix &mdash; and feeds off the same energy in return.</p></div>
-      <div class="fcard"><div class="cat">Homegrown</div><h3>Where homegrown belongs</h3><p>REDLN is homegrown, not franchised &mdash; and Alserkal is home to independent, homegrown makers and brands. We&rsquo;d be proud to grow up alongside them.</p></div>
+      <div class="fcard"><div class="cat">Homegrown</div><h3>Where homegrown belongs</h3><p>REDLN is homegrown and built to Dubai-it, not franchised &mdash; and Alserkal is home to independent, homegrown makers and brands. This is exactly where it belongs.</p></div>
     </div>
   </section>
 
-  <!-- 05 LET'S TALK -->
+  <!-- 05 THE ASK -->
   <section class="sec">
-    <div class="lab"><span>Fig.05</span><span class="mut">Let&rsquo;s talk</span><span class="ln"></span><span class="mut">The next step</span></div>
+    <div class="lab"><span>Fig.05</span><span class="mut">The ask</span><span class="ln"></span><span class="mut">Next step</span></div>
     <h2>We&rsquo;d love to make Alserkal <span class="r">home.</span></h2>
     <div class="rule"></div>
-    <p class="body">We think REDLN belongs at Alserkal Avenue, and we&rsquo;d love the chance to explore it with you.</p>
+    <p class="body">We believe REDLN belongs at Alserkal Avenue. To take it forward, we&rsquo;d welcome your response to this concept &mdash; and the details we&rsquo;d need to find the right space.</p>
     <div class="askbox">
-      <div class="dk">The next step</div>
-      <h3>An introduction &amp; a conversation</h3>
-      <p>We&rsquo;d welcome the opportunity to walk you through the concept properly, hear what&rsquo;s coming available at the Avenue, and see if there&rsquo;s a fit. No rush &mdash; just a first conversation to start.</p>
+      <div class="dk">We&rsquo;d like to hear</div>
+      <h3>Your response &amp; what&rsquo;s available</h3>
+      <ul>
+        <li>Your thoughts on the REDLN concept.</li>
+        <li>Which units are currently available &mdash; and their sizes.</li>
+        <li>Indicative rental and lease terms.</li>
+        <li>A time to meet and view the space.</li>
+      </ul>
     </div>
   </section>
 
