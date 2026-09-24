@@ -17,6 +17,12 @@
 
   :root{
     --accent:#ffffff;
+    /* THE THEME COLOUR (Omar): the white "slab" fills — selected tabs, running-
+       part slabs, the leaderboard rows and the erg-tablet slabs — all draw in
+       --slab, which follows the accent. Default #fff keeps everything as it was;
+       pick a colour in Layout > Brand and every white fill takes it. Text on a
+       slab stays --slabink (near-black). */
+    --slab:var(--accent); --slabink:#0a0a0b;
     --bg:#070708; --bg-2:#0b0c0d;
     --card:linear-gradient(180deg,#151619,#101113);
     --field:#0b0c0e;
@@ -75,7 +81,7 @@
   .tabs button{background:transparent;color:var(--ink-dim);border:0;padding:8px 19px;border-radius:999px;
     font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s}
   .tabs button:hover{color:var(--ink)}
-  .tabs button[aria-selected="true"]{background:var(--ink);color:#0a0a0a}
+  .tabs button[aria-selected="true"]{background:var(--slab);color:var(--slabink)}
   /* The selected pill keeps the grey bar's padding as breathing room on both
      ends — it must never touch the bar's border (build 500 — Omar: "the workout
      when selected is hitting the border of the grey pill"). The grey bar's own
@@ -167,7 +173,7 @@
     padding:1px 7px;border-radius:99px;background:var(--ink);color:#000;
     font-family:var(--disp);font-weight:700;font-size:9px;letter-spacing:.18em}
   /* the one thing you should be able to find from anywhere in the gym */
-  .exg.pnow{background:var(--ink);border-radius:12px;padding:9px 12px 11px}
+  .exg.pnow{background:var(--slab);border-radius:12px;padding:9px 12px 11px}
   .blk .bd .exg.pnow .exg-h,
   .blk .bd .exg.pnow .exg-h i{color:rgba(0,0,0,.62)}
   .blk .bd .exg.pnow .exl{color:#000;font-weight:700}
@@ -219,7 +225,7 @@
     font-family:var(--disp);font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
     padding:10px 22px;border-radius:999px;cursor:pointer;transition:.16s}
   .btn:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.07)}
-  .btn.primary{background:var(--ink);border-color:var(--ink);color:#0a0a0a;font-weight:700}
+  .btn.primary{background:var(--slab);border-color:var(--slab);color:var(--slabink);font-weight:700}
   .btn.primary:hover{background:#d7d9db;border-color:#d7d9db}
   /* A start button should look like one. The triangle is drawn, not typed, so it
      matches the label's weight and takes the button's own colour; it is absent
@@ -393,7 +399,7 @@
   .tk-ble.connecting{opacity:.6}
   /* the block pill is a small slab: solid white, black type — the wall's own emphasis */
   .tk-blk{flex:none;font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,23px);letter-spacing:.14em;
-    text-transform:uppercase;color:#0a0a0b;background:#fff;border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
+    text-transform:uppercase;color:#0a0a0b;background:var(--slab);border-radius:999px;padding:9px 16px;white-space:nowrap;line-height:1}
   /* THE PART LIVES WITH ITS WORK (build 423 — Omar: "Part A needs to be in
      the box above Max Cal Ski, and the SkiErg number goes to the right
      corner"): the header's corner pill is the MACHINE's name, and the part
@@ -405,7 +411,7 @@
   .tk-name>div{display:flex;gap:10px}
   .tk-name input{flex:1;min-width:0;height:46px;border-radius:11px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);
     color:var(--ink,#fff);font-family:var(--ui);font-size:19px;padding:0 13px}
-  .tk-name .btn{flex:none;height:46px;background:#fff;color:#0a0a0b;border:none;border-radius:11px;padding:0 20px;font-size:15px}
+  .tk-name .btn{flex:none;height:46px;background:var(--slab);color:#0a0a0b;border:none;border-radius:11px;padding:0 20px;font-size:15px}
   /* mid-session the ask is a band, never a takeover: the work stays on screen */
   .tk-name.up{background:rgba(58,222,107,.13)}
   .tk-name.up label{color:#5fe28e}
@@ -418,7 +424,7 @@
   .tk-claimrow input{flex:1 1 auto;min-width:0;height:52px;border-radius:12px;
     border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:var(--ink,#fff);
     font-family:var(--ui);font-size:clamp(17px,4vw,21px);padding:0 14px}
-  .tk-claimrow .btn{flex:none;height:52px;background:#fff;color:#0a0a0b;border:none;
+  .tk-claimrow .btn{flex:none;height:52px;background:var(--slab);color:#0a0a0b;border:none;
     border-radius:12px;padding:0 22px;font-size:clamp(14px,3.4vw,17px);letter-spacing:.1em}
   /* the optional result-email row is secondary — shorter, quieter (build 506) */
   .tk-emailrow{margin-top:-3px}
@@ -446,7 +452,7 @@
     font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
   .tks-pad button:active{background:rgba(255,255,255,.12)}
   .tks-row{display:flex;gap:10px;flex-wrap:wrap;align-self:stretch;max-width:330px}
-  .tks-row .btn{flex:1 1 auto;height:50px;background:#fff;color:#0a0a0b;border:none;
+  .tks-row .btn{flex:1 1 auto;height:50px;background:var(--slab);color:#0a0a0b;border:none;
     border-radius:11px;font-size:16px;letter-spacing:.08em}
   .tks-row .btn[disabled]{opacity:.35}
   .tks-who{align-self:flex-start;border:none;background:none;color:rgba(255,255,255,.6);
@@ -518,7 +524,7 @@
   /* THE CURRENT WORK IS THE WALL'S NOW SLAB: solid white, black type; a
      dashed outline while resting; red type on the slab only while scoring */
   .tk-now{display:flex;flex:1 1 auto;flex-direction:column;justify-content:center;gap:5px;
-    min-width:0;min-height:0;overflow:hidden;padding:12px 16px;border-radius:13px;background:#fff}
+    min-width:0;min-height:0;overflow:hidden;padding:12px 16px;border-radius:13px;background:var(--slab)}
   .tk-now em{display:block;flex:none;font-style:normal;font-family:var(--disp);font-weight:700;
     font-size:clamp(17px,4.9vw,32px);line-height:1.12;letter-spacing:.02em;text-transform:uppercase;
     color:#0a0a0b;min-width:0;overflow-wrap:anywhere}
@@ -536,7 +542,7 @@
   .tk-now.rest em{color:rgba(255,255,255,.55)}
   /* the DONE bar — hit while sweating, so it takes the whole width and is tall */
   .tk-done{flex:none;margin-top:auto;width:100%;border:0;cursor:pointer;
-    background:#fff;color:#0a0a0b;border-radius:13px;padding:13px 18px;
+    background:var(--slab);color:#0a0a0b;border-radius:13px;padding:13px 18px;
     display:flex;align-items:baseline;justify-content:center;gap:14px;transition:.12s}
   .tk-done:active{background:#dcdce0}
   .tk-done b{font-family:var(--disp);font-weight:700;font-size:clamp(19px,5vw,32px);
@@ -612,7 +618,7 @@
   .tk-goal i{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(16px,4vw,26px);
     letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap}
   .tk-bar{height:14px;flex:none;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
-  .tk-bar i{display:block;height:100%;border-radius:999px;background:#fff;transition:width .5s linear}
+  .tk-bar i{display:block;height:100%;border-radius:999px;background:var(--slab);transition:width .5s linear}
   .tk.hot .tk-bar i{background:#ff5f57}
   .tk-pick{display:flex;flex-direction:column;gap:9px;min-width:0;flex:none}
   .tk-pick>span{font-family:var(--disp);font-weight:600;font-size:clamp(12px,2.9vw,15px);letter-spacing:.2em;
@@ -628,9 +634,9 @@
   .tk-pills .tswp em{display:block;font-style:normal;font-family:var(--disp);font-weight:600;line-height:1;
     font-size:clamp(9px,2.3vw,12px);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
   .tk-pills .tswp:active{background:rgba(255,255,255,.12)}
-  .tk-pills .tswp.on{background:#fff;color:#0a0a0b}
+  .tk-pills .tswp.on{background:var(--slab);color:#0a0a0b}
   .tk-pills .tswp.on em{opacity:.7}
-  .tk-flash{background:#fff;color:#0a0a0b;border-radius:11px;padding:10px 14px;text-align:center;
+  .tk-flash{background:var(--slab);color:#0a0a0b;border-radius:11px;padding:10px 14px;text-align:center;
     font-family:var(--disp);font-weight:700;font-size:clamp(15px,3.8vw,22px);letter-spacing:.1em;text-transform:uppercase}
   .tk-vit{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;flex:none;overflow:hidden}
   .tk-vit>div{padding:12px 7px 14px;text-align:center;border-left:1px solid rgba(255,255,255,.14);min-width:0}
@@ -865,7 +871,7 @@
   .tb-score{text-align:center;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase}
   .tb-score b{font-family:var(--mono);color:var(--accent);font-size:28px;font-weight:700;letter-spacing:0;vertical-align:-2px;padding:0 3px}
   /* erg readout: one white panel — hero chase number, then equal vitals */
-  .tbp{background:#fff;color:#0a0a0b;border-radius:16px;padding:14px 16px 0;overflow:hidden}
+  .tbp{background:var(--slab);color:#0a0a0b;border-radius:16px;padding:14px 16px 0;overflow:hidden}
   .tbp-chip{display:inline-block;padding:5px 11px;border-radius:999px;background:rgba(0,0,0,.07);
     font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.5)}
   .tbp.live .tbp-chip{background:rgba(28,160,70,.13);color:#12833c}
@@ -895,7 +901,7 @@
   .tb-stats>div.sc{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:10px;padding:11px 10px}
   .tb-stats>div.sc b{font-size:clamp(20px,6vw,30px)}
   .tb-stats>div.sc span{font-size:11px;letter-spacing:.24em}
-  .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:#fff;min-width:0}
+  .tb-stats>div{border:1px solid var(--line-soft);border-radius:14px;padding:14px 4px 11px;background:var(--slab);min-width:0}
   .tb-stats>div span{color:rgba(0,0,0,.55)}
   .tb-stats b{display:block;font-family:var(--mono);font-size:clamp(15px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.16}
   @media (max-width:369px){ .tb-stats{grid-template-columns:1fr 1fr} .tb-stats b{font-size:22px} }
@@ -916,13 +922,13 @@
   .tsw-lead{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.26em;
     text-transform:uppercase;color:var(--ink-mute);margin-bottom:-2px}
   .tsw-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
-  .tsw-bar i{display:block;height:100%;background:#fff;border-radius:999px;transition:width .5s linear}
+  .tsw-bar i{display:block;height:100%;background:var(--slab);border-radius:999px;transition:width .5s linear}
   .tsw-pick{display:flex;flex-direction:column;gap:8px}
   .tsw-pick em{font-style:normal;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase}
   .tsw-pills{display:flex;gap:8px;flex-wrap:wrap}
   .tsw-pills .tswp{flex:1 1 0;min-width:0;text-align:center}
   .tswp{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:999px;padding:9px 17px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer}
-  .tswp.on{color:#0a0a0a;background:#fff;border-color:#fff}
+  .tswp.on{color:#0a0a0a;background:var(--slab);border-color:#fff}
   .tsw-flash{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;border-radius:14px;background:rgba(10,10,11,.93);font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:#3ade6b;text-align:center;padding:8px}
   .tsw-flash.on{display:flex;animation:tswf .45s ease}
   @keyframes tswf{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
@@ -1079,7 +1085,7 @@
   .mflab{font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);flex:0 0 auto;margin-right:2px}
   .mfchip{font-family:var(--ui);font-size:11.5px;font-weight:600;color:var(--ink-dim);background:transparent;
     border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
-  .mfchip.on{background:#fff;color:#0a0a0b;border-color:#fff}
+  .mfchip.on{background:var(--slab);color:#0a0a0b;border-color:#fff}
   .mitems{max-height:230px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .combo{position:relative}
   .combo input{padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a2a7ad' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
@@ -1170,7 +1176,7 @@
   .notefld input{width:100%}
   .extrarow .ievdo{width:auto;min-width:150px}
   #aiFab{position:fixed;right:14px;left:auto;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:94;width:52px;height:52px;border-radius:50%;
-    background:#fff;color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    background:var(--slab);color:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 10px 30px rgba(0,0,0,.55);transition:transform .15s,opacity .15s;opacity:.95}
   #aiFab:hover{opacity:1}
   #aiFab:active{transform:scale(.94)}
@@ -1516,7 +1522,7 @@
     padding:7px clamp(8px,3.3vw,19px);min-width:0;
     font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .subtabs button:hover{border-color:rgba(255,255,255,.35)}
-  .subtabs button.on{background:var(--ink);color:#0a0a0a;border-color:var(--ink)}
+  .subtabs button.on{background:var(--slab);color:var(--slabink);border-color:var(--slab)}
   body.bigscreen .subtabs{display:none}
   #scrTabs{display:none}
   body.bigscreen #scrTabs{display:flex}
@@ -1840,9 +1846,9 @@
   body.bigscreen:not(.mobscreen) #board{
     --ink:#0a0a0b; --ink-dim:rgba(10,10,11,.74); --ink-mute:rgba(10,10,11,.5);
     --line:rgba(10,10,11,.14); --line-soft:rgba(10,10,11,.11);
-    background:#f4f4f5; border-color:rgba(255,255,255,.16);
+    background:var(--slab); border-color:rgba(255,255,255,.16);
     box-shadow:0 28px 90px rgba(0,0,0,.55); padding:22px 20px 14px}
-  body.bigscreen:not(.mobscreen) #board{--bg:#f4f4f5}
+  body.bigscreen:not(.mobscreen) #board{--bg:var(--slab)}
   body.bigscreen:not(.mobscreen) #board .team{color:#0a0a0b}
   /* THE BOARD IS THE ERG TABLET'S TABLE. Black heading band in white type, every
      cell of the body white, and the tablet's own 2px light rule around all of them —
@@ -1852,7 +1858,7 @@
      template and zero padding, so the rules land in one straight line. */
   body.bigscreen:not(.mobscreen) #board{--tbrule:rgba(10,10,11,.12)}
   body.bigscreen:not(.mobscreen) #board .lane{
-    background:#fff;border-radius:0;border:0;box-shadow:none;gap:0;padding:0;
+    background:var(--slab);border-radius:0;border:0;box-shadow:none;gap:0;padding:0;
     border-bottom:2px solid var(--tbrule)}
   body.bigscreen:not(.mobscreen) #board .board-head{
     background:#0a0a0b;color:#fff;gap:0;padding:0;border-radius:4px 4px 0 0}
@@ -2020,7 +2026,7 @@
   body.wkscreen:not(.mobscreen) .clock.rest b{color:#fff}
   body.wkscreen:not(.mobscreen) .clock.rest .clab{color:rgba(255,255,255,.65)}
   body.wkscreen:not(.mobscreen) .clock.rest .cbar{background:rgba(255,255,255,.22)}
-  body.wkscreen:not(.mobscreen) .clock.rest .cbar u{background:#fff}
+  body.wkscreen:not(.mobscreen) .clock.rest .cbar u{background:var(--slab)}
   @keyframes clkbeat{0%{transform:scale(1)}14%{transform:scale(1.05)}34%{transform:scale(1)}100%{transform:scale(1)}}
   body.wkscreen:not(.mobscreen) .clock.last b{animation:clkbeat 1s ease-out infinite}
   body.wkscreen:not(.mobscreen) .phase .plabel{font-size:26px}
@@ -2587,7 +2593,7 @@
               <label class="chk"><input type="radio" name="logopick" value="badge"> A3 badge</label>
             </div>
           </div>
-          <div class="fld"><label>Accent colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"></div>
+          <div class="fld"><label>Theme colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"><div class="note" style="margin-top:6px">Recolours the white slabs everywhere — selected tabs, running-part cards, the leaderboard and the erg tablets. Leave it white for the classic look.</div></div>
         </div>
       </div>
 
@@ -10969,7 +10975,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=515;
+  const BUILD=516;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
