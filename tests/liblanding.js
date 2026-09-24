@@ -64,53 +64,55 @@ ok(gammaCards.length===1&&/2 versions/.test(gammaCards[0].meta),
   'grid: mixed date formats + casing collapse to ONE card ['+gammaCards.length+' Gamma card(s), '+(gammaCards[0]||{}).meta+']');
 ok(cs.some(c=>c.cur),'grid: the loaded workout is accented ['+(cs.find(c=>c.cur)||{}).name+']');
 
-// ---- search filters the grid ----
-await p.evaluate(()=>{ const s=document.getElementById('libSearch'); s.value='zephyr'; s.dispatchEvent(new Event('input')); });
+// ---- no Workout chips (redundant with the cards) ----
+ok(await p.evaluate(()=>document.getElementById('libNameChips')===null),'chips: the redundant Workout chip row is gone');
+
+// ---- search behaves like the picker: typing shows the flat saved-workout list ----
+await p.evaluate(()=>{ const s=document.getElementById('libSearch'); s.value='zephyr';
+  s.dispatchEvent(new Event('focus')); s.dispatchEvent(new Event('input')); });
 await p.waitForTimeout(200);
-const filtered=await cards(p);
-ok(filtered.length===1&&filtered[0].name==='Zephyr','search: "zephyr" narrows to the one card ['+filtered.map(c=>c.name)+']');
-await p.evaluate(()=>{ const s=document.getElementById('libSearch'); s.value=''; s.dispatchEvent(new Event('input')); });
+{ const st=await p.evaluate(()=>({listShown:!document.getElementById('libSearchList').hidden,
+    gridHidden:document.getElementById('libGrid').hidden,
+    rows:[...document.querySelectorAll('#libSearchList .librow .lrdate')].map(x=>x.textContent)}));
+  ok(st.listShown&&st.gridHidden,'search: typing shows the flat list, hides the cards');
+  ok(st.rows.length===3&&st.rows.every(r=>/Zephyr/i.test(r)),'search: "zephyr" lists its 3 saved versions ['+st.rows.length+']'); }
+// load directly from a search-list row
+await p.evaluate(()=>{ const r=[...document.querySelectorAll('#libSearchList .librow')].find(x=>/08\/09/.test(x.textContent));
+  r.dispatchEvent(new MouseEvent('mousedown',{bubbles:true})); });
+await p.waitForTimeout(400);
+ok(!(await p.evaluate(()=>document.body.classList.contains('libland'))),'search: tapping a result loads it straight away');
+ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8')); return c.wkName==='Zephyr 08/09'; }),'search: loaded the tapped board');
+
+// ---- back to the grid; focusing the empty bar reveals ALL saved workouts ----
+await p.evaluate(()=>document.getElementById('stSetup').click()); await p.waitForTimeout(300);
+await p.evaluate(()=>{ const s=document.getElementById('libSearch'); s.dispatchEvent(new Event('focus')); }); await p.waitForTimeout(200);
+{ const n=await p.evaluate(()=>document.querySelectorAll('#libSearchList .librow').length);
+  ok(n>=6,'search: focusing the empty bar lists every saved workout ['+n+']'); }
+await p.evaluate(()=>{ const s=document.getElementById('libSearch'); s.dispatchEvent(new Event('blur')); }); await p.waitForTimeout(300);
+
+// ---- MONTH chips are month-only; YEAR chips exist ----
+{ const mchips=await p.evaluate(()=>[...document.querySelectorAll('#libMonthChips .libchip')].map(c=>c.textContent));
+  ok(mchips[0]==='All'&&mchips.includes('Oct')&&mchips.includes('Sep'),'chips: month chips are month-only (All + MMM) ['+mchips.join(',')+']'); }
+{ const ychips=await p.evaluate(()=>[...document.querySelectorAll('#libYearChips .libchip')].map(c=>c.textContent));
+  ok(ychips[0]==='All'&&ychips.includes('2026'),'chips: a Year filter exists ['+ychips.join(',')+']'); }
+// Month = Oct -> only workouts with an October version
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libMonthChips .libchip')].find(x=>x.textContent==='Oct'); c.click(); });
+await p.waitForTimeout(200);
+{ const oc=await cards(p); ok(oc.length>=1&&oc.every(c=>c.name==='Delta'||c.name==='Gamma'),'chips: Month "Oct" narrows to the October workouts ['+oc.map(c=>c.name)+']'); }
+await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libMonthChips .libchip')].find(x=>x.textContent==='All'); c.click(); });
 await p.waitForTimeout(150);
 
-// ---- tap Zephyr -> dated list, newest first ----
+// ---- tap a card -> dated list, newest first, LOAD DIRECTLY (no preview) ----
 await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libGrid .libcard')].find(x=>x.querySelector('.lcname').textContent==='Zephyr'); c.click(); });
 await p.waitForTimeout(250);
 ok(await p.evaluate(()=>!document.getElementById('libListWrap').hidden),'list: tapping a card opens the dated list');
 let rs=await rows(p);
 ok(rs.join(',')==='08/09/2026,07/09/2026,01/09/2026','list: newest first by default ['+rs.join(',')+']');
-
-// ---- sort toggle -> oldest first ----
 await p.evaluate(()=>document.getElementById('libSort').click()); await p.waitForTimeout(200);
 rs=await rows(p);
 ok(rs[0]==='01/09/2026','sort: toggling gives oldest first ['+rs.join(',')+']');
 await p.evaluate(()=>document.getElementById('libSort').click()); await p.waitForTimeout(150);
-// back to the grid for the chip tests
-await p.evaluate(()=>document.getElementById('libToGrid').click()); await p.waitForTimeout(200);
-
-// ---- workout name chips filter the grid ----
-{ const chips=await p.evaluate(()=>[...document.querySelectorAll('#libNameChips .libchip')].map(c=>c.textContent));
-  ok(chips[0]==='All'&&chips.includes('Zephyr'),'chips: workout name chips render (All + names) ['+chips.join(',')+']'); }
-await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libNameChips .libchip')].find(x=>x.textContent==='Zephyr'); c.click(); });
-await p.waitForTimeout(200);
-{ const fc=await cards(p); ok(fc.length===1&&fc[0].name==='Zephyr','chips: tapping "Zephyr" narrows the grid to one card ['+fc.map(c=>c.name)+']'); }
-await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libNameChips .libchip')].find(x=>x.textContent==='All'); c.click(); });
-await p.waitForTimeout(150);
-
-// ---- month chips filter the grid (Oct 26 present only on the Delta/Gamma boards) ----
-{ const mchips=await p.evaluate(()=>[...document.querySelectorAll('#libMonthChips .libchip')].map(c=>c.textContent));
-  ok(mchips[0]==='All'&&mchips.some(m=>/Oct 26/.test(m))&&mchips.some(m=>/Sep 26/.test(m)),
-    'chips: month chips render (All + MMM YY) ['+mchips.join(',')+']'); }
-await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libMonthChips .libchip')].find(x=>/Oct 26/.test(x.textContent)); c.click(); });
-await p.waitForTimeout(200);
-{ const oc=await cards(p); ok(oc.every(c=>c.name==='Delta'||c.name==='Gamma')&&oc.length>=1,
-    'chips: "Oct 26" narrows to the October workouts ['+oc.map(c=>c.name)+']'); }
-await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libMonthChips .libchip')].find(x=>x.textContent==='All'); c.click(); });
-await p.waitForTimeout(150);
-
-// ---- LOAD DIRECTLY from a row (no preview step) ----
-await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libGrid .libcard')].find(x=>x.querySelector('.lcname').textContent==='Zephyr'); c.click(); });
-await p.waitForTimeout(200);
-ok(await p.evaluate(()=>document.getElementById('libPrevWrap')===null),'flow: there is no preview step anymore');
+ok(await p.evaluate(()=>document.getElementById('libPrevWrap')===null),'flow: there is no preview step');
 await p.evaluate(()=>[...document.querySelectorAll('#libList .librow')].find(r=>/08\/09/.test(r.textContent)).click());
 await p.waitForTimeout(400);
 ok(!(await p.evaluate(()=>document.body.classList.contains('libland'))),'load: tapping a row loads straight away and leaves the grid');
