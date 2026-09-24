@@ -1404,6 +1404,36 @@
     #viewTrainer .trow.sub .tico{width:42px;height:42px}
     #viewTrainer .trow.sub .tico svg{width:24px;height:24px}
   }
+  /* FULL-SCREEN REMOTE (build 507) — a phone-only control surface launched from
+     Control > Session: big clock, NOW/NEXT part, the whole transport, and an X
+     to leave. Nothing but the highlighted things (Omar). */
+  .ctlrc-open{display:none}
+  @media (max-width:900px){ body:not(.bigscreen) .ctlrc-open{display:block;width:100%;margin-top:2px} }
+  .ctlrc{position:fixed;inset:0;z-index:6000;background:var(--bg,#0b0b0c);color:var(--ink,#fff);display:flex;flex-direction:column}
+  .ctlrc[hidden]{display:none}
+  .ctlrc-x{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:var(--ink,#fff);font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;padding:0}
+  .ctlrc-x:active{transform:scale(.94)}
+  .ctlrc-in{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:58px 20px 30px;text-align:center;max-width:520px;margin:0 auto;width:100%;overflow:auto}
+  .ctlrc-wk b{font-family:var(--disp);font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:clamp(16px,4.5vw,22px);color:var(--ink-dim)}
+  .ctlrc-clock{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .ctlrc-clock b{font-family:var(--disp);font-weight:800;font-variant-numeric:tabular-nums;font-size:clamp(70px,22vw,120px);line-height:1;letter-spacing:.01em}
+  .ctlrc-clock b.hot{color:var(--hot)}
+  .ctlrc-clock span{font-family:var(--disp);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;color:var(--ink-dim);min-height:15px}
+  .ctlrc-parts{display:flex;flex-direction:column;gap:10px;width:100%}
+  .rc-cell{display:flex;flex-direction:column;gap:3px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;text-align:left}
+  .rc-cell small{font-family:var(--disp);font-weight:700;letter-spacing:.14em;font-size:10px;color:var(--ink-dim)}
+  .rc-cell b{font-size:clamp(15px,4vw,19px);font-weight:700;line-height:1.25}
+  .ctlrc-ctl{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+  .ctlrc-ctl .rc-start{width:100%;max-width:320px;height:52px;font-size:16px}
+  .ctlrc-ctl .rc-reset{width:100%;max-width:220px}
+  .ctlrc .transport{padding:0}
+  .ctlrc .trow.main{gap:40px}
+  .ctlrc .trow.main .tico{width:58px;height:58px}
+  .ctlrc .trow.main .tico.big{width:74px;height:74px}
+  .ctlrc .trow.main .tico svg{width:32px;height:32px}
+  .ctlrc .trow.sub{gap:22px}
+  .ctlrc .trow.sub .tico{width:52px;height:52px}
+  .ctlrc .trow.sub .tico svg{width:28px;height:28px}
   #rlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
   .rrow{border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:opacity .3s,border-color .15s}
   .rrow .rh{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
@@ -2091,6 +2121,7 @@
             <button class="tico" id="tkf10" type="button" disabled aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
           </div>
         </div>
+        <button class="btn small ctlrc-open" id="ctlRemoteBtn" type="button" aria-label="Full-screen remote">&#9974; Full-screen remote</button>
         <div id="claimBar"></div>
         <div class="clearrow"><button class="btn small" id="clearNames" type="button" hidden>Clear all names</button></div>
         <div class="ergless">No ergs in today&rsquo;s workout, so there are no tablets and nothing to hand out. Put the workout on the big screen &mdash; the class follows it and splits itself.</div>
@@ -2107,6 +2138,41 @@
       <div class="body">
         <div id="scoreGrid"></div>
         <div class="note">What the class typed in on their tablets. Fix a typo or fill in a dead tablet&rsquo;s number here &mdash; a change lands on the board straight away.</div>
+      </div>
+    </div>
+
+    <!-- FULL-SCREEN REMOTE (build 507 — Omar: "on the control on mobile, I want
+         a button to make it full screen and only the highlighted things are
+         showing, like a remote control with an x in the corner to exit").
+         Clock + part + transport only; every rc* control acts + publishes like
+         the tbc*/ov* families. It is a display surface over the SAME engine —
+         no new state. -->
+    <div class="ctlrc" id="ctlRemote" hidden>
+      <button class="ctlrc-x" id="rcX" type="button" aria-label="Exit full screen">&times;</button>
+      <div class="ctlrc-in">
+        <div class="ctlrc-wk"><b id="rcWk"></b></div>
+        <div class="ctlrc-clock"><b id="rcClock">&mdash;</b><span id="rcState"></span></div>
+        <div class="ctlrc-parts">
+          <div class="rc-cell"><small>NOW</small><b id="rcNowP">&mdash;</b></div>
+          <div class="rc-cell"><small>NEXT</small><b id="rcNextP">&mdash;</b></div>
+        </div>
+        <div class="ctlrc-ctl">
+          <button class="btn primary rc-start" id="rcStart" type="button">Start session</button>
+          <div class="transport">
+            <div class="trow main">
+              <button class="tico" id="rcPrev" type="button" aria-label="Previous part" title="Previous part"><svg viewBox="0 0 24 24"><rect x="4.7" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/><path d="M17.5 5.6v12.8L7.7 12z" fill="currentColor"/></svg></button>
+              <button class="tico big pp" id="rcPause" type="button" aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" class="ic-pause"><path d="M7.4 5.2h3.3v13.6H7.4zM13.3 5.2h3.3v13.6h-3.3z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" class="ic-play"><path d="M8.6 5.4v13.2L19.4 12z" fill="currentColor"/></svg></button>
+              <button class="tico" id="rcNext" type="button" aria-label="Next part" title="Next part"><svg viewBox="0 0 24 24"><path d="M6.5 5.6v12.8L16.3 12z" fill="currentColor"/><rect x="17" y="5.6" width="2.3" height="12.8" rx="1.1" fill="currentColor"/></svg></button>
+            </div>
+            <div class="trow sub">
+              <button class="tico" id="rcB10" type="button" aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+              <button class="tico" id="rcB5" type="button" aria-label="Back 5 seconds" title="Back 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+              <button class="tico" id="rcF5" type="button" aria-label="Forward 5 seconds" title="Forward 5s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">5</text></svg></button>
+              <button class="tico" id="rcF10" type="button" aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="16.4" text-anchor="middle" font-size="8" fill="currentColor" stroke="none">10</text></svg></button>
+            </div>
+          </div>
+          <button class="btn rc-reset" id="rcReset" type="button" disabled>Reset</button>
+        </div>
       </div>
     </div>
   </section>
@@ -5321,6 +5387,9 @@ window.addEventListener("error",function(ev){
   }
   function show(which){
     if(which!=="screen"&&document.body.classList.contains("tvfull")) setFull(false);
+    // the full-screen remote belongs to Control > Session; any navigation off it closes it
+    if(which!=="trainer"||ctlTab!=="session"){ const rc=$("ctlRemote");
+      if(rc&&!rc.hidden){ rc.hidden=true; document.body.classList.remove("ctlrcon"); } }
     // THE ROUTE IS AN ENTRANCE, NOT A STATE. Arriving by URL (boot, hashchange)
     // keeps the picture chrome-free; any navigation made INSIDE the app — including
     // clicking the Big Screen tab itself — is a person at the controls, so the nav
@@ -10474,6 +10543,61 @@ window.addEventListener("error",function(ev){
   $("tbcReset").onclick=()=>{ armRelock(); if(!tkLock){
     const b=$("resetBtn"); if(b&&!b.disabled) b.click(); } };
   $("tbcLock").onclick=()=>setTkLock(!tkLock);
+  // FULL-SCREEN REMOTE (build 507) — a deliberately-opened control surface, so
+  // its buttons are always live (no tkLock gate; the X is the way out). Each
+  // acts on the SAME engine and publishes, exactly like tbc*/ov*.
+  function rcOpen(v){ const el=$("ctlRemote"); if(!el) return;
+    el.hidden=!v; document.body.classList.toggle("ctlrcon",v);
+    // the remote is the unlock: while it is open the controls stay live (setPaused
+    // hard-returns on tkLock). Closing restores the safe locked default.
+    if(v){ tkLock=false; clearTimeout(tkLockTimer); syncLockUi(); rcSync(); }
+    else { tkLock=true; syncLockUi(); } }
+  { const b=$("ctlRemoteBtn"); if(b) b.onclick=()=>rcOpen(true);
+    const x=$("rcX"); if(x) x.onclick=()=>rcOpen(false); }
+  $("rcStart").onclick=()=>startBtn.click();
+  $("rcPause").onclick=()=>{ setPaused(!paused); sessPushNow(); };
+  $("rcNext").onclick=()=>{ nextPart(); sessPushNow(); };
+  $("rcPrev").onclick=()=>{ prevPart(); sessPushNow(); };
+  $("rcB10").onclick=()=>{ seek(-10); sessPushNow(); };
+  $("rcB5").onclick=()=>{ seek(-5); sessPushNow(); };
+  $("rcF5").onclick=()=>{ seek(5); sessPushNow(); };
+  $("rcF10").onclick=()=>{ seek(10); sessPushNow(); };
+  $("rcReset").onclick=()=>{ const b=$("resetBtn"); if(b&&!b.disabled) b.click(); };
+  // the NOW / NEXT pair the remote shows: the running part and what follows it,
+  // resolved from the same segAt the trainer list reads
+  function rcNowNext(){
+    if(cfg.mode!=="rotation"||!nBlocks()) return {now:"",next:""};
+    const bi=blockIdxOf(rot.round), b=R().blocks[bi]; if(!b) return {now:"",next:""};
+    if(rot.phase==="rest"&&rot.getReady) return {now:"Get ready",next:whereNow(false)};
+    if(finished) return {now:"Session complete",next:""};
+    if(!running){ const it0=(b.items||[])[0];
+      return {now:whereNow(false), next:it0?partLabel(it0,0,b):""}; }
+    const sg=segAt(b,rot.elapsed);
+    if(!sg||typeof sg!=="object") return {now:whereNow(false),next:"Next: "+nextTag()};
+    const now=sg.it?partLabel(sg.it,sg.i,b):whereNow(false);
+    const ni=sg.i+1, nit=(b.items||[])[ni];
+    const next=nit?partLabel(nit,ni,b):("Next: "+nextTag());
+    return {now,next};
+  }
+  function rcSync(){ const el=$("ctlRemote"); if(!el||el.hidden) return;
+    // hold the controls unlocked for as long as the remote is up — defeat any
+    // pending auto-relock so pause/seek never dies under the trainer's finger
+    if(tkLock){ tkLock=false; syncLockUi(); } clearTimeout(tkLockTimer);
+    const cl=$("rcClock"); if(cl){ cl.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
+      cl.classList.toggle("hot",clockEl.classList.contains("hot")); }
+    const st=$("rcState"); if(st) st.textContent=clockState.textContent;
+    const wk=$("rcWk"); if(wk){ const nm=(cfg.name||"").trim(); if(wk.textContent!==nm) wk.textContent=nm; }
+    const rs=$("rcStart"); if(rs){ rs.textContent=startBtn.textContent; rs.disabled=startBtn.disabled; }
+    const noTk=cfg.mode==="waves";
+    ["rcPause","rcB10","rcB5","rcF5","rcF10"].forEach(id=>{ const x=$(id); if(x) x.disabled=noTk; });
+    ["rcNext","rcPrev"].forEach(id=>{ const x=$(id); if(x) x.disabled=cfg.mode!=="rotation"; });
+    { const rr=$("rcReset"); if(rr) rr.disabled=resetBtn.disabled; }
+    const nn=rcNowNext();
+    const a=$("rcNowP"); if(a&&a.textContent!==nn.now) a.textContent=nn.now;
+    const c=$("rcNextP"); if(c&&c.textContent!==(nn.next||"")) c.textContent=nn.next||"";
+  }
+  try{ window.__rc={open:rcOpen,sync:rcSync,nowNext:rcNowNext,
+    isOpen:()=>{ const e=$("ctlRemote"); return !!(e&&!e.hidden); }}; }catch(e){}
   syncLockUi();
 
   function buildTrainerList(){
@@ -10566,6 +10690,7 @@ window.addEventListener("error",function(ev){
     a.textContent=clockEl.parentElement.hidden?"—":clockEl.textContent;
     a.classList.toggle("hot",clockEl.classList.contains("hot"));
     $("tState").textContent=clockState.textContent;
+    rcSync();
     if(document.body.classList.contains("bigscreen")&&document.documentElement.clientWidth<900) fitScreen();
     // the in-flow subhead strip (builds 419-421): Start mirrors the real
     // button, the transport shows only while there is a class to drive.
@@ -10580,7 +10705,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=506;
+  const BUILD=507;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
