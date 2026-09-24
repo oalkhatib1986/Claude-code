@@ -63,16 +63,43 @@ a.card:hover .bar{opacity:1}
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 footer .r{color:var(--red)}
 </style>
-</head>
-<body>
+</head><body>
+<style>
+  @page{ margin:14mm; }
+  .sec{margin-top:52px}
+  .sec .lab{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:700;display:flex;gap:12px;align-items:center}
+  .sec .lab .ln{flex:1;height:1px;background:var(--line)}
+  .sec .lab .mut{color:var(--muted)}
+  .sec h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(28px,5vw,44px);line-height:.94;letter-spacing:.004em;margin-top:14px}
+  .sec h2 .r{color:var(--red);text-shadow:4px 4px 0 rgba(13,16,19,0.08)}
+  .sec .rule{height:3px;width:66px;background:var(--red);border-radius:2px;margin:16px 0}
+  .sec p.body{font-family:var(--body);font-size:clamp(14px,1.6vw,16.5px);line-height:1.62;color:#33383d;max-width:64ch;margin-top:12px}
+  .sec p.body b{color:var(--ink)}
+  .fgrid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:22px}
+  @media(min-width:720px){.fgrid{grid-template-columns:1fr 1fr}.fgrid.three{grid-template-columns:1fr 1fr 1fr}}
+  .fcard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;padding:22px 20px;box-shadow:0 14px 34px rgba(20,24,30,0.06)}
+  .fcard .cat{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);font-weight:700}
+  .fcard h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:19px;line-height:1.02;margin:10px 0 8px;letter-spacing:.004em}
+  .fcard p{font-family:var(--body);font-size:13.6px;line-height:1.5;color:#43484d}
+  .callout{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;padding:18px 20px;font-size:15px;line-height:1.6;color:#33383d;box-shadow:0 14px 34px rgba(20,24,30,0.06);max-width:72ch}
+  .callout b{color:var(--ink)}
+  .askbox{margin-top:24px;border:1px solid rgba(255,23,23,.35);background:rgba(255,23,23,0.05);border-radius:4px;padding:24px}
+  .askbox .dk{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:700}
+  .askbox h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(22px,3.4vw,30px);margin:8px 0 14px;line-height:.98}
+  .askbox ul{list-style:none;margin:0}
+  .askbox li{position:relative;padding:6px 0 6px 22px;font-size:15px;line-height:1.5;color:#33383d}
+  .askbox li:before{content:"\2192";position:absolute;left:0;color:var(--red);font-weight:700}
+  @media print{ .sec,.fcard,.callout,.askbox,.hero,.dubaiit{break-inside:avoid} }
+</style>
+
 <div class="wrap">
   <header>
     <div class="brand"><img src="redln-badge-final.png" alt="REDLN"></div>
-    <div class="htag">Project Race<br><b>&bull; Confidential</b></div>
+    <div class="htag">Concept Brief<br><b>&bull; Alserkal Avenue</b></div>
   </header>
 
   <section class="hero">
-    <div class="peyebrow">Project Race &middot; A REDLN venture</div>
+    <div class="peyebrow">Concept Brief &middot; A REDLN venture &middot; Prepared for Alserkal Avenue</div>
     <h1 class="ph1">The region&rsquo;s first<br><span class="r">Competitive Fitness Club.</span></h1>
     <p class="plead">REDLN is where everyday athletes race head-to-head on ergs &mdash; solo or in teams of four, across a season &mdash; on the floor of the <b>DXB Race-haus</b>, our custom-built arena. Named for the redline: the moment before your body quits, and the line you&rsquo;re built to cross. Race days run as a live production powered by <b>Redline CORE&trade;</b>, alongside coached classes, a caf&eacute; and a store year-round. <b>Train, compete, repeat.</b></p>
     <div class="facts">
@@ -86,50 +113,82 @@ footer .r{color:var(--red)}
     </div>
   </section>
 
-  <div class="explore">The deck &mdash; explore each piece</div>
+  <!-- 01 THE CATEGORY -->
+  <section class="sec">
+    <div class="lab"><span>Fig.01</span><span class="mut">The category</span><span class="ln"></span><span class="mut">Why we exist</span></div>
+    <h2>A gym you don&rsquo;t just join.<br>One you <span class="r">compete in.</span></h2>
+    <div class="rule"></div>
+    <p class="body">Boutique studios sell the workout. Commercial gyms sell access. Neither sells the thing people actually want to be part of &mdash; <b>the competition, the leaderboard, the team, the belonging.</b></p>
+    <p class="body">REDLN makes competition the product, and makes it available every single day. We take the race format and give it a permanent home &mdash; a venue engineered around the race, with live scoring, seasons, leaderboards, coached preparation and a spectator floor. Not another boutique studio, not another commercial gym: <b>a new category &mdash; the Competitive Fitness Club</b>.</p>
+  </section>
 
-  <div class="grid">
-    <a class="card" href="redln-white.html">
-      <span class="bar"></span><span class="no">01</span>
-      <div class="cat">Product</div>
-      <h2>The Website</h2>
-      <p>The live customer site &mdash; races, classes, buy, account and the race badge.</p>
-      <span class="go">Open site <span class="arw">&rarr;</span></span>
-    </a>
-    <a class="card" href="micro-model.html">
-      <span class="bar"></span><span class="no">02</span>
-      <div class="cat">Finance</div>
-      <h2>Financial Model</h2>
-      <p>The full 3-year plan &mdash; P&amp;L, cash flow, balance sheet and payback. Three versions, cross-linked at the top: <b>monthly events</b>, <b>weekly races</b> and the new <b>Flexible Scenario</b> (scarcity qualifiers &rarr; finale).</p>
-      <span class="go">Open model <span class="arw">&rarr;</span></span>
-    </a>
-    <a class="card" href="redln-investor-brochure.html">
-      <span class="bar"></span><span class="no">03</span>
-      <div class="cat">Business Plan</div>
-      <h2>Investor Brochure</h2>
-      <p>The investor business-plan brochure &mdash; concept, product and the numbers.</p>
-      <span class="go">Open brochure <span class="arw">&rarr;</span></span>
-    </a>
-    <a class="card" href="redln-concept-brief.html">
-      <span class="bar"></span><span class="no">04</span>
-      <div class="cat">Leasing</div>
-      <h2>Concept Brief</h2>
-      <p>The short concept presentation for landlords &mdash; the idea, the experience and the space we need. No confidential numbers.</p>
-      <span class="go">Open brief <span class="arw">&rarr;</span></span>
-    </a>
-    <div class="card soon" aria-disabled="true">
-      <span class="no">05</span>
-      <div class="cat">Software</div>
-      <h2>Ops Console</h2>
-      <p>The REDLN backend &mdash; race-day operations, scoring and admin.</p>
-      <span class="badge"><span class="dot"></span>Coming soon</span>
+  <!-- 02 FOUR SIDES -->
+  <section class="sec">
+    <div class="lab"><span>Fig.02</span><span class="mut">The concept</span><span class="ln"></span><span class="mut">Four sides, one arena</span></div>
+    <h2>Four sides.<br>One <span class="r">arena.</span></h2>
+    <div class="rule"></div>
+    <p class="body">Everything shares one competition floor and one community, so each side feeds the others &mdash; races bring people in, coached classes keep them, and the caf&eacute; and store make the most of the time they already spend on site.</p>
+    <div class="fgrid">
+      <div class="fcard"><div class="cat">01 &middot; Races</div><h3>Competition &amp; events</h3><p>Chip-timed season races on the DXB Race-haus floor &mdash; solo or teams of four &mdash; run as a live production with spectators. The brand engine, and the reason the category exists.</p></div>
+      <div class="fcard"><div class="cat">02 &middot; Training</div><h3>Coached classes</h3><p>Immersive coached classes year-round for every level, programmed in seasons and ranked on the leaderboard. The everyday habit that prepares members for the race.</p></div>
+      <div class="fcard"><div class="cat">03 &middot; F&amp;B</div><h3>The caf&eacute;</h3><p>Coffee, shakes and recovery &mdash; a reason to arrive early and stay late, turning time on site into everyday energy.</p></div>
+      <div class="fcard"><div class="cat">04 &middot; Retail</div><h3>The store</h3><p>Performance apparel and gear that lets members wear the badge outside the venue &mdash; a walking brand billboard.</p></div>
     </div>
-  </div>
+    <div class="callout"><b>The glue:</b> the permanent competition floor with live scoring, seasons and leaderboards is the stage all four share. Members join teams; teams compete across seasons. You don&rsquo;t quit mid-season, and you don&rsquo;t quit on your team.</div>
+  </section>
+
+  <!-- 03 EXPERIENCE & SPACE -->
+  <section class="sec">
+    <div class="lab"><span>Fig.03</span><span class="mut">The experience &amp; the space</span><span class="ln"></span><span class="mut">What we need</span></div>
+    <h2>Built like a venue.<br>Run like a <span class="r">sport.</span></h2>
+    <div class="rule"></div>
+    <p class="body">REDLN is designed to be felt the moment you walk in &mdash; raw, industrial and cinematic, closer to a concert floor than a fitness studio. Race days run as a live production: a DJ, a crowd in the stands, lights and haze over the lanes, and every athlete brought to life by <b>Redline CORE&trade;</b>. That experience is exactly why the right building matters.</p>
+    <div class="fgrid three">
+      <div class="fcard"><div class="cat">Building</div><h3>Industrial character</h3><p>A warehouse or industrial shell &mdash; raw concrete, exposed structure, real volume. We amplify the space, not fight it.</p></div>
+      <div class="fcard"><div class="cat">Height</div><h3>Clear ceiling height</h3><p>Generous head height for truss rigging, lighting and production over the racing lanes.</p></div>
+      <div class="fcard"><div class="cat">Structure</div><h3>Open clear span</h3><p>A column-light hall so lanes, training and a spectator floor sit under one uninterrupted roof.</p></div>
+      <div class="fcard"><div class="cat">Power</div><h3>Capacity for production</h3><p>Electrical capacity for AV, lighting and event nights.</p></div>
+      <div class="fcard"><div class="cat">Access</div><h3>Load-in &amp; parking</h3><p>Room to load in event kit, and visitor parking nearby for members and spectators.</p></div>
+      <div class="fcard"><div class="cat">Frontage</div><h3>Presence</h3><p>A frontage we can brand &mdash; an athlete entrance that reads as an arena, not a unit.</p></div>
+    </div>
+    <div class="callout">Exact sizing is flexible &mdash; we shape the fit-out to the unit. The priorities are <b>volume</b> (height), <b>openness</b> (clear span) and <b>character</b>.</div>
+  </section>
+
+  <!-- 04 WHY ALSERKAL -->
+  <section class="sec">
+    <div class="lab"><span>Fig.04</span><span class="mut">Why Alserkal Avenue</span><span class="ln"></span><span class="mut">The right fit</span></div>
+    <h2>The right building.<br>The right <span class="r">crowd.</span></h2>
+    <div class="rule"></div>
+    <div class="fgrid">
+      <div class="fcard"><div class="cat">The space</div><h3>The architecture tells our story</h3><p>Converted warehouses, raw concrete and volume are the exact canvas REDLN is designed for. No need to fake industrial character &mdash; it&rsquo;s already there.</p></div>
+      <div class="fcard"><div class="cat">The people</div><h3>A community that matches ours</h3><p>Alserkal draws a design-led, active, socially engaged audience &mdash; precisely the members who pay for a premium, experiential concept and share it.</p></div>
+      <div class="fcard"><div class="cat">The pull</div><h3>A destination, not footfall</h3><p>REDLN is a place people travel to. Alserkal&rsquo;s identity as a cultural destination fits a brand built on events, seasons and reasons to gather.</p></div>
+      <div class="fcard"><div class="cat">The mix</div><h3>A tenant that adds to it</h3><p>Sport, culture and community under one roof &mdash; a new kind of anchor that complements the galleries, studios and F&amp;B already on the Avenue.</p></div>
+    </div>
+  </section>
+
+  <!-- 05 THE ASK -->
+  <section class="sec">
+    <div class="lab"><span>Fig.05</span><span class="mut">The ask</span><span class="ln"></span><span class="mut">Let&rsquo;s talk</span></div>
+    <h2>Let&rsquo;s find our <span class="r">home.</span></h2>
+    <div class="rule"></div>
+    <p class="body">We noticed Alserkal Avenue has units available, and it&rsquo;s the first place we picture REDLN. We&rsquo;d welcome the chance to explore them with you.</p>
+    <div class="askbox">
+      <div class="dk">What we&rsquo;d love to know</div>
+      <h3>A conversation &amp; a viewing</h3>
+      <ul>
+        <li>Which units are currently available &mdash; sizes and ceiling heights.</li>
+        <li>Indicative rent and available lease terms.</li>
+        <li>An opportunity to view the space and discuss fit-out.</li>
+      </ul>
+    </div>
+  </section>
 
   <footer>
-    <span>REDLN &mdash; Competitive Fitness Club</span>
-    <span>Dubai &middot; <span class="r">EST. 2026</span></span>
+    <span>REDLN&reg; &mdash; Competitive Fitness Club &middot; Dubai</span>
+    <span class="r">Omar &middot; omar@sakinvestments.com</span>
   </footer>
 </div>
+
 </body>
 </html>
