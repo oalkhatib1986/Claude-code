@@ -33,6 +33,9 @@ async function boot(br){
     // date-in-title boards (no separate wall title) must still group under one card
     pr.push(mk('Delta 01/10','Delta 01/10','2026-10-01'));
     pr.push(mk('Delta 08/10','Delta 08/10','2026-10-08'));
+    // mixed date formats + casing in the title must ALSO collapse to one card
+    pr.push(mk('Gamma 2-10','Gamma 2-10','2026-10-02'));
+    pr.push(mk('Gamma 2026-10-09','gamma 2026-10-09','2026-10-09'));
     localStorage.setItem(PKEY,JSON.stringify(pr)); });
   await p.reload(); await p.waitForTimeout(1400);
   await p.evaluate(()=>document.getElementById('tabBoard').click()); await p.waitForTimeout(150);
@@ -56,6 +59,9 @@ ok(cs.some(c=>c.name==='Vortex'),'grid: Vortex is its own card');
 const deltaCards=cs.filter(c=>c.name==='Delta');
 ok(deltaCards.length===1&&/2 versions/.test(deltaCards[0].meta),
   'grid: date-in-title boards group under ONE card ['+deltaCards.length+' Delta card(s), '+(deltaCards[0]||{}).meta+']');
+const gammaCards=cs.filter(c=>/^gamma$/i.test(c.name));
+ok(gammaCards.length===1&&/2 versions/.test(gammaCards[0].meta),
+  'grid: mixed date formats + casing collapse to ONE card ['+gammaCards.length+' Gamma card(s), '+(gammaCards[0]||{}).meta+']');
 ok(cs.some(c=>c.cur),'grid: the loaded workout is accented ['+(cs.find(c=>c.cur)||{}).name+']');
 
 // ---- search filters the grid ----

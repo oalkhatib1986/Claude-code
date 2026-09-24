@@ -121,7 +121,7 @@ await p.waitForTimeout(600);
 // ---------- 5. the trainer's override sheet ----------
 await p.click('#tabTrainer'); await p.waitForTimeout(600);
 { const r=await p.evaluate(()=>({hid:document.getElementById('scoreCard').hidden,
-    rows:document.querySelectorAll('#scoreGrid .scrow').length,
+    rows:document.querySelectorAll('#scoreGrid .scr:not(.schead)').length,
     inputs:document.querySelectorAll('#scoreGrid .scin').length}));
   ok(!r.hid&&r.rows===4&&r.inputs===4,'Control shows the sheet: 4 teams × 1 scored section'); }
 await p.evaluate(()=>{ const i=[...document.querySelectorAll('#scoreGrid .scin')]
