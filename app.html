@@ -1551,12 +1551,17 @@
   .libtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
   .libtop #libSearch{flex:1 1 220px;min-width:0}
   .libtop #libNew{flex:0 0 auto;white-space:nowrap}
-  .libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:12px}
-  .libcard{position:relative;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--field);padding:16px 15px;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0;transition:border-color .15s,background .15s,transform .08s}
+  /* bigger boxes, 3-4 per row (Omar) — fixed column counts by width so the
+     cards stay large instead of packing thin */
+  .libgrid{display:grid;grid-template-columns:1fr;gap:14px}
+  @media (min-width:560px){ .libgrid{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:880px){ .libgrid{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:1200px){ .libgrid{grid-template-columns:repeat(4,1fr)} }
+  .libcard{position:relative;text-align:left;border:1px solid var(--line);border-radius:16px;background:var(--field);padding:24px 22px;min-height:118px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:10px;min-width:0;transition:border-color .15s,background .15s,transform .08s}
   .libcard:hover{border-color:var(--accent)}
   .libcard:active{transform:scale(.98)}
-  .libcard .lcname{font-family:var(--disp);font-weight:800;letter-spacing:.03em;text-transform:uppercase;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
-  .libcard .lcmeta{font-size:12px;color:var(--ink-dim);display:flex;flex-wrap:wrap;gap:4px 10px}
+  .libcard .lcname{font-family:var(--disp);font-weight:800;letter-spacing:.03em;text-transform:uppercase;font-size:19px;line-height:1.2;overflow-wrap:anywhere}
+  .libcard .lcmeta{font-size:12.5px;color:var(--ink-dim);display:flex;flex-wrap:wrap;gap:4px 12px}
   .libcard.cur{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--field))}
   .libcard.cur .lctag{position:absolute;top:10px;right:12px;font-family:var(--disp);font-weight:700;letter-spacing:.1em;font-size:9px;color:var(--accent)}
   .libempty{color:var(--ink-dim);font-size:14px;padding:18px 4px}
@@ -8377,13 +8382,17 @@ window.addEventListener("error",function(ev){
   // versions (sort + date range + weekday), preview, then load. The hidden
   // programme/built-ins stay hidden; the loaded board is always shown, accented.
   const libStrip=s=>String(s||"").replace(/\s+\d{1,2}\/\d{1,2}(\/\d{2,4})?$/,"").trim();
-  const libFam=e=>{ const t=((e.cfg&&e.cfg.name)||"").trim(); return t||libStrip(e.name)||e.name||"Untitled"; };
+  // the family key ALWAYS strips a trailing date — a board saved as "Full Body
+  // 02/10" (title === filing name, no separate wall title) must group with
+  // "Full Body 25/09" under ONE "Full Body" card, not sit in its own.
+  const libFamName=(title,fname)=>libStrip(title)||libStrip(fname)||String(title||"").trim()||String(fname||"").trim()||"Untitled";
+  const libFam=e=>libFamName((e.cfg&&e.cfg.name)||"", e.name);
   const libDate=e=>(e.cfg&&e.cfg.prog&&e.cfg.prog.date)||"";
   const libFmtDate=iso=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||""); return m?m[3]+"/"+m[2]+"/"+m[1]:(iso||""); };
   const libDowOf=iso=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||""); if(!m) return "";
     return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(+m[1],+m[2]-1,+m[3]).getDay()]; };
   const libVisible=()=>presets.filter(p=>p&&p.cfg&&!(LIBHIDE&&p.seedV));
-  const libCurFam=()=>((cfg.name||"").trim()||libStrip(cfg.wkName)||"");
+  const libCurFam=()=>libFamName(cfg.name||"", cfg.wkName||"");
   const libS={view:"grid",fam:null,boardEntry:null,q:"",sort:"desc",from:"",to:"",dow:""};
   function libEnter(){ libS.view="grid"; libS.fam=null; document.body.classList.add("libland"); renderLib(); }
   function libLeave(){ document.body.classList.remove("libland"); }
@@ -10896,7 +10905,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=508;
+  const BUILD=509;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

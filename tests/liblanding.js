@@ -30,6 +30,9 @@ async function boot(br){
     pr.push(mk('Zephyr 08/09','Zephyr','2026-09-08'));
     pr.push(mk('Zephyr 07/09','Zephyr','2026-09-07'));
     pr.push(mk('Vortex 05/09','Vortex','2026-09-05'));
+    // date-in-title boards (no separate wall title) must still group under one card
+    pr.push(mk('Delta 01/10','Delta 01/10','2026-10-01'));
+    pr.push(mk('Delta 08/10','Delta 08/10','2026-10-08'));
     localStorage.setItem(PKEY,JSON.stringify(pr)); });
   await p.reload(); await p.waitForTimeout(1400);
   await p.evaluate(()=>document.getElementById('tabBoard').click()); await p.waitForTimeout(150);
@@ -50,6 +53,9 @@ const cs=await cards(p);
 const zeph=cs.find(c=>/^ZEPHYR$/i.test(c.name)||c.name==='Zephyr');
 ok(zeph&&/3 versions/.test(zeph.meta),'grid: Zephyr groups its 3 dated versions ['+(zeph&&zeph.meta)+']');
 ok(cs.some(c=>c.name==='Vortex'),'grid: Vortex is its own card');
+const deltaCards=cs.filter(c=>c.name==='Delta');
+ok(deltaCards.length===1&&/2 versions/.test(deltaCards[0].meta),
+  'grid: date-in-title boards group under ONE card ['+deltaCards.length+' Delta card(s), '+(deltaCards[0]||{}).meta+']');
 ok(cs.some(c=>c.cur),'grid: the loaded workout is accented ['+(cs.find(c=>c.cur)||{}).name+']');
 
 // ---- search filters the grid ----
