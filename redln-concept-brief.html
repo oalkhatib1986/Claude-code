@@ -65,8 +65,7 @@ footer .r{color:var(--red)}
 </style>
 </head><body>
 <style>
-  @page{ margin:22mm 16mm 20mm; }
-  .wrap{ padding-top:20px; }
+  @page{ margin:0; }
   .sec{margin-top:52px}
   .sec .lab{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:700;display:flex;gap:12px;align-items:center}
   .sec .lab .ln{flex:1;height:1px;background:var(--line)}
@@ -101,7 +100,12 @@ footer .r{color:var(--red)}
   .shot img{display:block;width:100%;height:auto}
   .shot figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .shot figcaption b{color:var(--red);font-weight:700}
-  @media print{ .fcard,.step,.callout,.askbox,.dubaiit,.shot{break-inside:avoid} h2,.sec h2{break-after:avoid} }
+  @media print{
+    html,body{ background:#eceef0 !important; background-image:linear-gradient(rgba(60,90,120,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(60,90,120,0.05) 1px,transparent 1px) !important; background-size:38px 38px,38px 38px !important; background-attachment:scroll !important; }
+    .fcard,.step,.callout,.askbox,.dubaiit,.shot{break-inside:avoid}
+    h2,.sec h2{break-after:avoid}
+    .sec{ margin-top:42px }
+  }
 </style>
 
 <div class="wrap">
