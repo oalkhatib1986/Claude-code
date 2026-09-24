@@ -22,6 +22,7 @@ const dlgUp=async()=>p.evaluate(()=>{ const d=document.querySelector('.dlg-back 
 const orig=await cfgName();
 // 1) change the display title in Setup, leave -> the ask appears
 await p.click('#stSetup'); await p.waitForTimeout(600);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.fill('#cName','Changed Title'); await p.waitForTimeout(300);
 await p.click('#stWorkout'); await p.waitForTimeout(400);
 ok(/Keep the changes/i.test(await dlgUp()||''),'leaving Setup with a change ASKS');
@@ -32,16 +33,19 @@ ok(await p.evaluate(o=>document.getElementById('evName').textContent.trim().toLo
   'the Overview title shows the OLD name again');
 // 3) Keep keeps
 await p.click('#stSetup'); await p.waitForTimeout(600);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.fill('#cName','Changed Title'); await p.waitForTimeout(300);
 await p.click('#stWorkout'); await p.waitForTimeout(400);
 await p.click('.dlg-back .dok'); await p.waitForTimeout(500);
 ok(await cfgName()==='Changed Title','Keep keeps the change');
 // 4) no change = no ask
 await p.click('#stSetup'); await p.waitForTimeout(600);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.click('#stWorkout'); await p.waitForTimeout(400);
 ok((await dlgUp())===null,'leaving Setup untouched asks NOTHING');
 // 5) a stray tap outside the dialog never undoes — only the buttons answer
 await p.click('#stSetup'); await p.waitForTimeout(600);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.fill('#cName','Third Title'); await p.waitForTimeout(300);
 await p.click('#stWorkout'); await p.waitForTimeout(400);
 await p.mouse.click(10,300); await p.waitForTimeout(300);
@@ -55,6 +59,7 @@ await p.evaluate(()=>document.getElementById('startBtn').click());
 await p.waitForTimeout(1200);
 await p.click('#tabBoard'); await p.waitForTimeout(300);
 await p.click('#stSetup'); await p.waitForTimeout(600);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.fill('#cName','Mid Class Edit'); await p.waitForTimeout(300);
 await p.click('#stWorkout'); await p.waitForTimeout(400);
 ok(/Keep the changes/i.test(await dlgUp()||''),'mid-class: leaving Setup still asks');

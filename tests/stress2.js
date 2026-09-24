@@ -165,12 +165,14 @@ await p.setViewportSize({width:1366,height:1000});
 // ---------- H. library churn: save-as x12, rename chain, delete + restore ----------
 await boot();
 await p.click('#stSetup'); await p.waitForTimeout(500);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 for(let i=1;i<=12;i++){
   await p.evaluate(d=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'));
     if(!c.prog) c.prog={}; c.prog.date='2026-09-'+String(d).padStart(2,'0');
     localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); },i);
   await p.reload(); await p.waitForTimeout(900);
   await p.click('#stSetup'); await p.waitForTimeout(300);
+  await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
   await p.click('#wkPick .mfield'); await p.waitForTimeout(200);
   await p.fill('#wkPick .msearch','Churn'); await p.waitForTimeout(220);
   await p.click('#wkPick .combo-item.add'); await p.waitForTimeout(400);

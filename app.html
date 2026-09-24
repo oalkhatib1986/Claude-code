@@ -1542,6 +1542,45 @@
   .wkrow .fld{flex:1 1 220px;min-width:0;margin:0}
   .wkbtns{display:flex;gap:10px}
   .renmsg{font-size:12px;color:#ff6b64;margin-top:8px}
+  /* LIBRARY LANDING (build 508) — the grid Setup opens on. */
+  #libLand{display:none}
+  #libBack{display:none}
+  body.libland #libLand{display:block}
+  body.libland #viewCtrl .cr>.card:not(#libLand){display:none}
+  body:not(.libland) #viewCtrl #libBack{display:inline-block;margin:0 0 4px}
+  .libtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .libtop #libSearch{flex:1 1 220px;min-width:0}
+  .libtop #libNew{flex:0 0 auto;white-space:nowrap}
+  .libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:12px}
+  .libcard{position:relative;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--field);padding:16px 15px;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0;transition:border-color .15s,background .15s,transform .08s}
+  .libcard:hover{border-color:var(--accent)}
+  .libcard:active{transform:scale(.98)}
+  .libcard .lcname{font-family:var(--disp);font-weight:800;letter-spacing:.03em;text-transform:uppercase;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+  .libcard .lcmeta{font-size:12px;color:var(--ink-dim);display:flex;flex-wrap:wrap;gap:4px 10px}
+  .libcard.cur{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--field))}
+  .libcard.cur .lctag{position:absolute;top:10px;right:12px;font-family:var(--disp);font-weight:700;letter-spacing:.1em;font-size:9px;color:var(--accent)}
+  .libempty{color:var(--ink-dim);font-size:14px;padding:18px 4px}
+  .libcrumb{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .libcrumb b{font-family:var(--disp);font-weight:800;letter-spacing:.03em;text-transform:uppercase;font-size:18px}
+  .libfilters{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+  .libfilters .libdr{margin:0}
+  .libfilters .libdr span{display:block;font-size:11px;color:var(--ink-dim);margin-bottom:3px;text-transform:uppercase;letter-spacing:.08em}
+  .liblist{display:flex;flex-direction:column;gap:8px}
+  .librow{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;background:var(--field);padding:12px 15px;cursor:pointer;transition:border-color .15s,background .15s}
+  .librow:hover{border-color:var(--accent)}
+  .librow.cur{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--field))}
+  .librow .lrdate{font-family:var(--disp);font-weight:700;font-size:15px}
+  .librow .lrsub{font-size:12px;color:var(--ink-dim);margin-top:2px}
+  .librow .lrright{font-size:11px;color:var(--ink-dim);text-align:right;white-space:nowrap}
+  .librow.cur .lrright{color:var(--accent)}
+  .libprev{border:1px solid var(--line);border-radius:14px;background:var(--field);padding:16px;margin-bottom:14px}
+  .libprev .lpttl{font-family:var(--disp);font-weight:800;letter-spacing:.03em;text-transform:uppercase;font-size:18px;margin-bottom:4px}
+  .libprev .lpmeta{font-size:12px;color:var(--ink-dim);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:4px 12px}
+  .libprev .lpblk{margin-top:10px}
+  .libprev .lpblk>b{font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:12px;color:var(--ink-dim)}
+  .libprev .lpit{font-size:13px;padding:3px 0 3px 12px;overflow-wrap:anywhere}
+  .libprevbtns{display:flex;gap:10px}
+  .libprevbtns .btn.primary{min-width:180px}
   /* THE APP'S OWN DIALOG. Chrome's prompt()/confirm()/alert() are white system
      windows that ignore the site entirely (Omar: everything follows the site's
      format) — every ask, confirm and notice is this dark panel instead, built
@@ -2268,6 +2307,42 @@
   <!-- ============ CONTROL ROOM ============ -->
   <section class="view" id="viewCtrl">
     <div class="cr">
+
+      <!-- LIBRARY LANDING (build 508 — Omar: Setup should open on a grid of
+           workout NAMES; tap one to see its dated versions (sort + date range +
+           weekday), preview, then load. Only your own saved boards show — the
+           hidden programme/built-ins stay hidden. The loaded workout is
+           accented. body.libland shows this and hides the setup fields; the
+           fields return once a board is loaded (or via ← Library). -->
+      <button class="btn small" id="libBack" type="button">&larr; Library</button>
+      <div class="card wide" id="libLand">
+        <div class="body">
+          <div id="libGridWrap">
+            <div class="libtop">
+              <input type="text" id="libSearch" placeholder="Search workouts&hellip;" autocomplete="off">
+              <button class="btn small" id="libNew" type="button">New workout</button>
+            </div>
+            <div class="libgrid" id="libGrid"></div>
+            <div class="libempty" id="libEmpty" hidden>No saved workouts yet. Tap &ldquo;New workout&rdquo; to build one, or use the AI coach.</div>
+          </div>
+          <div id="libListWrap" hidden>
+            <div class="libcrumb"><button class="btn small" id="libToGrid" type="button">&larr; All workouts</button><b id="libListTitle"></b></div>
+            <div class="libfilters">
+              <button class="btn small" id="libSort" type="button" data-dir="desc">Newest first</button>
+              <label class="fld libdr"><span>From</span><input type="date" id="libFrom"></label>
+              <label class="fld libdr"><span>To</span><input type="date" id="libTo"></label>
+              <label class="fld libdr"><span>Day</span><select id="libDow"><option value="">Any day</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></label>
+            </div>
+            <div class="liblist" id="libList"></div>
+            <div class="libempty" id="libListEmpty" hidden>No versions match those filters.</div>
+          </div>
+          <div id="libPrevWrap" hidden>
+            <div class="libcrumb"><button class="btn small" id="libToList" type="button">&larr; Back</button></div>
+            <div class="libprev" id="libPrev"></div>
+            <div class="libprevbtns"><button class="btn primary" id="libLoad" type="button">Load workout</button></div>
+          </div>
+        </div>
+      </div>
 
       <div class="card wide">
         <h3>Workout</h3>
@@ -5452,7 +5527,9 @@ window.addEventListener("error",function(ev){
               try{ buildControlRoom(); }catch(e){} });
       }
       if(inSetup&&setupSnap==null) setupSnap=JSON.stringify(cfg);
-      show._inSetup=inSetup; }
+      show._inSetup=inSetup;
+      // the library landing belongs to Setup — leaving it drops the grid
+      if(!inSetup) document.body.classList.remove("libland"); }
     // NAVIGATION DROPS EDIT MODE (build 406): the wall and every other tab
     // show the workout, they never offer to change it.
     if(document.body.classList.contains("bedit")){
@@ -5525,7 +5602,8 @@ window.addEventListener("error",function(ev){
     if(pin){ tbFullReacq=true; fitTablet(); }
     else { document.body.classList.remove("tbfull"); fitTablet(); } });
   [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
-    $(id).onclick=()=>{ subTab=k; show("board"); }; });
+    // Setup lands on the library grid every time the tab is tapped (build 508)
+    $(id).onclick=()=>{ subTab=k; if(k==="setup"){ try{ libEnter(); }catch(e){} } show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
   $("smWork").onclick=()=>{ scrMode="work"; show("screen"); };
   $("smFit").onclick=()=>{ scrFit=scrFit==="tv"?"mobile":"tv"; show("screen"); };
@@ -8294,6 +8372,118 @@ window.addEventListener("error",function(ev){
     buildControlRoom(); if(!running&&!sessionActive) build();
     return true;
   }
+  // ===== LIBRARY LANDING (build 508) — the grid Setup opens on. Groups the
+  // trainer's VISIBLE saved boards by wall title (family); tap one for its dated
+  // versions (sort + date range + weekday), preview, then load. The hidden
+  // programme/built-ins stay hidden; the loaded board is always shown, accented.
+  const libStrip=s=>String(s||"").replace(/\s+\d{1,2}\/\d{1,2}(\/\d{2,4})?$/,"").trim();
+  const libFam=e=>{ const t=((e.cfg&&e.cfg.name)||"").trim(); return t||libStrip(e.name)||e.name||"Untitled"; };
+  const libDate=e=>(e.cfg&&e.cfg.prog&&e.cfg.prog.date)||"";
+  const libFmtDate=iso=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||""); return m?m[3]+"/"+m[2]+"/"+m[1]:(iso||""); };
+  const libDowOf=iso=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||""); if(!m) return "";
+    return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(+m[1],+m[2]-1,+m[3]).getDay()]; };
+  const libVisible=()=>presets.filter(p=>p&&p.cfg&&!(LIBHIDE&&p.seedV));
+  const libCurFam=()=>((cfg.name||"").trim()||libStrip(cfg.wkName)||"");
+  const libS={view:"grid",fam:null,boardEntry:null,q:"",sort:"desc",from:"",to:"",dow:""};
+  function libEnter(){ libS.view="grid"; libS.fam=null; document.body.classList.add("libland"); renderLib(); }
+  function libLeave(){ document.body.classList.remove("libland"); }
+  function libGo(v){ libS.view=v; renderLib(); }
+  function renderLib(){ const gw=$("libGridWrap"); if(!gw) return;
+    gw.hidden=libS.view!=="grid";
+    { const x=$("libListWrap"); if(x) x.hidden=libS.view!=="list"; }
+    { const x=$("libPrevWrap"); if(x) x.hidden=libS.view!=="preview"; }
+    if(libS.view==="grid") renderLibGrid();
+    else if(libS.view==="list") renderLibList();
+    else if(libS.view==="preview") renderLibPreview(libS.boardEntry);
+  }
+  function renderLibGrid(){ const box=$("libGrid"); if(!box) return;
+    const q=(libS.q||"").trim().toLowerCase();
+    const fams=new Map();
+    libVisible().forEach(e=>{ const f=libFam(e); if(!fams.has(f)) fams.set(f,[]); fams.get(f).push(e); });
+    const curFam=libCurFam();
+    if(curFam&&!fams.has(curFam)) fams.set(curFam,[{name:cfg.wkName||curFam,cfg,__cur:true}]);
+    let arr=[...fams.entries()].map(([title,es])=>{ const ds=es.map(libDate).filter(Boolean).sort();
+      return {title,count:es.length,latest:ds.length?ds[ds.length-1]:""}; });
+    if(q) arr=arr.filter(x=>x.title.toLowerCase().includes(q));
+    arr.sort((a,b)=>{ if(a.latest&&b.latest) return a.latest<b.latest?1:a.latest>b.latest?-1:0;
+      if(a.latest) return -1; if(b.latest) return 1; return a.title<b.title?-1:1; });
+    box.innerHTML="";
+    arr.forEach(x=>{ const cur=x.title===curFam;
+      const d=document.createElement("div"); d.className="libcard"+(cur?" cur":"");
+      d.innerHTML=(cur?'<span class="lctag">LOADED</span>':"")
+        +'<div class="lcname">'+esc(x.title)+'</div>'
+        +'<div class="lcmeta"><span>'+x.count+(x.count===1?" version":" versions")+'</span>'
+        +(x.latest?'<span>latest '+libFmtDate(x.latest)+'</span>':"")+'</div>';
+      d.onclick=()=>{ libS.fam=x.title; libS.from="";libS.to="";libS.dow="";libS.sort="desc";
+        ["libFrom","libTo"].forEach(id=>{ const el=$(id); if(el) el.value=""; });
+        { const el=$("libDow"); if(el) el.value=""; }
+        { const el=$("libSort"); if(el){ el.dataset.dir="desc"; el.textContent="Newest first"; } }
+        libGo("list"); };
+      box.appendChild(d); });
+    const empty=$("libEmpty"); if(empty) empty.hidden=arr.length>0;
+  }
+  function libFamEntries(fam){ const es=libVisible().filter(e=>libFam(e)===fam);
+    if(fam===libCurFam()&&!es.some(e=>e.name===cfg.wkName)) es.push({name:cfg.wkName||fam,cfg,__cur:true});
+    return es; }
+  function renderLibList(){ const box=$("libList"); if(!box) return;
+    { const t=$("libListTitle"); if(t) t.textContent=libS.fam||""; }
+    let es=libFamEntries(libS.fam);
+    if(libS.from) es=es.filter(e=>{ const d=libDate(e); return d&&d>=libS.from; });
+    if(libS.to) es=es.filter(e=>{ const d=libDate(e); return d&&d<=libS.to; });
+    if(libS.dow) es=es.filter(e=>libDowOf(libDate(e))===libS.dow);
+    es.sort((a,b)=>{ const da=libDate(a),db=libDate(b);
+      const cmp=(da&&db)?(da<db?-1:da>db?1:(a.name<b.name?-1:1)):(da?-1:db?1:(a.name<b.name?-1:1));
+      return libS.sort==="desc"?-cmp:cmp; });
+    box.innerHTML="";
+    es.forEach(e=>{ const cur=e.name===cfg.wkName, d=libDate(e), day=libDowOf(d);
+      const r=document.createElement("div"); r.className="librow"+(cur?" cur":"");
+      r.innerHTML='<div><div class="lrdate">'+(d?libFmtDate(d):esc(e.name))+'</div>'
+        +'<div class="lrsub">'+esc(e.name)+(day?" · "+day:"")+'</div></div>'
+        +'<div class="lrright">'+(cur?"LOADED":"View →")+'</div>';
+      r.onclick=()=>{ libS.boardEntry=e; libGo("preview"); };
+      box.appendChild(r); });
+    const empty=$("libListEmpty"); if(empty) empty.hidden=es.length>0;
+  }
+  function renderLibPreview(e){ const box=$("libPrev"); if(!box||!e) return;
+    const c=e.cfg||{}, d=libDate(e), day=libDowOf(d);
+    const type=(c.prog&&c.prog.type)||"";
+    const meta=[]; if(d) meta.push(libFmtDate(d)); if(day) meta.push(day); if(type) meta.push(type);
+    if(e.name) meta.push(e.name);
+    let h='<div class="lpttl">'+esc((c.name||e.name||"").trim())+'</div>'
+      +'<div class="lpmeta">'+meta.map(x=>'<span>'+esc(x)+'</span>').join("")+'</div>';
+    const blocks=(c.rotation&&c.rotation.blocks)||[];
+    blocks.forEach(b=>{ h+='<div class="lpblk"><b>'+esc(b.name||"Part")+'</b>';
+      (b.items||[]).forEach(it=>{ const nm=it.name||(it.exercises||[]).map(x=>x&&x.name).filter(Boolean).join(", ")||"Work";
+        h+='<div class="lpit">• '+esc(nm)+(it.dur?" · "+fmtMS(it.dur):"")+'</div>'; });
+      h+='</div>'; });
+    if(!blocks.length) h+='<div class="lpit">No parts.</div>';
+    box.innerHTML=h;
+    const lb=$("libLoad"); if(lb) lb.dataset.name=e.name||"";
+  }
+  function wireLibLand(){
+    { const s=$("libSearch"); if(s) s.oninput=()=>{ libS.q=s.value; renderLibGrid(); }; }
+    { const n=$("libNew"); if(n) n.onclick=()=>{ libLeave(); const w=$("wkNew"); if(w) w.click(); }; }
+    { const b=$("libToGrid"); if(b) b.onclick=()=>libGo("grid"); }
+    { const b=$("libToList"); if(b) b.onclick=()=>libGo("list"); }
+    { const b=$("libBack"); if(b) b.onclick=()=>libEnter(); }
+    { const s=$("libSort"); if(s) s.onclick=()=>{ const asc=s.dataset.dir!=="asc";
+        s.dataset.dir=asc?"asc":"desc"; libS.sort=asc?"asc":"desc";
+        s.textContent=asc?"Oldest first":"Newest first"; renderLibList(); }; }
+    { const f=$("libFrom"); if(f) f.onchange=()=>{ libS.from=f.value; renderLibList(); }; }
+    { const t=$("libTo"); if(t) t.onchange=()=>{ libS.to=t.value; renderLibList(); }; }
+    { const d=$("libDow"); if(d) d.onchange=()=>{ libS.dow=d.value; renderLibList(); }; }
+    { const l=$("libLoad"); if(l) l.onclick=()=>{ const nm=l.dataset.name; if(!nm) return;
+        if(nm===cfg.wkName){ libLeave(); return; }
+        const fin=()=>{ loadLib(nm,true); libLeave(); };
+        if(running||sessionActive){
+          dlg({msg:"A workout is running. Loading “"+nm+"” will end the current session and reset the clock.",
+               ok:"Load & reset",cancel:"Keep running"})
+            .then(yes=>{ if(yes!==true) return; try{ reset(); }catch(e){} fin(); });
+          return; }
+        fin(); }; }
+    try{ window.__lib={enter:libEnter,go:libGo,fields:libLeave,state:libS,
+      isOpen:()=>document.body.classList.contains("libland")}; }catch(e){}
+  }
   // LIBHIDE (Omar's hold) is declared above libFind — boot code reads it.
   function buildPresetSel(){
     const wp=$("wkPick"); if(!wp) return;
@@ -10093,6 +10283,7 @@ window.addEventListener("error",function(ev){
       R().blocks=[]; R().laps=1; cfg.name="New Workout"; cfg.wkName=null;
       save(); buildControlRoom(); if(!running&&!sessionActive) build();
     };
+    wireLibLand();
     // RENAME IS A MOVE, NOT A COPY — and it EDITS IN PLACE. Tap Rename and the
     // workout box itself becomes the input (no white Chrome prompt — the
     // browser's own windows ignore the site and are banned everywhere): type,
@@ -10705,7 +10896,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=507;
+  const BUILD=508;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

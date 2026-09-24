@@ -37,6 +37,7 @@ await p.evaluate(()=>{
 });
 await p.reload(); await p.waitForTimeout(1500);
 await p.click('#stSetup'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 ok(await p.evaluate(()=>!document.getElementById('wkRen').hidden),
   'Rename offers itself for a board in the library');
 // NO BROWSER WINDOWS EVER (Omar): any native prompt/confirm/alert is a fail
@@ -201,6 +202,7 @@ await p.evaluate(()=>{ // build 390 seeds a real "Engine 15/09" — clear it so
   localStorage.setItem('af_presets_v1',JSON.stringify(ps)); });
 await p.reload(); await p.waitForTimeout(1400);
 await p.click('#stSetup'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.fill('#pgDate','2026-09-15'); await p.waitForTimeout(300);
 await p.click('#wkRen'); await p.waitForTimeout(250);
 await p.fill('.wkrow .renin','Engine');
@@ -214,6 +216,7 @@ await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8'))
   c.wkName=null; c.titleSet=false; localStorage.setItem('af_erg_cfg_v8',JSON.stringify(c)); });
 await p.reload(); await p.waitForTimeout(1500);
 await p.click('#stSetup'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 await p.evaluate(()=>{ window.__native=0;
   window.alert=window.confirm=window.prompt=()=>{ window.__native++; }; });
 await p.click('#wkSave'); await p.waitForTimeout(300);
@@ -233,6 +236,7 @@ await p.evaluate(()=>{
 });
 await p.reload(); await p.waitForTimeout(1200);
 await p.click('#stSetup'); await p.waitForTimeout(400);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 ok(await p.evaluate(()=>document.getElementById('wkRen').hidden),
   'Rename hides for an unsaved board');
 // the one-shot: a device still holding "Michael Test 2 2" clears it WITH the body
@@ -260,6 +264,7 @@ ok(await p.evaluate(()=>{ const v=document.getElementById('viewArchive');
     &&!!v.querySelector('.binres'); }),
   'the Archive page lists the deleted board with its Restore');
 await p.click('#stSetup'); await p.waitForTimeout(300);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(150);
 ok(await p.evaluate(()=>!document.querySelector('#wkPick .libbin')&&!document.getElementById('binBtn')),
   'Setup carries NO deleted-boards pile any more');
 // a device that never held it stays silent (a bare tombstone would strip the bin)

@@ -12,6 +12,7 @@ await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTim
 ok(await p.evaluate(()=>!document.getElementById('bootErr')),'no boot error banner on a modern engine');
 ok(await p.evaluate(()=>document.getElementById('evName').textContent.trim().length>0),'a board is loaded and named');
 await p.click('#stSetup'); await p.waitForTimeout(600);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(200);
 const face=await p.evaluate(()=>document.querySelector('#wkPick .mfield').textContent.trim());
 ok(face.length>0,'the picker face renders ('+face+')');
 await p.click('#wkPick .mfield'); await p.waitForTimeout(300);

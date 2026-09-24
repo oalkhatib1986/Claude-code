@@ -52,6 +52,7 @@ const noClip=async()=>p.evaluate(()=>{
 // 1) SOLO: the Who field is THERE now, and the exercise stays wide
 await seed('solo'); await p.reload(); await p.waitForTimeout(1400);
 await p.click('#stSetup'); await p.waitForTimeout(700);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(200);
 { const r=await rowRead();
   ok(!!r&&r.who&&r.flds===2,'solo: the Who field renders (P1/P2 finally has a home)');
   ok(r&&r.whoTxt==='P1','solo: it shows the line\'s label: '+(r&&r.whoTxt));
@@ -76,6 +77,7 @@ await p.click('#stSetup'); await p.waitForTimeout(700);
 // 4) TEAMS: unchanged shape, Who present, exercise wide
 await seed('teams'); await p.reload(); await p.waitForTimeout(1400);
 await p.click('#stSetup'); await p.waitForTimeout(700);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(200);
 { const r=await rowRead();
   ok(r&&r.who&&r.flds===2,'teams: Who is there as always');
   ok(r&&r.exW>r.rowW*0.55,'teams: the exercise takes the slack ('
@@ -96,6 +98,7 @@ await p.waitForTimeout(700);
 // 6) phone width: nothing scrolls sideways, nothing clips
 await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(600);
 await p.click('#stSetup'); await p.waitForTimeout(700);
+await p.evaluate(()=>window.__lib&&window.__lib.fields&&window.__lib.fields()); await p.waitForTimeout(200);
 ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
   'phone 390: Setup does not scroll sideways');
 { const bad=await noClip();
