@@ -2008,7 +2008,7 @@
      emptying with the interval, and a heartbeat on the digits in the last
      ten seconds. Everything in em, so the whole object scales as one. */
   .clock .clab,.clock .cbar{display:none}
-  body.wkscreen:not(.mobscreen) .clock{background:var(--ink);border-radius:.22em;
+  body.wkscreen:not(.mobscreen) .clock{background:var(--slab);border-radius:.22em;
     border:.03em solid transparent;
     padding:.14em .34em .14em;text-align:center;position:absolute;right:0;bottom:0;
     display:flex;flex-direction:column;align-items:center;
@@ -10975,7 +10975,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=516;
+  const BUILD=517;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
