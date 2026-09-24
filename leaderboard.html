@@ -2371,6 +2371,7 @@
             <div class="fld"><label>Current workout</label><span id="wkPick"></span></div>
             <div class="wkbtns">
               <button class="btn small" id="wkSave" type="button">Save</button>
+              <button class="btn small" id="wkCopy" type="button">Save as new date</button>
               <button class="btn small" id="wkNew" type="button">New</button>
               <button class="btn small" id="wkRen" type="button" hidden>Rename</button>
               <button class="btn small" id="wkDel" type="button" hidden>Delete</button>
@@ -10324,6 +10325,25 @@ window.addEventListener("error",function(ev){
       libPush(entry);
       const b=$("wkSave"); b.textContent="Saved \u2713"; setTimeout(()=>{ b.textContent="Save"; },1200);
     };
+    // SAVE AS A NEW DATED COPY (Omar: load Hyrox, edit it manually or with the AI,
+    // then save it as a fresh copy under a new date \u2014 the original stays put).
+    // Files "<title> dd/MM" from Setup > Date, keeps the wall title, and switches
+    // editing to the new copy. No date, or the same date already saved, is refused.
+    $("wkCopy").onclick=async()=>{
+      const s=dSuf();
+      const base=libStrip(cfg.name||cfg.wkName||"")||String(cfg.name||cfg.wkName||"Workout").trim();
+      if(!s){ dlgTell("Pick this board\u2019s Date (above) first \u2014 the copy is filed by its date, e.g. \u201c"+base+" 12/09\u201d. The screen still just says \u201c"+base+"\u201d."); return; }
+      const newName=base+" "+s;
+      if(nameTaken(newName)){ dlgTell("\u201c"+base+"\u201d for "+s+" is already saved \u2014 pick a different date."); return; }
+      cfg.name=base; cfg.titleSet=true; cfg.wkName=newName;
+      claimName(newName);
+      const entry={name:newName,cfg:structuredClone(cfg),ts:Date.now()};
+      presets.push(entry); savePresets(); save();
+      if(libDead[newName]){ delete libDead[newName]; saveDead(); }
+      libPush(entry); buildControlRoom(); buildPresetSel();
+      if(setupSnap!=null) setupSnap=JSON.stringify(cfg);   // a save is a fact, not a pending edit
+      const b=$("wkCopy"); b.textContent="Saved "+newName+" \u2713"; setTimeout(()=>{ b.textContent="Save as new date"; },1600);
+    };
     $("wkNew").onclick=async()=>{
       if(!await dlgConfirm("Start a new blank workout? Teams, machines and branding stay.","Start new")) return;
       R().blocks=[]; R().laps=1; cfg.name="New Workout"; cfg.wkName=null;
@@ -10942,7 +10962,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=511;
+  const BUILD=512;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
