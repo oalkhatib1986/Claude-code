@@ -2109,7 +2109,7 @@
   </div>
   <div class="subtabs" id="subTabs">
     <button id="stWorkout" class="on" type="button">Overview</button>
-    <button id="stSetup" type="button">Setup</button>
+    <button id="stSetup" type="button">Library</button>
     <button id="stLayout" type="button">Layout</button>
     <button id="stResults" type="button">Results</button>
     <button id="stArchive" type="button">Archive</button>
@@ -10962,7 +10962,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=512;
+  const BUILD=513;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
