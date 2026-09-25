@@ -1566,8 +1566,12 @@
      group that drops UNDER it as a unit — nothing clips, nothing orphans. */
   .wkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
   .wkrow .fld{flex:1 1 220px;min-width:0;margin:0}
-  .wkbtns{display:flex;flex-wrap:wrap;gap:8px}
-  .wkbtns button{flex:0 0 auto;white-space:nowrap}
+  /* the button group takes its own full-width row under the picker, and the
+     buttons grow to fill it — no dead space on the right (Omar) */
+  .wkbtns{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 100%}
+  /* grow to share the width, but min-width:max-content means they never shrink
+     below their full label (no text-wrap ovals) */
+  .wkbtns button{flex:1 1 auto;min-width:max-content;white-space:nowrap;text-align:center}
   .renmsg{font-size:12px;color:#ff6b64;margin-top:8px}
   /* LIBRARY LANDING (build 508) — the grid Setup opens on. */
   #libLand{display:none}
@@ -11336,7 +11340,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=523;
+  const BUILD=524;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
