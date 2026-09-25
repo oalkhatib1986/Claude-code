@@ -949,6 +949,15 @@
   .card h3::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
   .card h3 .r{margin-left:auto;color:var(--ink-mute);font-size:11px;letter-spacing:.16em;font-weight:500}
   .card .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:13px}
+  /* collapse/expand a section (build 526 — Omar: "each section should have a
+     collapse expand button +-, easier navigation"). The toggle rides the h3;
+     collapsed hides the body. */
+  .card.hascxp>h3{cursor:pointer}
+  .cxp{margin-left:auto;flex:0 0 auto;width:28px;height:28px;display:flex;align-items:center;
+    justify-content:center;border:1px solid var(--line);border-radius:8px;background:transparent;
+    color:var(--ink);font-size:18px;line-height:1;cursor:pointer;padding:0}
+  .card h3 .r+.cxp{margin-left:10px}
+  .card.collapsed>.body{display:none}
   .fld{display:flex;flex-direction:column;gap:7px}
   .fld>label{font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute)}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -5869,6 +5878,7 @@ window.addEventListener("error",function(ev){
     // renaming a rack in Layout otherwise left the old name on every exercise.
     if(which==="board"&&subTab==="setup") buildBlocks();
     ["viewBoard","viewTrainer","viewTablet","viewCtrl","viewLayout","viewTeams","viewResults","viewArchive"].forEach(v=>$(v).classList.toggle("active",v===active));
+    try{ initCollapse(); }catch(e){}
     if((which==="board"||which==="screen")&&!sessionActive&&!running) build();
     document.body.classList.toggle("tabkiosk",which==="tablet");
     // Leaving the tab must take the kiosk with it. These classes are the erg
@@ -11344,7 +11354,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=525;
+  const BUILD=526;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -11626,6 +11636,36 @@ window.addEventListener("error",function(ev){
     // record the box we just produced so the ResizeObserver skips this write
     f._lw=Math.round(f.clientWidth); f._lh=Math.round(f.scrollHeight);
   }
+  // COLLAPSE / EXPAND EACH SECTION (build 526 — Omar: "each section should have
+  // a collapse expand button +-, easier navigation"). Every card on the Setup
+  // and Layout config pages gets a +/- toggle on its header; the collapsed state
+  // persists per section on the device (localStorage, never synced).
+  let _collapse=null;
+  function collapseState(){ if(_collapse) return _collapse;
+    try{ _collapse=JSON.parse(localStorage.getItem("af_collapse_v1")||"{}"); }catch(e){ _collapse={}; }
+    return _collapse; }
+  function initCollapse(){
+    const coll=collapseState();
+    document.querySelectorAll("#viewCtrl .card, #viewLayout .card").forEach(card=>{
+      if(card.id==="libLand") return;                 // the library grid is not a section
+      const h=card.querySelector(":scope > h3"), body=card.querySelector(":scope > .body");
+      if(!h||!body||h.dataset.cxp) return;
+      h.dataset.cxp="1"; card.classList.add("hascxp");
+      const key=(h.textContent||"").trim().replace(/\s+/g," ").slice(0,48);
+      const btn=document.createElement("button");
+      btn.type="button"; btn.className="cxp"; btn.setAttribute("aria-label","Collapse or expand section");
+      h.appendChild(btn);
+      const apply=c=>{ card.classList.toggle("collapsed",c); btn.textContent=c?"+":"−"; };
+      apply(!!coll[key]);
+      const toggle=()=>{ const c=!card.classList.contains("collapsed"); apply(c);
+        if(c) coll[key]=1; else delete coll[key];
+        try{ localStorage.setItem("af_collapse_v1",JSON.stringify(coll)); }catch(e){} };
+      btn.addEventListener("click",e=>{ e.stopPropagation(); toggle(); });
+      h.addEventListener("click",e=>{ if(e.target.closest("input,select,button,a,.mfield,.combo,.renin")) return; toggle(); });
+    });
+  }
+  try{ window.__collapse=initCollapse; }catch(e){}
+
   // Scale the fixed 1920x1080 leaderboard picture to CONTAIN it in its box, centred.
   function fitLbStage(boxW,boxH){ const el=$("lbLive"); if(!el||!(boxW>0)||!(boxH>0)) return;
     const k=Math.min(boxW/1920,boxH/1080);
