@@ -1566,7 +1566,8 @@
      group that drops UNDER it as a unit — nothing clips, nothing orphans. */
   .wkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
   .wkrow .fld{flex:1 1 220px;min-width:0;margin:0}
-  .wkbtns{display:flex;gap:10px}
+  .wkbtns{display:flex;flex-wrap:wrap;gap:8px}
+  .wkbtns button{flex:0 0 auto;white-space:nowrap}
   .renmsg{font-size:12px;color:#ff6b64;margin-top:8px}
   /* LIBRARY LANDING (build 508) — the grid Setup opens on. */
   #libLand{display:none}
@@ -5839,11 +5840,12 @@ window.addEventListener("error",function(ev){
     { const l=$("smLead"); if(l) l.style.display=showLeaderboard()?"":"none"; }
     document.body.classList.toggle("wkscreen",which==="screen"&&scrMode==="work");
     document.body.classList.toggle("mobscreen",which==="screen"&&scrFit==="mobile");
-    // NEW LEADERBOARD (522): the Send It Saturday picture on the TV / preview /
-    // full screen. Phone view keeps the old responsive table (a browsing page,
-    // not a wall). Rotation + scored only — the leaderboard exists nowhere else.
+    // NEW LEADERBOARD (522-523): the Send It Saturday picture is the leaderboard
+    // in EVERY context — TV, preview, full screen AND phone view (Omar: "how 2
+    // columns in phone vs 4 in TV preview!" — one board, one look everywhere).
+    // Rotation + scored only — the leaderboard exists nowhere else.
     document.body.classList.toggle("lbnew",which==="screen"&&scrMode==="lead"
-      &&scrFit!=="mobile"&&cfg.mode==="rotation"&&showLeaderboard());
+      &&cfg.mode==="rotation"&&showLeaderboard());
     { const f=$("smFit"); if(f) f.textContent=scrFit==="mobile"?"TV preview":"Phone view"; }
     { const pb=$("pdfBtn"); if(pb) pb.hidden=!(which==="screen"&&scrFit==="mobile"); }
     $("scrTabs").hidden=which!=="screen";
@@ -8737,8 +8739,12 @@ window.addEventListener("error",function(ev){
     // and applyGymFit no-ops, so such a board simply keeps its count).
     cfg.autoCrews=true; delete cfg.attend;
     stampSeed(p); save(); applyAccent();
-    if(setupSnap!=null) setupSnap=JSON.stringify(cfg);   // a pick is a fact, not a pending edit
     buildControlRoom(); if(!running&&!sessionActive) build();
+    // Snapshot the SETTLED cfg — build() runs the gym-fit (autoCrews resizes
+    // cfg.crews), so a snapshot taken BEFORE it would read as an edit the moment
+    // the trainer navigates away, and the "Keep the changes?" ask fired on a
+    // board they only looked at. A pick is a fact, not a pending edit.
+    if(setupSnap!=null) setupSnap=JSON.stringify(cfg);
     return true;
   }
   // ===== LIBRARY LANDING (build 508) — the grid Setup opens on. Groups the
@@ -11330,7 +11336,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=522;
+  const BUILD=523;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
@@ -11645,6 +11651,42 @@ window.addEventListener("error",function(ev){
     w.style.marginLeft=""; w.style.marginBottom="";
     if(view){ view.style.width=""; view.style.height=""; view.style.padding=""; view.style.boxSizing=""; }
     if(cap) cap.hidden=!on;
+    // ONE LEADERBOARD, EVERY CONTEXT (build 523 — Omar: "how 2 columns in phone
+    // vs 4 in TV preview!"). The new picture is the leaderboard on the TV, the
+    // desktop tab, the preview AND the phone — never the old table. Scale the
+    // fixed 1920x1080 canvas to fit whatever box this context gives; this early
+    // return supersedes every branch below when body.lbnew is on.
+    if(document.body.classList.contains("lbnew")&&view){
+      document.body.classList.remove("tvprev");
+      if(cap) cap.hidden=true;
+      let boxW,boxH;
+      if(full){ const vvp=window.visualViewport;
+        boxW=Math.round(vvp&&vvp.width?vvp.width:lw);
+        boxH=Math.round(vvp&&vvp.height?vvp.height:window.innerHeight);
+        view.style.padding="0"; view.style.boxSizing="border-box";
+        view.style.width=boxW+"px"; view.style.height=boxH+"px"; view.style.transform="";
+        if(stage){ stage.style.width=""; stage.style.height=""; stage.style.margin=""; }
+      } else if(big){ // desktop big-screen tab: fill the room it is given
+        view.style.transform=""; view.style.height="";
+        const top=view.getBoundingClientRect().top+window.scrollY;
+        const padB=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
+        boxH=Math.max(120,window.innerHeight-top-padB-8);
+        boxW=Math.max(320,Math.round((stage&&stage.clientWidth)||view.clientWidth||lw));
+        view.style.width=boxW+"px"; view.style.height=boxH+"px";
+        if(stage){ stage.style.width=""; stage.style.height=""; stage.style.margin=""; }
+      } else { // phone view / narrow preview: a 16:9 board that fills the width
+        view.style.padding="0";
+        // the .wrap content width (its own padding excluded) — using the raw
+        // viewport left the board 10px past the edge on a padded phone page
+        boxW=Math.max(280,Math.round(w.clientWidth||lw));
+        boxH=Math.round(boxW*1080/1920);
+        view.style.transform=""; view.style.width=boxW+"px"; view.style.height=boxH+"px";
+        if(stage){ stage.style.width=boxW+"px"; stage.style.height=boxH+"px"; stage.style.margin="0 auto"; }
+      }
+      fitLbStage(boxW,boxH);
+      document.documentElement.style.overflowX="hidden"; document.body.style.overflowX="hidden";
+      return;
+    }
     // Full screen: no frame, no letterbox. Lay the board out at the screen's own
     // aspect — upright, whatever the screen's shape. A board that turns sideways
     // when the window is taller than wide reads as the app breaking (Omar: "why

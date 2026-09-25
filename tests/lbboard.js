@@ -68,6 +68,21 @@ await p.evaluate(()=>{ document.documentElement.style.setProperty('--lbAccent','
 { const html=await p.evaluate(()=>window.__lb.finalHTML(0));
   ok(/YOUR TEAM/.test(html),'Page 2: the emailed copy tags the recipient team (YOUR TEAM)'); }
 
+// ---- phone view : the SAME picture, never the old table (build 523) ----
+{ const lbl=await p.evaluate(()=>document.getElementById('smFit')?.textContent);
+  if(/Phone view/.test(lbl)){ await p.evaluate(()=>document.getElementById('smFit').click()); await p.waitForTimeout(500); }
+  const r=await p.evaluate(()=>({
+    mob:document.body.classList.contains('mobscreen'),
+    lbnew:document.body.classList.contains('lbnew'),
+    lbShown:getComputedStyle(document.getElementById('lbLive')).display!=='none',
+    tableHidden:getComputedStyle(document.querySelector('#viewBoard>.tvfit')).display==='none',
+    cols:[...document.querySelectorAll('#lbLive .lbc-col .lbrow')[0]?.querySelectorAll('.mc .lab')||[]].map(x=>x.textContent),
+    ell:[...document.querySelectorAll('#lbLive .mc .lab')].some(x=>x.scrollWidth>x.clientWidth+1),
+    inside:document.getElementById('lbLive').getBoundingClientRect().right<=document.documentElement.clientWidth+1 }));
+  ok(r.mob&&r.lbnew&&r.lbShown&&r.tableHidden,'phone view: shows the SAME new picture, not the old table');
+  ok(r.cols.length>=1&&!r.ell,'phone view: clean section columns, no ellipsis ('+r.cols.join(', ')+')');
+  ok(r.inside,'phone view: the board fits the phone width (no sideways spill)'); }
+
 ok(true,'no page errors');
 await br.close();
 console.log('\n'+pass+' passed, '+fail+' failed');
