@@ -2761,9 +2761,12 @@ window.addEventListener("error",function(ev){
   // keyboard by itself, so the page never jumps. Type only if you want to search/add.
   function menuField(getOpts, getValue, onPick, o){
     o=o||{};
+    // the visible button text; o.face lets it differ from getValue (which stays
+    // the plain key used to match the selected list item) \u2014 e.g. show the date
+    const face=()=>{ const t=o.face?o.face():getValue(); return String(t==null?"":t)||o.placeholder||"\u2014"; };
     const wrap=document.createElement("span"); wrap.className="mwrap"+(o.cls?" "+o.cls:"");
     const btn=document.createElement("button"); btn.type="button"; btn.className="mfield";
-    { const gv=getValue(); btn.textContent=String(gv==null?"":gv)||o.placeholder||"\u2014"; }
+    btn.textContent=face();
     const panel=document.createElement("div"); panel.className="mpanel"; panel.hidden=true;
     panel.innerHTML=`<input class="msearch" type="text" ${o.numeric?'inputmode="numeric"':''} placeholder="${esc(o.searchPh||"Type to search\u2026")}" autocomplete="off" autocapitalize="words">${o.filters?'<div class="mfilters"></div>':""}<div class="mitems"></div>`;
     wrap.append(btn,panel);
@@ -2786,7 +2789,7 @@ window.addEventListener("error",function(ev){
     const close=()=>{ panel.hidden=true; document.removeEventListener("pointerdown",away,true); };
     const away=ev=>{ if(!wrap.contains(ev.target)) close(); };
     const commit=(v,typed)=>{ v=String(v).trim(); if(!v){ close(); return; } onPick(v,typed);
-      const gv=getValue(); btn.textContent=String(gv==null?"":gv)||"\u2014"; close(); };
+      btn.textContent=face(); close(); };
     const renderList=()=>{
       const q=search.value.trim().toLowerCase();
       const opts=getOpts().map(String);
@@ -8583,6 +8586,12 @@ window.addEventListener("error",function(ev){
   function mkPresetField(afterLoad){
     return menuField(presetOpts, ()=>cfg.wkName||"Unsaved workout", presetOnPick(afterLoad),
       {addable:true, addLabel:"+ Save as",
+        // the button shows the loaded workout WITH its date (Omar) — the wall
+        // title (or filing name) followed by the board's own Setup > Date
+        face:()=>{ const nm=cfg.wkName?(cfg.name||cfg.wkName):"Unsaved workout";
+          const d=cfg.wkName&&cfg.prog&&cfg.prog.date;
+          if(d){ const dt=new Date(d+"T00:00:00"); if(!isNaN(dt)) return nm+" · "+dt.toLocaleDateString("en-GB"); }
+          return nm; },
         // a TAKEN name still saves when the board carries a DIFFERENT DATE:
         // "Engine" -> "Engine 01/09" from Setup > Date. No date set = no
         // second Engine (the hint row says to pick one); the same date twice
@@ -10983,7 +10992,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=518;
+  const BUILD=519;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

@@ -87,6 +87,9 @@ ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8
 await p.evaluate(()=>document.getElementById('stSetup').click()); await p.waitForTimeout(300);
 ok(await p.evaluate(()=>document.getElementById('libNameChips')===null&&document.getElementById('libSearchList')===null),
   'search: the old custom search/chips are gone (picker only)');
+// the picker button shows the loaded workout WITH its date
+{ const face=await p.evaluate(()=>document.querySelector('#libPick .mfield').textContent);
+  ok(/Zephyr/.test(face)&&/08\/09\/2026/.test(face),'search bar shows the loaded workout + its date ['+face+']'); }
 
 // ---- tap a card -> dated list, newest first, LOAD DIRECTLY (no preview) ----
 await p.evaluate(()=>{ const c=[...document.querySelectorAll('#libGrid .libcard')].find(x=>x.querySelector('.lcname').textContent==='Zephyr'); c.click(); });
