@@ -8405,9 +8405,14 @@ window.addEventListener("error",function(ev){
   try{ window.voicePrime=voicePrime; }catch(e){}   // test hook: unlock + preload the buzzer
   function loadLib(v,all){
     const p=libFind(v,all); if(!p) return false;
-    const keep=structuredClone(cfg.crews||[]);
+    // A NEW WORKOUT STARTS WITH A CLEAN ROSTER (Omar: loading a different workout
+    // must clear the previous class's claimed names/emails). We keep the class
+    // SIZE — the number of people in the room — but blank every claim back to a
+    // placeholder, so the erg tablets and board start fresh.
+    const kept=(cfg.crews||[]).length;
     cfg=structuredClone(p.cfg); cfg.wkName=p.name;
-    if(keep.length) cfg.crews=keep;               // the roster is the room, not the board
+    if(kept){ const pre=(cfg.teamKind==="solo")?"Athlete":"Team";
+      cfg.crews=Array.from({length:kept},(_,i)=>({name:pre+" "+(i+1)})); }
     migrateLoaded();
     // A PICKED WORKOUT ALWAYS FITS THE GYM (build 482 — Omar: "whenever I select
     // a workout it should always load to fit the gym automatically"). Turn on
@@ -10992,7 +10997,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=519;
+  const BUILD=520;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
