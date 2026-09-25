@@ -475,54 +475,29 @@ ok(await p.evaluate(()=>{ const c=document.querySelectorAll('#blockCards .blk')[
   // know how the workout is scored and adjust automatically!"): a
   // manual-scored board heads its columns with the SCORED sections, not
   // idle machine counters
+  // NEW LEADERBOARD (build 522): the Big Screen shows the Send It Saturday
+  // picture (#lbLive), not the old #board table. The scored-section splits
+  // ride each team's row; every team is on one screen; the workout name heads it.
   { const r=await p4.evaluate(()=>({
-      head:document.getElementById('boardHead').innerText.replace(/\s+/g,' '),
-      secs:document.querySelectorAll('#board .lane .msec').length}));
-    ok(/run \/ bike/i.test(r.head)&&/row \/ ski/i.test(r.head),
-      '442: the head names the scored sections — '+r.head);
-    ok(!/metres|\/500m|\/km|\/1000m/i.test(r.head),
-      '442: no idle machine counters on a manual board');
-    ok(r.secs>=2,'442: every lane carries the section cells'); }
-  // 445 (Omar: "the columns are still not the same width!"): every figure
-  // column — sections AND Score — is one equal track
-  { const r=await p4.evaluate(()=>{
-      const l=[...document.querySelectorAll('#board .lane')].find(x=>x.offsetHeight>0);
-      const cs=[...l.querySelectorAll('.msec')].map(x=>Math.round(x.getBoundingClientRect().width));
-      cs.push(Math.round(l.querySelector('.data').getBoundingClientRect().width));
-      return cs; });
-    ok(r.every(v=>Math.abs(v-r[0])<=2),
-      '445: sections and Score share ONE column width ('+r.join(', ')+')'); }
+      lbnew:document.body.classList.contains('lbnew'),
+      rows:document.querySelectorAll('#lbLive .lbrow').length,
+      labs:[...document.querySelectorAll('#lbLive .lbc-col .lbrow')[0].querySelectorAll('.mc .lab')].map(x=>x.textContent),
+      title:(document.querySelector('#lbLive .htitle')||{}).innerText||'' }));
+    ok(r.lbnew,'522: the Big Screen shows the new leaderboard picture');
+    ok(r.rows>0,'522: every team has a row on the board ('+r.rows+')');
+    ok(r.labs.length>=2,'522: the board carries the scored-section columns ('+r.labs.join(', ')+')');
+    ok(/send it saturday/i.test(r.title),'522: the workout name heads the board — '+r.title); }
+  // every team on one screen, never paged (Omar's 454 rule, kept)
+  { const r=await p4.evaluate(()=>{ const rows=[...document.querySelectorAll('#lbLive .lbrow')];
+      return {vis:rows.filter(l=>l.offsetHeight>0).length,total:rows.length}; });
+    ok(r.total>0&&r.vis===r.total,'522: every team on one screen, no paging ('+r.vis+'/'+r.total+')'); }
   await p4.evaluate(()=>window.__setReady&&window.__setReady(0));  // build 490: drive the block clock, not the get-ready count-in
   await p4.evaluate(()=>document.getElementById('startBtn').click());
   await p4.waitForTimeout(1400);
   { await p4.evaluate(()=>window.__man.set(0,0,0,57)); await p4.waitForTimeout(900);
-    const lane=await p4.evaluate(()=>[...document.querySelectorAll('#board .lane')]
-      .find(l=>/team1/i.test(l.innerText)).innerText.replace(/\s+/g,' '));
-    ok(/57/.test(lane),'442: an entered section score lands in its column — '+lane); }
-  // EVERY TEAM ON ONE PAGE, NEVER PAGED (build 454 — Omar: "whatever the
-  // team numbers they should ALL show on one page!"): the pager is retired;
-  // every lane is visible at once and the pager label stays empty
-  { const r=await p4.evaluate(()=>{
-      const lanes=[...document.querySelectorAll('#lanes .lane')];
-      return {vis:lanes.filter(l=>l.offsetHeight>0&&getComputedStyle(l).display!=='none').length,
-        total:lanes.length,pager:(document.querySelector('#boardPage')||{textContent:''}).textContent}; });
-    ok(r.total>0&&r.vis===r.total&&!r.pager,
-      '454: every team on one page, no pager ('+r.vis+'/'+r.total+', pager "'+r.pager+'")'); }
-  // 443 (Omar's page-2 screenshot: rows hanging out of the card with
-  // gaps): rowH() must measure a VISIBLE lane — on page 2+ the first
-  // child is display:none and the 92px fallback stepped 40px rows apart
-  { const r=await p4.evaluate(()=>{
-      const bd=document.getElementById('board');
-      const vis=[...document.getElementById('lanes').children]
-        .filter(l=>getComputedStyle(l).display!=='none');
-      const hs=vis.map(l=>Math.round(l.getBoundingClientRect().height));
-      const tops=vis.map(l=>Math.round(l.getBoundingClientRect().top)).sort((a,b)=>a-b);
-      const step=tops.length>1?tops[1]-tops[0]:hs[0];
-      return {inside:vis.every(l=>l.getBoundingClientRect().bottom
-          <=bd.getBoundingClientRect().bottom+2),
-        tight:Math.abs(step-hs[0])<=3, step, h:hs[0]}; });
-    ok(r.inside,'443: every page’s rows sit INSIDE the card');
-    ok(r.tight,'443: rows step at their own height ('+r.step+' vs '+r.h+') — no gaps'); }
+    const has=await p4.evaluate(()=>[...document.querySelectorAll('#lbLive .lbrow')]
+      .some(l=>/\b57\b/.test(l.innerText)));
+    ok(has,'522: an entered section score lands on the board'); }
   // 448 (Omar: "it should only ask once Max Cal Bike is over!"): the ask
   // fires at the END of the scored piece; seeking BACK into the piece
   // voids the pending ask, and running it out again asks fresh

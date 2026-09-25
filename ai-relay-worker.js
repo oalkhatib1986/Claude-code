@@ -119,6 +119,13 @@ export default {
       const board = String(body.board || "Workout").slice(0, 80);
       const unit = String(body.unit || "Score").slice(0, 20);
       const jobs = Array.isArray(body.results) ? body.results.slice(0, 60) : [];
+      const unitTag = unit === "m" ? "M" : unit === "pts" ? "PTS" : "CAL";
+      const hashtag = String(body.hashtag || "SENDITSATURDAY").replace(/[^A-Za-z0-9]/g, "").slice(0, 60);
+      const date = String(body.date || "").slice(0, 40);
+      // the share picture (Page 2): one PNG, attached to and embedded in every copy
+      const img = String(body.image || "");
+      const b64 = img.startsWith("data:") ? img.slice(img.indexOf(",") + 1) : "";
+      const fname = (hashtag || "results") + ".png";
       let sent = 0, failed = 0;
       for (const j of jobs) {
         const to = (Array.isArray(j.to) ? j.to : [])
@@ -126,21 +133,31 @@ export default {
         if (!to.length) continue;
         const name = String(j.name || "Team").slice(0, 40);
         const rank = parseInt(j.rank, 10) || 0, of = parseInt(j.of, 10) || 0;
+        const score = Math.round(+j.score || 0);
+        const place = rank ? `#${rank}${of ? ` of ${of}` : ""}` : "";
         const text = [
-          `${name} — ${board}`, ``,
-          `Score: ${Math.round(+j.score || 0)} ${unit}`,
-          rank && of ? `Placing: ${rank} of ${of}` : ``,
-          +j.m ? `Metres: ${Math.round(+j.m)}` : ``,
-          +j.cals ? `Calories: ${Math.round(+j.cals)}` : ``,
+          `${name}`, ``,
+          place ? `You finished ${place} with ${score} ${unitTag}.` : `You scored ${score} ${unitTag}.`,
+          ``, `Share it and tag @athletefitness.ae #${hashtag}`,
           ``, `— ${fromName}`,
         ].filter(Boolean).join("\n");
+        const html = `<div style="font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.5">`
+          + `<p style="font-size:18px;font-weight:700;margin:0 0 8px">${name}</p>`
+          + `<p style="font-size:16px;margin:0 0 4px">${place ? `You finished <b>${place}</b> with <b>${score} ${unitTag}</b>.` : `You scored <b>${score} ${unitTag}</b>.`}</p>`
+          + `<p style="font-size:15px;margin:0 0 14px">Share it and tag <b>@athletefitness.ae</b> <b>#${hashtag}</b></p>`
+          + (b64 ? `<img src="cid:results" alt="${board} results" style="display:block;max-width:100%;border-radius:8px"/>` : "")
+          + `<p style="font-size:13px;color:#666;margin:14px 0 0">— ${fromName}</p></div>`;
         const mail = {
           // one personalization per address = each recipient gets their own copy
           personalizations: to.map((email) => ({ to: [{ email }] })),
           from: { email: FROM, name: fromName },
-          subject: `${board} — your result`.slice(0, 120),
-          content: [{ type: "text/plain", value: text }],
+          subject: `${board} — Final Results${date ? ` · ${date}` : ""}`.slice(0, 120),
+          content: [{ type: "text/plain", value: text }, { type: "text/html", value: html }],
         };
+        if (b64) mail.attachments = [{
+          content: b64, filename: fname, type: "image/png",
+          disposition: "inline", content_id: "results",
+        }];
         try {
           const r = await fetch("https://api.sendgrid.com/v3/mail/send", {
             method: "POST",

@@ -2129,6 +2129,72 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   (`fitTvBoard`) is for the *preview* only. `fsfill.js` asserts ≥94% coverage on both
   axes and nothing painted outside, on 1920/2560/3840 TVs and phone both ways.
 
+## THE LEADERBOARD IS A DESIGNED PICTURE (build 522 — Omar's Send It Saturday redesign)
+
+**The Big Screen leaderboard is a fixed 1920×1080 branded canvas (`#lbLive`,
+`.lbcanvas.lb-live`), NOT the old `#board` table.** Omar sent a two-page PDF
+(Page 1 LIVE big-screen board, Page 2 FINAL results emailed as a share image);
+both are ONE component family (`.lb-*` classes, embedded Anton + Barlow Condensed
+fonts, bg `#08080A`, a lime top bar). This RETIRES the old `#board` table on the
+Big Screen — it still renders for the PHONE browsing view (`mobscreen`), so the
+old lane/`fitLaneCols`/`fitRowH`/pager code stays. Do NOT restyle `#lbLive` back
+into a table.
+
+- **`body.lbnew`** gates it: `which==="screen" && scrMode==="lead" && scrFit!=="mobile"
+  && cfg.mode==="rotation" && showLeaderboard()`. It hides `#viewBoard>.tvfit`
+  (the old subhead+board) and shows `#lbLive`. Toggled in `show()`.
+- **`fitLbStage(boxW,boxH)`** scales the fixed 1920×1080 canvas to CONTAIN it in
+  its box, centred — a different model from the workout wall's `fillTvBoard`
+  (authored-width solve). `fitScreen`'s full / preview / tab branches each call
+  `fitLbStage` instead of `fillTvBoard`/`fitTvBoard` when `body.lbnew`. `#lbLive`
+  is absolute, so the tab branch measures the STAGE width (not the collapsed
+  `#viewBoard`).
+- **`renderLbLive()`** (called at the end of `renderLanesRot`, so every existing
+  refresh path keeps it live) reads the SAME data as everything else: `lbSegs()`
+  (one column per scored piece, merged by erg type via `mInfo(t).short` —
+  RUN/ROW/SKI/BIKE — for manual/section boards; machine types for auto),
+  `lbTotalOf(e)` = `e.score+e.blockCals` (or `demoScore` idle), sorted desc.
+  Head rebuilds only on structural change (`el._hk`); the body (two columns, all
+  teams, rounded rows) rebuilds each tick — the live-dot animation lives in the
+  cached head so it never restarts. `.lbc-body` needs `grid-template-rows:1fr`
+  and `body.lbnew #lbLive{display:flex}` (NOT `block` — a high-specificity
+  `display:block` visibility rule killed the flex column and collapsed the rows;
+  that was the integration bug).
+- **Page 2 — `lbFinalHTML(youIx)`** builds the final-results picture (champion
+  lime card with a clip-path corner, 2nd/3rd podium, ranks-4+ table, "SEND IT"
+  watermark, date + FINAL badge). It is ALWAYS 1920×1080, so it uses EXPLICIT
+  pixel heights (`BODYH/CHAMPH/RBODYH/rrowH`), because the PNG export can't
+  resolve `flex:1`/`grid 1fr` fills. `youIx` (0-based rank) outlines that team +
+  tags YOUR TEAM in their emailed copy.
+- **`lbRenderPng(youIx,scale)`** rasterises Page 2 to a PNG data URL via an SVG
+  `<foreignObject>`: it uses the RAW XHTML string (self-closed `<img/>` — reading
+  back `innerHTML` re-serialises it unclosed and breaks the XML parse), inlines
+  ONLY the leaderboard CSS (from the `@font-face{font-family:Anton` marker to end
+  — the full app CSS carries data-URI SVGs that break the parse), and rides
+  `--lbAccent` on the wrapper inline (custom props on the page `:root` do NOT
+  reach the SVG document). All resources are data: URIs, so the canvas is not
+  tainted. `window.__lb={live,finalHTML,png,teams}`.
+- **The colour is Omar's own (`cfg.lbAccent`, default lime `#C6F432`, `--lbAccent`
+  in `applyAccent`), a SEPARATE setting from the app's white theme
+  (`cfg.accent`).** Layout > Brand > "Leaderboard colour". Omar: "the green I can
+  change to whatever I like on the leaderboard."
+- **Email (Page 2 as an image):** `sendResultEmails(rows,force)` is async — it
+  renders ONE shared PNG (`lbRenderPng(-1,2)`) and passes it as `image` (+
+  `hashtag`, `date`) in the relay `mail` op; the worker attaches it inline to
+  every team's copy and personalises the text ("You finished #{rank} with
+  {score} {UNIT}. … tag @athletefitness.ae #…"). Results page has **Download
+  results image** (`lbDownloadResult`) and **Email results to teams** buttons.
+  REQUIRES the redeployed worker (attachment support) + SendGrid env vars
+  (`SENDGRID_KEY`, verified `MAIL_FROM`, `MAIL_FROM_NAME`).
+- **`lbboard.js` gates it** (Page 1 shows + old table hidden, one-page, columns,
+  theme follows `--lbAccent`, Page 2 HTML + PNG data URL + YOUR TEAM tag).
+  `altwin.js`'s old build-442/445/454/443 `#board .lane` checks were REPLACED
+  with `#lbLive` checks (the leaderboard is no longer that table). `resultmail.js`
+  still passes (async send). LESSON when adding a fixed-size picture that also
+  exports to PNG: foreignObject won't resolve flex/grid fills or inherit `:root`
+  custom props, and needs well-formed XHTML — give explicit heights, inline the
+  accent, and use the raw string.
+
 ## MANUAL SCORES (SHIPPED build 374 — Omar's "go")
 
 **THE SCORE IS WHAT THE TEAM SAYS IT IS — until the ergs are trusted.**
