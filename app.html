@@ -1566,12 +1566,11 @@
      group that drops UNDER it as a unit — nothing clips, nothing orphans. */
   .wkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
   .wkrow .fld{flex:1 1 220px;min-width:0;margin:0}
-  /* the button group takes its own full-width row under the picker, and the
-     buttons grow to fill it — no dead space on the right (Omar) */
-  .wkbtns{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 100%}
-  /* grow to share the width, but min-width:max-content means they never shrink
-     below their full label (no text-wrap ovals) */
-  .wkbtns button{flex:1 1 auto;min-width:max-content;white-space:nowrap;text-align:center}
+  /* the button group takes its own full-width row under the picker and the pills
+     sit CENTERED as one tidy block — no one-sided dead space, no lone full-width
+     button, and each pill keeps its natural width (never squeezed into an oval) */
+  .wkbtns{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 100%;justify-content:center}
+  .wkbtns button{flex:0 0 auto;white-space:nowrap}
   .renmsg{font-size:12px;color:#ff6b64;margin-top:8px}
   /* LIBRARY LANDING (build 508) — the grid Setup opens on. */
   #libLand{display:none}
@@ -5988,10 +5987,15 @@ window.addEventListener("error",function(ev){
   ["pointerdown","pointermove","keydown","wheel"].forEach(ev=>
     document.addEventListener(ev,()=>{
       if(document.body.classList.contains("bigscreen")) tvctlPoke(); },{passive:true}));
-  // unlock the spoken countdown on the first real interaction (Web Speech needs
-  // a user gesture) — one shot; a cast TV with no interaction simply stays quiet
-  document.addEventListener("pointerdown",voicePrime,{once:true});
-  document.addEventListener("keydown",voicePrime,{once:true});
+  // UNLOCK THE COUNTDOWN BUZZER ON EVERY INTERACTION, NOT JUST THE FIRST (build
+  // 525 — Omar: "the beep sound disappeared!"). Web Audio needs a user gesture
+  // to resume a suspended context; a ONE-SHOT listener that fired on a gesture
+  // where resume() didn't take (a stray early tap, a reload, an OS audio-focus
+  // change) left the context suspended forever and the room silent. A persistent
+  // capture-phase listener re-resumes it on any tap/key — voicePrime is
+  // idempotent (resume + guarded load), so this is cheap and self-healing.
+  document.addEventListener("pointerdown",voicePrime,true);
+  document.addEventListener("keydown",voicePrime,true);
   function setFull(on){
     document.body.classList.toggle("tvfull",on);
     try{
@@ -11340,7 +11344,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=524;
+  const BUILD=525;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
