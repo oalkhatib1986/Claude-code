@@ -140,8 +140,11 @@ for(const [w,h] of [[1920,1080],[2560,1440],[402,874]]){
 // ---------- 5. every tab at phone width ----------
 await p.setViewportSize({width:390,height:844});
 await p.goto(APP); await p.reload(); await p.waitForTimeout(1500);
-const tabs=[['#tabBoard','Overview'],['#stSetup','Setup'],['#stLayout','Layout'],
-  ['#stResults','Results'],['#stArchive','Archive'],['#tabTrainer','Control'],
+// board sub-tabs (#st*) are only clickable while the board main tab is active —
+// once a top tab like Settings is open they hide, so keep the sub-tabs together
+// first, then the top tabs (build 530 moved Settings to the top menu).
+const tabs=[['#tabBoard','Overview'],['#stSetup','Setup'],['#stResults','Results'],
+  ['#stArchive','Archive'],['#tabSettings','Settings'],['#tabTrainer','Control'],
   ['#tabScreen','Big Screen'],['#tabTablet','Erg Tablet']];
 for(const [sel,name] of tabs){
   await p.click(sel); await p.waitForTimeout(600);

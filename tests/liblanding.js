@@ -147,7 +147,7 @@ ok(await p.evaluate(()=>{ const c=JSON.parse(localStorage.getItem('af_erg_cfg_v8
 // ---- leaving Setup drops the grid ----
 await p.evaluate(()=>document.getElementById('tabBoard').click()); await p.waitForTimeout(100);
 await p.evaluate(()=>document.getElementById('stSetup').click()); await p.waitForTimeout(200);
-await p.evaluate(()=>document.getElementById('stLayout').click()); await p.waitForTimeout(200);
+await p.evaluate(()=>document.getElementById('tabSettings').click()); await p.waitForTimeout(200);
 ok(!(await p.evaluate(()=>document.body.classList.contains('libland'))),'nav: leaving Setup for Layout drops the grid');
 
 await br.close();

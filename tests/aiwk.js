@@ -321,8 +321,9 @@ await p.waitForTimeout(400);
   const vis=()=>p.evaluate(()=>{ const f=document.getElementById('aiFab');
     return f&&getComputedStyle(f).display!=='none'; });
   ok(await vis(),'the bubble is on the OVERVIEW from the first paint');
-  await p.click('#stLayout'); await p.waitForTimeout(300);
-  ok(!(await vis()),'Layout does not carry it');
+  await p.click('#tabSettings'); await p.waitForTimeout(300);
+  ok(!(await vis()),'Settings does not carry it');
+  await p.click('#tabBoard'); await p.waitForTimeout(200);   // back to the board (sub-tabs return)
   await p.click('#stSetup'); await p.waitForTimeout(300);
   ok(await vis(),'Setup still carries it');
   await p.click('#stWorkout'); await p.waitForTimeout(300);
