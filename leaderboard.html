@@ -413,13 +413,15 @@
     color:var(--ink,#fff);font-family:var(--ui);font-size:19px;padding:0 13px}
   .tk-name .btn{flex:none;height:46px;background:var(--slab);color:#0a0a0b;border:none;border-radius:11px;padding:0 20px;font-size:15px}
   /* mid-session the ask is a band, never a takeover: the work stays on screen */
-  .tk-name.up{background:rgba(58,222,107,.13)}
-  .tk-name.up label{color:#5fe28e}
+  /* the claim/up/live greens follow the THEME colour (--slab), so the band, the
+     pills and the buttons are ONE green (Omar, build 528) — no mismatched shades */
+  .tk-name.up{background:color-mix(in srgb,var(--slab) 14%,transparent)}
+  .tk-name.up label{color:var(--slab)}
   /* claim: the machine offering itself to whoever walks up */
   .tk-claim{gap:11px}
   .tk-claim .tk-head{background:rgba(255,255,255,.09)}
-  .tk-claim.got .tk-tag{background:rgba(58,222,107,.16);color:#5fe28e}
-  .tk-claim.got .tk-head{background:rgba(58,222,107,.16)}
+  .tk-claim.got .tk-tag{background:color-mix(in srgb,var(--slab) 16%,transparent);color:var(--slab)}
+  .tk-claim.got .tk-head{background:color-mix(in srgb,var(--slab) 16%,transparent)}
   .tk-claimrow{display:flex;gap:10px;align-self:stretch;min-width:0}
   .tk-claimrow input{flex:1 1 auto;min-width:0;height:52px;border-radius:12px;
     border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:var(--ink,#fff);
@@ -465,7 +467,7 @@
   .tks-teams button:active{background:rgba(255,255,255,.12)}
   /* the collapsed form: the next section is running, the ask waits as a band */
   .tks-strip{cursor:pointer}
-  .tks-strip u{font-size:14px;color:#5fe28e;text-decoration:none;font-weight:600}
+  .tks-strip u{font-size:14px;color:var(--slab);text-decoration:none;font-weight:600}
   :is(body.kioskon,.twt) .tks-pad button{height:38px;font-size:19px}
   :is(body.kioskon,.twt) .tks-row .btn{height:41px}
   :is(body.kioskon,.twt) .tks-teams button{height:38px}
@@ -600,12 +602,12 @@
   .tk-tag{align-self:flex-start;font-family:var(--disp);font-weight:700;font-size:clamp(13px,3.1vw,18px);
     letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(255,255,255,.09);
     border-radius:999px;padding:7px 15px}
-  .tk.live .tk-tag{background:rgba(58,222,107,.16);color:#5fe28e}
+  .tk.live .tk-tag{background:color-mix(in srgb,var(--slab) 16%,transparent);color:var(--slab)}
   .tk.hot .tk-tag{background:rgba(255,70,64,.16);color:#ff5f57}
   .tk-head{font-family:var(--disp);font-weight:700;font-size:clamp(21px,5.6vw,34px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase;background:rgba(255,255,255,.09);border-radius:13px;padding:11px 15px;
     margin:0;align-self:stretch}
-  .tk.live .tk-head{background:rgba(58,222,107,.16)}
+  .tk.live .tk-head{background:color-mix(in srgb,var(--slab) 16%,transparent)}
   .tk.hot .tk-head{background:rgba(255,70,64,.14);color:#ff5f57}
   .tk-big{font-family:var(--disp);font-weight:700;font-size:clamp(24px,6.4vw,42px);line-height:1.05;
     letter-spacing:.03em;text-transform:uppercase}
@@ -1516,7 +1518,10 @@
      even need this box?!" — the clock says BLOCK 1/3 and the button says
      BLOCK 1 OF 3 RUNNING; three copies of one fact). The Big Screen keeps
      its own banner. */
-  body:not(.bigscreen) #phaseBanner{display:none}
+  /* the phase banner ("00:00-09:00 — SCORING") is redundant everywhere (Omar,
+     build 528: "this box is useless") — the NOW slab and the clock already say
+     the phase and the window; hidden on every surface. */
+  #phaseBanner{display:none}
   .tb-namer{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.03)}
   .tb-namer label{font-family:var(--disp);font-weight:600;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute)}
   .tb-namer div{display:flex;gap:8px}
@@ -1562,7 +1567,7 @@
   body.bigscreen:not(.mobscreen) #evProg{display:none}
   body.wkscreen .board{display:none!important}
   body.wkscreen .blocks{display:grid!important}
-  body.wkscreen .blk{border-left-color:rgba(255,255,255,.75)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
+  body.wkscreen .blk{border-left-color:var(--slab)!important;border-color:rgba(255,255,255,.28);background:var(--card)!important}
   body.wkscreen .blk .teams,body.wkscreen .blk .shareline{display:none}
   body.wkscreen .phase .pdesc{display:none}
   body.wkscreen .blk .win{color:var(--ink);font-size:15px;margin-top:10px}
@@ -2128,7 +2133,8 @@ body.lbnew #viewBoard>.tvfit{display:none}
 body.lbnew #lbLive{display:flex}
 .lbc-limebar{position:absolute;top:0;left:0;right:0;height:10px;background:var(--lbAccent);z-index:5}
 .lbc-logo{filter:brightness(0) invert(1);object-fit:contain;flex-shrink:0;display:block}
-.lbc-div{width:2px;background:#26262B;flex-shrink:0}
+/* a lime slash, not a generic grey line (build 528) — a bit of brand energy */
+.lbc-div{width:6px;background:var(--lbAccent);flex-shrink:0;transform:skewX(-12deg);border-radius:2px}
 
 /* ---- PAGE 1 : LIVE ---- */
 .lb-live{display:flex;flex-direction:column;padding:48px 64px 40px}
@@ -11450,7 +11456,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=527;
+  const BUILD=528;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
