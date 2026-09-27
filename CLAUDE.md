@@ -2194,6 +2194,23 @@ into a table.
   exports to PNG: foreignObject won't resolve flex/grid fills or inherit `:root`
   custom props, and needs well-formed XHTML — give explicit heights, inline the
   accent, and use the raw string.
+- **MULTIPLE CLASSES, ONE WORKOUT — COMBINED LEADERBOARD (build 527 — Omar: the
+  same scored workout runs several times a day; each class is its own board plus
+  a combined all-classes board, live as classes finish, tagged by class).**
+  `lbMode` ("class"|"all", localStorage `af_lbmode_v1`) picks which board the
+  `#lbLive` picture shows; a `.lbmode` toggle in the header (delegated click)
+  switches it. `classLabel` (localStorage `af_class_label_v1`, default "Class 1",
+  auto-bumps "Class N"→"N+1" after each finish, custom labels like "9am" left
+  alone) is set on Control > Session (`#ctlClassLabel`, shown only for scored
+  rotation). On finish, `pushClassResult()` sends this class's teams (name,
+  splits, total) + segs + label to the relay `res.put` op under `resKey()` =
+  `<date>|<workout>`; `fetchCombined()` polls `res.get` (throttled 8s, 12s
+  interval while the all-board is up) and `lbCombinedTeams()` pools every class's
+  teams, tags each with its class, ranks all together. The worker stores one KV
+  entry per workout-day (`res:<key>`, 2-day TTL, LWW per class label). REQUIRES
+  the redeployed worker (the `res` op). `window.__lb.setCombined/mode/label/push`
+  are the suite hooks; the combined path is gated in-repo (pooled+ranked+tagged,
+  empty state, toggle, Control field).
 
 ## MANUAL SCORES (SHIPPED build 374 — Omar's "go")
 

@@ -107,6 +107,34 @@ export default {
       return json({ ok: 1, ts: rec.ts });
     }
 
+    // ---- combined multi-class results (build 527): each class pushes its
+    // finished teams under a workout+date key; every device reads them back for
+    // the "all classes today" leaderboard. One KV entry per workout-day. ----
+    if (body.op === "res.put" || body.op === "res.get") {
+      if (!env.LIB) return json({ error: "results storage not set up (bind a KV namespace as LIB)" }, 500);
+      const key = "res:" + String(body.key || "").slice(0, 120);
+      if (key === "res:") return json({ error: "no key" }, 400);
+      const cur = (await env.LIB.get(key, "json")) || { classes: {} };
+      if (!cur.classes) cur.classes = {};
+      if (body.op === "res.get") return json({ ok: 1, data: cur });
+      const cls = (String(body.class || "Class").slice(0, 40).trim()) || "Class";
+      const teams = Array.isArray(body.teams) ? body.teams.slice(0, 80).map((t) => ({
+        name: String(t.name || "").slice(0, 40),
+        splits: Array.isArray(t.splits) ? t.splits.slice(0, 8).map((x) => (x == null ? null : Math.round(+x || 0))) : [],
+        total: Math.round(+t.total || 0),
+      })) : [];
+      const segs = Array.isArray(body.segs) ? body.segs.slice(0, 8).map((s) => String(s || "").slice(0, 16)) : [];
+      const ts = parseInt(body.ts, 10) || Date.now();
+      const ex = cur.classes[cls];
+      if (!ex || (ex.ts || 0) <= ts) cur.classes[cls] = { ts, teams, segs };   // last-write-wins per class
+      cur.workout = String(body.workout || cur.workout || "").slice(0, 60);
+      cur.unit = String(body.unit || cur.unit || "cal").slice(0, 8);
+      const out = JSON.stringify(cur);
+      if (out.length > LIB_MAX) return json({ error: "results full" }, 413);
+      await env.LIB.put(key, out, { expirationTtl: 172800 });   // auto-forget after 2 days
+      return json({ ok: 1, ts });
+    }
+
     // ---- result emails (SendGrid; the gym's own address as the verified
     // single sender). The app hands us the finished rows; we send one message
     // per team that left an email, each recipient getting their own copy. ----

@@ -166,7 +166,7 @@
   .blk.scoring .bprog i{background:var(--hot)}
   .blk.queued,.blk.donez{opacity:.42}
   .blk.donez .bstat.q{color:var(--ink-dim)}
-  .blk.bcw.live{--bl:#ffffff;--blbg:rgba(255,255,255,.06)}
+  .blk.bcw.live{--bl:var(--slab);--blbg:color-mix(in srgb,var(--slab) 8%,transparent)}
   .blk.bcw.live{border-color:rgba(255,255,255,.42)}
   /* NOW and NEXT are the same tag twice, so the eye reads them as a pair */
   .ptag{font-style:normal;display:inline-block;vertical-align:baseline;margin-right:7px;
@@ -1722,7 +1722,7 @@
   .blk .teams .t.unnamed.late{color:#ff9490;background:rgba(255,70,64,.13)}
   .blk .teams .t.unnamed.late .mtag{border-color:rgba(255,110,104,.55);color:#ff9490}
   .tb-tinfo b.unnamed{color:#ff9490}
-  .blk.bcw{--bl:rgba(255,255,255,.7);--blbg:transparent}
+  .blk.bcw{--bl:color-mix(in srgb,var(--slab) 72%,transparent);--blbg:transparent}
   .collabrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:44px}
   .blkrest{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin:-2px 2px;min-height:0}
   .blkrest::before,.blkrest::after{content:"";flex:1;border-top:1px dashed rgba(255,255,255,.4)}
@@ -2031,14 +2031,16 @@
   .clock .clab,.clock .cbar{display:none}
   body.wkscreen:not(.mobscreen) .clock{background:var(--slab);border-radius:.22em;
     border:.03em solid transparent;
-    padding:.14em .34em .14em;text-align:center;position:absolute;right:0;bottom:0;
-    display:flex;flex-direction:column;align-items:center;
+    padding:.1em .34em;text-align:center;position:absolute;right:0;bottom:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-size:clamp(40px,calc(var(--tvw,1820px)*.076),132px)}
   /* NO WORDS IN THE BOX (Omar, build 362) — the digits and the drain bar are
-     the whole object; work/rest is told by the slab itself (solid vs outline) */
+     the whole object; work/rest is told by the slab itself (solid vs outline).
+     The digits are vertically centred, and NEVER red (Omar, build 527) — the
+     ink stays black on the slab even in the last seconds; the beep is the cue. */
   body.wkscreen:not(.mobscreen) .clock b{color:#0a0a0b;font-size:1em;letter-spacing:-.04em;
-    line-height:1.06}
-  body.wkscreen:not(.mobscreen) .clock b.hot{color:var(--hot);text-shadow:none}
+    line-height:1;display:flex;align-items:center;justify-content:center}
+  body.wkscreen:not(.mobscreen) .clock b.hot{color:#0a0a0b;text-shadow:none}
   body.wkscreen:not(.mobscreen) .clock span{display:none}
   /* the drain bar is GONE (Omar, build 372) — digits only */
   /* REST: the same shape drawn in outline — the pair reads as one control */
@@ -2163,6 +2165,14 @@ body.lbnew #lbLive{display:flex}
 .lbc-foot .fl{display:flex;align-items:center;gap:10px;font-family:"Barlow Condensed";font-weight:700;font-size:19px;color:#A6A6AC;letter-spacing:1.5px}
 .lbc-foot .fsq{width:6px;height:6px;background:#A6A6AC;flex-shrink:0}
 .lbc-foot .fr{font-family:"Barlow Condensed";font-weight:700;font-size:19px;color:var(--lbAccent);letter-spacing:1.5px}
+/* This class / All classes toggle + combined-board bits (build 527) */
+.lb-live .lbmode{display:flex;gap:6px;margin-top:8px}
+.lb-live .lbm{font-family:"Barlow Condensed";font-weight:700;font-size:14px;letter-spacing:2px;
+  padding:5px 12px;border-radius:999px;border:1px solid #3a3a41;background:transparent;color:#8C8C92;cursor:pointer;line-height:1}
+.lb-live .lbm.on{background:var(--lbAccent);color:#08080A;border-color:var(--lbAccent)}
+.lb-live .tmcls{font-family:"Barlow Condensed";font-weight:600;font-size:.62em;color:var(--lbAccent);letter-spacing:1px}
+.lb-live .lbempty{display:flex;align-items:center;justify-content:center;height:100%;padding:0 80px;
+  text-align:center;font-family:"Barlow Condensed";font-weight:600;font-size:34px;color:#8C8C92;line-height:1.35}
 
 /* ---- PAGE 2 : FINAL ---- */
 .lb-final{padding:52px 64px 44px;display:flex;flex-direction:column}
@@ -2322,6 +2332,11 @@ body.lbnew #lbLive{display:flex}
         <div class="teamsbar">
           <label id="tcLabel">Teams today</label>
           <span id="tcPick"></span>
+        </div>
+        <div class="teamsbar" id="tcClassRow" hidden>
+          <label>Class label</label>
+          <input type="text" id="ctlClassLabel" maxlength="40" placeholder="Class 1"
+                 style="width:auto;min-width:130px" autocomplete="off">
         </div>
         <div class="wkdiv"></div>
         <div class="clock" style="margin-left:0;text-align:left"><b id="tClock">—</b><span id="tState"></span></div>
@@ -5296,43 +5311,113 @@ window.addEventListener("error",function(ev){
   const lbLogoSrc=()=>{ const im=document.querySelector('.mark img.badge'); return im?im.getAttribute("src"):""; };
   const lbGap=(lead,t)=>t.total>0?("−"+lbFmtS(lead-t.total)):"—";
 
+  // ===== MULTIPLE CLASSES, ONE WORKOUT (build 527 — Omar) =====
+  // The same scored workout runs several times a day (9am, 10am…). Each class
+  // is its own live board; when it finishes it pushes its teams to a shared
+  // per-workout store, and an "All classes" view pools every finished class,
+  // each team tagged with its class. lbMode = which board is shown.
+  let lbMode="class";                       // "class" | "all"
+  try{ lbMode=localStorage.getItem("af_lbmode_v1")||"class"; }catch(e){}
+  let classLabel="Class 1";
+  try{ classLabel=localStorage.getItem("af_class_label_v1")||"Class 1"; }catch(e){}
+  const setClassLabel=v=>{ classLabel=String(v||"").slice(0,40).trim()||"Class 1";
+    try{ localStorage.setItem("af_class_label_v1",classLabel); }catch(e){} };
+  // after a class finishes, auto-advance "Class N" -> "Class N+1" so the next
+  // class is pre-labelled; a custom label (e.g. "9am") is left for the trainer
+  const bumpClassLabel=()=>{ const m=/^Class (\d+)$/.exec(classLabel);
+    if(m) setClassLabel("Class "+(parseInt(m[1],10)+1)); };
+  const resKey=()=>{ const d=(cfg.prog&&cfg.prog.date)||"";
+    const nm=(cfg.name||cfg.wkName||"Workout").toLowerCase().replace(/\s+/g," ").trim();
+    return d+"|"+nm; };
+  let combined={classes:{}}, combinedKey="", combinedAt=0;
+  // push THIS class's finished teams to the shared store (on finish)
+  function pushClassResult(){
+    if(!aiUrl||!showLeaderboard()||cfg.mode!=="rotation") return;
+    const {segs,teams}=lbTeams();
+    if(!teams.length) return;
+    libCall({op:"res.put", key:resKey(), class:classLabel,
+      workout:(cfg.name||cfg.wkName||"Workout"), unit:lbUnit(),
+      segs:segs.map(s=>s.label),
+      teams:teams.map(t=>({name:t.name,splits:t.splits,total:t.total})),
+      ts:Date.now()});
+    bumpClassLabel();
+    try{ const f=$("ctlClassLabel"); if(f&&document.activeElement!==f) f.value=classLabel; }catch(e){}
+  }
+  async function fetchCombined(force){
+    if(!aiUrl) return;
+    const key=resKey();
+    if(!force && Date.now()-combinedAt<8000 && combinedKey===key) return;
+    combinedAt=Date.now(); combinedKey=key;
+    const r=await libCall({op:"res.get", key});
+    combined=(r&&r.data)||{classes:{}};
+    if(lbMode==="all"){ try{ renderLbLive(true); }catch(e){} }
+  }
+  // pool every finished class; tag each team with its class; rank all together
+  function lbCombinedTeams(){
+    const cc=(combined&&combined.classes)||{};
+    let segLabels=[]; Object.keys(cc).forEach(k=>{ const s=cc[k].segs||[]; if(s.length>segLabels.length) segLabels=s; });
+    const teams=[];
+    Object.keys(cc).forEach(k=>(cc[k].teams||[]).forEach(t=>teams.push({
+      name:t.name, cls:k, splits:t.splits||[], total:+t.total||0 })));
+    teams.sort((a,b)=>b.total-a.total);
+    return { segs:segLabels.map(l=>({label:l})), teams, classes:Object.keys(cc).length };
+  }
+
   function renderLbLive(){
     const el=$("lbLive"); if(!el) return;
-    const {segs,teams}=lbTeams();
+    const all=lbMode==="all";
+    if(all) fetchCombined();                 // keep the pooled board fresh (throttled)
+    const src=all?lbCombinedTeams():lbTeams();
+    const segs=src.segs, teams=src.teams;
     const N=teams.length, K=Math.max(1,segs.length);
     const tp=lbTitleParts();
-    const headKey=[N,K,tp.join("|"),lbUnitWord(),running?1:0,segs.map(s=>s.label).join(",")].join("~");
+    // the toggle: This class / All classes today
+    const tog=`<div class="lbmode"><button type="button" class="lbm${all?"":" on"}" data-m="class">THIS CLASS</button>`
+      +`<button type="button" class="lbm${all?" on":""}" data-m="all">ALL CLASSES</button></div>`;
+    const headKey=[all?1:0,N,K,tp.join("|"),lbUnitWord(),running?1:0,segs.map(s=>s.label).join(","),src.classes||0].join("~");
     if(el._hk!==headKey){ el._hk=headKey;
+      const rightInfo=all
+        ? `<div class="hteams">${N} ${esc(Kw().toUpperCase())}S</div><div class="hscored">${src.classes||0} CLASSES · ${lbUnitWord()}</div>`
+        : `<div class="hteams">${N} ${esc(Kw().toUpperCase())}S</div><div class="hscored">SCORED IN ${lbUnitWord()}</div>`;
       el.innerHTML=
         `<div class="lbc-limebar"></div>`
         +`<div class="lbc-head"><div class="hleft">`
           +`<img class="lbc-logo" style="width:295px;height:60px" src="${esc(lbLogoSrc())}">`
           +`<div class="lbc-div" style="height:72px"></div>`
           +`<div class="htitle">${esc(tp[0])}<span class="lime">${esc(tp[1])}</span></div></div>`
-          +`<div class="hright"><div class="hstack">`
-            +`<div class="hteams">${N} ${esc(Kw().toUpperCase())}S</div>`
-            +`<div class="hscored">SCORED IN ${lbUnitWord()}</div></div>`
-            +(running?`<div class="lbc-div" style="height:72px"></div>`
+          +`<div class="hright"><div class="hstack">`+rightInfo+tog+`</div>`
+            +(running&&!all?`<div class="lbc-div" style="height:72px"></div>`
               +`<div class="live-badge"><div class="live-dot"></div><div class="live-txt">LIVE</div></div>`:``)
           +`</div></div>`
         +`<div class="lbc-body" id="lbBody"></div>`
         +`<div class="lbc-foot"><div class="fl">@ATHLETEFITNESS.AE<span class="fsq"></span>WWW.ATHLETEFITNESS.AE</div>`
           +`<div class="fr">#${lbHashtag()}</div></div>`;
     }
+    if(all&&!N){ const b=$("lbBody"); if(b) b.innerHTML=`<div class="lbempty">No classes have finished yet today — the first class's results land here as it ends.</div>`; return; }
     const half=Math.ceil(N/2);
     const mcW=K<=4?84:Math.max(56,Math.floor(340/K));
     const gtc=`64px minmax(0,1fr) ${Array(K).fill(mcW+"px").join(" ")} 150px`;
     const row=(t,rank)=>{
       const cls="lbrow"+(rank===1?" first":(rank%2===0?" zebra":""));
-      const mcs=t.splits.map((v,k)=>`<div class="mc"><div class="lab">${esc(segs[k].label)}</div><div class="val">${lbFmtS(v)}</div></div>`).join("");
+      const mcs=t.splits.map((v,k)=>`<div class="mc"><div class="lab">${esc(segs[k]?segs[k].label:"")}</div><div class="val">${lbFmtS(v)}</div></div>`).join("");
+      const nm=all&&t.cls?`${esc(t.name)} <span class="tmcls">· ${esc(t.cls)}</span>`:esc(t.name);
       return `<div class="${cls}" style="grid-template-columns:${gtc}">`
         +`<div class="rk${rank<=3?" top3":""}">${lbPad(rank)}</div>`
-        +`<div class="tm">${esc(t.name)}</div>${mcs}`
+        +`<div class="tm">${nm}</div>${mcs}`
         +`<div class="tot${rank===1?" win":""}"><span class="big">${lbFmt(t.total)}</span><span class="cal">${lbUnitTag()}</span></div></div>`;
     };
     const col=(a,base)=>`<div class="lbc-col">`+a.map((t,i)=>row(t,base+i+1)).join("")+`</div>`;
     const body=$("lbBody"); if(body) body.innerHTML=col(teams.slice(0,half),0)+col(teams.slice(half),half);
   }
+  // toggle handler (delegated — the head is rebuilt on structural change)
+  { const el=$("lbLive"); if(el&&!el._modeBound){ el._modeBound=1;
+      el.addEventListener("click",e=>{ const b=e.target.closest(".lbm"); if(!b) return;
+        const m=b.dataset.m; if(m===lbMode) return; lbMode=m;
+        try{ localStorage.setItem("af_lbmode_v1",lbMode); }catch(x){}
+        if(lbMode==="all") fetchCombined(true);
+        try{ renderLbLive(); }catch(x){} }); } }
+  // poll the shared store while the All-classes board is up, so it grows live
+  setInterval(()=>{ if(document.body.classList.contains("lbnew")&&lbMode==="all") fetchCombined(); },12000);
 
   // PAGE 2 — FINAL RESULTS, the image emailed to each team to share on socials.
   // `youIx` (optional) is the rank index (0-based) of the team being emailed —
@@ -5429,7 +5514,10 @@ window.addEventListener("error",function(ev){
     a.href=url; a.download=(lbHashtag()||"results")+".png";
     document.body.appendChild(a); a.click(); a.remove();
   }
-  try{ window.__lb={live:renderLbLive,finalHTML:lbFinalHTML,png:lbRenderPng,teams:lbTeams}; }catch(e){}
+  try{ window.__lb={live:renderLbLive,finalHTML:lbFinalHTML,png:lbRenderPng,teams:lbTeams,
+    mode:m=>{ if(m){ lbMode=m; try{localStorage.setItem("af_lbmode_v1",m);}catch(e){} } return lbMode; },
+    setCombined:d=>{ combined=d||{classes:{}}; combinedAt=Date.now(); combinedKey=resKey(); try{renderLbLive();}catch(e){} },
+    label:v=>{ if(v!=null) setClassLabel(v); return classLabel; }, push:pushClassResult}; }catch(e){}
 
   /* ================= SEQUENCE — everyone together ================= */
   const SCORE = {
@@ -10512,6 +10600,13 @@ window.addEventListener("error",function(ev){
   function buildControlRoom(){
     $("cName").value=cfg.name;
     renderScorePanel();
+    // CLASS LABEL (build 527): shown only for a scored rotation board (where the
+    // "All classes" leaderboard exists); rides each finished class's results.
+    { const row=$("tcClassRow"), inp=$("ctlClassLabel");
+      const show=cfg.mode==="rotation"&&showLeaderboard();
+      if(row) row.hidden=!show;
+      if(inp){ if(document.activeElement!==inp) inp.value=classLabel;
+        if(!inp._b){ inp._b=1; inp.oninput=()=>setClassLabel(inp.value); } } }
     // where this session sits in the programme — name, date, block, week, day
     { if(!cfg.prog||typeof cfg.prog!=="object") cfg.prog={};
       const pr=cfg.prog;
@@ -10912,6 +11007,7 @@ window.addEventListener("error",function(ev){
     if(results.length>200) results.length=200;
     saveResults();
     try{ sendResultEmails(rows); }catch(e){}
+    try{ pushClassResult(); }catch(e){}   // this class -> the shared "All classes" board
     if($("viewResults").classList.contains("active")) renderResults();
   }
   // RESULT EMAILS (build 506 — Omar: a scored team that left an email gets its
@@ -11354,7 +11450,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=526;
+  const BUILD=527;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
