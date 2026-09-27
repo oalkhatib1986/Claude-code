@@ -159,6 +159,27 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 
 - localStorage: cfg `af_erg_cfg_v8`, presets `af_presets_v1`, tablet `af_tablet_sel`,
   results `af_results_v1`. Boot migrations live right after cfg load.
+- **GYM-WIDE SETTINGS ARE UNIVERSAL, NOT PER-WORKOUT (build 529 — Omar: "the
+  theme and leaderboard color and tablet password shouldn't be in the workout
+  Setup… having it under workout affects the loaded workout only, but this should
+  be universal").** Theme colour, leaderboard colour and logo choice were `cfg`
+  fields (per board — a picked board reverted them). They now live in `gymCfg`
+  (`af_gym_v1`, DEVICE-local, one object): `gymGet(k,d)`/`gymSet(k,v)`, read by
+  `themeAccent()` (accent) / `lbColour()` (lbAccent) / `logoChoice()` (logo), each
+  FALLING BACK to the old `cfg` value so an existing look is preserved until the
+  trainer sets one explicitly. `applyAccent`/`applyLogo` read the helpers, never
+  `cfg` directly. The tablet exit code (`af_kiosk_pin`/KPIN) was already
+  device-local. These four controls MOVED out of the per-workout Library/Setup
+  card ("Board display · Brand" → "Board display", brand fields gone) into a
+  "Brand & device" card on the renamed **Settings** tab (was "Layout", `#stLayout`
+  — the tab that holds Gym machines/equipment; ids `viewLayout`/subTab `layout`
+  unchanged, only the visible label + user-facing "Layout ›" hints renamed). The
+  controls wire in `buildControlRoom()` (runs at boot), so they attach regardless
+  of which section holds them; changing one calls `gymSet`+apply and does NOT
+  dirty `cfg`, so it never triggers the "Keep changes?" prompt. Per-workout
+  display options (columns, score entry, sample numbers, beeps, get-ready, part
+  titles) stay in the Library/Setup card. LESSON: a setting that must be the same
+  for every board is `gymCfg`, never `cfg`.
 - Engine: per-block `rounds`/`rrest`/`aRest`; per-item `fmt` (share/waves/rotate)
   with `shareN`/`wavesN`; `cfg.together` = everyone-together class flow;
   `R().sameRest===false` enables per-block rest-after.

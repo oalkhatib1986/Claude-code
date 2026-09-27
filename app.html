@@ -578,6 +578,8 @@
   .tk-nxt>em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:clamp(14px,3.4vw,22px);
     letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* the score-entry handover card wraps its full sentence (no ellipsis) */
+  .tk-scorenext>em{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.28}
   .tk-duo{display:flex;flex:1 1 auto;min-height:0;min-width:0}
   .tk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px 18px}
   /* the line box contains its own glyphs: at .92 the face's ascender/descender
@@ -2282,7 +2284,7 @@ body.lbnew #lbLive{display:flex}
   <div class="subtabs" id="subTabs">
     <button id="stWorkout" class="on" type="button">Overview</button>
     <button id="stSetup" type="button">Library</button>
-    <button id="stLayout" type="button">Layout</button>
+    <button id="stLayout" type="button">Settings</button>
     <button id="stResults" type="button">Results</button>
     <button id="stArchive" type="button">Archive</button>
   </div>
@@ -2708,7 +2710,7 @@ body.lbnew #lbLive{display:flex}
 
 
       <div class="card">
-        <h3>Board display · Brand</h3>
+        <h3>Board display</h3>
         <div class="body">
           <div class="fld"><label>Columns for each machine</label>
             <div class="checks" id="dispChecks">
@@ -2751,24 +2753,12 @@ body.lbnew #lbLive{display:flex}
               <label class="chk"><input type="checkbox" data-d="hideTime"> Hide the interval time when the title already says it</label>
             </div>
           </div>
-          <div class="fld"><label>Erg tablet exit code</label>
-            <input id="kioskPin" type="text" inputmode="numeric" autocomplete="off" placeholder="none — the full-screen &times; exits freely" style="width:100%;max-width:320px">
-            <div class="hint" style="margin-top:6px">Set a code (digits) and the full-screen &times; asks for it, so the class can&rsquo;t leave the workout. Saved on this tablet only.</div>
-          </div>
           <div class="fld"><label>Score entry</label>
             <div class="checks" id="scoreSrcPick">
               <label class="chk"><input type="radio" name="scoresrc" value="manual"> The class types it in</label>
               <label class="chk"><input type="radio" name="scoresrc" value="auto"> The machines count it</label>
             </div>
           </div>
-          <div class="fld"><label>Logo</label>
-            <div class="checks" id="logoPick">
-              <label class="chk"><input type="radio" name="logopick" value="word" checked> Wordmark</label>
-              <label class="chk"><input type="radio" name="logopick" value="badge"> A3 badge</label>
-            </div>
-          </div>
-          <div class="fld"><label>Theme colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"><div class="note" style="margin-top:6px">Recolours the white slabs everywhere — selected tabs, running-part cards and the erg tablets. Leave it white for the classic look.</div></div>
-          <div class="fld"><label>Leaderboard colour</label><input type="color" id="cLbAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"><div class="note" style="margin-top:6px">The accent on the leaderboard &amp; final-results screens — the top bar, the leader, the badges and the hashtag. Default lime.</div></div>
         </div>
       </div>
 
@@ -2776,9 +2766,26 @@ body.lbnew #lbLive{display:flex}
     </div>
   </section>
 
-  <!-- ============ LAYOUT (studio machines) ============ -->
+  <!-- ============ SETTINGS (gym-wide, not per-workout) ============ -->
   <section class="view" id="viewLayout">
     <div class="cr">
+      <div class="card wide">
+        <h3>Brand &amp; device <span class="r">gym-wide &mdash; applies to every workout</span></h3>
+        <div class="body">
+          <div class="fld"><label>Theme colour</label><input type="color" id="cAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"><div class="note" style="margin-top:6px">Recolours the white slabs everywhere — selected tabs, running-part cards and the erg tablets. Leave it white for the classic look.</div></div>
+          <div class="fld"><label>Leaderboard colour</label><input type="color" id="cLbAccent" style="width:60px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer"><div class="note" style="margin-top:6px">The accent on the leaderboard &amp; final-results screens — the top bar, the leader, the badges and the hashtag. Default lime.</div></div>
+          <div class="fld"><label>Logo</label>
+            <div class="checks" id="logoPick">
+              <label class="chk"><input type="radio" name="logopick" value="word" checked> Wordmark</label>
+              <label class="chk"><input type="radio" name="logopick" value="badge"> A3 badge</label>
+            </div>
+          </div>
+          <div class="fld"><label>Erg tablet exit code</label>
+            <input id="kioskPin" type="text" inputmode="numeric" autocomplete="off" placeholder="none — the full-screen &times; exits freely" style="width:100%;max-width:320px">
+            <div class="hint" style="margin-top:6px">Set a code (digits) and the full-screen &times; asks for it, so the class can&rsquo;t leave the workout. Saved on this tablet only.</div>
+          </div>
+        </div>
+      </div>
       <div class="card wide">
         <h3>Gym machines <span class="r">capacity checks &amp; auto-assignment</span></h3>
         <div class="body">
@@ -3099,11 +3106,22 @@ window.addEventListener("error",function(ev){
   let claimCache=null;
   const save=()=>{ claimCache=null; try{ localStorage.setItem(KEY,JSON.stringify(cfg)); }catch(e){}
     sessOnSave(); };   // every cfg change offers itself to the room (hoisted; no-op when local-only)
-  const applyAccent=()=>{ document.documentElement.style.setProperty("--accent",cfg.accent);
-    // the leaderboard carries its OWN colour (Omar: "the green I can change to
-    // whatever I like on the leaderboard") — its own brand, independent of the
-    // app's white theme. Default lime; stored absent -> lime, no migration.
-    document.documentElement.style.setProperty("--lbAccent",cfg.lbAccent||"#C6F432"); };
+  // GYM-WIDE SETTINGS (build 529 — Omar: "theme, leaderboard colour, tablet
+  // password... shouldn't be under Workout, they affect the loaded workout only
+  // but should be UNIVERSAL"). These live on the DEVICE, not the board, so they
+  // apply to every workout. A board's own cfg.accent/lbAccent/logo is only the
+  // fallback until the gym sets its own. (The tablet exit code was already
+  // device-local.) localStorage `af_gym_v1`.
+  let gymCfg={}; try{ gymCfg=JSON.parse(localStorage.getItem("af_gym_v1")||"{}")||{}; }catch(e){ gymCfg={}; }
+  const gymGet=(k,d)=>(gymCfg[k]!=null&&gymCfg[k]!=="")?gymCfg[k]:d;
+  const gymSet=(k,v)=>{ gymCfg[k]=v; try{ localStorage.setItem("af_gym_v1",JSON.stringify(gymCfg)); }catch(e){} };
+  const themeAccent=()=>gymGet("accent",cfg.accent||"#ffffff");
+  const lbColour=()=>gymGet("lbAccent",(cfg.lbAccent||"#C6F432"));
+  const logoChoice=()=>gymGet("logo",(cfg.display&&cfg.display.logo)==="badge"?"badge":"word");
+  const applyAccent=()=>{ document.documentElement.style.setProperty("--accent",themeAccent());
+    // the leaderboard carries its OWN colour, still gym-wide (Omar: "the green I
+    // can change to whatever I like on the leaderboard"), independent of --accent.
+    document.documentElement.style.setProperty("--lbAccent",lbColour()); };
   // THE LOGO IS ONE ASSET IN TWO FORMS. The wordmark ships in the markup (the
   // default everywhere, Omar's high-res art, white for the dark ground); the
   // badge is the square A3 mark. Layout > Brand picks which one shows, and the
@@ -3114,7 +3132,7 @@ window.addEventListener("error",function(ev){
   function applyLogo(){
     const im=document.querySelector("img.badge"); if(!im) return;
     if(!applyLogo._word) applyLogo._word=im.getAttribute("src");
-    const k=(cfg.display&&cfg.display.logo)==="badge"?"badge":"word";
+    const k=logoChoice()==="badge"?"badge":"word";   // gym-wide (build 529)
     const want=k==="badge"?LOGO_BADGE:applyLogo._word;
     if(im.getAttribute("src")!==want) im.setAttribute("src",want);
     document.body.dataset.logo=k;
@@ -4436,7 +4454,7 @@ window.addEventListener("error",function(ev){
     const p=typePeaks();
     const bad=Object.keys(p).filter(m=>p[m]>invOf(m));
     if(!bad.length){ el.hidden=true; return; }
-    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. ${cfg.teamKind==="solo"?"Switch <b>Format</b> to teams of 2\u20133 so athletes share a machine and alternate, or fix the workout in Setup / machine counts in Layout.":`Use fewer ${kws()} (bigger teams share each machine), add waves to the piece in Setup, or fix the machine counts in Layout.`}`;
+    el.innerHTML=`<b>&#9888; Not enough machines:</b> `+bad.map(m=>`${mInfo(m).label}s need ${p[m]}, you have ${invOf(m)}`).join(" · ")+` — the session can't start. ${cfg.teamKind==="solo"?"Switch <b>Format</b> to teams of 2\u20133 so athletes share a machine and alternate, or fix the workout in Setup / machine counts in Settings.":`Use fewer ${kws()} (bigger teams share each machine), add waves to the piece in Setup, or fix the machine counts in Settings.`}`;
     el.hidden=false;
   }
   function renderBlockCards(force){
@@ -4730,7 +4748,7 @@ window.addEventListener("error",function(ev){
       const shIts=(b.items||[]).filter(x2=>x2&&!x2.rest&&x2.fmt==="share");
       const g=shIts.length?itGear(shIts[0]):0;
       if(g){ const wt=Math.max(1,worstTeamsPerBlock());
-        f.innerHTML=`<span class="befnote">This split is worked out from the class size (${wt}) shared over the gym's ${Math.min(g,wt)} station${Math.min(g,wt)>1?"s":""} — change the class in Control, or the machine counts in Layout.</span><span class="befbtns"><button type="button" class="btn small" data-bev="cancel">Close</button></span>`; }
+        f.innerHTML=`<span class="befnote">This split is worked out from the class size (${wt}) shared over the gym's ${Math.min(g,wt)} station${Math.min(g,wt)>1?"s":""} — change the class in Control, or the machine counts in Settings.</span><span class="befbtns"><button type="button" class="btn small" data-bev="cancel">Close</button></span>`; }
       else { const fmtSel=t.fmtSel||"share";
         f.innerHTML=befSel("Format","befFmt",fmtSel,
             [["share","Share & alternate"],["together","Everyone at once"],["waves","Waves"],["rotate","Rotate stations"]])
@@ -7280,7 +7298,10 @@ window.addEventListener("error",function(ev){
               </div>`:workList}
               ${tsw&&Date.now()-tsw.st.flash<2400?`<div class="tk-flash">Target hit — swap now</div>`:""}
             </div>
-            ${tsw?tgtRail:`<div class="tk-side tk-info">
+            ${(ask&&askFull)?`<div class="tk-side tk-info">
+              <div class="tk-card tk-nxt tk-scorenext"><span>When you&rsquo;re done</span><b>Save the score</b><em>then hand the tablet to the next team</em></div>
+            </div>`
+             :tsw?tgtRail:`<div class="tk-side tk-info">
               <div class="tk-card tk-cell tk-clk"><b>${clkVal}</b><i>${clkLab}</i></div>
               ${nxtCard}
             </div>`}
@@ -7554,7 +7575,7 @@ window.addEventListener("error",function(ev){
               else cfg.exGear[key]=nm;
               save(); renderItems(); if(!sessionActive&&!running) build(); },
             {cls:"time igear", searchPh:"Which equipment\u2026"});
-          gearFld.title="What this exercise needs. The count lives in Layout \u203a Gym equipment, "
+          gearFld.title="What this exercise needs. The count lives in Settings \u203a Gym equipment, "
             +"so change it once and every workout using this exercise follows.";
           const w=lwrap("Equipment","equipment",gearFld); w.classList.add("gfld");
           r2.appendChild(w);
@@ -9293,10 +9314,10 @@ window.addEventListener("error",function(ev){
     inote:"Guidance for this whole part — “rest 1:30 between sets · RPE 7-8 across”. Shown under the part's work.",
     every:"A task that interrupts on a fixed interval — “every 4:00, one partner does 20 wall balls”. It heads the part's list; the rest of the work continues around it.",
     win:"The window: one span of time (“in 20:00”) that all of this block's work happens inside. The clock runs the window; the class works through the list.",
-    sharein:"Worked out for you: how many are in class today divided by how many of that equipment the gym has. Set the class size in Control and the equipment count in Layout \u203a Gym equipment \u2014 there is nothing to type here.\n\nHow many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
+    sharein:"Worked out for you: how many are in class today divided by how many of that equipment the gym has. Set the class size in Control and the equipment count in Settings \u203a Gym equipment \u2014 there is nothing to type here.\n\nHow many athletes take turns on one station. Two sharing means one works while the other rests, then they swap \u2014 the part's clock runs once for both.",
     rotby:"When people move on: When done \u2014 each athlete taps Done on their tablet and moves at their own pace \u00b7 On the clock \u2014 everyone swaps together on a fixed split.",
     rm1:"How heavy, as a percentage of the athlete's one-rep max \u2014 65%, 80%, whatever you program. Leave it on none and nothing is printed. It rides with the work everywhere the prescription is shown: the overview card, the big screen, the station panels and the tablets. Ergs have no 1RM, so the field only appears for floor exercises.",
-    equipment:"What this exercise needs \u2014 a squat rack, a bench, a sled. Add the kit and its count once in Layout \u203a Gym equipment; every exercise linked to it then shares it out automatically, and each athlete is told which one is theirs.",
+    equipment:"What this exercise needs \u2014 a squat rack, a bench, a sled. Add the kit and its count once in Settings \u203a Gym equipment; every exercise linked to it then shares it out automatically, and each athlete is told which one is theirs.",
     stations:"How many of these you have in the gym \u2014 squat racks, bars, benches. Leave it on One each if everybody gets their own. Set 4 with 12 athletes and they share three to a rack, and every screen says which one is theirs.",
     who:"Who inside the team does this part \u2014 everyone together, a pair, or one athlete. Type anything custom (e.g. Min 1 for EMOMs).",
     exercise:"Pick from your library or type a new name to add it. Erg names (Row, Ski, Bike, Run) link the exercise to that machine for tablets and machine counts.",
@@ -10623,7 +10644,7 @@ window.addEventListener("error",function(ev){
       if(!pr.day){ const dn=dayFromDate(pr.date); if(dn) pr.day=dn; }
       $("pgDay").value=pr.day||"";
       $("pgType").value=pr.stype||""; }
-    $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=cfg.accent; { const la=$("cLbAccent"); if(la) la.value=cfg.lbAccent||"#C6F432"; }
+    $("cPerValue").value=cfg.scoring.perValue; $("cPerUnit").value=cfg.scoring.perUnit; $("cAccent").value=themeAccent(); { const la=$("cLbAccent"); if(la) la.value=lbColour(); }
     pillGroup("segMode",cfg.mode,v=>cfg.mode=v,syncMode);
     $("wSize").value=W().waveSize;
     $("wSize").oninput=e=>{W().waveSize=clamp(+e.target.value||1,1,10);save();};
@@ -10703,8 +10724,8 @@ window.addEventListener("error",function(ev){
     pgSet("pgDay","day"); pgSet("pgType","stype");
     $("cPerValue").oninput=e=>{cfg.scoring.perValue=clamp(+e.target.value||1,1,1e4);save();};
     $("cPerUnit").oninput=e=>{cfg.scoring.perUnit=clamp(+e.target.value||1,1,1e5);save();};
-    $("cAccent").oninput=e=>{cfg.accent=e.target.value;applyAccent();save();};
-    { const la=$("cLbAccent"); if(la) la.oninput=e=>{cfg.lbAccent=e.target.value;applyAccent();try{renderLbLive();}catch(x){}save();}; }
+    $("cAccent").oninput=e=>{gymSet("accent",e.target.value);applyAccent();};
+    { const la=$("cLbAccent"); if(la) la.oninput=e=>{gymSet("lbAccent",e.target.value);applyAccent();try{renderLbLive();}catch(x){}}; }
     $("coLogoFile").onchange=e=>{ const f=e.target.files[0]; if(!f) return;
       const r=new FileReader();
       r.onload=()=>{ const img=new Image(); img.onload=()=>{
@@ -10720,8 +10741,8 @@ window.addEventListener("error",function(ev){
       save(); syncCoLogo(); };
     syncCoLogo();
     document.querySelectorAll("#logoPick input").forEach(r=>{
-      r.checked=((cfg.display&&cfg.display.logo)==="badge")===(r.value==="badge");
-      r.onchange=()=>{ if(!r.checked) return; cfg.display.logo=r.value; save();
+      r.checked=(logoChoice()==="badge")===(r.value==="badge");
+      r.onchange=()=>{ if(!r.checked) return; gymSet("logo",r.value);
         applyLogo(); renderTablet(true); }; });
     // MANUAL vs AUTOMATIC scoring — the gym's standing order, per board
     document.querySelectorAll("#scoreSrcPick input").forEach(r=>{
@@ -11456,7 +11477,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=528;
+  const BUILD=529;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
