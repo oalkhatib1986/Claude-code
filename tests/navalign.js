@@ -25,7 +25,7 @@ const br=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   await p.reload(); await p.waitForTimeout(1300);
   await p.evaluate(()=>document.getElementById('tabBoard').click()); await p.waitForTimeout(400);
   const tabs=await R(p,'.tabs'), pill=await lastPill(p);
-  ok(pill&&pill.n===5,'Workout shows the 5-pill sub-tab row ['+(pill&&pill.n)+']');
+  ok(pill&&pill.n===4,'Workout shows the 4-pill sub-tab row (Settings moved to top) ['+(pill&&pill.n)+']');
   ok(tabs&&pill&&Math.abs(tabs.r-pill.r)<=2,
     'the tab box right edge meets the last pill ['+tabs.r+' vs '+pill.r+']');
   ok(tabs&&pill&&Math.abs(tabs.l-pill.subL)<=2,

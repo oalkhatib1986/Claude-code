@@ -10,7 +10,7 @@ let pass=0,fail=0;
 const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
 const APP='file:///home/user/Claude-code/leaderboard.html';
 const WIDTHS=[[390,844],[834,1112],[1920,1080]];
-const TABS=[['#tabBoard','Overview'],['#stSetup','Setup'],['#stLayout','Layout'],
+const TABS=[['#tabBoard','Overview'],['#stSetup','Setup'],['#tabSettings','Settings'],
   ['#stResults','Results'],['#stArchive','Archive'],['#tabTrainer','Control'],
   ['#tabScreen','Big Screen'],['#tabTablet','Erg Tablet']];
 (async()=>{

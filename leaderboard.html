@@ -2267,6 +2267,7 @@ body.lbnew #lbLive{display:flex}
       <button id="tabTrainer" role="tab" aria-selected="false">Control</button>
       <button id="tabScreen" role="tab" aria-selected="false">Big Screen</button>
       <button id="tabTablet" role="tab" aria-selected="false">Erg Tablet</button>
+      <button id="tabSettings" role="tab" aria-selected="false">Settings</button>
     </div>
   </header>
 
@@ -2284,7 +2285,6 @@ body.lbnew #lbLive{display:flex}
   <div class="subtabs" id="subTabs">
     <button id="stWorkout" class="on" type="button">Overview</button>
     <button id="stSetup" type="button">Library</button>
-    <button id="stLayout" type="button">Settings</button>
     <button id="stResults" type="button">Results</button>
     <button id="stArchive" type="button">Archive</button>
   </div>
@@ -2709,7 +2709,7 @@ body.lbnew #lbLive{display:flex}
       </div>
 
 
-      <div class="card">
+      <div class="card wide">
         <h3>Board display</h3>
         <div class="body">
           <div class="fld"><label>Columns for each machine</label>
@@ -5914,7 +5914,7 @@ window.addEventListener("error",function(ev){
     reset(); sessPushNow(); };
 
   /* ================= tabs ================= */
-  const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"]};
+  const TABS={board:["tabBoard","viewBoard"],screen:["tabScreen","viewBoard"],trainer:["tabTrainer","viewTrainer"],tablet:["tabTablet","viewTablet"],settings:["tabSettings","viewLayout"]};
   let subTab="workout";
   let ctlTab="session";
   let scrMode="lead";
@@ -5934,15 +5934,23 @@ window.addEventListener("error",function(ev){
   function alignTabs(){
     const tabs=document.querySelector(".tabs"); if(!tabs) return;
     tabs.style.width=""; tabs.style.justifyContent="";
+    // reset every sub-tab row so a stale width never sticks when we switch tabs
+    document.querySelectorAll(".subtabs").forEach(s=>{ s.style.width=""; s.style.justifyContent=""; });
     if(matchMedia("(max-width:720px)").matches) return;
     const sub=[...document.querySelectorAll(".subtabs")].find(s=>!s.hidden&&s.offsetParent!==null);
     if(!sub) return;
     const pills=[...sub.querySelectorAll("button")].filter(b=>!b.hidden&&b.offsetParent!==null);
     if(!pills.length) return;
     const sl=sub.getBoundingClientRect().left;
-    const rightMost=Math.max(...pills.map(b=>b.getBoundingClientRect().right));
-    const w=Math.round(rightMost-sl), natural=Math.round(tabs.getBoundingClientRect().width);
-    if(w>natural+1){ tabs.style.width=w+"px"; tabs.style.justifyContent="space-between"; }
+    const subSpan=Math.round(Math.max(...pills.map(b=>b.getBoundingClientRect().right))-sl);
+    const topNatural=Math.round(tabs.getBoundingClientRect().width);
+    // THE TWO MENUS ARE ONE SIZE (Omar): whichever row is wider sets the width, and
+    // BOTH rows take it and spread — so the top box and the pill row share the left
+    // AND right edge, however many tabs each holds (build 530 put Settings up top,
+    // so the counts differ: 5 tabs over 4 pills).
+    const target=Math.max(subSpan,topNatural);
+    tabs.style.width=target+"px"; tabs.style.justifyContent="space-between";
+    sub.style.width=target+"px"; sub.style.justifyContent="space-between";
   }
   function show(which){
     if(which!=="screen"&&document.body.classList.contains("tvfull")) setFull(false);
@@ -5977,13 +5985,13 @@ window.addEventListener("error",function(ev){
     $("smWork").classList.toggle("on",scrMode==="work");
     for(const k in TABS) $(TABS[k][0]).setAttribute("aria-selected",k===which);
     let active=TABS[which][1];
-    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="layout"?"viewLayout":subTab==="results"?"viewResults":subTab==="archive"?"viewArchive":"viewBoard";
+    if(which==="board") active=subTab==="setup"?"viewCtrl":subTab==="results"?"viewResults":subTab==="archive"?"viewArchive":"viewBoard";
     if(which==="trainer") active=ctlTab==="teams"?"viewTeams":"viewTrainer";
     $("ctlTabs").hidden=which!=="trainer";
     $("ctWork").classList.toggle("on",ctlTab==="session");
     $("ctTeams").classList.toggle("on",ctlTab==="teams");
     $("subTabs").hidden=which!=="board";
-    [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
+    [["stWorkout","workout"],["stSetup","setup"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>$(id).classList.toggle("on",subTab===k));
     if(which==="board"&&subTab==="results") renderResults();
     if(which==="board"&&subTab==="archive") renderArchive();
     // Setup shows the gym's equipment counts, so it must be rebuilt on the way in —
@@ -6047,6 +6055,7 @@ window.addEventListener("error",function(ev){
   }
   $("tabBoard").onclick=()=>show("board"); $("tabScreen").onclick=()=>show("screen"); $("tabTrainer").onclick=()=>show("trainer");
   $("tabTablet").onclick=()=>show("tablet");
+  $("tabSettings").onclick=()=>show("settings");
   { const tf=$("tbFit"); if(tf) tf.onclick=()=>{ tbPrev=!tbPrev;
       tf.textContent=tbPrev?"Phone view":"Tablet preview"; renderTablet(); fitTablet(); }; }
   // The tablet's Full screen asks the DEVICE for true full screen (build 479 —
@@ -6092,7 +6101,7 @@ window.addEventListener("error",function(ev){
     let pin=""; try{ pin=(localStorage.getItem(KPIN)||"").trim(); }catch(e){}
     if(pin){ tbFullReacq=true; fitTablet(); }
     else { document.body.classList.remove("tbfull"); fitTablet(); } });
-  [["stWorkout","workout"],["stSetup","setup"],["stLayout","layout"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
+  [["stWorkout","workout"],["stSetup","setup"],["stResults","results"],["stArchive","archive"]].forEach(([id,k])=>{
     // Setup lands on the library grid every time the tab is tapped (build 508)
     $(id).onclick=()=>{ subTab=k; if(k==="setup"){ try{ libEnter(); }catch(e){} } show("board"); }; });
   $("smLead").onclick=()=>{ scrMode="lead"; show("screen"); };
@@ -11477,7 +11486,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=529;
+  const BUILD=530;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

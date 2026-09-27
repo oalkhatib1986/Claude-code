@@ -159,6 +159,24 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
 
 - localStorage: cfg `af_erg_cfg_v8`, presets `af_presets_v1`, tablet `af_tablet_sel`,
   results `af_results_v1`. Boot migrations live right after cfg load.
+- **SETTINGS IS A TOP-LEVEL TAB (build 530 — Omar: "move settings to the top
+  menu").** The universal Settings page (was the "Layout" sub-tab, `#stLayout`)
+  is now a MAIN tab `#tabSettings` (`show("settings")`, `TABS.settings=
+  ["tabSettings","viewLayout"]`) beside Workout/Control/Big Screen/Erg Tablet;
+  the sub-tab row dropped to 4 pills (Overview, Library, Results, Archive). The
+  ids `viewLayout`/subTab `"layout"` are unchanged — only the tab moved.
+  CONSEQUENCE for the "two menus are one size" law (503/504): the top row now
+  holds 5 tabs over a 4-pill sub-row, so they can no longer share a right edge by
+  the top box merely growing. `alignTabs()` now sets BOTH rows to `max(topNatural,
+  subSpan)` with `justify-content:space-between`, so the wider row sets the width
+  and both share the left AND right edge, whatever the counts. `navalign` pins the
+  4-pill row + equal widths; `test_fitall`'s tab list uses `#tabSettings`.
+- **A SETUP CARD THAT SITS ALONE IN ITS ROW IS `.card.wide` (build 530 — Omar:
+  "why is this section box smaller than the ones above it!").** The `#viewCtrl`
+  cards are a `.cr` grid where `.card` is one column and `.card.wide` spans full;
+  "Board display" was left `.card` (half width, dead space to its right) while
+  every card above it was `.card.wide`. Any card that stands alone in its row
+  must be `.wide`.
 - **GYM-WIDE SETTINGS ARE UNIVERSAL, NOT PER-WORKOUT (build 529 — Omar: "the
   theme and leaderboard color and tablet password shouldn't be in the workout
   Setup… having it under workout affects the loaded workout only, but this should
