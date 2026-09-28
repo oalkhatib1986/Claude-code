@@ -4166,7 +4166,7 @@ window.addEventListener("error",function(ev){
   // buzz, buzzer-final.wav the "go" on the last second — his own tuned files,
   // played whole (no re-synth). Unlocked once on the first gesture (voicePrime),
   // then reused; a beep before unlock simply stays silent that once.
-  let buzzA=null, voiceTimers=[], voiceArmed=false, voiceRemPrev=0;
+  let buzzA=null, voicePrevN=0;
   function loadBuzz(){ if(buzzA) return;
     try{ const mk=src=>{ const a=new Audio(src); a.preload="auto"; a.playsInline=true; return a; };
       buzzA={ beep:mk("buzzer-beep.wav"), fin:mk("buzzer-final.wav") };
@@ -4192,37 +4192,31 @@ window.addEventListener("error",function(ev){
       const done=()=>{ try{ a.pause(); a.currentTime=0; a.muted=false; }catch(e){} };
       if(p&&p.then) p.then(done).catch(()=>{ try{ a.muted=false; }catch(e){} }); else done();
     }catch(e){} }); }catch(e){} }
-  // cancel any beeps scheduled but not yet played AND stop sound (pause / seek /
-  // reset). A NEW interval only drops the pending timers (in voiceCountdown) so a
-  // still-ringing final "go" is never cut short (build 489).
-  function clearVoice(){ voiceTimers.forEach(id=>clearTimeout(id)); voiceTimers=[]; voiceArmed=false;
-    if(buzzA){ [buzzA.beep,buzzA.fin].forEach(a=>{ try{ a.pause(); }catch(e){} }); } }
+  // stop sound + reset the crossing tracker (pause / seek / reset). A natural
+  // interval boundary does NOT call this, so a still-ringing final "go" is never
+  // cut short (build 489).
+  function clearVoice(){ voicePrevN=0; if(buzzA){ [buzzA.beep,buzzA.fin].forEach(a=>{ try{ a.pause(); }catch(e){} }); } }
   function playBuzzEl(a){ if(!a) return; try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
-  // THE BEEPS ARE SCHEDULED ON WALL-CLOCK TIMERS, NOT FIRED PER FRAME (builds
-  // 487-488 — a dropped frame used to skip a second). The FIRST frame the
-  // interval comes within the window ARMS the countdown and schedules ALL N beeps
-  // with setTimeout at their exact offsets (remain-k seconds) — immune to frame
-  // drops. It arms EARLY (N+2.5s out) and NEVER re-schedules mid-descent; it
-  // re-arms only when a NEW interval begins (remain jumps UP by >1s), and
-  // pause/seek/reset clear+disarm it.
+  // FIRED ON THE LIVE CLOCK FRAME, NOT setTimeout (build 534 — Omar: the beep
+  // timing was "messed up… sometimes like fast forward"). An <audio> element can
+  // only play NOW, so 531-533 pre-scheduled the N beeps with setTimeout — but iOS
+  // THROTTLES background/loaded timers and then fires the queue in a burst (the
+  // "fast forward"). Tie each beep to the SAME `remain` the big clock shows
+  // instead: as the whole-second countdown (`ceil(remain)`) steps DOWN into each
+  // of N..1, play once — so the beep always lands exactly on the second on screen,
+  // and a clock nudge that jumps UP never re-fires. A dropped frame can skip one
+  // beep (rare) — far better than a bunched burst. `voicePrevN` is the last second
+  // acted on (0 after clear/first entry, which fires the current second so a seek
+  // into the window still beeps).
   function voiceCountdown(remain){
     const on=!!(cfg.display&&cfg.display.voice);
-    if(!on){ if(voiceArmed) clearVoice(); voiceRemPrev=remain>0?remain:0; return; }
-    if(!buzzA){ loadBuzz(); voiceRemPrev=remain>0?remain:0; return; }
-    // a new interval: drop the pending timers and disarm, but do NOT pause the
-    // final "go" still ringing past the boundary (489)
-    if(remain>voiceRemPrev+1){ voiceTimers.forEach(id=>clearTimeout(id)); voiceTimers=[]; voiceArmed=false; }
-    voiceRemPrev=remain>0?remain:0;
-    if(!(remain>0)||voiceArmed) return;
+    if(!on){ voicePrevN=0; return; }
+    if(!buzzA){ loadBuzz(); voicePrevN=0; return; }
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
-    if(remain>N+2.5) return;                       // not near the end yet
-    voiceArmed=true;
-    const K0=Math.min(N,Math.ceil(remain-0.05));
-    for(let k=K0; k>=1; k--){
-      const delay=Math.max(0,(remain-k))*1000, isFin=k===1;
-      const id=setTimeout(()=>{ playBuzzEl(isFin?buzzA.fin:buzzA.beep); }, delay);
-      voiceTimers.push(id);
-    }
+    const cur=remain>0?Math.ceil(remain-1e-3):0;
+    const prev=voicePrevN; voicePrevN=cur;
+    if(cur>=1 && cur<=N && (prev===0 || cur<prev))
+      playBuzzEl(cur===1?buzzA.fin:buzzA.beep);
   }
   function frameRest(now){
     if(rot.phase!=="rest") return;
@@ -11459,7 +11453,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=533;
+  const BUILD=534;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
