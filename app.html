@@ -4250,9 +4250,15 @@ window.addEventListener("error",function(ev){
     // BAKED CLIP READY → play the whole thing ONCE as the window opens, aligned so
     // its final "go" lands on 1s. Immune to frame jitter (spacing is in the audio).
     if(cdEl&&cdN===N){
-      if(remain>N+0.35){ voiceArmed=false; return; }
-      if(remain>0 && !voiceArmed){ voiceArmed=true;
-        try{ cdEl.currentTime=Math.max(0,N-remain); const p=cdEl.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
+      // A media element's play() has ~0.1-0.2s startup latency on iOS, so the
+      // clip (and its first "5" beep) landed a touch late (build 537 — Omar: "it
+      // doesn't fire at 5 properly"). Start it LEAD seconds early and skip that far
+      // into the clip so the audio, once it actually starts, is already aligned —
+      // the 5-beep sounds on the 5. LEAD self-corrects if the arming frame is late.
+      const LEAD=0.16;
+      if(remain>N+LEAD+0.4){ voiceArmed=false; return; }
+      if(remain>0 && remain<=N+LEAD && !voiceArmed){ voiceArmed=true;
+        try{ cdEl.currentTime=Math.max(0,(N+LEAD)-remain); const p=cdEl.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
       return;
     }
     // FALLBACK (clip not built yet): per-frame crossing on the pool.
@@ -11497,7 +11503,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=536;
+  const BUILD=537;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
