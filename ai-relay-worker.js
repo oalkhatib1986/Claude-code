@@ -230,6 +230,10 @@ export default {
           "content-type": "application/json",
           "x-api-key": env.ANTHROPIC_API_KEY,
           "anthropic-version": "2023-06-01",
+          // Anthropic's edge WAF returns 403 "Request not allowed" for
+          // header-less bot-looking traffic; a real UA + accept clears it.
+          "user-agent": "athl3te-relay/1.0 (+https://oalkhatib1986.github.io/Claude-code)",
+          "accept": "application/json",
         },
         body: reqBody,
       });
