@@ -4166,67 +4166,101 @@ window.addEventListener("error",function(ev){
   // buzz, buzzer-final.wav the "go" on the last second — his own tuned files,
   // played whole (no re-synth). Unlocked once on the first gesture (voicePrime),
   // then reused; a beep before unlock simply stays silent that once.
-  let buzzA=null, voicePrevN=0;
-  // A POOL of short-buzz elements, not one reused (build 535 — Omar: "the time
-  // between beeps is not the same"). Reusing ONE <audio> and resetting its
-  // currentTime while it is still sounding STALLS unpredictably on iOS, so the
-  // gaps came out uneven. Round-robin a small pool instead: each beep gets a warm
-  // element that finished sounding two beeps ago, so its play() latency is
-  // consistent. The final "go" keeps its own element.
+  let buzzA=null, voicePrevN=0, voiceArmed=false;
+  // ── FALLBACK POOL (per-frame) — used only when the baked clip below isn't ready
+  //    (fetch/decode unavailable). Round-robin so no element is restarted mid-play.
   function loadBuzz(){ if(buzzA) return;
     try{ const mk=src=>{ const a=new Audio(src); a.preload="auto"; a.playsInline=true; return a; };
       buzzA={ beep:[mk("buzzer-beep.wav"),mk("buzzer-beep.wav"),mk("buzzer-beep.wav")],
               fin:mk("buzzer-final.wav"), bi:0 };
     }catch(e){ buzzA=null; } }
   function buzzAll(){ return buzzA?buzzA.beep.concat([buzzA.fin]):[]; }
-  // OVER THE MUSIC, NOT INSTEAD OF IT (build 532-533 — Omar: "I hear the beep but
-  // it stops the music!" then, with "transient", "I can't hear the beep"). A media
-  // element defaults to the iOS "playback" audio session, which TAKES OVER and
-  // pauses whatever else is playing (the gym music). "transient" is meant to mix
-  // over other audio but silenced the beep on Omar's iPhone; "ambient" is the
-  // long-standing mix-with-others category — the beep plays OVER the music (both
-  // sound together) and the phone is off silent whenever music is playing. Set
-  // ONLY inside a user gesture (voicePrime), never at boot — a boot-time set (no
-  // gesture) is what killed playback in 532. No-op off iOS / without the API.
+  // ── OVER THE MUSIC (build 532-533): a media element defaults to the iOS
+  //    "playback" session, which pauses other audio; "ambient" mixes OVER the gym
+  //    music (phone is off silent while music plays). Set ONLY in a gesture.
   function setAudioSession(){ try{ if(navigator.audioSession) navigator.audioSession.type="ambient"; }catch(e){} }
-  // iOS only lets a media element play LATER (unmuted, no gesture) if it was
-  // played once INSIDE a user gesture — so on the first tap we play each element
-  // muted then pause it, which "unlocks" it for the scheduled countdown plays.
+  // ── THE WHOLE COUNTDOWN IS BAKED INTO ONE CLIP (build 536 — Omar: get-ready beeps
+  //    are even but the in-workout ones are "still a bit messed up"). Get-ready runs
+  //    off a smooth local rest clock; the workout renders a heavy board every frame,
+  //    so per-frame/one-shot beeps jitter under that load. An OfflineAudioContext
+  //    renders Omar's two WAVs into a SINGLE clip — short buzz at 0s,1s,…,(N-2)s and
+  //    the final "go" at (N-1)s — encoded to a WAV blob and played ONCE when the
+  //    window opens. The spacing lives in the audio, so the beats stay even no
+  //    matter what the render frames do. Rebuilt when beepN changes; cached per N.
+  let buzzSrc=null, cdEl=null, cdN=0, cdBuilding=false;
+  function decodeSources(cb){ if(buzzSrc){ cb&&cb(); return; }
+    try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx){ cb&&cb(); return; }
+      const ac=new Ctx();
+      const one=u=>fetch(u).then(r=>r.arrayBuffer()).then(a=>new Promise(res=>{ try{ ac.decodeAudioData(a,res,()=>res(null)); }catch(e){ res(null); } }));
+      Promise.all([one("buzzer-beep.wav"),one("buzzer-final.wav")]).then(([b,f])=>{
+        if(b&&f) buzzSrc={beep:b,fin:f}; try{ ac.close(); }catch(e){} cb&&cb();
+      }).catch(()=>{ cb&&cb(); });
+    }catch(e){ cb&&cb(); } }
+  function encodeWav(buf){ const sr=buf.sampleRate, n=buf.length, d=buf.getChannelData(0);
+    const ab=new ArrayBuffer(44+n*2), dv=new DataView(ab);
+    const w=(o,s)=>{ for(let i=0;i<s.length;i++) dv.setUint8(o+i,s.charCodeAt(i)); };
+    w(0,"RIFF"); dv.setUint32(4,36+n*2,true); w(8,"WAVE"); w(12,"fmt ");
+    dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+    dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+    w(36,"data"); dv.setUint32(40,n*2,true);
+    let o=44; for(let i=0;i<n;i++){ const s=Math.max(-1,Math.min(1,d[i])); dv.setInt16(o,s<0?s*0x8000:s*0x7FFF,true); o+=2; }
+    return ab; }
+  function buildCountdownFile(N){ if((cdEl&&cdN===N)||cdBuilding) return;
+    cdBuilding=true;
+    decodeSources(()=>{ if(!buzzSrc){ cdBuilding=false; return; }
+      try{ const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext; if(!OAC){ cdBuilding=false; return; }
+        const sr=buzzSrc.beep.sampleRate, len=Math.ceil(((N-1)+buzzSrc.fin.duration+0.1)*sr);
+        const oac=new OAC(1,len,sr);
+        for(let k=N;k>=1;k--){ const s=oac.createBufferSource(); s.buffer=(k===1)?buzzSrc.fin:buzzSrc.beep; s.connect(oac.destination); s.start(N-k); }
+        oac.startRendering().then(rb=>{
+          try{ const url=URL.createObjectURL(new Blob([encodeWav(rb)],{type:"audio/wav"}));
+            if(cdEl){ try{ URL.revokeObjectURL(cdEl.src); }catch(e){} }
+            const a=new Audio(url); a.preload="auto"; a.playsInline=true;
+            a.muted=true; const p=a.play();   // unlock it, muted, inside the gesture chain
+            const done=()=>{ try{ a.pause(); a.currentTime=0; a.muted=false; }catch(e){} };
+            if(p&&p.then) p.then(done).catch(()=>{ try{ a.muted=false; }catch(e){} }); else done();
+            cdEl=a; cdN=N;
+          }catch(e){} cdBuilding=false;
+        }).catch(()=>{ cdBuilding=false; });
+      }catch(e){ cdBuilding=false; }
+    }); }
+  // iOS only lets a media element play later (no gesture) once it has played inside
+  // one — so the first tap unlocks the pool AND kicks the baked clip's build+unlock.
   function voicePrime(){ try{
     setAudioSession();
-    loadBuzz(); if(!buzzA) return;
+    loadBuzz();
     buzzAll().forEach(a=>{ try{
       a.muted=true; const p=a.play();
       const done=()=>{ try{ a.pause(); a.currentTime=0; a.muted=false; }catch(e){} };
       if(p&&p.then) p.then(done).catch(()=>{ try{ a.muted=false; }catch(e){} }); else done();
-    }catch(e){} }); }catch(e){} }
-  // stop sound + reset the crossing tracker (pause / seek / reset). A natural
-  // interval boundary does NOT call this, so a still-ringing final "go" is never
-  // cut short (build 489).
-  function clearVoice(){ voicePrevN=0; buzzAll().forEach(a=>{ try{ a.pause(); }catch(e){} }); }
+    }catch(e){} });
+    buildCountdownFile(Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5)));
+  }catch(e){} }
+  // stop sound + disarm (pause / seek / reset). A natural interval boundary does
+  // NOT call this, so a still-ringing final "go" is never cut short (build 489).
+  function clearVoice(){ voicePrevN=0; voiceArmed=false;
+    buzzAll().forEach(a=>{ try{ a.pause(); }catch(e){} }); if(cdEl){ try{ cdEl.pause(); }catch(e){} } }
   function playBeep(isFin){ if(!buzzA) return;
     const a=isFin?buzzA.fin:buzzA.beep[(buzzA.bi++)%buzzA.beep.length];
     try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
-  // FIRED ON THE LIVE CLOCK FRAME, NOT setTimeout (build 534 — Omar: the beep
-  // timing was "messed up… sometimes like fast forward"). An <audio> element can
-  // only play NOW, so 531-533 pre-scheduled the N beeps with setTimeout — but iOS
-  // THROTTLES background/loaded timers and then fires the queue in a burst (the
-  // "fast forward"). Tie each beep to the SAME `remain` the big clock shows
-  // instead: as the whole-second countdown (`ceil(remain)`) steps DOWN into each
-  // of N..1, play once — so the beep always lands exactly on the second on screen,
-  // and a clock nudge that jumps UP never re-fires. A dropped frame can skip one
-  // beep (rare) — far better than a bunched burst. `voicePrevN` is the last second
-  // acted on (0 after clear/first entry, which fires the current second so a seek
-  // into the window still beeps).
   function voiceCountdown(remain){
     const on=!!(cfg.display&&cfg.display.voice);
-    if(!on){ voicePrevN=0; return; }
-    if(!buzzA){ loadBuzz(); voicePrevN=0; return; }
+    if(!on){ voicePrevN=0; voiceArmed=false; return; }
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
+    // BAKED CLIP READY → play the whole thing ONCE as the window opens, aligned so
+    // its final "go" lands on 1s. Immune to frame jitter (spacing is in the audio).
+    if(cdEl&&cdN===N){
+      if(remain>N+0.35){ voiceArmed=false; return; }
+      if(remain>0 && !voiceArmed){ voiceArmed=true;
+        try{ cdEl.currentTime=Math.max(0,N-remain); const p=cdEl.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
+      return;
+    }
+    // FALLBACK (clip not built yet): per-frame crossing on the pool.
+    if(!buzzA){ loadBuzz(); }
+    buildCountdownFile(N);   // keep trying to build for next time
     const cur=remain>0?Math.ceil(remain-1e-3):0;
     const prev=voicePrevN; voicePrevN=cur;
-    if(cur>=1 && cur<=N && (prev===0 || cur<prev))
-      playBeep(cur===1);
+    if(cur>=1 && cur<=N && (prev===0 || cur<prev)) playBeep(cur===1);
   }
   function frameRest(now){
     if(rot.phase!=="rest") return;
@@ -11463,7 +11497,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=535;
+  const BUILD=536;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
