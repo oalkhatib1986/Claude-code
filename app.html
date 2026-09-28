@@ -4157,98 +4157,60 @@ window.addEventListener("error",function(ev){
   // (voicePrime) so they sit in memory and still sound if the wifi drops
   // mid-class; a countdown that fires before they finish loading simply kicks
   // the load and stays silent that once.
-  let AC=null, buzzBuf=null, buzzLoading=false, voiceNodes=[], voiceArmed=false, voiceRemPrev=0;
-  // Decode the two WAVs AHEAD OF TIME so every one of the last N seconds sounds.
-  // An AudioContext can be created and decodeAudioData run while it is still
-  // suspended (no gesture needed to DECODE — only to PLAY), so this is safe at
-  // boot; voicePrime() just resumes it on the first tap.
-  function loadBuzz(){ if(buzzBuf||buzzLoading) return;
-    try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; AC=AC||new Ctx(); }catch(e){ return; }
-    buzzLoading=true;
-    const one=url=>fetch(url).then(r=>r.arrayBuffer()).then(a=>new Promise(res=>{
-      try{ AC.decodeAudioData(a,b=>res(b),()=>res(null)); }catch(e){ res(null); } }));
-    Promise.all([one("buzzer-beep.wav"),one("buzzer-final.wav")])
-      .then(([beep,fin])=>{ buzzBuf={beep,fin}; })
-      .catch(()=>{ buzzLoading=false; }); }
+  // OMAR'S BUZZER, ROUTED THROUGH A MEDIA ELEMENT (build 531 — Omar's gym plays
+  // the beep to the speakers "through wifi" = AirPlay/cast). The Web Audio API
+  // (468-493) stayed on the phone's OWN speaker on iOS and never followed an
+  // AirPlay/WiFi route, and iOS's silent switch muted it too. An HTML <audio>
+  // element follows the system/AirPlay output AND ignores the silent switch, so
+  // the buzzers now play through <audio>. buzzer-beep.wav is the short run-up
+  // buzz, buzzer-final.wav the "go" on the last second — his own tuned files,
+  // played whole (no re-synth). Unlocked once on the first gesture (voicePrime),
+  // then reused; a beep before unlock simply stays silent that once.
+  let buzzA=null, voiceTimers=[], voiceArmed=false, voiceRemPrev=0;
+  function loadBuzz(){ if(buzzA) return;
+    try{ const mk=src=>{ const a=new Audio(src); a.preload="auto"; a.playsInline=true; return a; };
+      buzzA={ beep:mk("buzzer-beep.wav"), fin:mk("buzzer-final.wav") };
+    }catch(e){ buzzA=null; } }
+  // iOS only lets a media element play LATER (unmuted, no gesture) if it was
+  // played once INSIDE a user gesture — so on the first tap we play each element
+  // muted then pause it, which "unlocks" it for the scheduled countdown plays.
   function voicePrime(){ try{
-    const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
-    AC=AC||new Ctx();
-    if(AC.state==="suspended") AC.resume();
-    loadBuzz();
-  }catch(e){} }
-  // cancel any beeps scheduled but not yet played (pause / seek / reset / new
-  // interval) and disarm, so a stale countdown never fires over the wrong window
-  function clearVoice(){ voiceNodes.forEach(s=>{ try{ s.stop(); }catch(e){} }); voiceNodes=[]; voiceArmed=false; }
-  // A CLICK NEAR THE END OF EACH BUZZ ON A BIG SPEAKER (builds 492-493 — Omar,
-  // on his TV: "a clock tick near the end of each second buzz … and it sounds
-  // laggy"). The WAV itself ends silent, so it is NOT a buffer-edge click: the
-  // short buzz has a long low DECAY TAIL (loud to ~0.45s, then rings down to
-  // ~0.8s) that a phone hid but a TV amp rings out — that ring is the "laggy",
-  // and the source NODE terminating on that quiet tail is the "tick". playBuzz()
-  // now ENVELOPES every buzz — 5ms attack in, then a release ramp to ZERO at the
-  // end of the played span — so the node always ends in silence (no tick), and
-  // it TRIMS the short buzz's dead tail (play only ~0.62s of the 0.80s file, the
-  // audible part) so each beep is crisp, not a drone. The final "go" buzz plays
-  // its full length and rings out (never stopped — build 489), just release-faded
-  // so it too ends clean. Omar's tuned files, same pitch and punch, no tail junk.
-  function playBuzz(buf, at, isFinal){
-    const src=AC.createBufferSource(); src.buffer=buf;
-    const full=buf.duration||0.8;
-    const play=isFinal?full:Math.min(full,0.62);   // trim the short buzz's dead tail
-    let out=AC.destination;
-    try{ const g=AC.createGain(), t=Math.max(AC.currentTime, at);
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(1, t+0.005);            // attack
-      g.gain.setValueAtTime(1, Math.max(t+0.02, t+play-0.06));
-      g.gain.linearRampToValueAtTime(0, t+play);             // release to silence at the end
-      g.connect(AC.destination); out=g; }catch(e){}
-    try{ src.connect(out); }catch(e){}
-    try{ src.start(at); }catch(e){}
-    // stop the SHORT beeps at the trim point (node ends at gain 0, no tick); the
-    // final buzz is never stopped here so it rings out fully (489)
-    if(!isFinal){ try{ src.stop(Math.max(AC.currentTime,at)+play+0.01); }catch(e){} }
-    voiceNodes.push(src);
-  }
-  function acWake(at){
-    try{ const sr=AC.sampleRate||44100, n=Math.max(1,Math.round(sr*0.05));
-      const b=AC.createBuffer(1, n, sr);
-      const s=AC.createBufferSource(); s.buffer=b; s.connect(AC.destination);
-      s.start(Math.max(AC.currentTime, at)); voiceNodes.push(s); }catch(e){}
-  }
-  // THE BEEPS ARE PRE-SCHEDULED ON THE AUDIO CLOCK, NOT FIRED PER FRAME (builds
-  // 487-488 — Omar: "it gets confused at 5 and misses a beep", "sometimes it
-  // starts at 4 not 5"). Driving the buzz off the rendered clock meant a dropped
-  // frame skipped a second and it was lost. Now, the FIRST frame the interval
-  // comes within the window ARMS the countdown and schedules ALL N beeps at
-  // their exact audio-clock times (endAt - k) — sample-accurate, immune to frame
-  // drops. It arms EARLY (N+2.5s out) so a stall near the 5-mark can't beat the
-  // scheduling, and it NEVER re-schedules mid-descent (a live-sync clock nudge
-  // used to cross a drift threshold, wipe the pending 5 and re-arm at 4). It
-  // re-arms only when a NEW interval begins — remain jumps UP by >1s — and
+    loadBuzz(); if(!buzzA) return;
+    [buzzA.beep,buzzA.fin].forEach(a=>{ try{
+      a.muted=true; const p=a.play();
+      const done=()=>{ try{ a.pause(); a.currentTime=0; a.muted=false; }catch(e){} };
+      if(p&&p.then) p.then(done).catch(()=>{ try{ a.muted=false; }catch(e){} }); else done();
+    }catch(e){} }); }catch(e){} }
+  // cancel any beeps scheduled but not yet played AND stop sound (pause / seek /
+  // reset). A NEW interval only drops the pending timers (in voiceCountdown) so a
+  // still-ringing final "go" is never cut short (build 489).
+  function clearVoice(){ voiceTimers.forEach(id=>clearTimeout(id)); voiceTimers=[]; voiceArmed=false;
+    if(buzzA){ [buzzA.beep,buzzA.fin].forEach(a=>{ try{ a.pause(); }catch(e){} }); } }
+  function playBuzzEl(a){ if(!a) return; try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
+  // THE BEEPS ARE SCHEDULED ON WALL-CLOCK TIMERS, NOT FIRED PER FRAME (builds
+  // 487-488 — a dropped frame used to skip a second). The FIRST frame the
+  // interval comes within the window ARMS the countdown and schedules ALL N beeps
+  // with setTimeout at their exact offsets (remain-k seconds) — immune to frame
+  // drops. It arms EARLY (N+2.5s out) and NEVER re-schedules mid-descent; it
+  // re-arms only when a NEW interval begins (remain jumps UP by >1s), and
   // pause/seek/reset clear+disarm it.
   function voiceCountdown(remain){
     const on=!!(cfg.display&&cfg.display.voice);
     if(!on){ if(voiceArmed) clearVoice(); voiceRemPrev=remain>0?remain:0; return; }
-    if(!AC||!buzzBuf){ if(!buzzBuf) loadBuzz(); voiceRemPrev=remain>0?remain:0; return; }
-    // A NEW INTERVAL re-arms, but the final buzz of the interval just ended is
-    // still ringing out past the boundary (it starts 1s before the end and runs
-    // ~2s) — do NOT stop it (Omar: "the last beep is identical to the others"
-    // was clearVoice() cutting it short). Just drop the references and disarm;
-    // only pause/seek/reset actually stop sound.
-    if(remain>voiceRemPrev+1){ voiceNodes=[]; voiceArmed=false; }
+    if(!buzzA){ loadBuzz(); voiceRemPrev=remain>0?remain:0; return; }
+    // a new interval: drop the pending timers and disarm, but do NOT pause the
+    // final "go" still ringing past the boundary (489)
+    if(remain>voiceRemPrev+1){ voiceTimers.forEach(id=>clearTimeout(id)); voiceTimers=[]; voiceArmed=false; }
     voiceRemPrev=remain>0?remain:0;
     if(!(remain>0)||voiceArmed) return;
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
     if(remain>N+2.5) return;                       // not near the end yet
     voiceArmed=true;
-    const now=AC.currentTime, endAt=now+remain;
-    if(AC.state==="suspended"){ try{ AC.resume(); }catch(e){} }
     const K0=Math.min(N,Math.ceil(remain-0.05));
-    acWake(Math.max(now, endAt-K0)-0.14);   // wake the TV amp in silence first
     for(let k=K0; k>=1; k--){
-      const at=Math.max(now, endAt-k);
-      const b=buzzBuf[k===1?"fin":"beep"]; if(!b) continue;
-      playBuzz(b, at, k===1);
+      const delay=Math.max(0,(remain-k))*1000, isFin=k===1;
+      const id=setTimeout(()=>{ playBuzzEl(isFin?buzzA.fin:buzzA.beep); }, delay);
+      voiceTimers.push(id);
     }
   }
   function frameRest(now){
@@ -11486,7 +11448,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=530;
+  const BUILD=531;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")

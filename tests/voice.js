@@ -1,37 +1,28 @@
 // COUNTDOWN BUZZER (build 484 — Omar designed and rendered the sound himself
 // and sent two WAVs: buzzer-beep.wav (short run-up buzz) and buzzer-final.wav
-// (the longer last-second "go"). They are fetched + decoded once and played as
-// Web Audio buffers on each of the last N seconds (N from Layout > Countdown
-// beeps): short buzz on seconds N..2, the final buzz on the last second.
-// This suite mocks fetch + decodeAudioData + AudioBufferSourceNode, tagging each
-// decoded buffer by its file, and asserts the right buffer plays each second —
-// and that toggling the countdown off silences it.
+// (the longer last-second "go"). They play through <audio> media elements on
+// each of the last N seconds (N from Layout > Countdown beeps): short buzz on
+// seconds N..2, the final buzz on the last second (build 531 moved these off the
+// Web Audio API so they follow an AirPlay/wifi output and ignore the iOS silent
+// switch). This suite mocks window.Audio, tagging each element by its file, and
+// asserts the right one plays each second — and that off silences it.
 const {chromium}=require('playwright');
 let pass=0,fail=0;
 const ok=(c,m)=>{c?(pass++,console.log('PASS',m)):(fail++,console.log('FAIL',m));};
 const F='file:///home/user/Claude-code/leaderboard.html';
-// fetch returns a 1-byte buffer marking which file; decodeAudioData reads it
-// back into a tagged buffer; a buffer source records its buffer's tag on start.
+// build 531: the buzzers play through <audio> MEDIA elements (so they follow an
+// AirPlay/wifi output and ignore the iOS silent switch). Mock window.Audio: a
+// play() records the file's tag ONLY when unmuted — the muted play in
+// voicePrime that unlocks each element is not a real beep — and a pause()
+// records a stop only for a sound that was actually playing (so the ring-out
+// test can assert the final buzz is never cut).
 const MOCK=`
   window.__spoken=[]; window.__stopped=[];
-  window.fetch=(url)=>{ const which=/final/.test(String(url))?1:0;
-    return Promise.resolve({ arrayBuffer(){ return Promise.resolve(new Uint8Array([which]).buffer); } }); };
-  function FakeCtx(){ this._t0=Date.now(); this.state='running'; this.destination={};
-    Object.defineProperty(this,'currentTime',{get:function(){return (Date.now()-this._t0)/1000;}}); }
-  FakeCtx.prototype.resume=function(){ this.state='running'; return Promise.resolve(); };
-  FakeCtx.prototype.decodeAudioData=function(arr,okCb){ const w=new Uint8Array(arr)[0]===1?'fin':'beep';
-    if(okCb){ okCb({which:w}); return; } return Promise.resolve({which:w}); };
-  // beeps are pre-scheduled with start(at); the mock records each scheduled beep
-  // once (order = k=N..1 => N-1 short then final), which is what we assert
-  FakeCtx.prototype.createBufferSource=function(){ return { buffer:null, connect(){},
-    start(){ if(this.buffer&&this.buffer.which) window.__spoken.push(this.buffer.which); },
-    stop(){ if(this.buffer&&this.buffer.which) window.__stopped.push(this.buffer.which); } }; };
-  // build 492: the buzz is routed through a gain fade and a silent DAC-wake
-  // primer; the primer buffer has no 'which' tag so it is never counted
-  FakeCtx.prototype.createGain=function(){ return { gain:{setValueAtTime(){},linearRampToValueAtTime(){},value:1}, connect(){} }; };
-  FakeCtx.prototype.createBuffer=function(){ return {}; };
-  FakeCtx.prototype.sampleRate=44100;
-  window.AudioContext=FakeCtx; window.webkitAudioContext=FakeCtx;
+  function FakeAudio(src){ this.src=String(src||''); this.which=/final/.test(this.src)?'fin':'beep';
+    this.muted=false; this.currentTime=0; this.preload=''; this.playsInline=false; this._live=false; }
+  FakeAudio.prototype.play=function(){ if(!this.muted){ window.__spoken.push(this.which); this._live=true; } return Promise.resolve(); };
+  FakeAudio.prototype.pause=function(){ if(this._live){ window.__stopped.push(this.which); this._live=false; } };
+  window.Audio=FakeAudio;
 `;
 async function boot(br,voice,beepN){
   const ctx=await br.newContext({viewport:{width:1440,height:960}});

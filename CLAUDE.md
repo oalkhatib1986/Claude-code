@@ -1469,6 +1469,28 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `voice.js` (8) pins default-5, late-entry-still-fires-5, beepN 3, the final
   buzz ringing out across a boundary (never stopped), and off. The mock records
   each buffer source's tag on `start` and `stop`.
+- **THE BEEP PLAYS THROUGH A MEDIA ELEMENT, NOT WEB AUDIO (build 531 — Omar's gym
+  feeds the speakers "through wifi" = AirPlay/cast, and the beep came out of the
+  phone only + iOS silent switch muted it).** The Web Audio API (468-493) stays on
+  the phone's OWN speaker on iOS — it does NOT follow an AirPlay/WiFi output — and
+  the silent switch mutes it. HTML `<audio>` media elements DO follow the system/
+  AirPlay route and ignore the silent switch, so the buzzers now play through two
+  `<audio>` elements (`buzzA={beep,fin}`, src = the same tuned `buzzer-*.wav`).
+  `loadBuzz()` builds them; `voicePrime()` UNLOCKS each on the first gesture by
+  playing it muted then pausing (iOS only lets a media element play later, no
+  gesture, once it has played inside one). `voiceCountdown` still arms once per
+  interval and schedules the N beeps, but via `setTimeout` at `(remain-k)*1000`
+  (frame-drop immune, like the old audio-clock schedule); `clearVoice()`
+  (pause/seek/reset) clears the timers AND pauses the elements, while a NEW
+  interval only drops the timers so a still-ringing final "go" is never cut (489).
+  The Web Audio path (AC/buzzBuf/playBuzz/acWake, the 492 tail-trim envelope) is
+  GONE — an `<audio>` plays the whole file, which ends silent, so no node-
+  termination tick. `voice.js` mocks `window.Audio` (records a tag on unmuted
+  play / on a live pause). LESSON: for audio that must reach cast/AirPlay speakers
+  or survive the iOS mute switch, use a media element, never the Web Audio API.
+  Still needs a gesture on the SOURCE device and its output routed to the speakers
+  (a cast screen never tapped stays silent; a phone on silent still mutes it only
+  if the switch pre-dates this — now it doesn't).
 - **GET READY — A COUNT-IN BEFORE THE CLOCK (build 490 — Omar: "when the trainer
   starts the workout, and whenever he needs to start the next block or part,
   before the workout time starts, I'd like a 10 second countdown so people just
