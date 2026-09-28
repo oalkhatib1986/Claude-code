@@ -4167,10 +4167,18 @@ window.addEventListener("error",function(ev){
   // played whole (no re-synth). Unlocked once on the first gesture (voicePrime),
   // then reused; a beep before unlock simply stays silent that once.
   let buzzA=null, voicePrevN=0;
+  // A POOL of short-buzz elements, not one reused (build 535 — Omar: "the time
+  // between beeps is not the same"). Reusing ONE <audio> and resetting its
+  // currentTime while it is still sounding STALLS unpredictably on iOS, so the
+  // gaps came out uneven. Round-robin a small pool instead: each beep gets a warm
+  // element that finished sounding two beeps ago, so its play() latency is
+  // consistent. The final "go" keeps its own element.
   function loadBuzz(){ if(buzzA) return;
     try{ const mk=src=>{ const a=new Audio(src); a.preload="auto"; a.playsInline=true; return a; };
-      buzzA={ beep:mk("buzzer-beep.wav"), fin:mk("buzzer-final.wav") };
+      buzzA={ beep:[mk("buzzer-beep.wav"),mk("buzzer-beep.wav"),mk("buzzer-beep.wav")],
+              fin:mk("buzzer-final.wav"), bi:0 };
     }catch(e){ buzzA=null; } }
+  function buzzAll(){ return buzzA?buzzA.beep.concat([buzzA.fin]):[]; }
   // OVER THE MUSIC, NOT INSTEAD OF IT (build 532-533 — Omar: "I hear the beep but
   // it stops the music!" then, with "transient", "I can't hear the beep"). A media
   // element defaults to the iOS "playback" audio session, which TAKES OVER and
@@ -4187,7 +4195,7 @@ window.addEventListener("error",function(ev){
   function voicePrime(){ try{
     setAudioSession();
     loadBuzz(); if(!buzzA) return;
-    [buzzA.beep,buzzA.fin].forEach(a=>{ try{
+    buzzAll().forEach(a=>{ try{
       a.muted=true; const p=a.play();
       const done=()=>{ try{ a.pause(); a.currentTime=0; a.muted=false; }catch(e){} };
       if(p&&p.then) p.then(done).catch(()=>{ try{ a.muted=false; }catch(e){} }); else done();
@@ -4195,8 +4203,10 @@ window.addEventListener("error",function(ev){
   // stop sound + reset the crossing tracker (pause / seek / reset). A natural
   // interval boundary does NOT call this, so a still-ringing final "go" is never
   // cut short (build 489).
-  function clearVoice(){ voicePrevN=0; if(buzzA){ [buzzA.beep,buzzA.fin].forEach(a=>{ try{ a.pause(); }catch(e){} }); } }
-  function playBuzzEl(a){ if(!a) return; try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
+  function clearVoice(){ voicePrevN=0; buzzAll().forEach(a=>{ try{ a.pause(); }catch(e){} }); }
+  function playBeep(isFin){ if(!buzzA) return;
+    const a=isFin?buzzA.fin:buzzA.beep[(buzzA.bi++)%buzzA.beep.length];
+    try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
   // FIRED ON THE LIVE CLOCK FRAME, NOT setTimeout (build 534 — Omar: the beep
   // timing was "messed up… sometimes like fast forward"). An <audio> element can
   // only play NOW, so 531-533 pre-scheduled the N beeps with setTimeout — but iOS
@@ -4216,7 +4226,7 @@ window.addEventListener("error",function(ev){
     const cur=remain>0?Math.ceil(remain-1e-3):0;
     const prev=voicePrevN; voicePrevN=cur;
     if(cur>=1 && cur<=N && (prev===0 || cur<prev))
-      playBuzzEl(cur===1?buzzA.fin:buzzA.beep);
+      playBeep(cur===1);
   }
   function frameRest(now){
     if(rot.phase!=="rest") return;
@@ -11453,7 +11463,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=534;
+  const BUILD=535;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
