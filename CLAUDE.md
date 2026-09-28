@@ -1478,19 +1478,33 @@ Run the FULL sweep only when the engine changes — the allocator (`machSlots`,
   `<audio>` elements (`buzzA={beep,fin}`, src = the same tuned `buzzer-*.wav`).
   `loadBuzz()` builds them; `voicePrime()` UNLOCKS each on the first gesture by
   playing it muted then pausing (iOS only lets a media element play later, no
-  gesture, once it has played inside one). `voiceCountdown` still arms once per
-  interval and schedules the N beeps, but via `setTimeout` at `(remain-k)*1000`
-  (frame-drop immune, like the old audio-clock schedule); `clearVoice()`
-  (pause/seek/reset) clears the timers AND pauses the elements, while a NEW
-  interval only drops the timers so a still-ringing final "go" is never cut (489).
-  The Web Audio path (AC/buzzBuf/playBuzz/acWake, the 492 tail-trim envelope) is
-  GONE — an `<audio>` plays the whole file, which ends silent, so no node-
-  termination tick. `voice.js` mocks `window.Audio` (records a tag on unmuted
-  play / on a live pause). LESSON: for audio that must reach cast/AirPlay speakers
-  or survive the iOS mute switch, use a media element, never the Web Audio API.
-  Still needs a gesture on the SOURCE device and its output routed to the speakers
-  (a cast screen never tapped stays silent; a phone on silent still mutes it only
-  if the switch pre-dates this — now it doesn't).
+  gesture, once it has played inside one). The Web Audio path
+  (AC/buzzBuf/playBuzz/acWake, the 492 tail-trim envelope) is GONE — an `<audio>`
+  plays the whole file, which ends silent, so no node-termination tick. `voice.js`
+  mocks `window.Audio` (records a tag on unmuted play / on a live pause).
+  OVER THE MUSIC (builds 532-533 — Omar: "it stops the music! it must be over the
+  music!"): a media element defaults to the iOS "playback" audio session, which
+  TAKES OVER and pauses other audio (the gym music). `setAudioSession()` sets
+  `navigator.audioSession.type` — "transient" (532) SILENCED the beep on his
+  iPhone, so "ambient" (533) is used: the standard mix-with-others category, beep
+  plays OVER the music. Set ONLY inside the gesture (voicePrime), never at boot (a
+  boot-time set killed 532). Ambient is muted by the ringer switch, but a phone
+  playing music is off silent anyway. Guarded / no-op off iOS.
+  FIRED ON THE LIVE CLOCK FRAME, NOT setTimeout (build 534 — Omar: timing "messed
+  up… sometimes like fast forward"): an `<audio>` can only play NOW, so 531-533
+  pre-scheduled the N beeps with `setTimeout` — but iOS THROTTLES background/loaded
+  timers then fires the queue in a BURST (the "fast forward"). `voiceCountdown` now
+  fires per-frame off the SAME `remain` the big clock shows: as `ceil(remain)`
+  steps DOWN into each of N..1 it plays once (`voicePrevN` = last second acted on;
+  0 after clear/first-entry fires the current second so a seek into the window
+  still beeps). A clock nudge that jumps UP never re-fires; a dropped frame can
+  skip one beep (rare, acceptable vs a burst). `clearVoice()` (pause/seek/reset)
+  pauses the elements + resets `voicePrevN`; a natural interval boundary does not,
+  so the final "go" rings out (489). LESSON: for audio that must reach cast/AirPlay
+  speakers or survive the iOS mute switch use a media element, never Web Audio; and
+  schedule its beeps on the render clock, never setTimeout (iOS bursts throttled
+  timers). Still needs a gesture on the SOURCE device and its output routed to the
+  speakers (a cast screen never tapped stays silent).
 - **GET READY — A COUNT-IN BEFORE THE CLOCK (build 490 — Omar: "when the trainer
   starts the workout, and whenever he needs to start the next block or part,
   before the workout time starts, I'd like a 10 second countdown so people just
