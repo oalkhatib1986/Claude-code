@@ -4166,7 +4166,7 @@ window.addEventListener("error",function(ev){
   // buzz, buzzer-final.wav the "go" on the last second — his own tuned files,
   // played whole (no re-synth). Unlocked once on the first gesture (voicePrime),
   // then reused; a beep before unlock simply stays silent that once.
-  let buzzA=null, voicePrevN=0, voiceArmed=false;
+  let buzzA=null, voicePrevN=0, voiceArmed=false, voiceLastRem=0;
   // ── FALLBACK POOL (per-frame) — used only when the baked clip below isn't ready
   //    (fetch/decode unavailable). Round-robin so no element is restarted mid-play.
   function loadBuzz(){ if(buzzA) return;
@@ -4238,25 +4238,30 @@ window.addEventListener("error",function(ev){
   }catch(e){} }
   // stop sound + disarm (pause / seek / reset). A natural interval boundary does
   // NOT call this, so a still-ringing final "go" is never cut short (build 489).
-  function clearVoice(){ voicePrevN=0; voiceArmed=false;
+  function clearVoice(){ voicePrevN=0; voiceArmed=false; voiceLastRem=0;
     buzzAll().forEach(a=>{ try{ a.pause(); }catch(e){} }); if(cdEl){ try{ cdEl.pause(); }catch(e){} } }
   function playBeep(isFin){ if(!buzzA) return;
     const a=isFin?buzzA.fin:buzzA.beep[(buzzA.bi++)%buzzA.beep.length];
     try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
   function voiceCountdown(remain){
     const on=!!(cfg.display&&cfg.display.voice);
-    if(!on){ voicePrevN=0; voiceArmed=false; return; }
+    if(!on){ voicePrevN=0; voiceArmed=false; voiceLastRem=0; return; }
     const N=Math.max(1,Math.min(15,parseInt(cfg.display&&cfg.display.beepN,10)||5));
+    // A NEW INTERVAL is the ONLY thing that re-arms — detected by the clock JUMPING
+    // UP (build 538 — Omar: the workout countdown "misses a beat"). The workout
+    // re-renders and live-syncs mid-countdown, and the old `remain>N+…` disarm let a
+    // transient downward blip disarm+re-arm, which RE-SEEKED the playing clip and
+    // dropped a beep. Now: once the clip is playing, nothing touches it until the
+    // clock jumps up to the next window — so it plays start-to-finish, every beep.
+    if(remain>voiceLastRem+1){ voiceArmed=false; voicePrevN=0; }
+    voiceLastRem=remain>0?remain:0;
     // BAKED CLIP READY → play the whole thing ONCE as the window opens, aligned so
     // its final "go" lands on 1s. Immune to frame jitter (spacing is in the audio).
     if(cdEl&&cdN===N){
-      // A media element's play() has ~0.1-0.2s startup latency on iOS, so the
-      // clip (and its first "5" beep) landed a touch late (build 537 — Omar: "it
-      // doesn't fire at 5 properly"). Start it LEAD seconds early and skip that far
-      // into the clip so the audio, once it actually starts, is already aligned —
-      // the 5-beep sounds on the 5. LEAD self-corrects if the arming frame is late.
+      // A media element's play() has ~0.1-0.2s startup latency on iOS, so start the
+      // clip LEAD seconds early and skip that far in, so it is aligned once it
+      // actually begins and the 5-beep lands on the 5 (build 537).
       const LEAD=0.16;
-      if(remain>N+LEAD+0.4){ voiceArmed=false; return; }
       if(remain>0 && remain<=N+LEAD && !voiceArmed){ voiceArmed=true;
         try{ cdEl.currentTime=Math.max(0,(N+LEAD)-remain); const p=cdEl.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
       return;
@@ -11503,7 +11508,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=537;
+  const BUILD=538;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
