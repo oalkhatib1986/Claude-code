@@ -4170,11 +4170,21 @@ window.addEventListener("error",function(ev){
   function loadBuzz(){ if(buzzA) return;
     try{ const mk=src=>{ const a=new Audio(src); a.preload="auto"; a.playsInline=true; return a; };
       buzzA={ beep:mk("buzzer-beep.wav"), fin:mk("buzzer-final.wav") };
-    }catch(e){ buzzA=null; } }
+    }catch(e){ buzzA=null; }
+    setAudioSession(); }
+  // OVER THE MUSIC, NOT INSTEAD OF IT (build 532 — Omar: "I hear the beep but it
+  // stops the music! it must be over the music!"). A media element defaults to the
+  // iOS "playback" audio session, which TAKES OVER and pauses whatever else is
+  // playing (the gym music). "transient" is iOS's category for a short alert that
+  // MIXES OVER other audio — it ducks the music for the beep and lets it keep
+  // playing — and it is still NOT silenced by the ringer switch. No-op off iOS
+  // (Android media elements already mix), guarded for browsers without the API.
+  function setAudioSession(){ try{ if(navigator.audioSession) navigator.audioSession.type="transient"; }catch(e){} }
   // iOS only lets a media element play LATER (unmuted, no gesture) if it was
   // played once INSIDE a user gesture — so on the first tap we play each element
   // muted then pause it, which "unlocks" it for the scheduled countdown plays.
   function voicePrime(){ try{
+    setAudioSession();
     loadBuzz(); if(!buzzA) return;
     [buzzA.beep,buzzA.fin].forEach(a=>{ try{
       a.muted=true; const p=a.play();
@@ -11448,7 +11458,7 @@ window.addEventListener("error",function(ev){
     syncClaimBar();
     const sf=startFlowText();
     { const x=$("startFlow"); if(x&&x.dataset.s!==sf){ x.dataset.s=sf; x.innerHTML=sf; } } },400);
-  const BUILD=531;
+  const BUILD=532;
   { const bt=$("buildTag"); if(bt) bt.textContent="Version "+BUILD;
     const fy=$("footYear"); if(fy) fy.textContent=String(new Date().getFullYear()); }
   const VURL=(location.protocol==="http:"||location.protocol==="https:")
