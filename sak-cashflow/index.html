@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Cash Flow">
+<meta name="theme-color" content="#1D1D1F">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -22,6 +27,19 @@ body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size
 a{color:inherit}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+@media (pointer:coarse){
+  .nav a{padding:12px 14px}
+  .chip{padding:11px 16px;font-size:15px}
+  .btn{padding:12px 18px;min-height:44px}
+  .crumbs .back{padding:11px 16px 11px 12px}
+  .cell{font-size:16px;padding:10px 8px;width:104px;min-height:44px}
+  .inp{font-size:16px;min-height:44px}
+  .chk{width:24px;height:24px}
+  .tbl td{padding:6px 8px}
+  .tbl{font-size:15px}
+  a.mc,.br{min-height:44px}
+}
+.inp{font-size:16px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
 /* top bar */
@@ -126,9 +144,12 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:31;background:#fff;color:var(--ink);border-radius:14px;padding:10px 16px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:calc(100% - 32px)}
 
 /* sheets: fixed A4 landscape canvases, scaled to fit in the app */
-.sheet-wrap{width:100%;max-width:1123px;margin:0 auto;position:relative}
+.sheet-wrap{width:100%;max-width:1123px;margin:0 auto;position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.sheet-wrap .sizer{position:relative}
 .sheet{width:1123px;height:794px;transform-origin:top left;background:var(--paper);color:var(--ink);font-family:var(--font);padding:34px 40px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden;border-radius:6px;box-shadow:0 2px 14px rgba(29,29,31,.12)}
 .sheet-wrap .sheet{position:absolute;left:0;top:0}
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:rgba(43,87,160,.15)}
 #pdf-stage{position:absolute;left:-30000px;top:0;width:1123px}
 #pdf-stage .sheet{border-radius:0;box-shadow:none}
 .sheet .lk{text-decoration:none;border-radius:6px}
@@ -319,11 +340,11 @@ a.br:hover .brn{text-decoration:underline}
   function fitSheets() {
     var wraps = app.querySelectorAll('.sheet-wrap');
     for (var i = 0; i < wraps.length; i++) {
-      var w = wraps[i], s = w.firstElementChild, k = Math.min(1, w.clientWidth / 1123);
-      s.style.transform = 'scale(' + k + ')'; w.style.height = Math.ceil(794 * k) + 'px';
+      var w = wraps[i], z = w.firstElementChild, s = z.firstElementChild, k = Math.max(0.8, Math.min(1, w.clientWidth / 1123));
+      s.style.transform = 'scale(' + k + ')'; z.style.width = Math.ceil(1123 * k) + 'px'; z.style.height = Math.ceil(794 * k) + 'px';
     }
   }
-  function sheetWrap(inner) { return '<div class="sheet-wrap"><div class="sheet">' + inner + '</div></div>'; }
+  function sheetWrap(inner) { return '<div class="sheet-wrap"><div class="sizer"><div class="sheet">' + inner + '</div></div></div>'; }
   function sheetHead(pillHtml) {
     return '<div class="sh-head"><div style="display:flex;align-items:baseline;gap:14px"><h1>' + esc(S.settings.title) + '</h1>' + (pillHtml || '') + '</div>' +
       '<div class="r"><span>' + esc(period()) + '</span><span class="pgno"></span></div></div>';
