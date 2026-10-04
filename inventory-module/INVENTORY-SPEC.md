@@ -1,4 +1,4 @@
-# Inventory module: functional spec (v1.0, 4 Oct 2026)
+# Inventory module: functional spec (v1.1, 4 Oct 2026, as built)
 
 This spec rebuilds the standalone **Athlete Fitness Inventory** app
 (athletefitness.ae/inventory, source `template.html`, 5,106 lines) as the
@@ -11,6 +11,51 @@ A design pass (the canvas mockups) comes after this spec is approved.
 
 Section references like "old §1855" point to line numbers in the old
 `template.html`, so every rule can be checked against the original.
+
+## v1.1: decisions and changes made during the build
+
+The owner left the open points to me. Each decision below is built and tested.
+
+**The §8 points**
+1. **Hour chart:** sales now save the real time, and the chart uses only those.
+   Imported sales, which have no time, are left out.
+2. **Boxes:** a box counts as its units everywhere, Reports and Excel included.
+3. **Margin:** net of VAT everywhere, so the category and brand margins add up
+   to the headline figure.
+4. **Exchanges:** counted as the old app counted them.
+5. **Void:** allowed on any date, as in the old app. The record is kept, with
+   who voided it, when and why.
+
+**Layout, matched to the Café module**
+- **Six tabs:** Dashboard · Sell · Sales log · Stock · Reports · Settings. Sales
+  log has its own tab so the till keeps the full height.
+- **Second row inside Stock:** Stock status · Items · Deliveries · Lookbook ·
+  Suppliers.
+- **Second row inside Reports:** Reports · Consignment.
+- **Period control:** the Café's Day · Week · Month · Year · Custom · All time.
+  It replaces the old Year + Month or From–To, and covers all of them.
+- **Exports:** PDF, Excel and barcode labels sit behind one **Export** button on
+  each screen. Void is an icon button in the row.
+- **Tables:** some columns are folded into sub-lines so every table fits at
+  1280 wide.
+  - On Items, the barcode, gender and box price show under the name.
+  - On Stock status, the brand, category and type show under the name.
+- **Pop-ups:** the app's own pop-up (`modal modal-sheet`), the same as the Café's.
+
+**Tests** (in athl3te-app, under `tests/`)
+- `inv-calc.test.mjs`: 17 rule tests.
+- `inv-parity.test.mjs`: 300 random transactions and 30 deliveries. Stock for
+  all 187 items, period stock and every Dashboard figure match the old app's
+  own code exactly.
+- `inv-rules/rules.test.mjs`: 36 Firestore rule checks, run against the real
+  emulator.
+- **Layout check:** every screen at 1280×600, 1366×768 and 1920×1080 has no
+  overflow, no clipped text and no wrapped buttons. On a 390 phone, only tables
+  and tab rows scroll sideways, inside their own boxes.
+
+**Supplier data:** the export had no supplier records. The import adds the 13
+suppliers from the old app's built-in list (name, brand and consignment flag).
+Contact details are added later, or come from a supplier export.
 
 ---
 
