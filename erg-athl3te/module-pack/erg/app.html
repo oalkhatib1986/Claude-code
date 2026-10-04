@@ -1,3 +1,28 @@
+<meta charset="utf-8">
+<script>
+/* ATHL3TE MODULE APP — SIGN-IN CHECK (added when the board joined the module
+   app as the "Trainer & Programs" tile). Runs before anything else.
+   - Signed in to the module app with the Trainer & Programs tile -> the board opens.
+   - Not signed in, on the TV link (tv.html, #screen, #workout) -> the board
+     opens in SCREEN-ONLY mode: it shows the leaderboard and nothing else.
+   - Anything else -> back to the module app's login. */
+(function(){
+  var s=null;
+  try{ s=JSON.parse(localStorage.getItem("afmaster:session")||"null"); }catch(e){}
+  if(s&&s.id){
+    // Demo (mock) mode keeps the people list here; take their CURRENT access
+    // from it, so a tile taken away in Admin takes effect without a re-login.
+    try{ var us=JSON.parse(localStorage.getItem("afmaster:users")||"null");
+      if(us&&us.length){ for(var i=0;i<us.length;i++){ if(us[i].id===s.id){ s.modules=us[i].modules; break; } } } }catch(e){}
+  }
+  var mods=(s&&s.modules)||[];
+  if(mods.indexOf("*")>=0||mods.indexOf("trainer")>=0) return;
+  var tv=/[?&]tv=1/.test(location.search)||location.hash==="#screen"||location.hash==="#workout";
+  if(tv){ document.documentElement.classList.add("a3-screenonly"); window.__a3ScreenOnly=true; return; }
+  location.replace("../#/login");
+})();
+</script>
+
 <title>ATHL3TE — Erg Race Board (restyled)</title>
 <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0a0a0b">
@@ -12138,3 +12163,23 @@ window.addEventListener("error",function(ev){
     else if(location.hash==="#workout"){ scrMode="work"; routeIn(); } });
 })();
 </script>
+<style>
+/* Screen-only (TV without sign-in): no way into the rest of the board. */
+html.a3-screenonly header .tabs,html.a3-screenonly .subtabs,html.a3-screenonly .a3-launch,html.a3-screenonly #aiFab,html.a3-screenonly #aiFabX{display:none!important}
+
+</style>
+<script>
+/* SCREEN-ONLY LOCK (module app). A TV opened without signing in may show the
+   leaderboard and the workout screen, and nothing else: if it ever leaves
+   that projection mode, it goes to the module app's login. */
+(function(){
+  if(!window.__a3ScreenOnly) return;
+  function check(){
+    var h=location.hash, b=document.body;
+    if((h!=="#screen"&&h!=="#workout")||!b.classList.contains("tvroute")) location.replace("../#/login");
+  }
+  window.addEventListener("hashchange",check);
+  setInterval(check,1000);
+})();
+</script>
+
