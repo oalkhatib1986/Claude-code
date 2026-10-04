@@ -915,7 +915,7 @@
   .tb-mtag{text-align:center;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.26em;
     text-transform:uppercase;color:var(--ink-mute);margin:-4px 0 0}
   .tb-mtag.hot{color:var(--hot)}
-  .tb-mtag.live{color:#3ade6b}
+  .tb-mtag.live{color:#c1ff72}
   .tb-swap{position:relative;border:1px solid var(--line-soft);border-radius:14px;padding:14px 16px;background:var(--card);display:flex;flex-direction:column;gap:9px}
   .tsw-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;min-width:0;padding:9px 12px;border-radius:10px}
   .tsw-row b{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
@@ -933,10 +933,10 @@
   .tsw-pills .tswp{flex:1 1 0;min-width:0;text-align:center}
   .tswp{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:999px;padding:9px 17px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer}
   .tswp.on{color:#0a0a0a;background:var(--slab);border-color:#fff}
-  .tsw-flash{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;border-radius:14px;background:rgba(10,10,11,.93);font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:#3ade6b;text-align:center;padding:8px}
+  .tsw-flash{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;border-radius:14px;background:rgba(10,10,11,.93);font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:#c1ff72;text-align:center;padding:8px}
   .tsw-flash.on{display:flex;animation:tswf .45s ease}
   @keyframes tswf{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
-  .tb-go{border:1px solid rgba(58,222,107,.45);color:#3ade6b;border-radius:14px;padding:13px 16px;
+  .tb-go{border:1px solid rgba(193,255,114,.45);color:#c1ff72;border-radius:14px;padding:13px 16px;
     text-align:center;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase}
   .tb-work{border:1px solid var(--line-soft);border-radius:14px;padding:14px 17px;background:rgba(255,255,255,.02);font-size:13.5px;line-height:1.55;color:var(--ink-dim)}
   .tb-work b{font-family:var(--disp);font-weight:600;color:var(--ink);text-transform:uppercase;font-size:11px;letter-spacing:.2em;display:block;margin-bottom:5px}
@@ -1011,10 +1011,10 @@
   #crewList .cst>div{min-width:0;display:flex;flex-direction:column;gap:3px;
     background:rgba(255,255,255,.045);border:1px solid var(--line-soft);
     border-left:3px solid rgba(255,255,255,.22);border-radius:10px;padding:9px 12px}
-  #crewList .cst>.cnow{border-left-color:#3ade6b;background:rgba(58,222,107,.07)}
+  #crewList .cst>.cnow{border-left-color:#c1ff72;background:rgba(193,255,114,.07)}
   #crewList .cst span{font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--ink-mute)}
-  #crewList .cst>.cnow span{color:#3ade6b}
+  #crewList .cst>.cnow span{color:#c1ff72}
   /* two sizes only, and they mean the same thing in both cells: <b> is the answer,
      everything under it is context. Peers (the moves in a swap) are all <b>. */
   #crewList .cst b{font-family:var(--disp);font-weight:700;font-size:16.5px;line-height:1.2;
@@ -1159,7 +1159,7 @@
   .restins button.holdtg.on{border-style:solid;border-color:rgba(255,90,90,.55);color:var(--hot)}
   /* the finish is a shape, not a warning \u2014 green, and named in full */
   .finrow{margin:0 0 10px}
-  .spill.finpill.on{background:#3ade6b;border-color:#3ade6b;color:#06210f}
+  .spill.finpill.on{background:#c1ff72;border-color:#c1ff72;color:#06210f}
   .scrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .spill{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:999px;padding:6px 12px;font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.14s}
   .spill.on{background:var(--hot);border-color:var(--hot);color:#fff}
@@ -1235,7 +1235,7 @@
   .aichat .msg{border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;font-size:14px;line-height:1.5;max-width:94%;white-space:pre-wrap}
   .aichat .msg.you{align-self:flex-end;background:var(--field);color:var(--ink)}
   .aichat .msg.ai{align-self:flex-start;color:var(--ink-dim)}
-  .aichat .msg.ok{align-self:flex-start;border-color:rgba(58,222,107,.45);color:#3ade6b}
+  .aichat .msg.ok{align-self:flex-start;border-color:rgba(193,255,114,.45);color:#c1ff72}
   .aichat .msg.err{align-self:flex-start;border-color:rgba(255,70,64,.5);color:#ff6b64}
   /* the coach taps an answer: option pills under the AI's question. After a
      tap the row freezes and the picked one stays lit — the transcript shows
@@ -2311,9 +2311,9 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,select:fo
  border-color:#c1ff72;box-shadow:0 0 0 3px rgba(193,255,114,.15)}
 
 /* buttons: Geist, sentence case, radius 12. Primary = green, secondary = surface + strong border */
-.btn:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *){font-family:var(--ui);font-weight:600;letter-spacing:0;text-transform:none;border-radius:12px}
-.btn:not(.primary):not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *){background:var(--card);border:1px solid #3a3a36;color:var(--ink)}
-.btn.primary:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *){background:#c1ff72;border-color:#c1ff72;color:#0a0a0a}
+.btn:where(:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *)){font-family:var(--ui);font-weight:600;letter-spacing:0;text-transform:none;border-radius:12px}
+.btn:not(.primary):where(:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *)){background:var(--card);border:1px solid #3a3a36;color:var(--ink)}
+.btn.primary:where(:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *)){background:#c1ff72;border-color:#c1ff72;color:#0a0a0a}
 .btn.primary:hover{background:#d4ff96;border-color:#d4ff96}
 
 /* small print + notes */
@@ -2338,7 +2338,7 @@ body:not(.bigscreen) .blk .win{font-family:var(--mono);font-size:12px;font-weigh
 body:not(.bigscreen) .blk{border:1px solid var(--line);border-left:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:none}
 
 /* a button label never breaks onto two lines; a row of buttons wraps instead */
-.btn:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *){white-space:nowrap}
+.btn:where(:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *)){white-space:nowrap}
 .addbtns{flex-wrap:wrap}
 .aiph b{font-family:var(--a3-title);font-size:18px;font-weight:700;letter-spacing:-.01em;text-transform:none}
 
@@ -2364,12 +2364,36 @@ body.tvfull .a3-title,body.tbfull .a3-title,body.tvroute .a3-title,body.tvfull .
 .tabs button[aria-selected="true"]::after{margin-left:0}
 .subtabs{padding:3px}
 .subtabs button{height:30px;font-size:13px}
-.btn:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *){font-size:14px}
+.btn:where(:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *)){font-size:14px}
 @media (max-width:620px){
  .a3-title{font-size:22px}
  .tabs button{gap:0;height:34px;padding:0 6px;font-size:12.5px}
  .tabs button::before{display:none}}
 .tvfit .a3-launch,.lbcanvas .a3-launch{display:none!important}
+/* the athletes picker grows with its text (Geist is wider than the old condensed face) */
+.teamsbar .mwrap{width:auto;min-width:158px}
+.teamsbar .mfield{white-space:nowrap}
+/* button text sits dead centre: flex-centre, no baseline padding */
+.btn:where(:not(:is(.lbcanvas,.tk,.twt-scr,#tbStage) *)){line-height:1}
+/* pickers on the right side open leftward, aligned to their box, never off-screen */
+.teamsbar .mpanel,.ovpick .mpanel{left:auto;right:0}
+/* back-to-library: a normal button, not a stretched bar */
+#libBack{align-self:flex-start}
+/* teams: the NOW card is tinted, no stripe */
+#crewList .cst>.cnow{border-left-color:var(--line)}
+/* session timeline: the running part is white with a green dot (red is for errors only);
+   part dots are neutral, the current part's dot is green */
+.prt.cur.scored,.prt.cur.scored b{color:var(--ink)}
+.prt.cur .pd{background:#c1ff72!important}
+#rlist .bdot{background:var(--ink-mute)!important}
+#rlist .rrow.cur .bdot{background:#c1ff72!important}
+.tabs button[hidden]{display:none}
+/* teams: NOW / NEXT are module nested cards — raised, no stripes; list text 14px/500 */
+#crewList .cst>div{background:var(--field);border:0;border-left:0;border-radius:14px;padding:12px 14px}
+#crewList .cst>.cnow{background:rgba(193,255,114,.07);box-shadow:inset 0 0 0 1px rgba(193,255,114,.25)}
+#crewList .cst span{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.12em}
+#crewList .cst b{font-family:var(--ui);font-weight:500;font-size:14px;line-height:1.5;letter-spacing:0}
+#crewList .cst i,#crewList .cst u{font-size:14px;line-height:1.45}
 /* tab icons, as on the module pages */
 #tabBoard::before{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9%203h6v4H9zM16%205h2a2%202%200%200%201%202%202v12a2%202%200%200%201-2%202H6a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2h2M9%2012h6M9%2016h4%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9%203h6v4H9zM16%205h2a2%202%200%200%201%202%202v12a2%202%200%200%201-2%202H6a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2h2M9%2012h6M9%2016h4%27/%3E%3C/svg%3E") center/contain no-repeat}
 #tabTrainer::before{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2021v-7M4%2010V3M12%2021v-9M12%208V3M20%2021v-5M20%2012V3M1%2014h6M9%208h6M17%2016h6%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2021v-7M4%2010V3M12%2021v-9M12%208V3M20%2021v-5M20%2012V3M1%2014h6M9%208h6M17%2016h6%27/%3E%3C/svg%3E") center/contain no-repeat}
@@ -2932,7 +2956,7 @@ body.tvfull .a3-title,body.tbfull .a3-title,body.tvroute .a3-title,body.tvfull .
           <div id="gearList"></div>
           <div class="addbtns"><button class="btn small" id="addGear" type="button">+ Add equipment</button></div>
           <div class="note">Add the kit the gym actually has. Link an exercise to it in
-            <b>Setup</b> and every screen works the sharing out for you \u2014 12 athletes
+            <b>Setup</b> and every screen works the sharing out for you — 12 athletes
             and 4 squat racks is three to a rack, and each of them is told which one.
             An exercise with no equipment gives everybody their own spot.</div>
         </div>
@@ -4738,7 +4762,7 @@ window.addEventListener("error",function(ev){
             const m9=/^(.*?) (\d+)$/.exec(label);
             const lab=m9?`<span class="tnm">${m9[1]}</span><i class="tno">${m9[2]}</i>`:label;
             return `<span class="t${any?"":" unnamed"}${spare?" spare":""}${!any&&freeN&&urgent&&!spare?" late":""}">`
-              +`<span class="dot" style="background:${any?"#3ade6b":"currentColor"};color:${any?"#3ade6b":"currentColor"}"></span>`
+              +`<span class="dot" style="background:${any?"#c1ff72":"currentColor"};color:${any?"#c1ff72":"currentColor"}"></span>`
               +`<b class="tn">${lab}</b><em class="mtag">${who}</em></span>`; };
           // machines of a kind stack in one COLUMN each — the eye runs down
           // the Skis, then the Bikes, instead of zig-zagging a grid
