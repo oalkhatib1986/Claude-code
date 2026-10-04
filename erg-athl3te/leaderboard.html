@@ -2344,15 +2344,17 @@ body:not(.bigscreen) .blk{border:1px solid var(--line);border-left:1px solid var
 
 /* ===== module page header: logo bar + Launcher pill, then the page title ===== */
 header{row-gap:12px;padding-top:0}
-header>.mark{flex:0 0 100%;flex-direction:row;align-items:center;justify-content:space-between;height:52px;padding:0;
+header>.mark{flex:0 0 100%;flex-direction:row;align-items:center;justify-content:space-between;height:clamp(64px,9vh,80px);padding:0;
  border-bottom:1px solid var(--line-soft);
  border-image:linear-gradient(var(--line-soft),var(--line-soft)) 0 0 1 0 / 0 0 1px 0 / 0 100vw 0 100vw}
-header>.mark .badge{height:26px}
-body[data-logo="badge"] header>.mark .badge{height:30px}
-.a3-launch{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;
+header>.mark .badge{height:clamp(32px,4vh,44px)}
+body[data-logo="badge"] header>.mark .badge{height:clamp(37px,4.6vh,51px)}
+@media (max-height:720px){header>.mark{height:52px}header>.mark .badge{height:26px}body[data-logo="badge"] header>.mark .badge{height:30px}}
+.a3-launch{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:999px;
  border:1px solid rgba(193,255,114,.45);background:rgba(193,255,114,.08);color:#c1ff72;text-decoration:none;
- font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.a3-launch:hover{background:rgba(193,255,114,.16)}
+ font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.a3-launch:hover{background:rgba(193,255,114,.16);border-color:rgba(193,255,114,.7)}
+@media (max-height:720px){.a3-launch{height:24px;padding:0 10px;font-size:10.5px}}
 .a3-title{flex:0 0 100%;display:flex;align-items:center;gap:10px;font-family:var(--a3-title);font-weight:800;
  font-size:clamp(22px,1.75vw,32px);letter-spacing:-.035em;line-height:1.1;color:var(--ink);white-space:nowrap}
 .a3-title svg{width:24px;height:24px;color:#c1ff72;flex:none}
