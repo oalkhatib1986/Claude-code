@@ -1,39 +1,49 @@
 In the athl3te-app repo, plan (and later build) the **ATHL3TE Coach**: a personal AI coach for every client on the client-facing side of the app, like the WHOOP assistant but built on our gym's data. Read CLAUDE.md and DESIGN.md first and follow them. Work on a new branch `claude/client-coach`; do not touch master until I approve. This depends on the client-facing app (client sign-in, profile, logging) — if that doesn't exist yet, tell me what's missing and plan the Coach on top of it. Plan first and stop for my OK.
 
 ## What it is
-One coach that knows each client's whole history. It **analyses their data and trends over time**, spots patterns, and tells them what to do next and why — in plain, short, encouraging language, backed by their own numbers ("your 2k erg time has dropped 9 seconds in 6 weeks, but you've trained legs once in 14 days").
+One coach that knows each client's whole history. It **analyses their data and trends over time**, spots patterns, and tells them what to do next and why — in plain, short, encouraging language, backed by their own numbers ("your 2k erg time has dropped 9 seconds in 6 weeks, but you've trained legs once in 14 days"). It covers training, performance, recovery, habits, nutrition they log, goals and consistency — it is a **wellness and fitness coach, never a medical one**.
 
 ## What it reads — each client's own data only
-Classes and workouts attended, erg results and PBs (`erg/`), PT sessions and trainer notes meant for the client, their goals, and anything they log (how they feel, soreness, sleep, weight and body measurements, nutrition, water). Optional: their WHOOP data (recovery, HRV, resting heart rate, sleep, strain, workouts) through the WHOOP developer API with OAuth, if they link it — in the first version.
+Classes and workouts attended, erg results and PBs (`erg/`), PT sessions and trainer notes meant for the client, their goals, and anything they log (how they feel, soreness, sleep, weight and body measurements, nutrition, water). **Design the data model so wearables (WHOOP first, later Apple Health, Garmin, Oura) can plug in later** as one more data source — but do not connect any wearable until phase 4.
 
 ## Trends and analysis — the core
-Pre-compute a compact summary per client (never raw dumps): week-on-week and month-on-month trends, rolling averages, training load vs recovery, frequency by type and body area, streaks and gaps, PB progression and plateaus, progress vs goal and the rate needed to hit it, and correlations in their own data (e.g. sleep vs performance, attendance vs weight). The AI interprets these; all numbers come from the computed summary, never invented. When data is thin it says so and asks them to log.
+Pre-compute a compact summary per client (never raw dumps): week-on-week and month-on-month trends, rolling averages, training load vs rest days, frequency by type and body area, streaks and gaps, PB progression and plateaus, progress vs goal and the rate needed to hit it, and patterns in their own data (e.g. logged sleep vs performance, attendance vs weight). The AI interprets these; all numbers come from the computed summary, never invented. When data is thin it says so and asks them to log.
 
 ## What it does
 - **Daily insight:** today's recommendation — push, maintain, or recover — with the reason from their trends.
 - **Weekly report:** what improved, what slipped, one or two focus points for next week.
-- **Ask the Coach:** chat about their own training, performance, recovery, nutrition, habits and goals, answered from their data.
-- **Recommendations from our gym:** specific classes (with times and spaces), workouts, trainers or PT packages that fit, and videos/content from our library — never outside content.
+- **Ask the Coach:** chat about their own training, performance, recovery, habits and goals, answered from their data.
+- **Recommendations from our gym:** specific classes (with times and spaces), workouts, trainers and videos/content from our library — never outside content.
 - **Goals:** set and track (fat loss, strength, erg or race targets, events); says whether they're on track and what to change.
 - **Consistency:** notices when they go quiet or a pattern changes, and checks in.
 
 ## Content library
 A library module (owner/trainers manage it): videos and guides tagged by type (strength, conditioning, mobility, recovery, nutrition, technique…), body area, level, equipment and duration. The Coach recommends only from it. Start small; it grows.
 
-## Ground rules — always on
-- **Not medical advice.** Pain, injury, illness, dizziness, pregnancy, eating-disorder signs, extreme weight change → it tells the client to stop and see a professional and flags their trainer. No diagnoses, no supplements or medication advice.
-- **Trainer stays in charge.** A trainer's plan overrides the Coach. Trainers see what the Coach told their clients; worrying patterns go to the trainer and to the Chief Training Officer (AI team, `prompts/ai-management-team.md`).
-- **Consent and privacy.** Opt-in with a clear consent screen (health data, UAE PDPL); the client can see, export and delete their data and unlink WHOOP at any time. Firestore rules: a client reads only their own data; no client data reaches another client.
-- **Light selling only:** suggests packs or PT only where it genuinely fits, and only if I switch that on.
-- **Spend cap:** a monthly AI budget I set; per-client daily message limit.
+## UAE regulatory requirements — build these in, always on
+I am getting a UAE lawyer to confirm these; build so the wording and switches can change without code changes.
+- **Wellness only, never medical** (keeps us outside the health-data law, Federal Law 2/2019, and medical-device rules): no diagnosis, no treatment plans, no medical interpretation of any number (heart rate, weight, sleep), no supplement or medication advice, no medical claims anywhere in the app or marketing. Put this in the Coach's instructions and test it with tricky questions.
+- **Red flags:** pain, chest pain, dizziness, fainting, breathlessness, pregnancy, injury, illness, eating-disorder signs, extreme weight change → the Coach stops coaching on it, tells the client to stop and see a doctor, and flags their trainer and the Chief Training Officer (AI team, `prompts/ai-management-team.md`). Log every flag.
+- **18+ only at launch** (Child Digital Safety Law, Federal Decree-Law 26/2025): the Coach is unavailable to clients under 18; leave a switch for a later teen version with parental consent.
+- **Separate consents, opt-in, never pre-ticked** (PDPL, Federal Decree-Law 45/2021; Consumer Protection Law 15/2020), each stored with date, time and the version of the text accepted, each withdrawable in settings:
+  1. AI Coach — analysing their training and health-related data with AI, and that it is processed by providers outside the UAE (Google, Anthropic).
+  2. Marketing — the Coach suggesting PT, packs or offers, and promotional messages. Off unless they opt in, and only if I switch selling on.
+  3. Wearable link (phase 4).
+- **Disclaimer** at Coach sign-up and always visible in the Coach: "General fitness guidance generated by AI from your data. Not medical advice. It doesn't replace your trainer or a doctor. Stop and seek medical help if you feel pain, dizziness or unwell." Editable by me.
+- **Health declaration (PAR-Q):** check whether we already collect one (Glofox sign-up); if not, add it to client onboarding and let the Coach respect it (e.g. a declared condition → only general guidance and a note to follow their doctor and trainer).
+- **Data rights:** in-app "download my data" and "delete my data" (Coach data and logs), and a privacy notice page in **English and Arabic** listing what we hold, why, who we share it with, where it's stored, how long we keep it, and who to contact.
+- **Minimum data to the AI:** send a client ID and the numbers it needs — never names, phone numbers, emails or Emirates ID. Set a retention period for chat history (default 12 months, settable).
+- **Arabic:** all client-facing Coach screens, consents and the disclaimer in English and Arabic.
+- **Trainer stays in charge:** a trainer's plan overrides the Coach; trainers see what the Coach told their clients and can correct it.
+- Give me, at the end of phase 1, a one-page list of every data flow (what data, where stored, which provider, which country) for my lawyer.
 
 ## How it works
-Firebase Cloud Functions (same `functions/` as the AI team) build each client's summary nightly and on new data; Claude API — `claude-haiku-5-5` for daily insights, `claude-sonnet-5-5` for chat and weekly reports (check current models and pricing first and tell me the expected monthly cost per 100 active clients). Secrets via `firebase functions:secrets:set`. Push notifications or in-app inbox for the daily insight. Owner settings: on/off, what's included for all members vs premium, selling on/off, spend cap, which data sources are used.
+Firebase Cloud Functions (same `functions/` as the AI team) build each client's summary nightly and on new data; Claude API — `claude-haiku-5-5` for daily insights, `claude-sonnet-5-5` for chat and weekly reports (check current models and pricing first and tell me the expected monthly cost per 100 active clients). Secrets via `firebase functions:secrets:set`. Push notifications or in-app inbox for the daily insight. Owner settings: on/off, included for all members vs premium, selling on/off, spend cap, per-client daily message limit, retention period, disclaimer and consent text, which data sources are used.
 
 ## Build in phases — stop for my OK after each
-1. Plan, data summaries and trend analysis with tests (show me 3 real clients' summaries); content library.
-2. Daily insight and weekly report in the client app, consent screen, trainer view, safety flags.
+1. Plan, data summaries and trend analysis with tests (show me 3 real clients' summaries); content library; the data-flow list for my lawyer.
+2. Consents, disclaimer, privacy notice (EN/AR), 18+ gate, data download/delete; daily insight and weekly report; trainer view; red-flag handling with tests.
 3. Ask the Coach chat; goals; class/PT recommendations.
-4. WHOOP linking.
+4. **WHOOP — do not start until I confirm my lawyer has signed off.** Then: register the app on developer.whoop.com, OAuth with only the scopes we use (recovery, sleep, cycles, workout, offline), webhooks plus a daily catch-up sync, a separate consent and an unlink button, WHOOP data used only for training load and recovery (never medical interpretation), and help me prepare WHOOP's app approval (privacy policy, design guidelines; it can take weeks, and until approved only 10 members can link). Follow WHOOP's developer terms.
 
 Before each handover: `node tools/audit.mjs` (no new findings), `node tools/stress.mjs` (0 failed), the new tests; deploy. Report the branch, what was added, the audit and stress lines, cost so far and expected, and what I need to do next. Ask me whenever something is unclear rather than guessing.
