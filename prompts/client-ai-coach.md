@@ -1,5 +1,7 @@
 In the athl3te-app repo, plan (and later build) the **ATHL3TE Coach**: a personal AI coach for every client on the client-facing side of the app, like the WHOOP assistant but built on our gym's data. Read CLAUDE.md and DESIGN.md first and follow them. Work on a new branch `claude/client-coach`; do not touch master until I approve. This depends on the client-facing app (client sign-in, profile, logging) — if that doesn't exist yet, tell me what's missing and plan the Coach on top of it. Plan first and stop for my OK.
 
+**Before anything else:** check whether the security hardening (`prompts/security-hardening.md` in my Claude-code repo, branch `claude/security` in this repo) has been done and merged. If not, stop and tell me — it must be done before any client-facing feature goes live.
+
 ## What it is
 One coach that knows each client's whole history. It **analyses their data and trends over time**, spots patterns, and tells them what to do next and why — in plain, short, encouraging language, backed by their own numbers ("your 2k erg time has dropped 9 seconds in 6 weeks, but you've trained legs once in 14 days"). It covers training, performance, recovery, habits, nutrition they log, goals and consistency — it is a **wellness and fitness coach, never a medical one**.
 
