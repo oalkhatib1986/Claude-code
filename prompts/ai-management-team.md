@@ -104,3 +104,5 @@ Owner only, on the launcher like the other modules (follow how the Financial Coc
 **Phase 3 — the full team.** CMO, CDO and CTO (with the app logging and Feedback button); tasks & follow-up; weekly review and month-end pack; forecasts; draft messages; improvement proposals.
 
 Before handing over each phase: `node tools/audit.mjs` (expect HIGH 2 · MED 12 · LOW 1 — no new findings), `node tools/stress.mjs` (0 failed), and the new tests; then deploy hosting, functions and rules. Change existing modules only where needed to register the new module, add the logging, or reuse their logic — no restyling or "improvements" elsewhere. Ask me whenever something is unclear rather than guessing. At the end of each phase, report: the branch, what was added, the audit and stress lines, the monthly cost so far and expected, and what I need to do next.
+
+Later we will add a client-facing AI coach (a separate prompt) that reuses this back end — keep the functions, the safe lookups, the spend tracking and the Ask chat reusable for it.
