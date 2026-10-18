@@ -1,11 +1,11 @@
 In the athl3te-app repo, do a one-off **security hardening** of the app (Firebase project `athlete-fitness-dxb`, live at athlete-fitness-dxb.web.app). Read CLAUDE.md and DESIGN.md first and follow them. Work on a new branch `claude/security`; do not touch master until I approve. Plan first: list each item below, what you'll change, and anything that needs me (a console click, the Blaze plan, a cost). Stop for my OK before changing anything.
 
 ## 1. Owner two-step sign-in
-- Add multi-factor authentication for my owner account (and optionally any account with finance access): a code by SMS or an authenticator app at sign-in, via Firebase Authentication with Identity Platform. This needs the Blaze plan; tell me the cost (it should be close to zero at our size) and walk me through switching on Identity Platform and MFA in the console. Stop until I confirm.
+- Add multi-factor authentication for my owner account (and optionally any account with finance access): a code by SMS or an authenticator app at sign-in, via Firebase Authentication with Identity Platform. We're already on Blaze; tell me the cost (it should be close to zero at our size) and walk me through switching on Identity Platform and MFA in the console. Stop until I confirm.
 - Build the enrol and sign-in screens in the app's existing style (DESIGN.md). Give me a way back in if I lose my phone (backup codes or a second factor), and test it before turning it on.
 
 ## 2. Daily backups
-- Turn on daily Firestore backups with 14-day retention (scheduled backups, Blaze plan), plus a weekly export to a Cloud Storage bucket kept for 3 months. Tell me the monthly storage cost.
+- Turn on daily Firestore backups with 14-day retention (scheduled backups; we're already on Blaze), plus a weekly export to a Cloud Storage bucket kept for 3 months. Tell me the monthly storage cost.
 - Write down in `docs/RESTORE.md`, step by step, how to restore one collection or everything, and do a test restore into a separate database to prove it works.
 
 ## 3. Shared tills and tablets
