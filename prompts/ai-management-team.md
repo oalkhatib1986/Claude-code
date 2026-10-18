@@ -34,7 +34,7 @@ These are things the agents do, not separate tools. In the app I switch each on 
 
 ## Ground rules — always on, cannot be switched off
 
-- **Read-only.** No agent may change any data in the app, and no agent can change who has access: the CTO alerts, I act.
+- **Read-only on their own.** No agent changes any data by itself, and no agent can change who has access: the CTO alerts, I act. The only exception is **Actions** (below): when a person asks for something to be done and confirms it.
 - **Only real numbers.** Every figure comes from the app's own calculations; when data is missing they say so plainly (e.g. "no Glofox sales imported for September") instead of guessing.
 - **I approve contact and changes.** Nothing goes to a member, and no app change is made, without my approval.
 - **Spend cap.** A monthly AI budget I set in the app; when reached, the team pauses and tells me.
@@ -54,6 +54,30 @@ These are things the agents do, not separate tools. In the app I switch each on 
 - **For the CTO:** add lightweight logging in the app — uncaught errors, failed Firestore writes and slow screens, plus which screens are opened (no personal data) — into a new collection, and a small "Feedback" button for staff. Also log sign-ins (success and failure, device, time — no passwords), changes to users' roles and capabilities, and the result of each nightly backup. The CTO reads only those. Its proposals are saved in the app with a copy button for the prompt; I approve or reject each.
 - **People:** at launch the only recipient is me (the owner). Build an **Access** section in Settings where I can later switch people on one at a time — picked from the people the app already has (users / staff list / PT trainers — find where emails and phone numbers live and use that; do not create a second list), plus partner trainers I add by name, email and phone. Everyone starts switched off. For each person I choose: which agent they talk to (trainers: CTrO only), which of their clients and classes it may discuss, report on/off, channel and time. A trainer only ever sees their own clients and classes where the data allows; switching someone off stops everything to them immediately. Log every access change (the CTO reports them).
 
+## Ask — a chat on every page
+
+- **A chat button on every screen of the app** (bottom corner, out of the way of tiles and tills). It opens a **side panel**; an **expand** button turns it into a **full-screen chat** (and back), keeping the conversation. On a phone it opens full screen. The conversation is the same one as the Ask tab and WhatsApp.
+- **It knows where you are:** it receives the current screen and what's selected (month, tile, client, item), so "why is this tile red?" or "how has this client done this month?" works without explaining.
+- **Answers in the best form:** text for a fact, a **table** for lists, a **chart** for trends (drawn with the app's own chart style, DESIGN.md), and always "how I got this" — data, period, filters — plus a **link to the page** that shows it. Under each answer: **Pin** (adds it as a tile on my dashboard), **Save as report** (e.g. every Monday), **Export** (Excel/PDF), **Draft email**.
+- **Safe lookups only:** the AI never queries Firestore freely. Give it a fixed set of tools built on the app's own calculations (e.g. sales by membership type and period, P&L lines, stock on hand, client attendance, bookings, PT packages), each checking the asking person's capabilities (`users/<uid>.caps`) server-side. Numbers must match the screens.
+- **Who can use it:** me from Phase 2 (through the CEO, who calls the heads). Later, when I switch people on in Access: trainers and partner trainers (CTrO, own clients only), reception (memberships, bookings, how-to), café staff (stock, how-to) — each limited to what their role can already see in the app, each with a daily question limit I set.
+- **App help:** anyone can ask "how do I…" about any screen; answer from the app's own screens and a short help text you write per module.
+- **Voice and Arabic:** hold-to-talk on phones; replies in the language asked.
+
+## Actions — the AI does things, only when asked and confirmed
+
+- A person can ask for something to be done, e.g. "pause Omar Al Khatib's membership for two weeks starting Sunday". The AI never does it straight away: it shows a **confirmation card** — who, what, dates, and the effect (e.g. "new end date: 14 Mar") — and only a tap on **Confirm** does it. Ambiguity (two people called Omar, unclear dates) → it asks first.
+- Actions run through the app's **own existing functions** — exactly what would happen if the person did it by hand — with **the asking person's permissions**: if they couldn't do it in the app, the AI can't either.
+- Every action is logged (who asked, what, when, confirmation) and has **Undo** where the app allows it. Money actions (refunds, payments, prices, payroll) and access changes are never available as AI actions.
+- Start with a short list I approve (e.g. pause/extend a membership, book or cancel a class for a client, add a note to a client, create a task, record a stock count), each switchable in Settings. **Check first where memberships live:** if they are in Glofox, not in our app, tell me what Glofox's API allows and what access we'd need before building membership actions.
+
+## The Boardroom — a new module
+
+- A tile on the launcher (owner only): my meeting room with the team.
+- **Weekly board meeting:** the CEO prepares an agenda from the week's data; each head presents in turn (with tables and charts); I can question, push back and ask for more. **Ad-hoc meetings:** "call the CFO and COO — why did café margin drop?"
+- **Decisions and actions** agreed become tasks (owner, date) that the team follows up; **minutes** are saved and searchable.
+- Later, a trainer gets their own small room with the CTrO about their own clients (only once I give them access).
+
 ## In the app: a new "AI Team" module
 
 Owner only, on the launcher like the other modules (follow how the Financial Cockpit is registered, gated and styled — same header, tabs, type and colours, DESIGN.md).
@@ -72,7 +96,7 @@ Owner only, on the launcher like the other modules (follow how the Financial Coc
 
 **Phase 1 — the core (me only).** Plan first: tell me where each agent's data comes from, what you'll reuse, and the files you'll add or change; stop for my OK. Then: data summaries and their tests (show me each summary, numbers matching the cockpit) → CEO, CFO, COO, CTrO with daily reports and **Run now** → email via Resend with **Send me a test** (to me only) → per-person delivery times with a full-day dry run before real sending → the AI Team page (Brief, History, Team, Settings) → spend cap.
 
-**Phase 2 — talk and react.** WhatsApp delivery and the WhatsApp chat with the CEO (my number only); the in-app **Ask** tab; instant alerts; targets; the **Access** section with trainer briefs and the trainer ↔ CTrO chat built and tested on a test account, but nobody switched on until I do it myself.
+**Phase 2 — talk and react.** WhatsApp delivery and the WhatsApp chat with the CEO (my number only); **Ask** on every page (side panel, expandable to full screen) and the in-app Ask tab, with tables, charts, pin, save, export; the **Boardroom** module; **Actions** with confirmation cards (start with the list I approve); instant alerts; targets; the **Access** section with trainer briefs and the trainer ↔ CTrO chat built and tested on a test account, but nobody switched on until I do it myself.
 
 **Phase 3 — the full team.** CMO, CDO and CTO (with the app logging and Feedback button); tasks & follow-up; weekly review and month-end pack; forecasts; draft messages; improvement proposals.
 
