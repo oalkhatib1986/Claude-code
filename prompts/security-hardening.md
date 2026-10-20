@@ -8,8 +8,10 @@ In the athl3te-app repo, do a one-off **security hardening** of the app (Firebas
 - Turn on daily Firestore backups with 14-day retention (scheduled backups; we're already on Blaze), plus a weekly export to a Cloud Storage bucket kept for 3 months. Tell me the monthly storage cost.
 - Write down in `docs/RESTORE.md`, step by step, how to restore one collection or everything, and do a test restore into a separate database to prove it works.
 
-## 3. Shared tills and tablets
-- Signed-in sessions on shared devices (café till, reception, erg tablet) should lock after a period of no use (default 15 minutes, settable by me), needing the PIN or password again. Finance and settings screens should lock sooner (default 5 minutes).
+## 3. Shared tills, tablets and screens
+- **Two-step sign-in is only for my owner account (and finance accounts if I choose). Never on the erg tablet, TV/leaderboard screens, tills or any other shared device** — they must keep working without anyone entering a code.
+- **Erg tablet and TV/leaderboard screens (`erg/app.html`, `leaderboard.html`, `tv.html`):** run as kiosks under their own limited device accounts (no MFA, never auto-lock, no time-outs). The erg tablet's account can only add erg results and read what the erg board needs; the TV/leaderboard account can only read what's on screen. Neither can open any other module. Check how they sign in today and keep that working.
+- **Staff devices (café till, reception):** signed-in sessions lock after a period of no use (default 15 minutes, settable by me), needing the staff PIN or password again — not a code. Finance and settings screens lock sooner (default 5 minutes).
 - Owner and finance screens must never stay open on a shared device: if someone opens them there, ask for my password again.
 
 ## 4. Erg results to the cloud
