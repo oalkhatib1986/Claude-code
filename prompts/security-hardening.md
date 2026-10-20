@@ -28,5 +28,8 @@ In the athl3te-app repo, do a one-off **security hardening** of the app (Firebas
 - Turn on 2-step verification on the Google account that owns Firebase, and on my GitHub account.
 - Check who else is a member of the Firebase / Google Cloud project and the GitHub repo, and remove anyone who shouldn't be there.
 
+## 8. Fit with the AI team
+- If the AI team is built (branch `claude/ai-team` or merged into master): make sure its logging records each nightly backup result for the CTO, check the AI Team's Firestore collections and functions in the rules review (item 5), and once everything here is done, tell me so I can mark the Today item "Run security hardening before launching the client app" as done.
+
 ## Finish
 Before handing over: `node tools/audit.mjs` (expect HIGH 2 · MED 12 · LOW 1 — no new findings), `node tools/stress.mjs` (0 failed), and the new rules tests. Then deploy hosting and rules. Change existing modules only where these items need it — no restyling. Ask me whenever something is unclear rather than guessing. Report: the branch, each item done / waiting on me, the audit and stress lines, the monthly cost added, and what I need to do next.
