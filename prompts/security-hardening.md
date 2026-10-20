@@ -1,8 +1,9 @@
 In the athl3te-app repo, do a one-off **security hardening** of the app (Firebase project `athlete-fitness-dxb`, live at athlete-fitness-dxb.web.app). Read CLAUDE.md and DESIGN.md first and follow them. Work on a new branch `claude/security`; do not touch master until I approve. Plan first: list each item below, what you'll change, and anything that needs me (a console click, the Blaze plan, a cost). Stop for my OK before changing anything.
 
-## 1. Owner two-step sign-in
-- Add multi-factor authentication for my owner account (and optionally any account with finance access): a 6-digit code from an **authenticator app** (TOTP — Google Authenticator, Microsoft Authenticator or similar; scan a QR code once) at sign-in, via Firebase Authentication with Identity Platform. Authenticator app is the main method (free, works offline, safer than SMS). SMS only as an optional backup second factor. We're already on Blaze; tell me the cost (it should be close to zero at our size) and walk me through switching on Identity Platform and MFA in the console. Stop until I confirm.
-- Build the enrol and sign-in screens in the app's existing style (DESIGN.md). Give me a way back in if I lose my phone: let me enrol a second factor (my phone number by SMS, or the authenticator on a second device), tell me whether Identity Platform supports backup codes or whether you'd need to build them, and write the recovery steps in `docs/RESTORE.md`. Test it before turning it on. Also tell me whether "remember this device" is possible so I'm not asked for the code every time on my own laptop.
+## 1. Two-step sign-in
+- **Who:** my owner account, and any account with finance or admin access (Identity Platform MFA, enforced for those roles). Not trainers, reception, café staff, the erg tablet or TV screens.
+- **How:** a 6-digit code from **Google Authenticator** (TOTP — scan a QR code once). **No SMS** as a second factor (SIM-swap risk). Users stay signed in on their own devices, so the code is only asked on a new sign-in or new device. We're already on Blaze; tell me the cost and walk me through switching on Identity Platform and TOTP MFA in the console. Stop until I confirm.
+- **Recovery:** I'll turn on Google Authenticator's cloud backup (tied to my Google account). Last resort: if I'm locked out of the app, I sign in to Google/Firebase and you (or a small owner-only admin script you add, run from the command line) remove my app MFA so I can enrol again. Write these steps in `docs/RESTORE.md`. Build the enrol and sign-in screens in the app's style (DESIGN.md) and test the whole flow, including recovery, before enforcing it.
 
 ## 2. Daily backups
 - Turn on daily Firestore backups with 14-day retention (scheduled backups; we're already on Blaze), plus a weekly export to a Cloud Storage bucket kept for 3 months. Tell me the monthly storage cost.
@@ -27,11 +28,19 @@ In the athl3te-app repo, do a one-off **security hardening** of the app (Firebas
 - List every account with its role, last sign-in and whether it's active. Flag anyone who hasn't signed in for 30 days or who has left (compare with the staff list), so I can switch them off. Don't switch anyone off yourself.
 
 ## 7. What I do myself (just tell me the steps, on my phone)
-- Turn on 2-step verification on the Google account that owns Firebase, and on my GitHub account.
+- Google account that owns Firebase: turn on 2-step verification with a **passkey** (phone Face ID / fingerprint), turn on Google Authenticator cloud backup, and **print Google's backup codes** to keep somewhere safe offline.
+- GitHub: turn on 2-step verification (passkey or authenticator app) and save its recovery codes.
 - Check who else is a member of the Firebase / Google Cloud project and the GitHub repo, and remove anyone who shouldn't be there.
 
 ## 8. Fit with the AI team
 - If the AI team is built (branch `claude/ai-team` or merged into master): make sure its logging records each nightly backup result for the CTO, check the AI Team's Firestore collections and functions in the rules review (item 5), and once everything here is done, tell me so I can mark the Today item "Run security hardening before launching the client app" as done.
 
+## Part 2 — before the client-facing app launches (do NOT start until I say)
+When I tell you the client app is about to launch, do this as a second round on a new branch `claude/client-launch-security`, plan first and stop for my OK:
+- **Client accounts:** email verification, strong password policy, limits on repeated failed logins, Firebase App Check enforced, optional two-step sign-in for clients who want it.
+- **App store requirements (Apple App Store and Google Play):** in-app account deletion; privacy policy (English and Arabic) linked in the app and store listings; Apple "App Privacy" and Google "Data safety" answers drafted from what we really collect; Sign in with Apple if any other social sign-in is offered; a proper native app build (e.g. Capacitor) with real app features such as notifications — not a bare website wrapper; HealthKit/Health Connect and in-app payment rules if we use them. Check the current guidelines of both stores and give me a checklist with each item done / to do.
+- **UAE data protection:** consent screens, data download and delete, minimum data kept with retention periods, a one-page data-flow list for my lawyer, and a short breach plan (who does what, who we tell, how fast).
+- **Independent penetration test:** help me write the scope for an outside security firm, and fix what they find before launch.
+
 ## Finish
-Before handing over: `node tools/audit.mjs` (expect HIGH 2 · MED 12 · LOW 1 — no new findings), `node tools/stress.mjs` (0 failed), and the new rules tests. Then deploy hosting and rules. Change existing modules only where these items need it — no restyling. Ask me whenever something is unclear rather than guessing. Report: the branch, each item done / waiting on me, the audit and stress lines, the monthly cost added, and what I need to do next.
+Do Part 1 now (items 1–8); Part 2 only when I say. Before handing over: `node tools/audit.mjs` (expect HIGH 2 · MED 12 · LOW 1 — no new findings), `node tools/stress.mjs` (0 failed), and the new rules tests. Then deploy hosting and rules. Change existing modules only where these items need it — no restyling. Ask me whenever something is unclear rather than guessing. Report: the branch, each item done / waiting on me, the audit and stress lines, the monthly cost added, and what I need to do next.
